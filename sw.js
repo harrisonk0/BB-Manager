@@ -1,10 +1,11 @@
-
-const CACHE_NAME = 'bb-manager-cache-v1';
+const CACHE_NAME = 'bb-manager-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  // Note: In a real build, you'd cache specific JS/CSS bundles.
-  // For this setup, caching the root and index.html handles the basics.
+  '/icon-192x192.png',
+  '/icon-512x512.png',
+  '/favicon.ico',
+  '/manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -15,19 +16,7 @@ self.addEventListener('install', event => {
         return cache.addAll(urlsToCache);
       })
   );
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request).catch(() => caches.match('/index.html'));
-      }
-    )
-  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
@@ -37,10 +26,44 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', event => {
+  // For navigation requests, use a network-first strategy.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // For other requests (JS, CSS, images), use a stale-while-revalidate strategy.
+  event.respondWith(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.match(event.request).then(response => {
+        // Return cached response immediately if available.
+        const fetchPromise = fetch(event.request).then(networkResponse => {
+          // If fetch is successful, update the cache.
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        }).catch(() => {
+            // The fetch failed, maybe the network is down.
+            // The cached response was already returned, so this is fine.
+        });
+
+        // Return the cached response, or wait for the network fetch if not in cache.
+        return response || fetchPromise;
+      });
     })
   );
 });

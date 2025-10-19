@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Boy, Squad } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
+import { SaveIcon } from './Icons';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -27,6 +28,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
   const [marks, setMarks] = useState<Record<string, number | string>>({});
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     const newMarks: Record<string, number | string> = {};
@@ -44,7 +46,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
                     newMarks[boy.id] = markForDate.score;
                 }
             } else {
-                // Default to present for boys with no mark on this date
                 newAttendance[boy.id] = 'present';
                 newMarks[boy.id] = '';
             }
@@ -52,12 +53,14 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
     });
     setMarks(newMarks);
     setAttendance(newAttendance);
+    setIsDirty(false);
   }, [selectedDate, boys]);
 
   const handleMarkChange = (boyId: string, score: string) => {
     const numericScore = parseInt(score, 10);
     if (score === '' || (!isNaN(numericScore) && numericScore >= 0 && numericScore <= 10)) {
         setMarks(prev => ({ ...prev, [boyId]: score }));
+        setIsDirty(true);
     }
   };
   
@@ -71,6 +74,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
         const markForDate = boys.find(b => b.id === boyId)?.marks.find(m => m.date === selectedDate);
         setMarks(prev => ({ ...prev, [boyId]: markForDate ? markForDate.score : '' }));
     }
+    setIsDirty(true);
   };
 
   const handleSaveMarks = async () => {
@@ -120,7 +124,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
         }
         
         if (hasChanged) {
-            changedBoysOldData.push(boy);
+            changedBoysOldData.push(JSON.parse(JSON.stringify(boy))); // Deep copy
             return updateBoy({ ...boy, marks: updatedMarks });
         }
         return Promise.resolve(null);
@@ -139,6 +143,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
         }
         await Promise.all(updates);
         refreshData();
+        setIsDirty(false);
     } catch(error) {
         console.error("Failed to save marks", error);
     } finally {
@@ -154,16 +159,15 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
       }
     });
     
-    // Sort within each squad by year (desc) then name (asc)
     for (const squadNum of Object.keys(grouped)) {
         const key = squadNum as unknown as Squad;
         grouped[key].sort((a, b) => {
             const yearA = a.year || 0;
             const yearB = b.year || 0;
             if (yearA !== yearB) {
-                return yearB - yearA; // Descending by year
+                return yearB - yearA;
             }
-            return a.name.localeCompare(b.name); // Ascending by name
+            return a.name.localeCompare(b.name);
         });
     }
     return grouped;
@@ -197,17 +201,10 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
             onChange={e => setSelectedDate(e.target.value)}
             className="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500"
           />
-          <button
-            onClick={handleSaveMarks}
-            disabled={isSaving}
-            className="px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:bg-sky-400 disabled:cursor-not-allowed"
-          >
-            {isSaving ? 'Saving...' : 'Save Marks'}
-          </button>
         </div>
       </div>
       
-      <div className="space-y-8">
+      <div className="space-y-8 pb-20">
         {(Object.keys(boysBySquad) as unknown as Squad[]).map((squad) => (
            boysBySquad[squad].length > 0 && (
           <div key={squad}>
@@ -261,6 +258,22 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
            )
         ))}
       </div>
+
+       {isDirty && (
+          <button
+            onClick={handleSaveMarks}
+            disabled={isSaving}
+            className="fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full bg-sky-600 text-white shadow-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:bg-sky-400 disabled:cursor-not-allowed flex items-center justify-center"
+            aria-label="Save Marks"
+          >
+            {isSaving ? (
+              <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : <SaveIcon className="h-7 w-7" />}
+          </button>
+       )}
     </div>
   );
 };

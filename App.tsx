@@ -7,7 +7,8 @@ import Header from './components/Header';
 import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
-import { fetchBoys } from './services/db';
+import { HomePageSkeleton } from './components/SkeletonLoaders';
+import { fetchBoys, syncPendingWrites } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
 import { Boy } from './types';
 
@@ -25,6 +26,52 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const refreshData = useCallback(async () => {
+    try {
+        const allBoys = await fetchBoys();
+        setBoys(allBoys.sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (err) {
+        console.error("Failed to refresh data:", err);
+        setError("Could not refresh data. Please check your connection.");
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleOnline = () => {
+        console.log('App is online, attempting to sync...');
+        syncPendingWrites().then(synced => {
+            if (synced) {
+                console.log('Sync complete, refreshing data.');
+                refreshData();
+            }
+        });
+    };
+    
+    window.addEventListener('online', handleOnline);
+    // Attempt sync on initial load as well in case app was closed while offline
+    syncPendingWrites().then(synced => {
+        if(synced) refreshData();
+    });
+
+    return () => {
+        window.removeEventListener('online', handleOnline);
+    };
+  }, [refreshData]);
+  
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const allBoys = await fetchBoys();
+      setBoys(allBoys.sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (err: any) {
+      console.error("Failed to fetch data:", err);
+      setError(`Failed to connect to the database. You may not have permission. Error: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+  
   useEffect(() => {
     try {
       initializeFirebase();
@@ -42,32 +89,8 @@ const App: React.FC = () => {
       setError(`Failed to initialize Firebase. Error: ${err.message}`);
       setIsLoading(false);
     }
-  }, []);
-  
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const allBoys = await fetchBoys();
-      setBoys(allBoys.sort((a, b) => a.name.localeCompare(b.name)));
-    } catch (err: any) {
-      console.error("Failed to fetch data:", err);
-      setError(`Failed to connect to the database. You may not have permission. Error: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  }, [loadData]);
 
-  const refreshData = useCallback(async () => {
-      try {
-          const allBoys = await fetchBoys();
-          setBoys(allBoys.sort((a, b) => a.name.localeCompare(b.name)));
-      } catch (err) {
-          console.error("Failed to refresh data:", err);
-          setError("Could not refresh data. Please check your connection.");
-      }
-  }, []);
-  
   const handleSignOut = async () => {
     try {
       const auth = getAuthInstance();
@@ -111,7 +134,7 @@ const App: React.FC = () => {
 
   const renderApp = () => {
     if (currentUser === undefined || (currentUser && isLoading)) {
-        return <div className="text-center p-8">Loading...</div>;
+        return <HomePageSkeleton />;
     }
     
     if (!currentUser) {

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Boy, Squad } from '../types';
 import Modal from './Modal';
 import BoyForm from './BoyForm';
-import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon } from './Icons';
+import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon } from './Icons';
 import { deleteBoyById, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
 
@@ -23,6 +23,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [boyToEdit, setBoyToEdit] = useState<Boy | null>(null);
   const [boyToDelete, setBoyToDelete] = useState<Boy | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const allWeeksCount = useMemo(() => {
     const allDates = new Set<string>();
@@ -31,6 +32,15 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
     });
     return allDates.size;
   }, [boys]);
+
+  const filteredBoys = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return boys;
+    }
+    return boys.filter(boy =>
+      boy.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
+    );
+  }, [boys, searchQuery]);
 
   const handleAddBoy = () => {
     setBoyToEdit(null);
@@ -87,7 +97,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
 
   const boysBySquad = useMemo(() => {
     const grouped: Record<Squad, Boy[]> = { 1: [], 2: [], 3: [] };
-    boys.forEach(boy => {
+    filteredBoys.forEach(boy => {
       if (grouped[boy.squad]) {
         grouped[boy.squad].push(boy);
       }
@@ -107,28 +117,51 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
     }
 
     return grouped;
-  }, [boys]);
+  }, [filteredBoys]);
 
   const squadLeaders = useMemo(() => {
     const leaders: Record<string, string | undefined> = {};
-    (Object.keys(boysBySquad) as unknown as Squad[]).forEach(squadNum => {
-        const squadBoys = boysBySquad[squadNum];
-        if (squadBoys.length === 0) return;
+    const allBoysBySquad: Record<Squad, Boy[]> = { 1: [], 2: [], 3: [] };
 
-        // Find explicitly marked leader
-        let leader = squadBoys.find(b => b.isSquadLeader);
-        
-        // If no explicit leader, the first one in the sorted list is the default leader
-        if (!leader) {
-            leader = squadBoys[0];
+    // Group all boys from the original, unfiltered list
+    boys.forEach(boy => {
+      if (allBoysBySquad[boy.squad]) {
+        allBoysBySquad[boy.squad].push(boy);
+      }
+    });
+
+    // Sort each squad in the full list to determine the correct default leader
+    for (const squadNum of Object.keys(allBoysBySquad)) {
+      const key = squadNum as unknown as Squad;
+      allBoysBySquad[key].sort((a, b) => {
+        const yearA = a.year || 0;
+        const yearB = b.year || 0;
+        if (yearA !== yearB) {
+          return yearB - yearA; // Descending by year
         }
-        
-        if (leader) {
-            leaders[squadNum] = leader.id;
-        }
+        return a.name.localeCompare(b.name); // Ascending by name
+      });
+    }
+
+    // Determine the leader for each squad from the full, sorted list
+    (Object.keys(allBoysBySquad) as unknown as Squad[]).forEach(squadNum => {
+      const squadBoys = allBoysBySquad[squadNum];
+      if (squadBoys.length === 0) return;
+
+      // Find an explicitly marked leader first
+      let leader = squadBoys.find(b => b.isSquadLeader);
+      
+      // If no explicit leader, the first one in the full sorted list is the default leader
+      if (!leader && squadBoys.length > 0) {
+        leader = squadBoys[0];
+      }
+      
+      if (leader) {
+        leaders[squadNum] = leader.id;
+      }
     });
     return leaders;
-}, [boysBySquad]);
+  }, [boys]);
 
   const calculateTotalMarks = (boy: Boy) => {
     return boy.marks.reduce((total, mark) => total + mark.score, 0);
@@ -165,10 +198,31 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
         </button>
       </div>
 
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <SearchIcon className="h-5 w-5 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Search members..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 dark:focus:placeholder-gray-500 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
+          aria-label="Search members"
+        />
+      </div>
+
       {boys.length === 0 && (
           <div className="text-center py-10 px-4 bg-white dark:bg-gray-800 rounded-lg shadow">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">No members yet!</h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Click "Add Boy" to get started.</p>
+          </div>
+      )}
+
+      {boys.length > 0 && filteredBoys.length === 0 && (
+          <div className="text-center py-10 px-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">No members found</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Your search for "{searchQuery}" did not match any members.</p>
           </div>
       )}
 
@@ -204,21 +258,21 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => setView({ page: 'boyMarks', boyId: boy.id! })}
-                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-sky-600 dark:hover:text-sky-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-sky-600 dark:hover:text-sky-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                       aria-label={`View marks for ${boy.name}`}
                     >
                       <ChartBarIcon />
                     </button>
                     <button
                       onClick={() => handleEditBoy(boy)}
-                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                       aria-label={`Edit ${boy.name}`}
                     >
                       <PencilIcon />
                     </button>
                      <button
                       onClick={() => handleOpenDeleteModal(boy)}
-                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                       aria-label={`Delete ${boy.name}`}
                     >
                       <TrashIcon />
