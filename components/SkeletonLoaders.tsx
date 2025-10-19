@@ -7,15 +7,15 @@ const Skeleton: React.FC<{ className?: string }> = ({ className }) => (
 export const HomePageSkeleton: React.FC = () => (
   <>
     {/* Fake Header */}
-    <header className="bg-sky-600 dark:bg-sky-800 text-white shadow-md">
-      <nav className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-        <div className="h-6 w-32 bg-sky-500 dark:bg-sky-700 rounded"></div>
+    <header className="bg-bb-blue text-white shadow-md">
+      <nav className="container mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
+        <div className="h-12 w-36 bg-white/20 rounded"></div>
         <div className="hidden md:flex items-center space-x-4">
-            <div className="h-5 w-16 bg-sky-500 dark:bg-sky-700 rounded"></div>
-            <div className="h-5 w-24 bg-sky-500 dark:bg-sky-700 rounded"></div>
-            <div className="h-5 w-28 bg-sky-500 dark:bg-sky-700 rounded"></div>
+            <div className="h-5 w-16 bg-white/20 rounded"></div>
+            <div className="h-5 w-24 bg-white/20 rounded"></div>
+            <div className="h-5 w-28 bg-white/20 rounded"></div>
         </div>
-        <div className="md:hidden h-6 w-6 bg-sky-500 dark:bg-sky-700 rounded"></div>
+        <div className="md:hidden h-6 w-6 bg-white/20 rounded"></div>
       </nav>
     </header>
 

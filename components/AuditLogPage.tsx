@@ -17,10 +17,10 @@ const ACTION_ICONS: Record<string, React.FC<{className?: string}>> = {
 };
 
 const ACTION_COLORS: Record<string, string> = {
-  CREATE_BOY: 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300',
-  UPDATE_BOY: 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300',
-  DELETE_BOY: 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300',
-  REVERT_ACTION: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-600 dark:text-yellow-300',
+  CREATE_BOY: 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-300',
+  UPDATE_BOY: 'bg-bb-blue/10 text-bb-blue',
+  DELETE_BOY: 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-300',
+  REVERT_ACTION: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 dark:text-yellow-300',
 };
 
 const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData }) => {
@@ -131,7 +131,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData }) => {
         <ul className="space-y-4">
           {logs.map((log) => {
             const Icon = ACTION_ICONS[log.actionType] || PencilIcon;
-            const colorClass = ACTION_COLORS[log.actionType] || 'bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-300';
+            const colorClass = ACTION_COLORS[log.actionType] || 'bg-gray-100 dark:bg-gray-900/50 text-gray-600 dark:text-gray-300';
             const canRevert = log.actionType !== 'REVERT_ACTION' && !log.reverted;
 
             return (
@@ -151,7 +151,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData }) => {
                 {canRevert && (
                   <button
                     onClick={() => handleOpenRevertModal(log)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900 rounded-md hover:bg-sky-200 dark:hover:bg-sky-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-bb-blue rounded-md hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bb-blue transition-colors"
                   >
                     <UndoIcon className="h-4 w-4" />
                     Revert
@@ -183,7 +183,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData }) => {
               <button
                 onClick={handleRevert}
                 disabled={isReverting}
-                className="px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:bg-sky-400 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-bb-blue rounded-md hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bb-blue disabled:bg-bb-blue disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isReverting ? 'Reverting...' : 'Confirm Revert'}
               </button>

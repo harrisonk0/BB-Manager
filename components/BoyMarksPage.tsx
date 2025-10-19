@@ -212,7 +212,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWe
                     value={mark.score ?? ''}
                     onChange={(e) => handleScoreChange(mark.date, e.target.value)}
                     disabled={!isPresent}
-                    className="w-20 text-center px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    className="w-20 text-center px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:text-gray-500 disabled:cursor-not-allowed"
                     placeholder="0-10"
                     aria-label={`Score for ${formattedDate}`}
                   />
@@ -235,7 +235,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWe
           <button
             onClick={handleSaveChanges}
             disabled={isSaving}
-            className="fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full bg-sky-600 text-white shadow-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 disabled:bg-sky-400 disabled:cursor-not-allowed flex items-center justify-center"
+            className="fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full bg-bb-blue text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bb-blue disabled:bg-bb-blue disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             aria-label="Save Changes"
           >
             {isSaving ? (

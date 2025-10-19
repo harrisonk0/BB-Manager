@@ -191,7 +191,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Members</h1>
         <button
           onClick={handleAddBoy}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-bb-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bb-blue"
         >
           <PlusIcon className="h-5 w-5 mr-2"/>
           Add Boy
@@ -207,7 +207,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
           placeholder="Search members..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 dark:focus:placeholder-gray-500 focus:ring-1 focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
+          className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 dark:focus:placeholder-gray-500 focus:ring-1 focus:ring-bb-blue focus:border-bb-blue sm:text-sm"
           aria-label="Search members"
         />
       </div>
@@ -258,14 +258,14 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => setView({ page: 'boyMarks', boyId: boy.id! })}
-                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-sky-600 dark:hover:text-sky-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-bb-blue dark:hover:text-bb-blue rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                       aria-label={`View marks for ${boy.name}`}
                     >
                       <ChartBarIcon />
                     </button>
                     <button
                       onClick={() => handleEditBoy(boy)}
-                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-bb-blue dark:hover:text-bb-blue rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                       aria-label={`Edit ${boy.name}`}
                     >
                       <PencilIcon />

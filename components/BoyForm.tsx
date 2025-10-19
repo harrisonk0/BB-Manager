@@ -88,7 +88,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose }) => {
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
+          className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue sm:text-sm"
           required
         />
       </div>
@@ -100,7 +100,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose }) => {
           id="year"
           value={year}
           onChange={(e) => setYear(parseInt(e.target.value, 10) as SchoolYear)}
-          className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 sm:text-sm"
+          className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue sm:text-sm"
         >
           {schoolYears.map((yearNum) => (
             <option key={yearNum} value={yearNum}>
@@ -120,7 +120,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose }) => {
                 value={squadNum}
                 checked={squad === squadNum}
                 onChange={() => setSquad(squadNum as Squad)}
-                className="form-radio h-4 w-4 text-sky-600 border-gray-300 focus:ring-sky-500"
+                className="form-radio h-4 w-4 text-bb-blue border-gray-300 focus:ring-bb-blue"
               />
               <span className="ml-2">Squad {squadNum}</span>
             </label>
@@ -133,7 +133,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose }) => {
             type="checkbox"
             checked={isSquadLeader}
             onChange={(e) => setIsSquadLeader(e.target.checked)}
-            className="form-checkbox h-4 w-4 text-sky-600 border-gray-300 dark:border-gray-600 rounded focus:ring-sky-500"
+            className="form-checkbox h-4 w-4 text-bb-blue border-gray-300 dark:border-gray-600 rounded focus:ring-bb-blue"
           />
           <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Set as Squad Leader</span>
         </label>
@@ -148,7 +148,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose }) => {
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-sky-600 rounded-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+          className="px-4 py-2 text-sm font-medium text-white bg-bb-blue rounded-md hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bb-blue"
         >
           {boyToEdit ? 'Update Boy' : 'Add Boy'}
         </button>
