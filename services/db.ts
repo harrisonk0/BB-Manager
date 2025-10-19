@@ -12,10 +12,12 @@ import {
     getDoc,
     query,
     orderBy,
+    where,
+    Timestamp,
 } from 'firebase/firestore';
 import { Boy, AuditLog } from '../types';
 import { getDb, getAuthInstance } from './firebase';
-import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB } from './offlineDb';
+import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB } from './offlineDb';
 
 const BOYS_COLLECTION = 'boys';
 const AUDIT_LOGS_COLLECTION = 'audit_logs';
@@ -302,4 +304,48 @@ export const updateAuditLog = async (log: AuditLog): Promise<AuditLog> => {
     await saveLogToDB(log);
   }
   return log;
+};
+
+export const deleteOldAuditLogs = async (): Promise<void> => {
+    const fourteenDaysInMillis = 14 * 24 * 60 * 60 * 1000;
+    const cutoffTimestamp = Date.now() - fourteenDaysInMillis;
+
+    // 1. Clean up IndexedDB
+    try {
+        const localLogs = await getLogsFromDB();
+        const oldLocalLogIds = localLogs
+            .filter(log => log.timestamp < cutoffTimestamp)
+            .map(log => log.id!);
+        
+        if (oldLocalLogIds.length > 0) {
+            await deleteLogsFromDB(oldLocalLogIds);
+            console.log(`Deleted ${oldLocalLogIds.length} old logs from IndexedDB.`);
+        }
+    } catch (error) {
+        console.error("Failed to delete old logs from IndexedDB:", error);
+    }
+
+    // 2. Clean up Firestore (if online)
+    if (navigator.onLine) {
+        try {
+            const db = getDb();
+            const cutoffFirestoreTimestamp = Timestamp.fromMillis(cutoffTimestamp);
+            const oldLogsQuery = query(
+                collection(db, AUDIT_LOGS_COLLECTION),
+                where('timestamp', '<', cutoffFirestoreTimestamp)
+            );
+            
+            const snapshot = await getDocs(oldLogsQuery);
+            if (!snapshot.empty) {
+                const batch = writeBatch(db);
+                snapshot.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+                console.log(`Deleted ${snapshot.docs.length} old logs from Firestore.`);
+            }
+        } catch (error) {
+            console.error("Failed to delete old logs from Firestore:", error);
+        }
+    }
 };

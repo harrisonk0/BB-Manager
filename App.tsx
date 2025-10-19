@@ -8,7 +8,7 @@ import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { fetchBoys, syncPendingWrites } from './services/db';
+import { fetchBoys, syncPendingWrites, deleteOldAuditLogs } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
 import { Boy, View, Page, BoyMarksPageView } from './types';
 import Modal from './components/Modal';
@@ -78,7 +78,10 @@ const App: React.FC = () => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         setCurrentUser(user);
         if (user) {
-          loadData();
+          // Clean up old logs then load the data
+          deleteOldAuditLogs().then(() => {
+            loadData();
+          });
         } else {
           setIsLoading(false); // Not logged in, stop loading
         }

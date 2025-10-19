@@ -150,6 +150,17 @@ export const deleteLogFromDB = async (id: string): Promise<void> => {
   });
 };
 
+export const deleteLogsFromDB = async (logIds: string[]): Promise<void> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(LOGS_STORE, 'readwrite');
+    const store = tx.objectStore(LOGS_STORE);
+    logIds.forEach(id => store.delete(id));
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+};
+
 
 // --- Pending Writes Functions ---
 export const addPendingWrite = async (write: Omit<PendingWrite, 'id'>): Promise<void> => {
