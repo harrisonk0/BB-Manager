@@ -2,7 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { Boy, Squad } from '../types';
 import Modal from './Modal';
 import BoyForm from './BoyForm';
-import { PencilIcon, ChartBarIcon, PlusIcon } from './Icons';
+import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon } from './Icons';
+import { deleteBoyById, createAuditLog } from '../services/db';
+import { getAuthInstance } from '../services/firebase';
 
 interface HomePageProps {
   boys: Boy[];
@@ -17,26 +19,69 @@ const SQUAD_COLORS: Record<Squad, string> = {
 };
 
 const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [boyToEdit, setBoyToEdit] = useState<Boy | null>(null);
+  const [boyToDelete, setBoyToDelete] = useState<Boy | null>(null);
+
+  const allWeeksCount = useMemo(() => {
+    const allDates = new Set<string>();
+    boys.forEach(boy => {
+      boy.marks.forEach(mark => allDates.add(mark.date));
+    });
+    return allDates.size;
+  }, [boys]);
 
   const handleAddBoy = () => {
     setBoyToEdit(null);
-    setIsModalOpen(true);
+    setIsFormModalOpen(true);
   };
 
   const handleEditBoy = (boy: Boy) => {
     setBoyToEdit(boy);
-    setIsModalOpen(true);
+    setIsFormModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleCloseFormModal = () => {
+    setIsFormModalOpen(false);
     setBoyToEdit(null);
   };
+
+  const handleOpenDeleteModal = (boy: Boy) => {
+    setBoyToDelete(boy);
+    setIsDeleteModalOpen(true);
+  };
   
+  const handleCloseDeleteModal = () => {
+    setBoyToDelete(null);
+    setIsDeleteModalOpen(false);
+  };
+  
+  const handleDeleteBoy = async () => {
+    if (!boyToDelete) return;
+
+    try {
+      const auth = getAuthInstance();
+      const userEmail = auth.currentUser?.email || 'Unknown User';
+      
+      await createAuditLog({
+          userEmail,
+          actionType: 'DELETE_BOY',
+          description: `Deleted boy: ${boyToDelete.name}`,
+          revertData: { boyData: boyToDelete },
+      });
+      
+      await deleteBoyById(boyToDelete.id!);
+      
+      refreshData();
+      handleCloseDeleteModal();
+    } catch (error) {
+        console.error("Failed to delete boy:", error);
+    }
+  };
+
   const handleSave = () => {
-    handleCloseModal();
+    handleCloseFormModal();
     refreshData();
   }
 
@@ -89,9 +134,23 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
     return boy.marks.reduce((total, mark) => total + mark.score, 0);
   };
   
+  const calculateAttendancePercentage = (boy: Boy) => {
+    if (allWeeksCount === 0) return 0;
+    const attendedCount = boy.marks.filter(m => m.score > 0).length;
+    return Math.round((attendedCount / allWeeksCount) * 100);
+  };
+
   const calculateSquadTotalMarks = (squadBoys: Boy[]) => {
     return squadBoys.reduce((total, boy) => total + calculateTotalMarks(boy), 0);
   };
+
+  const calculateSquadAttendancePercentage = (squadBoys: Boy[]) => {
+    if (allWeeksCount === 0 || squadBoys.length === 0) return 0;
+    const totalPossibleAttendances = squadBoys.length * allWeeksCount;
+    const totalActualAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.filter(m => m.score > 0).length, 0);
+    return Math.round((totalActualAttendances / totalPossibleAttendances) * 100);
+  };
+
 
   return (
     <div className="space-y-8">
@@ -118,9 +177,14 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
         <div key={squad}>
           <div className="flex justify-between items-baseline mb-4">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">Squad {squad}</h2>
-            <p className="font-semibold text-gray-600 dark:text-gray-400">
-              Total Marks: {calculateSquadTotalMarks(boysBySquad[squad])}
-            </p>
+            <div className="text-right">
+              <p className="font-semibold text-gray-600 dark:text-gray-400">
+                Total Marks: {calculateSquadTotalMarks(boysBySquad[squad])}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-500">
+                Avg Attendance: {calculateSquadAttendancePercentage(boysBySquad[squad])}%
+              </p>
+            </div>
           </div>
           <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -133,7 +197,9 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
                             <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
                         )}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Year {boy.year} &bull; Total Marks: {calculateTotalMarks(boy)}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Year {boy.year} &bull; Total Marks: {calculateTotalMarks(boy)} &bull; Attendance: {calculateAttendancePercentage(boy)}%
+                    </p>
                   </div>
                   <div className="flex space-x-2">
                     <button
@@ -150,6 +216,13 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
                     >
                       <PencilIcon />
                     </button>
+                     <button
+                      onClick={() => handleOpenDeleteModal(boy)}
+                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      aria-label={`Delete ${boy.name}`}
+                    >
+                      <TrashIcon />
+                    </button>
                   </div>
                 </li>
               ))}
@@ -159,8 +232,31 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
         )
       ))}
 
-      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={boyToEdit ? 'Edit Boy' : 'Add New Boy'}>
-        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseModal} />
+      <Modal isOpen={isFormModalOpen} onClose={handleCloseFormModal} title={boyToEdit ? 'Edit Boy' : 'Add New Boy'}>
+        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} />
+      </Modal>
+
+      <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Confirm Deletion">
+        {boyToDelete && (
+          <div className="space-y-4">
+            <p>Are you sure you want to delete <strong className="font-semibold">{boyToDelete.name}</strong>? This action cannot be undone directly, but can be reverted from the audit log.</p>
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={handleCloseDeleteModal}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 dark:text-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteBoy}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

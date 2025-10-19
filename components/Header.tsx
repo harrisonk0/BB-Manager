@@ -2,7 +2,7 @@ import React from 'react';
 import { User } from 'firebase/auth';
 
 interface HeaderProps {
-    setView: (view: { page: 'home' } | { page: 'weeklyMarks' } | { page: 'dashboard' }) => void;
+    setView: (view: { page: 'home' } | { page: 'weeklyMarks' } | { page: 'dashboard' } | { page: 'auditLog' }) => void;
     user: User | null;
     onSignOut: () => void;
 }
@@ -32,6 +32,12 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut }) => {
                                 className="px-3 py-2 rounded-md text-sm font-medium hover:bg-sky-700 dark:hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-sky-800 focus:ring-white"
                             >
                                 Weekly Marks
+                            </button>
+                             <button 
+                                onClick={() => setView({ page: 'auditLog' })}
+                                className="px-3 py-2 rounded-md text-sm font-medium hover:bg-sky-700 dark:hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-sky-800 focus:ring-white"
+                            >
+                                Audit Log
                             </button>
                              <div className="hidden sm:flex items-center space-x-2 border-l border-sky-500 pl-4 ml-2">
                                 <span className="text-sm truncate">{user.email}</span>

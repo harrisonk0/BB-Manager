@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { fetchBoyById, updateBoy } from '../services/db';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { fetchBoyById, updateBoy, createAuditLog } from '../services/db';
 import { Boy, Mark, Squad } from '../types';
 import { TrashIcon } from './Icons';
+import { getAuthInstance } from '../services/firebase';
 
 interface BoyMarksPageProps {
   boyId: string;
   refreshData: () => void;
+  totalWeeks: number;
 }
 
 const SQUAD_COLORS: Record<Squad, string> = {
@@ -16,7 +18,7 @@ const SQUAD_COLORS: Record<Squad, string> = {
 
 type EditableMark = Omit<Mark, 'score'> & { score: number | '' };
 
-const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData }) => {
+const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWeeks }) => {
   const [boy, setBoy] = useState<Boy | null>(null);
   const [editedMarks, setEditedMarks] = useState<EditableMark[]>([]);
   const [isDirty, setIsDirty] = useState(false);
@@ -51,7 +53,10 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData }) => {
   useEffect(() => {
     if (boy) {
       const originalMarksSorted = [...boy.marks].sort((a, b) => a.date.localeCompare(b.date));
-      const editedMarksSorted = [...editedMarks].sort((a, b) => a.date.localeCompare(b.date));
+      const editedMarksSorted = [...editedMarks]
+        .filter(m => m.score !== '')
+        .map(m => ({ ...m, score: Number(m.score) }))
+        .sort((a, b) => a.date.localeCompare(b.date));
       setIsDirty(JSON.stringify(originalMarksSorted) !== JSON.stringify(editedMarksSorted));
     } else {
         setIsDirty(false);
@@ -99,6 +104,16 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData }) => {
     const updatedBoyData = { ...boy, marks: validMarks };
 
     try {
+      const auth = getAuthInstance();
+      const userEmail = auth.currentUser?.email || 'Unknown User';
+      
+      await createAuditLog({
+        userEmail,
+        actionType: 'UPDATE_BOY',
+        description: `Updated marks for ${boy.name}.`,
+        revertData: { boyData: boy }, // 'boy' from state holds the old data
+      });
+
       await updateBoy(updatedBoyData);
       updatedBoyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setBoy(updatedBoyData);
@@ -112,7 +127,12 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData }) => {
     }
   };
 
-  const totalMarks = editedMarks.reduce((sum, mark) => sum + (Number(mark.score) || 0), 0);
+  const { totalMarks, attendancePercentage } = useMemo(() => {
+    const attendedCount = editedMarks.filter(m => m.score !== '' && Number(m.score) > 0).length;
+    const percentage = totalWeeks > 0 ? Math.round((attendedCount / totalWeeks) * 100) : 0;
+    const total = editedMarks.reduce((sum, mark) => sum + (Number(mark.score) || 0), 0);
+    return { totalMarks: total, attendancePercentage: percentage };
+  }, [editedMarks, totalWeeks]);
 
   if (loading) return <div className="text-center p-8">Loading marks...</div>;
   if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
@@ -132,9 +152,12 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData }) => {
                 <span className="text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full align-middle">Leader</span>
               </>
             )}
-            <span className="mx-1">&bull;</span>
-            Total Marks: {totalMarks}
           </p>
+           <p className="mt-1 text-md text-gray-500 dark:text-gray-500">
+            Total Marks: {totalMarks}
+            <span className="mx-1">&bull;</span>
+            Attendance: {attendancePercentage}%
+           </p>
         </div>
         <button
           onClick={handleSaveChanges}

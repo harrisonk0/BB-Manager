@@ -14,3 +14,15 @@ export interface Boy {
   marks: Mark[];
   isSquadLeader?: boolean;
 }
+
+export type AuditLogActionType = 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'REVERT_ACTION';
+
+export interface AuditLog {
+  id?: string;
+  timestamp: number; // Unix milliseconds
+  userEmail: string;
+  actionType: AuditLogActionType;
+  description: string;
+  revertData: any;
+  reverted?: boolean;
+}

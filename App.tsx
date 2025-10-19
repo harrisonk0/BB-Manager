@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import HomePage from './components/HomePage';
 import WeeklyMarksPage from './components/WeeklyMarksPage';
@@ -6,11 +6,12 @@ import BoyMarksPage from './components/BoyMarksPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
+import AuditLogPage from './components/AuditLogPage';
 import { fetchBoys } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
 import { Boy } from './types';
 
-type Page = 'home' | 'weeklyMarks' | 'dashboard';
+type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog';
 interface BoyMarksPageView {
   page: 'boyMarks';
   boyId: string;
@@ -79,6 +80,17 @@ const App: React.FC = () => {
     }
   };
 
+  const allWeeks = useMemo(() => {
+    const allDates = new Set<string>();
+    boys.forEach(boy => {
+      boy.marks.forEach(mark => {
+        allDates.add(mark.date);
+      });
+    });
+    return Array.from(allDates);
+  }, [boys]);
+
+
   const renderMainContent = () => {
     switch (view.page) {
       case 'home':
@@ -87,9 +99,11 @@ const App: React.FC = () => {
         return <WeeklyMarksPage boys={boys} refreshData={refreshData} />;
       case 'dashboard':
         return <DashboardPage boys={boys} />;
+      case 'auditLog':
+        return <AuditLogPage refreshData={refreshData} />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
-        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} />;
+        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} totalWeeks={allWeeks.length} />;
       default:
         return <HomePage boys={boys} setView={setView} refreshData={refreshData} />;
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Boy, Squad } from '../types';
-import { updateBoy } from '../services/db';
+import { updateBoy, createAuditLog } from '../services/db';
+import { getAuthInstance } from '../services/firebase';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -67,12 +68,15 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
     if (newStatus === 'absent') {
         setMarks(prev => ({ ...prev, [boyId]: 0 }));
     } else {
-        setMarks(prev => ({ ...prev, [boyId]: '' })); // Clear mark for new entry
+        const markForDate = boys.find(b => b.id === boyId)?.marks.find(m => m.date === selectedDate);
+        setMarks(prev => ({ ...prev, [boyId]: markForDate ? markForDate.score : '' }));
     }
   };
 
   const handleSaveMarks = async () => {
     setIsSaving(true);
+    
+    const changedBoysOldData: Boy[] = [];
     const updates = boys.map(boy => {
         if (!boy.id) return Promise.resolve(null);
         
@@ -116,12 +120,23 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
         }
         
         if (hasChanged) {
+            changedBoysOldData.push(boy);
             return updateBoy({ ...boy, marks: updatedMarks });
         }
         return Promise.resolve(null);
     });
 
     try {
+        if (changedBoysOldData.length > 0) {
+            const auth = getAuthInstance();
+            const userEmail = auth.currentUser?.email || 'Unknown User';
+            await createAuditLog({
+                userEmail,
+                actionType: 'UPDATE_BOY',
+                description: `Updated weekly marks for ${selectedDate} for ${changedBoysOldData.length} boys.`,
+                revertData: { boysData: changedBoysOldData },
+            });
+        }
         await Promise.all(updates);
         refreshData();
     } catch(error) {

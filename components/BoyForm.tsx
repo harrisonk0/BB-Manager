@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Boy, Squad, SchoolYear } from '../types';
-import { createBoy, updateBoy } from '../services/db';
+import { createBoy, updateBoy, createAuditLog } from '../services/db';
+import { getAuthInstance } from '../services/firebase';
 
 interface BoyFormProps {
   boyToEdit?: Boy | null;
@@ -38,10 +39,33 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose }) => {
     setError('');
 
     try {
+      const auth = getAuthInstance();
+      const userEmail = auth.currentUser?.email || 'Unknown User';
+
       if (boyToEdit) {
+        const changes: string[] = [];
+        if (boyToEdit.name !== name) changes.push(`name to "${name}"`);
+        if (boyToEdit.squad !== squad) changes.push(`squad to ${squad}`);
+        if (boyToEdit.year !== year) changes.push(`year to ${year}`);
+        if (!!boyToEdit.isSquadLeader !== isSquadLeader) changes.push(`squad leader status to ${isSquadLeader}`);
+        
+        if (changes.length > 0) {
+            await createAuditLog({
+                userEmail,
+                actionType: 'UPDATE_BOY',
+                description: `Updated ${boyToEdit.name}: changed ${changes.join(', ')}.`,
+                revertData: { boyData: boyToEdit },
+            });
+        }
         await updateBoy({ ...boyToEdit, name, squad, year, isSquadLeader });
       } else {
-        await createBoy({ name, squad, year, marks: [], isSquadLeader });
+        const newBoy = await createBoy({ name, squad, year, marks: [], isSquadLeader });
+        await createAuditLog({
+            userEmail,
+            actionType: 'CREATE_BOY',
+            description: `Added new boy: ${name}`,
+            revertData: { boyId: newBoy.id },
+        });
       }
       onSave();
     } catch (err) {
