@@ -1,0 +1,5 @@
+{
+  "name": "Boys' Brigade Manager",
+  "description": "A Progressive Web App to manage Boys' Brigade members, squads, and weekly marks. Data is stored locally in your browser for offline access.",
+  "requestFramePermissions": []
+}
