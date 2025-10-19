@@ -9,6 +9,7 @@ interface BoyMarksPageProps {
   boyId: string;
   refreshData: () => void;
   totalWeeks: number;
+  setHasUnsavedChanges: (dirty: boolean) => void;
 }
 
 const SQUAD_COLORS: Record<Squad, string> = {
@@ -19,7 +20,7 @@ const SQUAD_COLORS: Record<Squad, string> = {
 
 type EditableMark = Omit<Mark, 'score'> & { score: number | '' };
 
-const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWeeks }) => {
+const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWeeks, setHasUnsavedChanges }) => {
   const [boy, setBoy] = useState<Boy | null>(null);
   const [editedMarks, setEditedMarks] = useState<EditableMark[]>([]);
   const [isDirty, setIsDirty] = useState(false);
@@ -63,6 +64,24 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWe
         setIsDirty(false);
     }
   }, [boy, editedMarks]);
+  
+  useEffect(() => {
+    setHasUnsavedChanges(isDirty);
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isDirty) {
+        event.preventDefault();
+        event.returnValue = ''; // Required for modern browsers
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      setHasUnsavedChanges(false);
+    };
+  }, [isDirty, setHasUnsavedChanges]);
 
   const handleScoreChange = (date: string, newScoreStr: string) => {
     const newScore = parseInt(newScoreStr, 10);

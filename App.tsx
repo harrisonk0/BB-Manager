@@ -10,14 +10,8 @@ import AuditLogPage from './components/AuditLogPage';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { fetchBoys, syncPendingWrites } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
-import { Boy } from './types';
-
-type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog';
-interface BoyMarksPageView {
-  page: 'boyMarks';
-  boyId: string;
-}
-type View = { page: Page } | BoyMarksPageView;
+import { Boy, View, Page, BoyMarksPageView } from './types';
+import Modal from './components/Modal';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined);
@@ -25,6 +19,11 @@ const App: React.FC = () => {
   const [boys, setBoys] = useState<Boy[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // New states for navigation confirmation
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [viewToNavigateTo, setViewToNavigateTo] = useState<View | null>(null);
 
   const refreshData = useCallback(async () => {
     try {
@@ -91,15 +90,49 @@ const App: React.FC = () => {
     }
   }, [loadData]);
 
+  const handleNavigation = (newView: View) => {
+    if (hasUnsavedChanges && newView.page !== view.page) {
+      setViewToNavigateTo(newView);
+      setIsConfirmModalOpen(true);
+    } else {
+      setView(newView);
+    }
+  };
+
+  const confirmNavigation = () => {
+    if (viewToNavigateTo) {
+      setHasUnsavedChanges(false); // Allow navigation
+      setView(viewToNavigateTo);
+    }
+    setIsConfirmModalOpen(false);
+    setViewToNavigateTo(null);
+  };
+
+  const cancelNavigation = () => {
+    setIsConfirmModalOpen(false);
+    setViewToNavigateTo(null);
+  };
+
   const handleSignOut = async () => {
-    try {
-      const auth = getAuthInstance();
-      await signOut(auth);
-      setBoys([]); // Clear data on sign out
-      setView({ page: 'home' });
-    } catch (error) {
-      console.error('Sign out failed', error);
-      setError('Failed to sign out. Please try again.');
+    const performSignOut = async () => {
+      try {
+        const auth = getAuthInstance();
+        await signOut(auth);
+        setBoys([]); // Clear data on sign out
+        setView({ page: 'home' });
+      } catch (error) {
+        console.error('Sign out failed', error);
+        setError('Failed to sign out. Please try again.');
+      }
+    };
+
+    if (hasUnsavedChanges) {
+      if (window.confirm('You have unsaved changes. Are you sure you want to leave? Your changes will be lost.')) {
+        setHasUnsavedChanges(false);
+        await performSignOut();
+      }
+    } else {
+      await performSignOut();
     }
   };
 
@@ -117,18 +150,18 @@ const App: React.FC = () => {
   const renderMainContent = () => {
     switch (view.page) {
       case 'home':
-        return <HomePage boys={boys} setView={setView} refreshData={refreshData} />;
+        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} />;
       case 'weeklyMarks':
-        return <WeeklyMarksPage boys={boys} refreshData={refreshData} />;
+        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} />;
       case 'dashboard':
         return <DashboardPage boys={boys} />;
       case 'auditLog':
         return <AuditLogPage refreshData={refreshData} />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
-        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} totalWeeks={allWeeks.length} />;
+        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} totalWeeks={allWeeks.length} setHasUnsavedChanges={setHasUnsavedChanges} />;
       default:
-        return <HomePage boys={boys} setView={setView} refreshData={refreshData} />;
+        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} />;
     }
   };
 
@@ -147,7 +180,7 @@ const App: React.FC = () => {
 
     return (
         <>
-            <Header setView={setView} user={currentUser} onSignOut={handleSignOut} />
+            <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} />
             <main className="p-4 sm:p-6 lg:p-8">
                 {renderMainContent()}
             </main>
@@ -158,6 +191,26 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
       {renderApp()}
+      <Modal isOpen={isConfirmModalOpen} onClose={cancelNavigation} title="Unsaved Changes">
+        <div className="space-y-4">
+            <p>You have unsaved changes. Are you sure you want to leave? Your changes will be lost.</p>
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={cancelNavigation}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 dark:text-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                Stay
+              </button>
+              <button
+                onClick={confirmNavigation}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                Leave
+              </button>
+            </div>
+        </div>
+      </Modal>
     </div>
   );
 };

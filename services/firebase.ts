@@ -1,6 +1,6 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
-// FIX: Changed to namespace import to fix module resolution issues.
-import * as firestore from 'firebase/firestore';
+// FIX: Changed to named imports for Firebase v9 compatibility.
+import { Firestore, getFirestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 
 export interface FirebaseConfig {
@@ -13,8 +13,8 @@ export interface FirebaseConfig {
 }
 
 let app: FirebaseApp | null = null;
-// FIX: Use namespaced Firestore type.
-let db: firestore.Firestore | null = null;
+// FIX: Use imported Firestore type directly.
+let db: Firestore | null = null;
 let auth: Auth | null = null;
 
 const firebaseConfig: FirebaseConfig = {
@@ -33,8 +33,8 @@ export const initializeFirebase = () => {
   
   try {
     app = initializeApp(firebaseConfig);
-    // FIX: Use namespaced getFirestore function.
-    db = firestore.getFirestore(app);
+    // FIX: Use imported getFirestore function directly.
+    db = getFirestore(app);
     auth = getAuth(app);
   } catch (error) {
     console.error("Firebase initialization failed:", error);
@@ -42,8 +42,8 @@ export const initializeFirebase = () => {
   }
 };
 
-// FIX: Use namespaced Firestore type.
-export const getDb = (): firestore.Firestore => {
+// FIX: Use imported Firestore type directly.
+export const getDb = (): Firestore => {
   if (!db) {
     throw new Error("Firebase is not initialized. Call initializeFirebase() first.");
   }

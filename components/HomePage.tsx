@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Boy, Squad } from '../types';
+import { Boy, Squad, View } from '../types';
 import Modal from './Modal';
 import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon } from './Icons';
@@ -8,7 +8,7 @@ import { getAuthInstance } from '../services/firebase';
 
 interface HomePageProps {
   boys: Boy[];
-  setView: (view: { page: 'boyMarks'; boyId: string }) => void;
+  setView: (view: View) => void;
   refreshData: () => void;
 }
 

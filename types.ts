@@ -26,3 +26,12 @@ export interface AuditLog {
   revertData: any;
   reverted?: boolean;
 }
+
+export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog';
+
+export interface BoyMarksPageView {
+  page: 'boyMarks';
+  boyId: string;
+}
+
+export type View = { page: Page } | BoyMarksPageView;

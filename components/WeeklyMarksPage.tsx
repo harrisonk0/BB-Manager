@@ -7,6 +7,7 @@ import { SaveIcon } from './Icons';
 interface WeeklyMarksPageProps {
   boys: Boy[];
   refreshData: () => void;
+  setHasUnsavedChanges: (dirty: boolean) => void;
 }
 
 const SQUAD_COLORS: Record<Squad, string> = {
@@ -23,7 +24,7 @@ const getNearestFriday = (): string => {
   return today.toISOString().split('T')[0];
 };
 
-const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) => {
+const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges }) => {
   const [selectedDate, setSelectedDate] = useState(getNearestFriday());
   const [marks, setMarks] = useState<Record<string, number | string>>({});
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
@@ -55,6 +56,24 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData }) 
     setAttendance(newAttendance);
     setIsDirty(false);
   }, [selectedDate, boys]);
+
+  useEffect(() => {
+    setHasUnsavedChanges(isDirty);
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isDirty) {
+        event.preventDefault();
+        event.returnValue = ''; // Required for modern browsers
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      setHasUnsavedChanges(false);
+    };
+  }, [isDirty, setHasUnsavedChanges]);
 
   const handleMarkChange = (boyId: string, score: string) => {
     const numericScore = parseInt(score, 10);

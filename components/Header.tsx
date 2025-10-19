@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { User } from 'firebase/auth';
 import { MenuIcon, XIcon } from './Icons';
+import { Page } from '../types';
 
 interface HeaderProps {
-    setView: (view: { page: 'home' } | { page: 'weeklyMarks' } | { page: 'dashboard' } | { page: 'auditLog' }) => void;
+    setView: (view: { page: Page }) => void;
     user: User | null;
     onSignOut: () => void;
 }
@@ -11,7 +12,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     
-    const handleNavClick = (page: 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog') => {
+    const handleNavClick = (page: Page) => {
         setView({ page });
         setIsMenuOpen(false);
     };

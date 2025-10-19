@@ -1,5 +1,18 @@
-// FIX: Changed to namespace import to fix module resolution issues.
-import * as firestore from 'firebase/firestore';
+// FIX: Changed to named imports for Firebase v9 compatibility.
+import {
+    collection,
+    writeBatch,
+    doc,
+    serverTimestamp,
+    addDoc,
+    getDocs,
+    updateDoc,
+    deleteDoc,
+    setDoc,
+    getDoc,
+    query,
+    orderBy,
+} from 'firebase/firestore';
 import { Boy, AuditLog } from '../types';
 import { getDb, getAuthInstance } from './firebase';
 import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB } from './offlineDb';
@@ -19,8 +32,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
 
     console.log(`Syncing ${pendingWrites.length} offline writes...`);
     const db = getDb();
-    // FIX: Use namespaced firestore function.
-    const batch = firestore.writeBatch(db);
+    const batch = writeBatch(db);
 
     const boysToUpdateInIDB: Boy[] = [];
     const boysToDeleteFromIDB: string[] = [];
@@ -28,8 +40,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
     for (const write of pendingWrites) {
         switch (write.type) {
             case 'CREATE_BOY': {
-                // FIX: Use namespaced firestore functions.
-                const docRef = firestore.doc(firestore.collection(db, BOYS_COLLECTION));
+                const docRef = doc(collection(db, BOYS_COLLECTION));
                 batch.set(docRef, write.payload);
                 // We need to update the boy in IDB with the real ID
                 const newBoy = { ...write.payload, id: docRef.id };
@@ -40,35 +51,30 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 break;
             }
             case 'UPDATE_BOY': {
-                // FIX: Use namespaced firestore function.
-                const docRef = firestore.doc(db, BOYS_COLLECTION, write.payload.id);
+                const docRef = doc(db, BOYS_COLLECTION, write.payload.id);
                 batch.update(docRef, write.payload);
                 break;
             }
             case 'DELETE_BOY': {
-                // FIX: Use namespaced firestore function.
-                const docRef = firestore.doc(db, BOYS_COLLECTION, write.payload.id);
+                const docRef = doc(db, BOYS_COLLECTION, write.payload.id);
                 batch.delete(docRef);
                 break;
             }
             case 'RECREATE_BOY': {
-                // FIX: Use namespaced firestore function.
-                const docRef = firestore.doc(db, BOYS_COLLECTION, write.payload.id);
+                const docRef = doc(db, BOYS_COLLECTION, write.payload.id);
                 const { id, ...boyData } = write.payload;
                 batch.set(docRef, boyData);
                 break;
             }
             case 'CREATE_AUDIT_LOG': {
-                // FIX: Use namespaced firestore functions.
-                const logData = { ...write.payload, timestamp: firestore.serverTimestamp() };
-                const docRef = firestore.doc(firestore.collection(db, AUDIT_LOGS_COLLECTION));
+                const logData = { ...write.payload, timestamp: serverTimestamp() };
+                const docRef = doc(collection(db, AUDIT_LOGS_COLLECTION));
                 batch.set(docRef, logData);
                 break;
             }
             case 'UPDATE_AUDIT_LOG': {
                  const { id, ...logData } = write.payload;
-                 // FIX: Use namespaced firestore function.
-                 const docRef = firestore.doc(db, AUDIT_LOGS_COLLECTION, id);
+                 const docRef = doc(db, AUDIT_LOGS_COLLECTION, id);
                  batch.update(docRef, logData);
                  break;
             }
@@ -100,8 +106,7 @@ export const createBoy = async (boy: Omit<Boy, 'id'>): Promise<Boy> => {
   
   if (navigator.onLine) {
     const db = getDb();
-    // FIX: Use namespaced firestore functions.
-    const docRef = await firestore.addDoc(firestore.collection(db, BOYS_COLLECTION), boy);
+    const docRef = await addDoc(collection(db, BOYS_COLLECTION), boy);
     const newBoy = { ...boy, id: docRef.id };
     await saveBoyToDB(newBoy);
     return newBoy;
@@ -122,8 +127,7 @@ export const fetchBoys = async (): Promise<Boy[]> => {
     if (cachedBoys.length > 0) {
         // Return cached data immediately, and fetch fresh data in the background
         if (navigator.onLine) {
-            // FIX: Use namespaced firestore functions.
-            firestore.getDocs(firestore.collection(getDb(), BOYS_COLLECTION))
+            getDocs(collection(getDb(), BOYS_COLLECTION))
                 .then(snapshot => {
                     const freshBoys = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Boy));
                     saveBoysToDB(freshBoys); // Update cache
@@ -134,8 +138,7 @@ export const fetchBoys = async (): Promise<Boy[]> => {
 
     // No cache, fetch from network
     if (navigator.onLine) {
-        // FIX: Use namespaced firestore functions.
-        const snapshot = await firestore.getDocs(firestore.collection(getDb(), BOYS_COLLECTION));
+        const snapshot = await getDocs(collection(getDb(), BOYS_COLLECTION));
         const boys = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Boy));
         await saveBoysToDB(boys);
         return boys;
@@ -152,9 +155,8 @@ export const fetchBoyById = async (id: string): Promise<Boy | undefined> => {
     if (cachedBoy) return cachedBoy;
 
     if (navigator.onLine) {
-        // FIX: Use namespaced firestore functions.
-        const docRef = firestore.doc(getDb(), BOYS_COLLECTION, id);
-        const docSnap = await firestore.getDoc(docRef);
+        const docRef = doc(getDb(), BOYS_COLLECTION, id);
+        const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const boy = { ...docSnap.data(), id: docSnap.id } as Boy;
             await saveBoyToDB(boy);
@@ -167,8 +169,7 @@ export const fetchBoyById = async (id: string): Promise<Boy | undefined> => {
 const performBoyUpdate = async (boy: Boy) => {
     if (navigator.onLine) {
         const { id, ...boyData } = boy;
-        // FIX: Use namespaced firestore functions.
-        await firestore.updateDoc(firestore.doc(getDb(), BOYS_COLLECTION, id!), boyData as any);
+        await updateDoc(doc(getDb(), BOYS_COLLECTION, id!), boyData as any);
         await saveBoyToDB(boy);
     } else {
         await addPendingWrite({ type: 'UPDATE_BOY', payload: boy });
@@ -191,8 +192,7 @@ export const recreateBoy = async (boy: Boy): Promise<Boy> => {
 
     if (navigator.onLine) {
         const { id, ...boyData } = boy;
-        // FIX: Use namespaced firestore functions.
-        await firestore.setDoc(firestore.doc(getDb(), BOYS_COLLECTION, boy.id), boyData);
+        await setDoc(doc(getDb(), BOYS_COLLECTION, boy.id), boyData);
         await saveBoyToDB(boy);
     } else {
         await addPendingWrite({ type: 'RECREATE_BOY', payload: boy });
@@ -206,8 +206,7 @@ export const deleteBoyById = async (id: string): Promise<void> => {
     if (!auth.currentUser) throw new Error("User not authenticated");
 
     if (navigator.onLine) {
-        // FIX: Use namespaced firestore functions.
-        await firestore.deleteDoc(firestore.doc(getDb(), BOYS_COLLECTION, id));
+        await deleteDoc(doc(getDb(), BOYS_COLLECTION, id));
         await deleteBoyFromDB(id);
     } else {
         await addPendingWrite({ type: 'DELETE_BOY', payload: { id } });
@@ -222,9 +221,8 @@ export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>): P
   const timestamp = Date.now();
   
   if (navigator.onLine) {
-    // FIX: Use namespaced firestore functions.
-    const logData = { ...log, timestamp: firestore.serverTimestamp() };
-    const docRef = await firestore.addDoc(firestore.collection(getDb(), AUDIT_LOGS_COLLECTION), logData);
+    const logData = { ...log, timestamp: serverTimestamp() };
+    const docRef = await addDoc(collection(getDb(), AUDIT_LOGS_COLLECTION), logData);
     const newLog = { ...log, id: docRef.id, timestamp };
     await saveLogToDB(newLog);
     return newLog;
@@ -245,9 +243,8 @@ export const fetchAuditLogs = async (): Promise<AuditLog[]> => {
     if (cachedLogs.length > 0) {
         // Return cached data immediately and fetch fresh in background
         if (navigator.onLine) {
-            // FIX: Use namespaced firestore functions.
-            const q = firestore.query(firestore.collection(getDb(), AUDIT_LOGS_COLLECTION), firestore.orderBy('timestamp', 'desc'));
-            firestore.getDocs(q).then(snapshot => {
+            const q = query(collection(getDb(), AUDIT_LOGS_COLLECTION), orderBy('timestamp', 'desc'));
+            getDocs(q).then(snapshot => {
                 const freshLogs = snapshot.docs.map(doc => {
                     const data = doc.data();
                     const ts = data.timestamp;
@@ -268,9 +265,8 @@ export const fetchAuditLogs = async (): Promise<AuditLog[]> => {
     }
     
     if (navigator.onLine) {
-        // FIX: Use namespaced firestore functions.
-        const q = firestore.query(firestore.collection(getDb(), AUDIT_LOGS_COLLECTION), firestore.orderBy('timestamp', 'desc'));
-        const snapshot = await firestore.getDocs(q);
+        const q = query(collection(getDb(), AUDIT_LOGS_COLLECTION), orderBy('timestamp', 'desc'));
+        const snapshot = await getDocs(q);
         const logs = snapshot.docs.map((doc: any) => {
             const data = doc.data();
             const ts = data.timestamp;
@@ -299,8 +295,7 @@ export const updateAuditLog = async (log: AuditLog): Promise<AuditLog> => {
 
   if (navigator.onLine) {
     const { id, ...logData } = log;
-    // FIX: Use namespaced firestore functions.
-    await firestore.updateDoc(firestore.doc(getDb(), AUDIT_LOGS_COLLECTION, id), logData as any);
+    await updateDoc(doc(getDb(), AUDIT_LOGS_COLLECTION, id), logData as any);
     await saveLogToDB(log);
   } else {
     await addPendingWrite({ type: 'UPDATE_AUDIT_LOG', payload: log });
