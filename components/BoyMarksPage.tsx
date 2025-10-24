@@ -98,7 +98,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWe
     setEditedMarks(currentMarks =>
       currentMarks.map(mark => {
         if (mark.date === date) {
-          const newScore = mark.score === 0 ? '' : 0;
+          const newScore = mark.score < 0 ? '' : -1;
           return { ...mark, score: newScore };
         }
         return mark;
@@ -147,9 +147,10 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWe
   };
 
   const { totalMarks, attendancePercentage } = useMemo(() => {
-    const attendedCount = editedMarks.filter(m => m.score !== '' && Number(m.score) > 0).length;
+    const attendedMarks = editedMarks.filter(m => m.score !== '' && Number(m.score) >= 0);
+    const attendedCount = attendedMarks.length;
     const percentage = totalWeeks > 0 ? Math.round((attendedCount / totalWeeks) * 100) : 0;
-    const total = editedMarks.reduce((sum, mark) => sum + (Number(mark.score) || 0), 0);
+    const total = attendedMarks.reduce((sum, mark) => sum + (Number(mark.score) || 0), 0);
     return { totalMarks: total, attendancePercentage: percentage };
   }, [editedMarks, totalWeeks]);
 
@@ -186,7 +187,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWe
         ) : (
           <ul className="divide-y divide-gray-200 dark:divide-gray-700">
             {editedMarks.map((mark) => {
-              const isPresent = mark.score !== 0;
+              const isPresent = mark.score >= 0;
               const formattedDate = new Date(mark.date + 'T00:00:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
               return (
@@ -209,7 +210,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWe
                     type="number"
                     min="0"
                     max="10"
-                    value={mark.score ?? ''}
+                    value={mark.score < 0 ? '' : mark.score ?? ''}
                     onChange={(e) => handleScoreChange(mark.date, e.target.value)}
                     disabled={!isPresent}
                     className="w-20 text-center px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:text-gray-500 disabled:cursor-not-allowed"

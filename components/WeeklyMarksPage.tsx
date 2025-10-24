@@ -39,9 +39,9 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         if (boy.id) {
             const markForDate = boy.marks.find(m => m.date === selectedDate);
             if (markForDate) {
-                if (markForDate.score === 0) {
+                if (markForDate.score < 0) { // Absent is stored as -1
                     newAttendance[boy.id] = 'absent';
-                    newMarks[boy.id] = 0;
+                    newMarks[boy.id] = -1;
                 } else {
                     newAttendance[boy.id] = 'present';
                     newMarks[boy.id] = markForDate.score;
@@ -88,10 +88,10 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     setAttendance(prev => ({ ...prev, [boyId]: newStatus }));
     
     if (newStatus === 'absent') {
-        setMarks(prev => ({ ...prev, [boyId]: 0 }));
+        setMarks(prev => ({ ...prev, [boyId]: -1 }));
     } else {
         const markForDate = boys.find(b => b.id === boyId)?.marks.find(m => m.date === selectedDate);
-        setMarks(prev => ({ ...prev, [boyId]: markForDate ? markForDate.score : '' }));
+        setMarks(prev => ({ ...prev, [boyId]: (markForDate && markForDate.score >= 0) ? markForDate.score : '' }));
     }
     setIsDirty(true);
   };
@@ -111,13 +111,14 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         let hasChanged = false;
 
         if (attendanceStatus === 'absent') {
+            const finalScore = -1;
             if (markIndex > -1) {
-                if (updatedMarks[markIndex].score !== 0) {
-                    updatedMarks[markIndex].score = 0;
+                if (updatedMarks[markIndex].score !== finalScore) {
+                    updatedMarks[markIndex].score = finalScore;
                     hasChanged = true;
                 }
             } else {
-                updatedMarks.push({ date: selectedDate, score: 0 });
+                updatedMarks.push({ date: selectedDate, score: finalScore });
                 hasChanged = true;
             }
         } else { // 'present'
@@ -134,9 +135,15 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                     updatedMarks.push({ date: selectedDate, score: finalScore });
                     hasChanged = true;
                 }
-            } else { // No score entered for a present boy, remove existing mark if any
-                if (markIndex > -1) {
-                    updatedMarks.splice(markIndex, 1);
+            } else { // No score entered for a present boy, record as 0.
+                const finalScore = 0;
+                 if (markIndex > -1) {
+                    if (updatedMarks[markIndex].score !== finalScore) {
+                        updatedMarks[markIndex].score = finalScore;
+                        hasChanged = true;
+                    }
+                } else {
+                    updatedMarks.push({ date: selectedDate, score: finalScore });
                     hasChanged = true;
                 }
             }
@@ -261,7 +268,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                             type="number"
                             min="0"
                             max="10"
-                            value={marks[boy.id] ?? ''}
+                            value={marks[boy.id] < 0 ? '' : marks[boy.id] ?? ''}
                             onChange={e => handleMarkChange(boy.id!, e.target.value)}
                             disabled={!isPresent}
                             className="w-20 text-center px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:text-gray-500 disabled:cursor-not-allowed"

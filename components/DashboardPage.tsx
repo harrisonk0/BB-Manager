@@ -64,13 +64,12 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys }) => {
   }, [boys]);
 
   const calculateTotalMarks = (boy: Boy) => {
-    return boy.marks.reduce((total, mark) => total + mark.score, 0);
+    return boy.marks.reduce((total, mark) => total + (mark.score > 0 ? mark.score : 0), 0);
   };
 
   const getMarkForDate = (boy: Boy, date: string) => {
     const mark = boy.marks.find(m => m.date === date);
-    if (mark === undefined) return <span className="text-gray-400">-</span>;
-    if (mark.score === 0) return <span className="text-red-500 font-semibold">-</span>;
+    if (mark === undefined || mark.score < 0) return <span className="text-gray-400">-</span>;
     return mark.score.toString();
   };
 

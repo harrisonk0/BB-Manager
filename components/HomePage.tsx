@@ -164,12 +164,12 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
   }, [boys]);
 
   const calculateTotalMarks = (boy: Boy) => {
-    return boy.marks.reduce((total, mark) => total + mark.score, 0);
+    return boy.marks.reduce((total, mark) => total + (mark.score > 0 ? mark.score : 0), 0);
   };
   
   const calculateAttendancePercentage = (boy: Boy) => {
     if (allWeeksCount === 0) return 0;
-    const attendedCount = boy.marks.filter(m => m.score > 0).length;
+    const attendedCount = boy.marks.filter(m => m.score >= 0).length;
     return Math.round((attendedCount / allWeeksCount) * 100);
   };
 
@@ -180,7 +180,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
   const calculateSquadAttendancePercentage = (squadBoys: Boy[]) => {
     if (allWeeksCount === 0 || squadBoys.length === 0) return 0;
     const totalPossibleAttendances = squadBoys.length * allWeeksCount;
-    const totalActualAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.filter(m => m.score > 0).length, 0);
+    const totalActualAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.filter(m => m.score >= 0).length, 0);
     return Math.round((totalActualAttendances / totalPossibleAttendances) * 100);
   };
 
