@@ -2,11 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/avif" href="https://i.postimg.cc/Jn5Wb67v/temp-Image-UL5bf-D.avif" />
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#e2e8f0" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/Jn5Wb67v/temp-Image-UL5bf-D.avif">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png">
     <title>BB Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -17,11 +17,14 @@
       }
     </style>
     <script>
+      const colors = tailwind.colors;
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              'bb-blue': '#173cf5',
+              'company-blue': '#222943',
+              'junior-blue': '#284e8b',
+              slate: colors.slate,
             },
             fontFamily: {
               sans: [
@@ -56,7 +59,7 @@
 }
 </script>
 </head>
-  <body class="bg-gray-100 dark:bg-gray-900">
+  <body class="bg-slate-200">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
     <script>

@@ -14,16 +14,16 @@ interface HomePageProps {
 }
 
 const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
-  1: 'text-red-600 dark:text-red-400',
-  2: 'text-green-600 dark:text-green-400',
-  3: 'text-yellow-600 dark:text-yellow-400',
+  1: 'text-red-600',
+  2: 'text-green-600',
+  3: 'text-yellow-600',
 };
 
 const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
-  'Red': 'text-red-600 dark:text-red-400',
-  'Green': 'text-green-600 dark:text-green-400',
-  'Blue': 'text-blue-600 dark:text-blue-400',
-  'Yellow': 'text-yellow-600 dark:text-yellow-400',
+  1: 'text-red-600',
+  2: 'text-green-600',
+  3: 'text-blue-600',
+  4: 'text-yellow-600',
 };
 
 const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection }) => {
@@ -185,15 +185,18 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     return Math.round((totalActualAttendances / totalPossibleAttendances) * 100);
   };
 
-  const sortedSquads = Object.keys(boysBySquad).sort();
+  const sortedSquads = Object.keys(boysBySquad).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
+  const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
+  const accentTextHover = isCompany ? 'hover:text-company-blue' : 'hover:text-junior-blue';
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Members</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Members</h1>
         <button
           onClick={handleAddBoy}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-bb-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bb-blue"
+          className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
         >
           <PlusIcon className="h-5 w-5 mr-2"/>
           Add Boy
@@ -202,47 +205,47 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <SearchIcon className="h-5 w-5 text-gray-400" />
+          <SearchIcon className="h-5 w-5 text-slate-400" />
         </div>
         <input
           type="text"
           placeholder="Search members..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 dark:focus:placeholder-gray-500 focus:ring-1 focus:ring-bb-blue focus:border-bb-blue sm:text-sm"
+          className={`block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md leading-5 bg-white text-slate-900 placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-1 sm:text-sm ${accentRing}`}
           aria-label="Search members"
         />
       </div>
 
       {boys.length === 0 && (
-          <div className="text-center py-10 px-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">No members yet!</h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Click "Add Boy" to get started.</p>
+          <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
+              <h3 className="text-lg font-medium text-slate-900">No members yet!</h3>
+              <p className="mt-1 text-sm text-slate-500">Click "Add Boy" to get started.</p>
           </div>
       )}
 
       {boys.length > 0 && filteredBoys.length === 0 && (
-          <div className="text-center py-10 px-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">No members found</h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Your search for "{searchQuery}" did not match any members.</p>
+          <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
+              <h3 className="text-lg font-medium text-slate-900">No members found</h3>
+              <p className="mt-1 text-sm text-slate-500">Your search for "{searchQuery}" did not match any members.</p>
           </div>
       )}
 
       {sortedSquads.map((squad) => (
         <div key={squad}>
           <div className="flex justify-between items-baseline mb-4">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{isCompany ? `Squad ${squad}` : squad}</h2>
+            <h2 className="text-2xl font-semibold text-slate-800">{`Squad ${squad}`}</h2>
             <div className="text-right">
-              <p className="font-semibold text-gray-600 dark:text-gray-400">
+              <p className="font-semibold text-slate-600">
                 Total Marks: {calculateSquadTotalMarks(boysBySquad[squad])}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">
+              <p className="text-sm text-slate-500">
                 Avg Attendance: {calculateSquadAttendancePercentage(boysBySquad[squad])}%
               </p>
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
-            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+          <div className="bg-white shadow-md rounded-lg overflow-hidden">
+            <ul className="divide-y divide-slate-200">
               {boysBySquad[squad].map((boy) => (
                 <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                   <div className="flex-1">
@@ -252,28 +255,28 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
                             <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
                         )}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-sm text-slate-500">
                       {isCompany ? `Year ${boy.year}` : boy.year} &bull; Total Marks: {calculateTotalMarks(boy)} &bull; Attendance: {calculateAttendancePercentage(boy)}%
                     </p>
                   </div>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => setView({ page: 'boyMarks', boyId: boy.id! })}
-                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-bb-blue dark:hover:text-bb-blue rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className={`p-3 text-slate-500 rounded-full hover:bg-slate-100 ${accentTextHover}`}
                       aria-label={`View marks for ${boy.name}`}
                     >
                       <ChartBarIcon />
                     </button>
                     <button
                       onClick={() => handleEditBoy(boy)}
-                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-bb-blue dark:hover:text-bb-blue rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className={`p-3 text-slate-500 rounded-full hover:bg-slate-100 ${accentTextHover}`}
                       aria-label={`Edit ${boy.name}`}
                     >
                       <PencilIcon />
                     </button>
                      <button
                       onClick={() => handleOpenDeleteModal(boy)}
-                      className="p-3 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="p-3 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100"
                       aria-label={`Delete ${boy.name}`}
                     >
                       <TrashIcon />
@@ -293,12 +296,12 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Confirm Deletion">
         {boyToDelete && (
           <div className="space-y-4">
-            <p>Are you sure you want to delete <strong className="font-semibold">{boyToDelete.name}</strong>? This action cannot be undone directly, but can be reverted from the audit log.</p>
-            <div className="flex justify-end space-x-3 pt-4">
+            <p className="text-slate-600">Are you sure you want to delete <strong className="font-semibold text-slate-800">{boyToDelete.name}</strong>? This action cannot be undone directly, but can be reverted from the audit log.</p>
+            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
               <button
                 type="button"
                 onClick={handleCloseDeleteModal}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 dark:text-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
               >
                 Cancel
               </button>

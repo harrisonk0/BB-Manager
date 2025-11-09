@@ -7,16 +7,16 @@ interface DashboardPageProps {
 }
 
 const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
-  1: 'text-red-600 dark:text-red-400',
-  2: 'text-green-600 dark:text-green-400',
-  3: 'text-yellow-600 dark:text-yellow-400',
+  1: 'text-red-600',
+  2: 'text-green-600',
+  3: 'text-yellow-600',
 };
 
 const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
-  'Red': 'text-red-600 dark:text-red-400',
-  'Green': 'text-green-600 dark:text-green-400',
-  'Blue': 'text-blue-600 dark:text-blue-400',
-  'Yellow': 'text-yellow-600 dark:text-yellow-400',
+  1: 'text-red-600',
+  2: 'text-green-600',
+  3: 'text-blue-600',
+  4: 'text-yellow-600',
 };
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) => {
@@ -86,7 +86,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
       
     const hasMarksInMonth = boy.marks.some(mark => mark.date.startsWith(month));
     
-    return hasMarksInMonth ? total.toString() : <span className="text-gray-400">-</span>;
+    return hasMarksInMonth ? total.toString() : <span className="text-slate-400">-</span>;
   };
   
   const formatMonth = (monthString: string) => {
@@ -95,44 +95,44 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
   };
 
-  const sortedSquads = Object.keys(boysBySquad).sort();
+  const sortedSquads = Object.keys(boysBySquad).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
+      <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
       
       {sortedSquads.map((squad) => (
         <div key={squad}>
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{isCompany ? `Squad ${squad}` : squad}</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-slate-800">{`Squad ${squad}`}</h2>
           <div className="shadow-md rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full bg-white dark:bg-gray-800">
-                <thead className="bg-gray-50 dark:bg-gray-700">
+              <table className="min-w-full bg-white">
+                <thead className="bg-slate-100">
                   <tr>
-                    <th scope="col" className="sticky left-0 bg-gray-50 dark:bg-gray-700 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6 z-10 w-48 min-w-[12rem]">Name</th>
+                    <th scope="col" className="sticky left-0 bg-slate-100 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6 z-10 w-48 min-w-[12rem]">Name</th>
                     {allMonths.map(month => (
-                      <th key={month} scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white w-24">{formatMonth(month)}</th>
+                      <th key={month} scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900 w-24">{formatMonth(month)}</th>
                     ))}
-                    <th scope="col" className="sticky right-0 bg-gray-50 dark:bg-gray-700 px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white w-28 min-w-[7rem]">All Time Total</th>
+                    <th scope="col" className="sticky right-0 bg-slate-100 px-3 py-3.5 text-center text-sm font-semibold text-slate-900 w-28 min-w-[7rem]">All Time Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody className="divide-y divide-slate-200">
                   {boysBySquad[squad].map(boy => (
                     <tr key={boy.id}>
-                      <td className="sticky left-0 bg-white dark:bg-gray-800 whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 z-10 w-48 min-w-[12rem]">
+                      <td className="sticky left-0 bg-white whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 z-10 w-48 min-w-[12rem]">
                         <div className={`${(SQUAD_COLORS as any)[boy.squad]}`}>
                           {boy.name}
-                          {squadLeaders[boy.squad] === boy.id && (
+                          {squadLeaders[squad] === boy.id && (
                             <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
                           )}
                         </div>
                       </td>
                       {allMonths.map(month => (
-                        <td key={`${boy.id}-${month}`} className="whitespace-nowrap px-3 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
+                        <td key={`${boy.id}-${month}`} className="whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500">
                           {getMarksForMonth(boy, month)}
                         </td>
                       ))}
-                      <td className="sticky right-0 bg-white dark:bg-gray-800 whitespace-nowrap px-3 py-4 text-sm text-center font-semibold text-gray-900 dark:text-white w-28 min-w-[7rem]">
+                      <td className="sticky right-0 bg-white whitespace-nowrap px-3 py-4 text-sm text-center font-semibold text-slate-900 w-28 min-w-[7rem]">
                         {calculateTotalMarks(boy)}
                       </td>
                     </tr>
@@ -144,9 +144,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
         </div>
       ))}
       {boys.length === 0 && (
-          <div className="text-center py-10 px-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">No members yet!</h3>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Add some boys on the Home page to see the dashboard.</p>
+          <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
+              <h3 className="text-lg font-medium text-slate-900">No members yet!</h3>
+              <p className="mt-1 text-sm text-slate-500">Add some boys on the Home page to see the dashboard.</p>
           </div>
       )}
     </div>

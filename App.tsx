@@ -8,30 +8,38 @@ import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
 import SectionSelectPage from './components/SectionSelectPage';
+import SettingsPage from './components/SettingsPage';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, migrateFirestoreDataIfNeeded } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
-import { Boy, View, Page, BoyMarksPageView, Section } from './types';
+import { getSettings } from './services/settings';
+import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings } from './types';
 import Modal from './components/Modal';
+
+type ConfirmationModalType = 'navigate' | 'switchSection' | 'signOut' | null;
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined);
   const [activeSection, setActiveSection] = useState<Section | null>(() => localStorage.getItem('activeSection') as Section | null);
   const [view, setView] = useState<View>({ page: 'home' });
   const [boys, setBoys] = useState<Boy[]>([]);
+  const [settings, setSettings] = useState<SectionSettings | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // New states for navigation confirmation
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [viewToNavigateTo, setViewToNavigateTo] = useState<View | null>(null);
+  const [confirmModalType, setConfirmModalType] = useState<ConfirmationModalType>(null);
+  const [nextView, setNextView] = useState<View | null>(null);
 
   const refreshData = useCallback(async () => {
     if (!activeSection) return;
     try {
-        const allBoys = await fetchBoys(activeSection);
+        const [allBoys, sectionSettings] = await Promise.all([
+          fetchBoys(activeSection),
+          getSettings(activeSection)
+        ]);
         setBoys(allBoys.sort((a, b) => a.name.localeCompare(b.name)));
+        setSettings(sectionSettings);
     } catch (err) {
         console.error("Failed to refresh data:", err);
         setError("Could not refresh data. Please check your connection.");
@@ -50,7 +58,6 @@ const App: React.FC = () => {
     };
     
     window.addEventListener('online', handleOnline);
-    // Attempt sync on initial load as well in case app was closed while offline
     syncPendingWrites().then(synced => {
         if(synced) refreshData();
     });
@@ -60,20 +67,19 @@ const App: React.FC = () => {
     };
   }, [refreshData]);
   
-  const loadData = useCallback(async () => {
+  const loadDataAndSettings = useCallback(async () => {
     if (!activeSection) return;
     setIsLoading(true);
     setError(null);
     try {
-      const allBoys = await fetchBoys(activeSection);
-      setBoys(allBoys.sort((a, b) => a.name.localeCompare(b.name)));
+      await refreshData();
     } catch (err: any) {
       console.error("Failed to fetch data:", err);
       setError(`Failed to connect to the database. You may not have permission. Error: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
-  }, [activeSection]);
+  }, [activeSection, refreshData]);
   
   useEffect(() => {
     try {
@@ -82,115 +88,123 @@ const App: React.FC = () => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         setCurrentUser(user);
         if (user) {
-          // Perform one-time data migration if needed, then load data
           migrateFirestoreDataIfNeeded().then(() => {
             if(activeSection) {
               deleteOldAuditLogs(activeSection).then(() => {
-                loadData();
+                loadDataAndSettings();
               });
             } else {
-              setIsLoading(false); // No section selected, stop loading
+              setIsLoading(false); 
             }
           });
         } else {
-          setIsLoading(false); // Not logged in, stop loading
-          setActiveSection(null); // Clear section on logout
+          setIsLoading(false); 
+          setActiveSection(null);
+          setSettings(null);
           localStorage.removeItem('activeSection');
         }
       });
       return () => unsubscribe();
-    } catch (err: any) {
+    } catch (err: any)
+{
       setError(`Failed to initialize Firebase. Error: ${err.message}`);
       setIsLoading(false);
     }
-  }, [loadData, activeSection]);
+  }, [loadDataAndSettings, activeSection]);
   
   const handleSelectSection = (section: Section) => {
     localStorage.setItem('activeSection', section);
     setActiveSection(section);
     setView({ page: 'home' });
   };
+  
+  const performSwitchSection = () => {
+    localStorage.removeItem('activeSection');
+    setActiveSection(null);
+    setBoys([]);
+    setSettings(null);
+    setView({ page: 'home' });
+    setHasUnsavedChanges(false);
+  };
 
   const handleSwitchSection = () => {
-    const switchAction = () => {
-      localStorage.removeItem('activeSection');
-      setActiveSection(null);
-      setBoys([]);
-      setView({ page: 'home' });
-    };
-
     if (hasUnsavedChanges) {
-       if (window.confirm('You have unsaved changes. Are you sure you want to switch sections? Your changes will be lost.')) {
-        setHasUnsavedChanges(false);
-        switchAction();
-      }
+      setConfirmModalType('switchSection');
     } else {
-      switchAction();
+      performSwitchSection();
     }
   };
 
+  const performSignOut = async () => {
+    try {
+      const auth = getAuthInstance();
+      await signOut(auth);
+      setBoys([]);
+      setSettings(null);
+      setView({ page: 'home' });
+      setActiveSection(null);
+      localStorage.removeItem('activeSection');
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error('Sign out failed', error);
+      setError('Failed to sign out. Please try again.');
+    }
+  };
+
+  const handleSignOut = () => {
+    if (hasUnsavedChanges) {
+      setConfirmModalType('signOut');
+    } else {
+      performSignOut();
+    }
+  };
 
   const handleNavigation = (newView: View) => {
     if (hasUnsavedChanges && newView.page !== view.page) {
-      setViewToNavigateTo(newView);
-      setIsConfirmModalOpen(true);
+      setNextView(newView);
+      setConfirmModalType('navigate');
     } else {
       setView(newView);
     }
   };
 
-  const confirmNavigation = () => {
-    if (viewToNavigateTo) {
-      setHasUnsavedChanges(false); // Allow navigation
-      setView(viewToNavigateTo);
+  const confirmAction = () => {
+    switch (confirmModalType) {
+      case 'navigate':
+        if (nextView) {
+          setHasUnsavedChanges(false);
+          setView(nextView);
+        }
+        break;
+      case 'switchSection':
+        performSwitchSection();
+        break;
+      case 'signOut':
+        performSignOut();
+        break;
     }
-    setIsConfirmModalOpen(false);
-    setViewToNavigateTo(null);
+    cancelAction();
   };
 
-  const cancelNavigation = () => {
-    setIsConfirmModalOpen(false);
-    setViewToNavigateTo(null);
+  const cancelAction = () => {
+    setConfirmModalType(null);
+    setNextView(null);
   };
-
-  const handleSignOut = async () => {
-    const performSignOut = async () => {
-      try {
-        const auth = getAuthInstance();
-        await signOut(auth);
-        setBoys([]); // Clear data on sign out
-        setView({ page: 'home' });
-        setActiveSection(null);
-        localStorage.removeItem('activeSection');
-      } catch (error) {
-        console.error('Sign out failed', error);
-        setError('Failed to sign out. Please try again.');
-      }
-    };
-
-    if (hasUnsavedChanges) {
-      if (window.confirm('You have unsaved changes. Are you sure you want to leave? Your changes will be lost.')) {
-        setHasUnsavedChanges(false);
-        await performSignOut();
-      }
-    } else {
-      await performSignOut();
-    }
-  };
-
 
   const renderMainContent = () => {
-    if (!activeSection) return null; // Should be handled by renderApp logic
+    if (!activeSection) return null;
 
     switch (view.page) {
       case 'home':
         return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection} />;
       case 'weeklyMarks':
-        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection} />;
+        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection} settings={settings} />;
       case 'dashboard':
         return <DashboardPage boys={boys} activeSection={activeSection} />;
       case 'auditLog':
         return <AuditLogPage refreshData={refreshData} activeSection={activeSection} />;
+      case 'settings':
+        return <SettingsPage activeSection={activeSection} currentSettings={settings} onSettingsSaved={setSettings} />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
         return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection} />;
@@ -219,7 +233,7 @@ const App: React.FC = () => {
     return (
         <>
             <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} />
-            <main className="p-4 sm:p-6 lg:p-8">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {renderMainContent()}
             </main>
         </>
@@ -227,21 +241,21 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <div className="min-h-screen bg-slate-200 text-slate-800">
       {renderApp()}
-      <Modal isOpen={isConfirmModalOpen} onClose={cancelNavigation} title="Unsaved Changes">
+      <Modal isOpen={!!confirmModalType} onClose={cancelAction} title="Unsaved Changes">
         <div className="space-y-4">
-            <p>You have unsaved changes. Are you sure you want to leave? Your changes will be lost.</p>
+            <p className="text-slate-600">You have unsaved changes. Are you sure you want to leave? Your changes will be lost.</p>
             <div className="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
-                onClick={cancelNavigation}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 dark:text-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                onClick={cancelAction}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
               >
                 Stay
               </button>
               <button
-                onClick={confirmNavigation}
+                onClick={confirmAction}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
                 Leave

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchAuditLogs, createAuditLog, updateAuditLog, deleteBoyById, recreateBoy, updateBoy } from '../services/db';
+import { saveSettings } from '../services/settings';
 import { getAuthInstance } from '../services/firebase';
-import { AuditLog, Boy, Section } from '../types';
-import { ClockIcon, PlusIcon, PencilIcon, TrashIcon, UndoIcon } from './Icons';
+import { AuditLog, Boy, Section, SectionSettings } from '../types';
+import { ClockIcon, PlusIcon, PencilIcon, TrashIcon, UndoIcon, CogIcon } from './Icons';
 import Modal from './Modal';
 
 interface AuditLogPageProps {
@@ -15,13 +16,7 @@ const ACTION_ICONS: Record<string, React.FC<{className?: string}>> = {
   UPDATE_BOY: PencilIcon,
   DELETE_BOY: TrashIcon,
   REVERT_ACTION: UndoIcon,
-};
-
-const ACTION_COLORS: Record<string, string> = {
-  CREATE_BOY: 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-300',
-  UPDATE_BOY: 'bg-bb-blue/10 text-bb-blue',
-  DELETE_BOY: 'bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-300',
-  REVERT_ACTION: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 dark:text-yellow-300',
+  UPDATE_SETTINGS: CogIcon,
 };
 
 const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection }) => {
@@ -30,6 +25,16 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
   const [error, setError] = useState<string | null>(null);
   const [isReverting, setIsReverting] = useState(false);
   const [logToRevert, setLogToRevert] = useState<AuditLog | null>(null);
+
+  const isCompany = activeSection === 'company';
+  
+  const ACTION_COLORS: Record<string, string> = {
+    CREATE_BOY: 'bg-green-100 text-green-700',
+    UPDATE_BOY: isCompany ? 'bg-company-blue/10 text-company-blue' : 'bg-junior-blue/10 text-junior-blue',
+    UPDATE_SETTINGS: isCompany ? 'bg-company-blue/10 text-company-blue' : 'bg-junior-blue/10 text-junior-blue',
+    DELETE_BOY: 'bg-red-100 text-red-700',
+    REVERT_ACTION: 'bg-yellow-100 text-yellow-700',
+  };
 
   const loadLogs = useCallback(async () => {
     setLoading(true);
@@ -80,6 +85,9 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
             await Promise.all(updates);
           }
           break;
+        case 'UPDATE_SETTINGS':
+          await saveSettings(activeSection, revertData.settings as SectionSettings);
+          break;
         default:
           throw new Error('This action cannot be reverted.');
       }
@@ -118,48 +126,51 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
 
   if (loading) return <div className="text-center p-8">Loading audit trail...</div>;
   if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
-
+  
+  const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
+  const accentRing = isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue';
+  
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Audit Log</h1>
+      <h1 className="text-3xl font-bold tracking-tight text-slate-900">Audit Log</h1>
 
       {logs.length === 0 ? (
-        <div className="text-center py-10 px-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">No actions recorded yet.</h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Any changes you make will appear here.</p>
+        <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
+          <h3 className="text-lg font-medium text-slate-900">No actions recorded yet.</h3>
+          <p className="mt-1 text-sm text-slate-500">Any changes you make will appear here.</p>
         </div>
       ) : (
         <ul className="space-y-4">
           {logs.map((log) => {
             const Icon = ACTION_ICONS[log.actionType] || PencilIcon;
-            const colorClass = ACTION_COLORS[log.actionType] || 'bg-gray-100 dark:bg-gray-900/50 text-gray-600 dark:text-gray-300';
+            const colorClass = ACTION_COLORS[log.actionType] || 'bg-slate-100 text-slate-600';
             const canRevert = log.actionType !== 'REVERT_ACTION' && !log.reverted;
 
             return (
-              <li key={log.id} className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <li key={log.id} className="bg-white shadow-md rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-4 flex-1">
                   <span className={`flex-shrink-0 rounded-full p-2 ${colorClass}`}>
                     <Icon className="h-5 w-5" />
                   </span>
                   <div>
-                    <p className="text-md font-medium text-gray-800 dark:text-gray-200">{log.description}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
+                    <p className="text-md font-medium text-slate-800">{log.description}</p>
+                    <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
                       <ClockIcon className="h-4 w-4" />
-                      {formatTimestamp(log.timestamp)} by <strong>{log.userEmail}</strong>
+                      {formatTimestamp(log.timestamp)} by <strong className="text-slate-600">{log.userEmail}</strong>
                     </p>
                   </div>
                 </div>
                 {canRevert && (
                   <button
                     onClick={() => handleOpenRevertModal(log)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-bb-blue rounded-md hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bb-blue transition-colors"
+                    className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${accentBg} ${accentRing}`}
                   >
                     <UndoIcon className="h-4 w-4" />
                     Revert
                   </button>
                 )}
                 {log.reverted && (
-                    <span className="px-3 py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-md">Reverted</span>
+                    <span className="px-3 py-1.5 text-sm font-medium text-slate-500 bg-slate-100 rounded-md">Reverted</span>
                 )}
               </li>
             );
@@ -170,21 +181,21 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
       <Modal isOpen={!!logToRevert} onClose={handleCloseRevertModal} title="Confirm Revert">
         {logToRevert && (
           <div className="space-y-4">
-            <p>Are you sure you want to revert this action?</p>
-            <p className="p-3 bg-gray-100 dark:bg-gray-700 rounded-md text-sm italic">"{logToRevert.description}"</p>
-            <div className="flex justify-end space-x-3 pt-4">
+            <p className="text-slate-600">Are you sure you want to revert this action?</p>
+            <p className="p-3 bg-slate-100 rounded-md text-sm italic">"{logToRevert.description}"</p>
+            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
               <button
                 type="button"
                 onClick={handleCloseRevertModal}
                 disabled={isReverting}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 dark:text-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRevert}
                 disabled={isReverting}
-                className="px-4 py-2 text-sm font-medium text-white bg-bb-blue rounded-md hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bb-blue disabled:bg-bb-blue disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${accentBg} ${accentRing} disabled:bg-opacity-50`}
               >
                 {isReverting ? 'Reverting...' : 'Confirm Revert'}
               </button>

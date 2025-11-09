@@ -13,7 +13,7 @@ interface BoyFormProps {
 const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSection }) => {
   const isCompany = activeSection === 'company';
   
-  const initialSquad = isCompany ? 1 : 'Red';
+  const initialSquad = isCompany ? 1 : 1;
   const initialYear = isCompany ? 8 : 'P4';
   
   const [name, setName] = useState('');
@@ -85,14 +85,18 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
   const schoolYears = isCompany ? companyYears : juniorYears;
 
   const companySquads: Squad[] = [1, 2, 3];
-  const juniorSquads: JuniorSquad[] = ['Red', 'Green', 'Blue', 'Yellow'];
+  const juniorSquads: JuniorSquad[] = [1, 2, 3, 4];
   const squadOptions = isCompany ? companySquads : juniorSquads;
 
+  const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
+  const accentText = isCompany ? 'text-company-blue focus:ring-company-blue' : 'text-junior-blue focus:ring-junior-blue';
+  const accentBg = isCompany ? 'bg-company-blue focus:ring-company-blue' : 'bg-junior-blue focus:ring-junior-blue';
+  
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && <p className="text-red-500 text-sm">{error}</p>}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="name" className="block text-sm font-medium text-slate-700">
           Name
         </label>
         <input
@@ -100,12 +104,12 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue sm:text-sm"
+          className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
           required
         />
       </div>
       <div>
-        <label htmlFor="year" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="year" className="block text-sm font-medium text-slate-700">
           School Year
         </label>
         <select
@@ -115,7 +119,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
             const value = isCompany ? parseInt(e.target.value, 10) : e.target.value;
             setYear(value as SchoolYear | JuniorYear);
           }}
-          className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue sm:text-sm"
+          className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
         >
           {schoolYears.map((yearNum) => (
             <option key={yearNum} value={yearNum}>
@@ -125,7 +129,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
         </select>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Squad</label>
+        <label className="block text-sm font-medium text-slate-700">Squad</label>
         <div className="mt-2 flex flex-wrap gap-4">
           {squadOptions.map((squadNum) => (
             <label key={squadNum} className="inline-flex items-center">
@@ -135,9 +139,9 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
                 value={squadNum}
                 checked={squad === squadNum}
                 onChange={() => setSquad(squadNum as Squad | JuniorSquad)}
-                className="form-radio h-4 w-4 text-bb-blue border-gray-300 focus:ring-bb-blue"
+                className={`form-radio h-4 w-4 border-slate-300 ${accentText}`}
               />
-              <span className="ml-2">{isCompany ? `Squad ${squadNum}` : squadNum}</span>
+              <span className="ml-2 text-slate-700">{`Squad ${squadNum}`}</span>
             </label>
           ))}
         </div>
@@ -148,22 +152,22 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
             type="checkbox"
             checked={isSquadLeader}
             onChange={(e) => setIsSquadLeader(e.target.checked)}
-            className="form-checkbox h-4 w-4 text-bb-blue border-gray-300 dark:border-gray-600 rounded focus:ring-bb-blue"
+            className={`form-checkbox h-4 w-4 border-slate-300 rounded ${accentText}`}
           />
-          <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Set as Squad Leader</span>
+          <span className="ml-2 text-sm text-slate-700">Set as Squad Leader</span>
         </label>
       </div>
-      <div className="flex justify-end space-x-3 pt-4">
+      <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 dark:text-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-bb-blue rounded-md hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bb-blue"
+          className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg}`}
         >
           {boyToEdit ? 'Update Boy' : 'Add Boy'}
         </button>
