@@ -1,7 +1,6 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
-// FIX: Changed to named imports for Firebase v9 compatibility.
-import { Firestore, getFirestore, doc, getDoc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { getAuth, Auth, createUserWithEmailAndPassword, UserCredential } from 'firebase/auth';
+import { Firestore, getFirestore } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
 
 export interface FirebaseConfig {
   apiKey: string;
@@ -13,7 +12,6 @@ export interface FirebaseConfig {
 }
 
 let app: FirebaseApp | null = null;
-// FIX: Use imported Firestore type directly.
 let db: Firestore | null = null;
 let auth: Auth | null = null;
 
@@ -33,7 +31,6 @@ export const initializeFirebase = () => {
   
   try {
     app = initializeApp(firebaseConfig);
-    // FIX: Use imported getFirestore function directly.
     db = getFirestore(app);
     auth = getAuth(app);
   } catch (error) {
@@ -42,7 +39,6 @@ export const initializeFirebase = () => {
   }
 };
 
-// FIX: Use imported Firestore type directly.
 export const getDb = (): Firestore => {
   if (!db) {
     throw new Error("Firebase is not initialized. Call initializeFirebase() first.");
@@ -56,32 +52,3 @@ export const getAuthInstance = (): Auth => {
   }
   return auth;
 };
-
-export const createOfficerAccount = async (email: string, password: string): Promise<UserCredential> => {
-    const dbInstance = getDb();
-    const authInstance = getAuthInstance();
-    
-    const inviteRef = doc(dbInstance, 'invites', email);
-    const inviteSnap = await getDoc(inviteRef);
-    
-    if (!inviteSnap.exists() || inviteSnap.data().isUsed) {
-        throw new Error('This email address has not been invited or the invite has already been used.');
-    }
-    
-    // Try to create the user first
-    const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
-    
-    // If successful, mark the invite as used
-    try {
-        await updateDoc(inviteRef, { 
-            isUsed: true,
-            redeemedAt: serverTimestamp()
-        });
-    } catch (dbError) {
-        // This is a fallback. If updating the code fails, the user is created but the invite isn't marked.
-        // The next time they try to sign up it will fail at createUserWithEmailAndPassword, so it's not a major security issue, just a dangling invite.
-        console.error("CRITICAL: Failed to mark invite as used after user creation.", dbError);
-    }
-    
-    return userCredential;
-}

@@ -16,47 +16,11 @@ import {
     Timestamp,
     limit,
 } from 'firebase/firestore';
-import { Boy, AuditLog, Section, Invite } from '../types';
+import { Boy, AuditLog, Section } from '../types';
 import { getDb, getAuthInstance } from './firebase';
 import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB } from './offlineDb';
 
 const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs') => `${section}_${resource}`;
-const INVITES_COLLECTION = 'invites';
-
-// --- Invite Functions ---
-export const inviteOfficer = async (emailToInvite: string, inviterEmail: string): Promise<void> => {
-    const db = getDb();
-    const inviteRef = doc(db, INVITES_COLLECTION, emailToInvite);
-    
-    await setDoc(inviteRef, {
-        email: emailToInvite,
-        invitedBy: inviterEmail,
-        invitedAt: serverTimestamp(),
-        isUsed: false,
-    });
-};
-
-export const fetchInvites = async (): Promise<Invite[]> => {
-    const db = getDb();
-    const q = query(collection(db, INVITES_COLLECTION), where('isUsed', '==', false), orderBy('invitedAt', 'desc'));
-    const snapshot = await getDocs(q);
-    
-    return snapshot.docs.map(docSnapshot => {
-        const data = docSnapshot.data();
-        return {
-            ...data,
-            email: docSnapshot.id,
-            invitedAt: data.invitedAt?.toDate()?.getTime() || Date.now(),
-        } as Invite
-    });
-};
-
-export const revokeInvite = async (email: string): Promise<void> => {
-    const db = getDb();
-    const inviteRef = doc(db, INVITES_COLLECTION, email);
-    await deleteDoc(inviteRef);
-};
-
 
 // --- Data Migration ---
 export const migrateFirestoreDataIfNeeded = async () => {

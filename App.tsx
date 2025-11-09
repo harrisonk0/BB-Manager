@@ -5,7 +5,6 @@ import WeeklyMarksPage from './components/WeeklyMarksPage';
 import BoyMarksPage from './components/BoyMarksPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
-import SignUpPage from './components/SignUpPage';
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
 import SectionSelectPage from './components/SectionSelectPage';
@@ -19,13 +18,11 @@ import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings } from './t
 import Modal from './components/Modal';
 
 type ConfirmationModalType = 'navigate' | 'switchSection' | 'signOut' | null;
-type AuthView = 'login' | 'signup';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined);
   const [activeSection, setActiveSection] = useState<Section | null>(() => localStorage.getItem('activeSection') as Section | null);
   const [view, setView] = useState<View>({ page: 'home' });
-  const [authView, setAuthView] = useState<AuthView>('login');
   const [boys, setBoys] = useState<Boy[]>([]);
   const [settings, setSettings] = useState<SectionSettings | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -105,7 +102,6 @@ const App: React.FC = () => {
           setIsLoading(false); 
           setActiveSection(null);
           setSettings(null);
-          setAuthView('login');
           localStorage.removeItem('activeSection');
         }
       });
@@ -260,10 +256,7 @@ const App: React.FC = () => {
     }
     
     if (!currentUser) {
-        if (authView === 'signup') {
-            return <SignUpPage onNavigateToLogin={() => setAuthView('login')} />;
-        }
-        return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} onNavigateToSignUp={() => setAuthView('signup')} />;
+        return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} />;
     }
     
     if (!activeSection) {
