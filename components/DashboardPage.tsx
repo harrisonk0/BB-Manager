@@ -1,31 +1,45 @@
 import React, { useMemo } from 'react';
-import { Boy, Squad } from '../types';
+import { Boy, Squad, Section, JuniorSquad } from '../types';
 
 interface DashboardPageProps {
   boys: Boy[];
+  activeSection: Section;
 }
 
-const SQUAD_COLORS: Record<Squad, string> = {
+const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
   1: 'text-red-600 dark:text-red-400',
   2: 'text-green-600 dark:text-green-400',
   3: 'text-yellow-600 dark:text-yellow-400',
 };
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ boys }) => {
+const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
+  'Red': 'text-red-600 dark:text-red-400',
+  'Green': 'text-green-600 dark:text-green-400',
+  'Blue': 'text-blue-600 dark:text-blue-400',
+  'Yellow': 'text-yellow-600 dark:text-yellow-400',
+};
+
+const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) => {
+  const isCompany = activeSection === 'company';
+  const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
+
   const boysBySquad = useMemo(() => {
-    const grouped: Record<Squad, Boy[]> = { 1: [], 2: [], 3: [] };
+    const grouped: Record<string, Boy[]> = {};
     boys.forEach(boy => {
-      if (grouped[boy.squad]) {
-        grouped[boy.squad].push(boy);
+      if (!grouped[boy.squad]) {
+        grouped[boy.squad] = [];
       }
+      grouped[boy.squad].push(boy);
     });
 
-    for (const squadNum of Object.keys(grouped)) {
-        const key = squadNum as unknown as Squad;
-        grouped[key].sort((a, b) => {
+    for (const squad of Object.keys(grouped)) {
+        grouped[squad].sort((a, b) => {
             const yearA = a.year || 0;
             const yearB = b.year || 0;
-            if (yearA !== yearB) {
+            if (typeof yearA === 'string' && typeof yearB === 'string') {
+                return yearB.localeCompare(yearA);
+            }
+            if (typeof yearA === 'number' && typeof yearB === 'number') {
                 return yearB - yearA;
             }
             return a.name.localeCompare(b.name);
@@ -37,16 +51,15 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys }) => {
 
   const squadLeaders = useMemo(() => {
     const leaders: Record<string, string | undefined> = {};
-    (Object.keys(boysBySquad) as unknown as Squad[]).forEach(squadNum => {
-        const squadBoys = boysBySquad[squadNum];
+    Object.keys(boysBySquad).forEach(squad => {
+        const squadBoys = boysBySquad[squad];
         if (squadBoys.length === 0) return;
-
         let leader = squadBoys.find(b => b.isSquadLeader);
         if (!leader) {
             leader = squadBoys[0];
         }
         if (leader) {
-            leaders[squadNum] = leader.id;
+            leaders[squad] = leader.id;
         }
     });
     return leaders;
@@ -59,7 +72,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys }) => {
         allMonthStrings.add(mark.date.substring(0, 7)); // "YYYY-MM"
       });
     });
-    // Sort all months, most recent first
     return Array.from(allMonthStrings).sort((a, b) => b.localeCompare(a));
   }, [boys]);
 
@@ -83,14 +95,15 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys }) => {
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
   };
 
+  const sortedSquads = Object.keys(boysBySquad).sort();
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Dashboard</h1>
       
-      {(Object.keys(boysBySquad) as unknown as Squad[]).map((squad) => (
-        boysBySquad[squad].length > 0 && (
+      {sortedSquads.map((squad) => (
         <div key={squad}>
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Squad {squad}</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{isCompany ? `Squad ${squad}` : squad}</h2>
           <div className="shadow-md rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white dark:bg-gray-800">
@@ -107,7 +120,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys }) => {
                   {boysBySquad[squad].map(boy => (
                     <tr key={boy.id}>
                       <td className="sticky left-0 bg-white dark:bg-gray-800 whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 z-10 w-48 min-w-[12rem]">
-                        <div className={`${SQUAD_COLORS[boy.squad]}`}>
+                        <div className={`${(SQUAD_COLORS as any)[boy.squad]}`}>
                           {boy.name}
                           {squadLeaders[boy.squad] === boy.id && (
                             <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
@@ -129,7 +142,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys }) => {
             </div>
           </div>
         </div>
-        )
       ))}
       {boys.length === 0 && (
           <div className="text-center py-10 px-4 bg-white dark:bg-gray-800 rounded-lg shadow">

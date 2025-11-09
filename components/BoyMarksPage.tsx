@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchBoyById, updateBoy, createAuditLog } from '../services/db';
-import { Boy, Mark, Squad } from '../types';
+import { Boy, Mark, Squad, Section, JuniorSquad } from '../types';
 import { TrashIcon, SaveIcon } from './Icons';
 import { getAuthInstance } from '../services/firebase';
 import { BoyMarksPageSkeleton } from './SkeletonLoaders';
@@ -9,17 +9,25 @@ interface BoyMarksPageProps {
   boyId: string;
   refreshData: () => void;
   setHasUnsavedChanges: (dirty: boolean) => void;
+  activeSection: Section;
 }
 
-const SQUAD_COLORS: Record<Squad, string> = {
+const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
   1: 'text-red-600 dark:text-red-400',
   2: 'text-green-600 dark:text-green-400',
   3: 'text-yellow-600 dark:text-yellow-400',
 };
 
+const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
+  'Red': 'text-red-600 dark:text-red-400',
+  'Green': 'text-green-600 dark:text-green-400',
+  'Blue': 'text-blue-600 dark:text-blue-400',
+  'Yellow': 'text-yellow-600 dark:text-yellow-400',
+};
+
 type EditableMark = Omit<Mark, 'score'> & { score: number | '' };
 
-const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges }) => {
+const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges, activeSection }) => {
   const [boy, setBoy] = useState<Boy | null>(null);
   const [editedMarks, setEditedMarks] = useState<EditableMark[]>([]);
   const [isDirty, setIsDirty] = useState(false);
@@ -27,11 +35,14 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const isCompany = activeSection === 'company';
+  const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
+
   const fetchBoyData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const boyData = await fetchBoyById(boyId);
+      const boyData = await fetchBoyById(boyId, activeSection);
       if (boyData) {
         boyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setBoy(boyData);
@@ -45,7 +56,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     } finally {
       setLoading(false);
     }
-  }, [boyId]);
+  }, [boyId, activeSection]);
 
   useEffect(() => {
     fetchBoyData();
@@ -129,9 +140,9 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
         actionType: 'UPDATE_BOY',
         description: `Updated marks for ${boy.name}.`,
         revertData: { boyData: JSON.parse(JSON.stringify(boy)) },
-      });
+      }, activeSection);
 
-      await updateBoy(updatedBoyData);
+      await updateBoy(updatedBoyData, activeSection);
       updatedBoyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setBoy(updatedBoyData);
       setEditedMarks(JSON.parse(JSON.stringify(updatedBoyData.marks)));
@@ -165,10 +176,11 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     <div className="pb-20">
       <div className="mb-6 pb-4 border-b dark:border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className={`text-3xl font-bold tracking-tight ${SQUAD_COLORS[boy.squad]}`}>{boy.name}'s Marks</h1>
+          <h1 className={`text-3xl font-bold tracking-tight ${(SQUAD_COLORS as any)[boy.squad]}`}>{boy.name}'s Marks</h1>
           <p className="mt-1 text-lg text-gray-600 dark:text-gray-400">
-            Squad {boy.squad}
-            {boy.year ? ` • Year ${boy.year}` : ''}
+            {isCompany ? `Squad ${boy.squad}` : boy.squad}
+            <span className="mx-1">&bull;</span>
+            {isCompany ? `Year ${boy.year}` : boy.year}
             {boy.isSquadLeader && (
               <>
                 <span className="mx-1">&bull;</span>
@@ -209,17 +221,19 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                   >
                     {isPresent ? 'Present' : 'Absent'}
                   </button>
-                  <input
-                    type="number"
-                    min="0"
-                    max="10"
-                    value={mark.score < 0 ? '' : mark.score ?? ''}
-                    onChange={(e) => handleScoreChange(mark.date, e.target.value)}
-                    disabled={!isPresent}
-                    className="w-20 text-center px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:text-gray-500 disabled:cursor-not-allowed"
-                    placeholder="0-10"
-                    aria-label={`Score for ${formattedDate}`}
-                  />
+                  {isCompany && (
+                    <input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={mark.score < 0 ? '' : mark.score ?? ''}
+                      onChange={(e) => handleScoreChange(mark.date, e.target.value)}
+                      disabled={!isPresent}
+                      className="w-20 text-center px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:text-gray-500 disabled:cursor-not-allowed"
+                      placeholder="0-10"
+                      aria-label={`Score for ${formattedDate}`}
+                    />
+                  )}
                   <button
                     onClick={() => handleDeleteMark(mark.date)}
                     className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"

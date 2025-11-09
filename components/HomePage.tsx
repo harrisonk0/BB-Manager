@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Boy, Squad, View } from '../types';
+import { Boy, Squad, View, Section, JuniorSquad } from '../types';
 import Modal from './Modal';
 import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon } from './Icons';
@@ -10,20 +10,31 @@ interface HomePageProps {
   boys: Boy[];
   setView: (view: View) => void;
   refreshData: () => void;
+  activeSection: Section;
 }
 
-const SQUAD_COLORS: Record<Squad, string> = {
+const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
   1: 'text-red-600 dark:text-red-400',
   2: 'text-green-600 dark:text-green-400',
   3: 'text-yellow-600 dark:text-yellow-400',
 };
 
-const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
+const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
+  'Red': 'text-red-600 dark:text-red-400',
+  'Green': 'text-green-600 dark:text-green-400',
+  'Blue': 'text-blue-600 dark:text-blue-400',
+  'Yellow': 'text-yellow-600 dark:text-yellow-400',
+};
+
+const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection }) => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [boyToEdit, setBoyToEdit] = useState<Boy | null>(null);
   const [boyToDelete, setBoyToDelete] = useState<Boy | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const isCompany = activeSection === 'company';
+  const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
   const filteredBoys = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -71,9 +82,9 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
           actionType: 'DELETE_BOY',
           description: `Deleted boy: ${boyToDelete.name}`,
           revertData: { boyData: boyToDelete },
-      });
+      }, activeSection);
       
-      await deleteBoyById(boyToDelete.id!);
+      await deleteBoyById(boyToDelete.id!, activeSection);
       
       refreshData();
       handleCloseDeleteModal();
@@ -88,23 +99,25 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
   }
 
   const boysBySquad = useMemo(() => {
-    const grouped: Record<Squad, Boy[]> = { 1: [], 2: [], 3: [] };
+    const grouped: Record<string, Boy[]> = {};
     filteredBoys.forEach(boy => {
-      if (grouped[boy.squad]) {
+        if (!grouped[boy.squad]) {
+            grouped[boy.squad] = [];
+        }
         grouped[boy.squad].push(boy);
-      }
     });
 
-    // Sort within each squad by year (desc) then name (asc)
-    for (const squadNum of Object.keys(grouped)) {
-        const key = squadNum as unknown as Squad;
-        grouped[key].sort((a, b) => {
+    for (const squad of Object.keys(grouped)) {
+        grouped[squad].sort((a, b) => {
             const yearA = a.year || 0;
             const yearB = b.year || 0;
-            if (yearA !== yearB) {
-                return yearB - yearA; // Descending by year
+            if (typeof yearA === 'string' && typeof yearB === 'string') {
+                return yearB.localeCompare(yearA); // P7 > P6
             }
-            return a.name.localeCompare(b.name); // Ascending by name
+            if (typeof yearA === 'number' && typeof yearB === 'number') {
+                return yearB - yearA; // 14 > 13
+            }
+            return a.name.localeCompare(b.name);
         });
     }
 
@@ -113,47 +126,43 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
 
   const squadLeaders = useMemo(() => {
     const leaders: Record<string, string | undefined> = {};
-    const allBoysBySquad: Record<Squad, Boy[]> = { 1: [], 2: [], 3: [] };
+    const allBoysBySquad: Record<string, Boy[]> = {};
 
-    // Group all boys from the original, unfiltered list
     boys.forEach(boy => {
-      if (allBoysBySquad[boy.squad]) {
-        allBoysBySquad[boy.squad].push(boy);
+      if (!allBoysBySquad[boy.squad]) {
+        allBoysBySquad[boy.squad] = [];
       }
+      allBoysBySquad[boy.squad].push(boy);
     });
-
-    // Sort each squad in the full list to determine the correct default leader
-    for (const squadNum of Object.keys(allBoysBySquad)) {
-      const key = squadNum as unknown as Squad;
-      allBoysBySquad[key].sort((a, b) => {
-        const yearA = a.year || 0;
-        const yearB = b.year || 0;
-        if (yearA !== yearB) {
-          return yearB - yearA; // Descending by year
-        }
-        return a.name.localeCompare(b.name); // Ascending by name
+    
+    for (const squad of Object.keys(allBoysBySquad)) {
+      allBoysBySquad[squad].sort((a, b) => {
+          const yearA = a.year || 0;
+          const yearB = b.year || 0;
+          if (typeof yearA === 'string' && typeof yearB === 'string') {
+              return yearB.localeCompare(yearA);
+          }
+          if (typeof yearA === 'number' && typeof yearB === 'number') {
+              return yearB - yearA;
+          }
+          return a.name.localeCompare(b.name);
       });
     }
 
-    // Determine the leader for each squad from the full, sorted list
-    (Object.keys(allBoysBySquad) as unknown as Squad[]).forEach(squadNum => {
-      const squadBoys = allBoysBySquad[squadNum];
+    Object.keys(allBoysBySquad).forEach(squad => {
+      const squadBoys = allBoysBySquad[squad];
       if (squadBoys.length === 0) return;
-
-      // Find an explicitly marked leader first
       let leader = squadBoys.find(b => b.isSquadLeader);
-      
-      // If no explicit leader, the first one in the full sorted list is the default leader
       if (!leader && squadBoys.length > 0) {
         leader = squadBoys[0];
       }
-      
       if (leader) {
-        leaders[squadNum] = leader.id;
+        leaders[squad] = leader.id;
       }
     });
     return leaders;
   }, [boys]);
+
 
   const calculateTotalMarks = (boy: Boy) => {
     return boy.marks.reduce((total, mark) => total + (mark.score > 0 ? mark.score : 0), 0);
@@ -176,6 +185,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
     return Math.round((totalActualAttendances / totalPossibleAttendances) * 100);
   };
 
+  const sortedSquads = Object.keys(boysBySquad).sort();
 
   return (
     <div className="space-y-8">
@@ -218,11 +228,10 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
           </div>
       )}
 
-      {(Object.keys(boysBySquad) as unknown as Squad[]).map((squad) => (
-        boysBySquad[squad].length > 0 && (
+      {sortedSquads.map((squad) => (
         <div key={squad}>
           <div className="flex justify-between items-baseline mb-4">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">Squad {squad}</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{isCompany ? `Squad ${squad}` : squad}</h2>
             <div className="text-right">
               <p className="font-semibold text-gray-600 dark:text-gray-400">
                 Total Marks: {calculateSquadTotalMarks(boysBySquad[squad])}
@@ -237,14 +246,14 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
               {boysBySquad[squad].map((boy) => (
                 <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                   <div className="flex-1">
-                    <p className={`text-lg font-medium ${SQUAD_COLORS[boy.squad]}`}>
+                    <p className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
                         {boy.name}
                         {squadLeaders[boy.squad] === boy.id && (
                             <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
                         )}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Year {boy.year} &bull; Total Marks: {calculateTotalMarks(boy)} &bull; Attendance: {calculateAttendancePercentage(boy)}%
+                      {isCompany ? `Year ${boy.year}` : boy.year} &bull; Total Marks: {calculateTotalMarks(boy)} &bull; Attendance: {calculateAttendancePercentage(boy)}%
                     </p>
                   </div>
                   <div className="flex space-x-2">
@@ -275,11 +284,10 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
             </ul>
           </div>
         </div>
-        )
       ))}
 
       <Modal isOpen={isFormModalOpen} onClose={handleCloseFormModal} title={boyToEdit ? 'Edit Boy' : 'Add New Boy'}>
-        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} />
+        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} activeSection={activeSection} />
       </Modal>
 
       <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Confirm Deletion">

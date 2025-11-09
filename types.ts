@@ -1,5 +1,10 @@
+export type Section = 'company' | 'junior';
+
 export type Squad = 1 | 2 | 3;
 export type SchoolYear = 8 | 9 | 10 | 11 | 12 | 13 | 14;
+
+export type JuniorSquad = 'Red' | 'Green' | 'Blue' | 'Yellow';
+export type JuniorYear = 'P4' | 'P5' | 'P6' | 'P7';
 
 export interface Mark {
   date: string; // YYYY-MM-DD
@@ -9,8 +14,8 @@ export interface Mark {
 export interface Boy {
   id?: string;
   name: string;
-  squad: Squad;
-  year: SchoolYear;
+  squad: Squad | JuniorSquad;
+  year: SchoolYear | JuniorYear;
   marks: Mark[];
   isSquadLeader?: boolean;
 }

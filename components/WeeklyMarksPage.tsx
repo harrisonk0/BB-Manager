@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Boy, Squad } from '../types';
+import { Boy, Squad, Section, JuniorSquad } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
 import { SaveIcon } from './Icons';
@@ -8,12 +8,20 @@ interface WeeklyMarksPageProps {
   boys: Boy[];
   refreshData: () => void;
   setHasUnsavedChanges: (dirty: boolean) => void;
+  activeSection: Section;
 }
 
-const SQUAD_COLORS: Record<Squad, string> = {
+const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
   1: 'text-red-600 dark:text-red-400',
   2: 'text-green-600 dark:text-green-400',
   3: 'text-yellow-600 dark:text-yellow-400',
+};
+
+const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
+  'Red': 'text-red-600 dark:text-red-400',
+  'Green': 'text-green-600 dark:text-green-400',
+  'Blue': 'text-blue-600 dark:text-blue-400',
+  'Yellow': 'text-yellow-600 dark:text-yellow-400',
 };
 
 const getNearestFriday = (): string => {
@@ -24,12 +32,15 @@ const getNearestFriday = (): string => {
   return today.toISOString().split('T')[0];
 };
 
-const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges }) => {
+const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection }) => {
   const [selectedDate, setSelectedDate] = useState(getNearestFriday());
   const [marks, setMarks] = useState<Record<string, number | string>>({});
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+
+  const isCompany = activeSection === 'company';
+  const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
   useEffect(() => {
     const newMarks: Record<string, number | string> = {};
@@ -123,35 +134,23 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             }
         } else { // 'present'
             const newScore = typeof newScoreRaw === 'string' ? parseInt(newScoreRaw, 10) : newScoreRaw;
+            const defaultScore = isCompany ? (newScoreRaw !== '' && !isNaN(newScore as number) ? newScore : 0) : 1; // 1 for present in Junior, 0 default for Company
+            const finalScore = defaultScore as number;
 
-            if (newScoreRaw !== '' && !isNaN(newScore as number)) {
-                const finalScore = newScore as number;
-                if (markIndex > -1) {
-                    if (updatedMarks[markIndex].score !== finalScore) {
-                        updatedMarks[markIndex].score = finalScore;
-                        hasChanged = true;
-                    }
-                } else {
-                    updatedMarks.push({ date: selectedDate, score: finalScore });
+            if (markIndex > -1) {
+                if (updatedMarks[markIndex].score !== finalScore) {
+                    updatedMarks[markIndex].score = finalScore;
                     hasChanged = true;
                 }
-            } else { // No score entered for a present boy, record as 0.
-                const finalScore = 0;
-                 if (markIndex > -1) {
-                    if (updatedMarks[markIndex].score !== finalScore) {
-                        updatedMarks[markIndex].score = finalScore;
-                        hasChanged = true;
-                    }
-                } else {
-                    updatedMarks.push({ date: selectedDate, score: finalScore });
-                    hasChanged = true;
-                }
+            } else {
+                updatedMarks.push({ date: selectedDate, score: finalScore });
+                hasChanged = true;
             }
         }
         
         if (hasChanged) {
             changedBoysOldData.push(JSON.parse(JSON.stringify(boy))); // Deep copy
-            return updateBoy({ ...boy, marks: updatedMarks });
+            return updateBoy({ ...boy, marks: updatedMarks }, activeSection);
         }
         return Promise.resolve(null);
     });
@@ -165,7 +164,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                 actionType: 'UPDATE_BOY',
                 description: `Updated weekly marks for ${selectedDate} for ${changedBoysOldData.length} boys.`,
                 revertData: { boysData: changedBoysOldData },
-            });
+            }, activeSection);
         }
         await Promise.all(updates);
         refreshData();
@@ -178,19 +177,22 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   };
 
   const boysBySquad = useMemo(() => {
-    const grouped: Record<Squad, Boy[]> = { 1: [], 2: [], 3: [] };
+    const grouped: Record<string, Boy[]> = {};
     boys.forEach(boy => {
-      if (grouped[boy.squad]) {
-        grouped[boy.squad].push(boy);
+      if (!grouped[boy.squad]) {
+        grouped[boy.squad] = [];
       }
+      grouped[boy.squad].push(boy);
     });
     
-    for (const squadNum of Object.keys(grouped)) {
-        const key = squadNum as unknown as Squad;
-        grouped[key].sort((a, b) => {
+    for (const squad of Object.keys(grouped)) {
+        grouped[squad].sort((a, b) => {
             const yearA = a.year || 0;
             const yearB = b.year || 0;
-            if (yearA !== yearB) {
+            if (typeof yearA === 'string' && typeof yearB === 'string') {
+                return yearB.localeCompare(yearA);
+            }
+            if (typeof yearA === 'number' && typeof yearB === 'number') {
                 return yearB - yearA;
             }
             return a.name.localeCompare(b.name);
@@ -198,23 +200,24 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     }
     return grouped;
   }, [boys]);
-  
+
   const squadLeaders = useMemo(() => {
     const leaders: Record<string, string | undefined> = {};
-    (Object.keys(boysBySquad) as unknown as Squad[]).forEach(squadNum => {
-        const squadBoys = boysBySquad[squadNum];
+    Object.keys(boysBySquad).forEach(squad => {
+        const squadBoys = boysBySquad[squad];
         if (squadBoys.length === 0) return;
-
         let leader = squadBoys.find(b => b.isSquadLeader);
         if (!leader) {
             leader = squadBoys[0];
         }
         if (leader) {
-            leaders[squadNum] = leader.id;
+            leaders[squad] = leader.id;
         }
     });
     return leaders;
   }, [boysBySquad]);
+
+  const sortedSquads = Object.keys(boysBySquad).sort();
 
   return (
     <div className="space-y-6">
@@ -231,10 +234,9 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       </div>
       
       <div className="space-y-8 pb-20">
-        {(Object.keys(boysBySquad) as unknown as Squad[]).map((squad) => (
-           boysBySquad[squad].length > 0 && (
+        {sortedSquads.map((squad) => (
           <div key={squad}>
-            <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Squad {squad}</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{isCompany ? `Squad ${squad}` : squad}</h2>
             <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg">
               <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                 {boysBySquad[squad].map((boy) => {
@@ -243,13 +245,13 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                     return (
                       <li key={boy.id} className="p-4 flex justify-between items-center">
                         <div>
-                          <span className={`text-lg font-medium ${SQUAD_COLORS[boy.squad]}`}>
+                          <span className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
                             {boy.name}
                             {squadLeaders[boy.squad] === boy.id && (
                                 <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
                             )}
                           </span>
-                          {boy.year && <p className="text-sm text-gray-500 dark:text-gray-400">Year {boy.year}</p>}
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{isCompany ? `Year ${boy.year}` : boy.year}</p>
                         </div>
                         <div className="flex items-center space-x-2 sm:space-x-4">
                           <button
@@ -264,16 +266,18 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                           >
                             {isPresent ? 'Present' : 'Absent'}
                           </button>
-                          <input
-                            type="number"
-                            min="0"
-                            max="10"
-                            value={marks[boy.id] < 0 ? '' : marks[boy.id] ?? ''}
-                            onChange={e => handleMarkChange(boy.id!, e.target.value)}
-                            disabled={!isPresent}
-                            className="w-20 text-center px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:text-gray-500 disabled:cursor-not-allowed"
-                            placeholder="0-10"
-                          />
+                          {isCompany && (
+                            <input
+                              type="number"
+                              min="0"
+                              max="10"
+                              value={marks[boy.id] < 0 ? '' : marks[boy.id] ?? ''}
+                              onChange={e => handleMarkChange(boy.id!, e.target.value)}
+                              disabled={!isPresent}
+                              className="w-20 text-center px-2 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-bb-blue focus:border-bb-blue disabled:bg-gray-200 dark:disabled:bg-gray-600 disabled:text-gray-500 disabled:cursor-not-allowed"
+                              placeholder="0-10"
+                            />
+                          )}
                         </div>
                       </li>
                     );
@@ -281,7 +285,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
               </ul>
             </div>
           </div>
-           )
         ))}
       </div>
 

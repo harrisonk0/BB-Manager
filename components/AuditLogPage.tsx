@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchAuditLogs, createAuditLog, updateAuditLog, deleteBoyById, recreateBoy, updateBoy } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
-import { AuditLog, Boy } from '../types';
+import { AuditLog, Boy, Section } from '../types';
 import { ClockIcon, PlusIcon, PencilIcon, TrashIcon, UndoIcon } from './Icons';
 import Modal from './Modal';
 
 interface AuditLogPageProps {
   refreshData: () => void;
+  activeSection: Section;
 }
 
 const ACTION_ICONS: Record<string, React.FC<{className?: string}>> = {
@@ -23,7 +24,7 @@ const ACTION_COLORS: Record<string, string> = {
   REVERT_ACTION: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 dark:text-yellow-300',
 };
 
-const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData }) => {
+const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection }) => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +35,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData }) => {
     setLoading(true);
     setError(null);
     try {
-      const fetchedLogs = await fetchAuditLogs();
+      const fetchedLogs = await fetchAuditLogs(activeSection);
       setLogs(fetchedLogs);
     } catch (err) {
       console.error(err);
@@ -42,7 +43,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeSection]);
 
   useEffect(() => {
     loadLogs();
@@ -66,16 +67,16 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData }) => {
       const { actionType, revertData } = logToRevert;
       switch (actionType) {
         case 'CREATE_BOY':
-          await deleteBoyById(revertData.boyId);
+          await deleteBoyById(revertData.boyId, activeSection);
           break;
         case 'DELETE_BOY':
-          await recreateBoy(revertData.boyData as Boy);
+          await recreateBoy(revertData.boyData as Boy, activeSection);
           break;
         case 'UPDATE_BOY':
           if (revertData.boyData) { // Single boy update
-            await updateBoy(revertData.boyData as Boy);
+            await updateBoy(revertData.boyData as Boy, activeSection);
           } else if (revertData.boysData) { // Batch update from weekly marks
-            const updates = (revertData.boysData as Boy[]).map(boy => updateBoy(boy));
+            const updates = (revertData.boysData as Boy[]).map(boy => updateBoy(boy, activeSection));
             await Promise.all(updates);
           }
           break;
@@ -84,7 +85,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData }) => {
       }
       
       // Mark original log as reverted
-      await updateAuditLog({ ...logToRevert, reverted: true });
+      await updateAuditLog({ ...logToRevert, reverted: true }, activeSection);
 
       // Create a new log for the revert action
       const auth = getAuthInstance();
@@ -94,7 +95,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData }) => {
         actionType: 'REVERT_ACTION',
         description: `Reverted action: "${logToRevert.description}"`,
         revertData: {},
-      });
+      }, activeSection);
 
       refreshData(); // Refresh main app data
       loadLogs(); // Refresh logs to show reverted status

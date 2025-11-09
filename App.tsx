@@ -7,14 +7,16 @@ import Header from './components/Header';
 import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
+import SectionSelectPage from './components/SectionSelectPage';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { fetchBoys, syncPendingWrites, deleteOldAuditLogs } from './services/db';
+import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, migrateFirestoreDataIfNeeded } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
-import { Boy, View, Page, BoyMarksPageView } from './types';
+import { Boy, View, Page, BoyMarksPageView, Section } from './types';
 import Modal from './components/Modal';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined);
+  const [activeSection, setActiveSection] = useState<Section | null>(() => localStorage.getItem('activeSection') as Section | null);
   const [view, setView] = useState<View>({ page: 'home' });
   const [boys, setBoys] = useState<Boy[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -26,14 +28,15 @@ const App: React.FC = () => {
   const [viewToNavigateTo, setViewToNavigateTo] = useState<View | null>(null);
 
   const refreshData = useCallback(async () => {
+    if (!activeSection) return;
     try {
-        const allBoys = await fetchBoys();
+        const allBoys = await fetchBoys(activeSection);
         setBoys(allBoys.sort((a, b) => a.name.localeCompare(b.name)));
     } catch (err) {
         console.error("Failed to refresh data:", err);
         setError("Could not refresh data. Please check your connection.");
     }
-  }, []);
+  }, [activeSection]);
 
   useEffect(() => {
     const handleOnline = () => {
@@ -58,10 +61,11 @@ const App: React.FC = () => {
   }, [refreshData]);
   
   const loadData = useCallback(async () => {
+    if (!activeSection) return;
     setIsLoading(true);
     setError(null);
     try {
-      const allBoys = await fetchBoys();
+      const allBoys = await fetchBoys(activeSection);
       setBoys(allBoys.sort((a, b) => a.name.localeCompare(b.name)));
     } catch (err: any) {
       console.error("Failed to fetch data:", err);
@@ -69,7 +73,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeSection]);
   
   useEffect(() => {
     try {
@@ -78,12 +82,20 @@ const App: React.FC = () => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         setCurrentUser(user);
         if (user) {
-          // Clean up old logs then load the data
-          deleteOldAuditLogs().then(() => {
-            loadData();
+          // Perform one-time data migration if needed, then load data
+          migrateFirestoreDataIfNeeded().then(() => {
+            if(activeSection) {
+              deleteOldAuditLogs(activeSection).then(() => {
+                loadData();
+              });
+            } else {
+              setIsLoading(false); // No section selected, stop loading
+            }
           });
         } else {
           setIsLoading(false); // Not logged in, stop loading
+          setActiveSection(null); // Clear section on logout
+          localStorage.removeItem('activeSection');
         }
       });
       return () => unsubscribe();
@@ -91,7 +103,32 @@ const App: React.FC = () => {
       setError(`Failed to initialize Firebase. Error: ${err.message}`);
       setIsLoading(false);
     }
-  }, [loadData]);
+  }, [loadData, activeSection]);
+  
+  const handleSelectSection = (section: Section) => {
+    localStorage.setItem('activeSection', section);
+    setActiveSection(section);
+    setView({ page: 'home' });
+  };
+
+  const handleSwitchSection = () => {
+    const switchAction = () => {
+      localStorage.removeItem('activeSection');
+      setActiveSection(null);
+      setBoys([]);
+      setView({ page: 'home' });
+    };
+
+    if (hasUnsavedChanges) {
+       if (window.confirm('You have unsaved changes. Are you sure you want to switch sections? Your changes will be lost.')) {
+        setHasUnsavedChanges(false);
+        switchAction();
+      }
+    } else {
+      switchAction();
+    }
+  };
+
 
   const handleNavigation = (newView: View) => {
     if (hasUnsavedChanges && newView.page !== view.page) {
@@ -123,6 +160,8 @@ const App: React.FC = () => {
         await signOut(auth);
         setBoys([]); // Clear data on sign out
         setView({ page: 'home' });
+        setActiveSection(null);
+        localStorage.removeItem('activeSection');
       } catch (error) {
         console.error('Sign out failed', error);
         setError('Failed to sign out. Please try again.');
@@ -141,30 +180,36 @@ const App: React.FC = () => {
 
 
   const renderMainContent = () => {
+    if (!activeSection) return null; // Should be handled by renderApp logic
+
     switch (view.page) {
       case 'home':
-        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} />;
+        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection} />;
       case 'weeklyMarks':
-        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} />;
+        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection} />;
       case 'dashboard':
-        return <DashboardPage boys={boys} />;
+        return <DashboardPage boys={boys} activeSection={activeSection} />;
       case 'auditLog':
-        return <AuditLogPage refreshData={refreshData} />;
+        return <AuditLogPage refreshData={refreshData} activeSection={activeSection} />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
-        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} />;
+        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection} />;
       default:
-        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} />;
+        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection} />;
     }
   };
 
   const renderApp = () => {
-    if (currentUser === undefined || (currentUser && isLoading)) {
+    if (currentUser === undefined || (currentUser && isLoading && activeSection)) {
         return <HomePageSkeleton />;
     }
     
     if (!currentUser) {
         return <LoginPage />;
+    }
+    
+    if (!activeSection) {
+        return <SectionSelectPage onSelectSection={handleSelectSection} />;
     }
     
     if (error) {
@@ -173,7 +218,7 @@ const App: React.FC = () => {
 
     return (
         <>
-            <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} />
+            <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} />
             <main className="p-4 sm:p-6 lg:p-8">
                 {renderMainContent()}
             </main>
