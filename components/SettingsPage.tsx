@@ -91,7 +91,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     
     try {
         const inviteId = await generateInvite(user.email!, inviteNote || undefined);
-        const link = `${window.location.origin}?invite=${inviteId}`;
+        const baseUrl = window.location.href.split('?')[0].split('#')[0];
+        const link = `${baseUrl}?invite=${inviteId}`;
         setGeneratedLink(link);
         setInviteNote('');
         loadInvites();
