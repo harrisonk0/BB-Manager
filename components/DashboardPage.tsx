@@ -52,29 +52,35 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys }) => {
     return leaders;
   }, [boysBySquad]);
 
-  const allWeeks = useMemo(() => {
-    const allDates = new Set<string>();
+  const allMonths = useMemo(() => {
+    const allMonthStrings = new Set<string>();
     boys.forEach(boy => {
       boy.marks.forEach(mark => {
-        allDates.add(mark.date);
+        allMonthStrings.add(mark.date.substring(0, 7)); // "YYYY-MM"
       });
     });
-    // Sort all dates, most recent first
-    return Array.from(allDates).sort((a, b) => b.localeCompare(a));
+    // Sort all months, most recent first
+    return Array.from(allMonthStrings).sort((a, b) => b.localeCompare(a));
   }, [boys]);
 
   const calculateTotalMarks = (boy: Boy) => {
     return boy.marks.reduce((total, mark) => total + (mark.score > 0 ? mark.score : 0), 0);
   };
 
-  const getMarkForDate = (boy: Boy, date: string) => {
-    const mark = boy.marks.find(m => m.date === date);
-    if (mark === undefined || mark.score < 0) return <span className="text-gray-400">-</span>;
-    return mark.score.toString();
+  const getMarksForMonth = (boy: Boy, month: string) => {
+    const total = boy.marks
+      .filter(mark => mark.date.startsWith(month) && mark.score >= 0)
+      .reduce((sum, mark) => sum + mark.score, 0);
+      
+    const hasMarksInMonth = boy.marks.some(mark => mark.date.startsWith(month));
+    
+    return hasMarksInMonth ? total.toString() : <span className="text-gray-400">-</span>;
   };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  
+  const formatMonth = (monthString: string) => {
+    const [year, month] = monthString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
   };
 
   return (
@@ -91,8 +97,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys }) => {
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th scope="col" className="sticky left-0 bg-gray-50 dark:bg-gray-700 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6 z-10 w-48 min-w-[12rem]">Name</th>
-                    {allWeeks.map(date => (
-                      <th key={date} scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white w-20">{formatDate(date)}</th>
+                    {allMonths.map(month => (
+                      <th key={month} scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white w-24">{formatMonth(month)}</th>
                     ))}
                     <th scope="col" className="sticky right-0 bg-gray-50 dark:bg-gray-700 px-3 py-3.5 text-center text-sm font-semibold text-gray-900 dark:text-white w-28 min-w-[7rem]">All Time Total</th>
                   </tr>
@@ -108,9 +114,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys }) => {
                           )}
                         </div>
                       </td>
-                      {allWeeks.map(date => (
-                        <td key={`${boy.id}-${date}`} className="whitespace-nowrap px-3 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
-                          {getMarkForDate(boy, date)}
+                      {allMonths.map(month => (
+                        <td key={`${boy.id}-${month}`} className="whitespace-nowrap px-3 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
+                          {getMarksForMonth(boy, month)}
                         </td>
                       ))}
                       <td className="sticky right-0 bg-white dark:bg-gray-800 whitespace-nowrap px-3 py-4 text-sm text-center font-semibold text-gray-900 dark:text-white w-28 min-w-[7rem]">

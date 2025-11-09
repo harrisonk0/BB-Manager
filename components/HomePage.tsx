@@ -25,14 +25,6 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
   const [boyToDelete, setBoyToDelete] = useState<Boy | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const allWeeksCount = useMemo(() => {
-    const allDates = new Set<string>();
-    boys.forEach(boy => {
-      boy.marks.forEach(mark => allDates.add(mark.date));
-    });
-    return allDates.size;
-  }, [boys]);
-
   const filteredBoys = useMemo(() => {
     if (!searchQuery.trim()) {
       return boys;
@@ -168,9 +160,9 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
   };
   
   const calculateAttendancePercentage = (boy: Boy) => {
-    if (allWeeksCount === 0) return 0;
+    if (boy.marks.length === 0) return 0;
     const attendedCount = boy.marks.filter(m => m.score >= 0).length;
-    return Math.round((attendedCount / allWeeksCount) * 100);
+    return Math.round((attendedCount / boy.marks.length) * 100);
   };
 
   const calculateSquadTotalMarks = (squadBoys: Boy[]) => {
@@ -178,8 +170,8 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData }) => {
   };
 
   const calculateSquadAttendancePercentage = (squadBoys: Boy[]) => {
-    if (allWeeksCount === 0 || squadBoys.length === 0) return 0;
-    const totalPossibleAttendances = squadBoys.length * allWeeksCount;
+    const totalPossibleAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.length, 0);
+    if (totalPossibleAttendances === 0) return 0;
     const totalActualAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.filter(m => m.score >= 0).length, 0);
     return Math.round((totalActualAttendances / totalPossibleAttendances) * 100);
   };

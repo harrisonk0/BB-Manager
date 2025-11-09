@@ -139,16 +139,6 @@ const App: React.FC = () => {
     }
   };
 
-  const allWeeks = useMemo(() => {
-    const allDates = new Set<string>();
-    boys.forEach(boy => {
-      boy.marks.forEach(mark => {
-        allDates.add(mark.date);
-      });
-    });
-    return Array.from(allDates);
-  }, [boys]);
-
 
   const renderMainContent = () => {
     switch (view.page) {
@@ -162,7 +152,7 @@ const App: React.FC = () => {
         return <AuditLogPage refreshData={refreshData} />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
-        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} totalWeeks={allWeeks.length} setHasUnsavedChanges={setHasUnsavedChanges} />;
+        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} />;
       default:
         return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} />;
     }

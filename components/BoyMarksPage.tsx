@@ -8,7 +8,6 @@ import { BoyMarksPageSkeleton } from './SkeletonLoaders';
 interface BoyMarksPageProps {
   boyId: string;
   refreshData: () => void;
-  totalWeeks: number;
   setHasUnsavedChanges: (dirty: boolean) => void;
 }
 
@@ -20,7 +19,7 @@ const SQUAD_COLORS: Record<Squad, string> = {
 
 type EditableMark = Omit<Mark, 'score'> & { score: number | '' };
 
-const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWeeks, setHasUnsavedChanges }) => {
+const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges }) => {
   const [boy, setBoy] = useState<Boy | null>(null);
   const [editedMarks, setEditedMarks] = useState<EditableMark[]>([]);
   const [isDirty, setIsDirty] = useState(false);
@@ -147,12 +146,16 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, totalWe
   };
 
   const { totalMarks, attendancePercentage } = useMemo(() => {
-    const attendedMarks = editedMarks.filter(m => m.score !== '' && Number(m.score) >= 0);
+    if (editedMarks.length === 0) {
+      return { totalMarks: 0, attendancePercentage: 0 };
+    }
+
+    const attendedMarks = editedMarks.filter(m => Number(m.score) >= 0);
     const attendedCount = attendedMarks.length;
-    const percentage = totalWeeks > 0 ? Math.round((attendedCount / totalWeeks) * 100) : 0;
+    const percentage = Math.round((attendedCount / editedMarks.length) * 100);
     const total = attendedMarks.reduce((sum, mark) => sum + (Number(mark.score) || 0), 0);
     return { totalMarks: total, attendancePercentage: percentage };
-  }, [editedMarks, totalWeeks]);
+  }, [editedMarks]);
 
   if (loading) return <BoyMarksPageSkeleton />;
   if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
