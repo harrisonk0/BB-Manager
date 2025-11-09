@@ -14,12 +14,55 @@ import {
     orderBy,
     where,
     Timestamp,
+    limit,
 } from 'firebase/firestore';
 import { Boy, AuditLog, Section } from '../types';
 import { getDb, getAuthInstance } from './firebase';
 import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB } from './offlineDb';
 
 const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs') => `${section}_${resource}`;
+const INVITE_CODES_COLLECTION = 'invite_codes';
+
+// --- Invite Code Functions ---
+export const generateInviteCode = async (userEmail: string): Promise<string> => {
+    const db = getDb();
+    const inviteCodesRef = collection(db, INVITE_CODES_COLLECTION);
+    
+    // Atomically find and delete any existing unused code for this user
+    const q = query(inviteCodesRef, where('generatedBy', '==', userEmail), where('isUsed', '==', false));
+    const existingCodesSnap = await getDocs(q);
+    
+    if (!existingCodesSnap.empty) {
+        const batch = writeBatch(db);
+        existingCodesSnap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+    }
+    
+    // Generate new code
+    const newCode = `INV-${crypto.randomUUID().split('-')[0].toUpperCase()}`;
+    const newCodeRef = doc(db, INVITE_CODES_COLLECTION, newCode);
+    
+    await setDoc(newCodeRef, {
+        code: newCode,
+        generatedBy: userEmail,
+        isUsed: false,
+        createdAt: serverTimestamp()
+    });
+    
+    return newCode;
+};
+
+export const fetchActiveInviteCode = async (userEmail: string): Promise<string | null> => {
+    const db = getDb();
+    const q = query(collection(db, INVITE_CODES_COLLECTION), where('generatedBy', '==', userEmail), where('isUsed', '==', false), limit(1));
+    const snapshot = await getDocs(q);
+    
+    if (snapshot.empty) {
+        return null;
+    }
+    return snapshot.docs[0].data().code;
+};
+
 
 // --- Data Migration ---
 export const migrateFirestoreDataIfNeeded = async () => {

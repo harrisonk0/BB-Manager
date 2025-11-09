@@ -1,7 +1,7 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 // FIX: Changed to named imports for Firebase v9 compatibility.
-import { Firestore, getFirestore } from 'firebase/firestore';
-import { getAuth, Auth } from 'firebase/auth';
+import { Firestore, getFirestore, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { getAuth, Auth, createUserWithEmailAndPassword, UserCredential } from 'firebase/auth';
 
 export interface FirebaseConfig {
   apiKey: string;
@@ -56,3 +56,33 @@ export const getAuthInstance = (): Auth => {
   }
   return auth;
 };
+
+export const createOfficerAccount = async (code: string, email: string, password: string): Promise<UserCredential> => {
+    const dbInstance = getDb();
+    const authInstance = getAuthInstance();
+    
+    const codeRef = doc(dbInstance, 'invite_codes', code);
+    const codeSnap = await getDoc(codeRef);
+    
+    if (!codeSnap.exists() || codeSnap.data().isUsed) {
+        throw new Error('This invite code is invalid or has already been used.');
+    }
+    
+    // Try to create the user first
+    const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
+    
+    // If successful, mark the code as used
+    try {
+        await updateDoc(codeRef, { 
+            isUsed: true,
+            redeemedBy: userCredential.user.email,
+            redeemedAt: serverTimestamp()
+        });
+    } catch (dbError) {
+        // This is a fallback. If updating the code fails, the user is created but the code isn't marked.
+        // This is an acceptable edge case to avoid complexity of deleting the user.
+        console.error("CRITICAL: Failed to mark invite code as used after user creation.", dbError);
+    }
+    
+    return userCredential;
+}

@@ -12,6 +12,7 @@ import {
     SaveIcon,
     SearchIcon,
     ClockIcon,
+    ClipboardIcon,
 } from './Icons';
 
 
@@ -28,8 +29,32 @@ const LoginPreview: React.FC = () => (
             <input type="password" placeholder="Password" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
             <button disabled className="w-full py-2 px-4 rounded-md text-white bg-junior-blue/80 cursor-not-allowed">Sign In</button>
         </div>
+        <p className="mt-4 text-center text-sm text-slate-500">
+            Have an invite code?{' '}
+            <span className="font-medium text-junior-blue cursor-pointer">Create an account</span>
+        </p>
     </div>
 );
+
+const SignUpPreview: React.FC = () => (
+    <div className="w-full max-w-sm mx-auto p-6 bg-white rounded-lg shadow-md border border-slate-200">
+        <div className="text-center">
+            <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="BB Logo" className="w-24 mx-auto mb-2" />
+            <h2 className="text-lg text-slate-600">Create Officer Account</h2>
+        </div>
+        <div className="mt-4 space-y-3">
+            <input type="text" placeholder="Invite Code" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
+            <input type="email" placeholder="Email address" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
+            <input type="password" placeholder="Password" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
+            <button disabled className="w-full py-2 px-4 rounded-md text-white bg-junior-blue/80 cursor-not-allowed">Create Account</button>
+        </div>
+         <p className="mt-4 text-center text-sm text-slate-500">
+            Already have an account?{' '}
+            <span className="font-medium text-junior-blue cursor-pointer">Sign In</span>
+        </p>
+    </div>
+);
+
 
 const SectionSelectPreview: React.FC = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto p-4 bg-slate-100 rounded-lg border border-slate-200">
@@ -140,6 +165,38 @@ const WeeklyMarksAnatomy: React.FC = () => (
     </div>
 );
 
+const SettingsInvitePreview: React.FC = () => (
+    <div className="w-full max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md border border-slate-200">
+        <div className="space-y-4">
+            <div>
+                <h2 className="text-lg font-semibold text-company-blue">Invite New Officer</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                    Generate a one-time use code to invite another officer...
+                </p>
+                <div className="mt-3 flex items-center space-x-2">
+                    <input
+                        type="text"
+                        readOnly
+                        value="INV-ABC123D4"
+                        className="flex-grow px-3 py-2 bg-slate-100 border border-slate-300 rounded-md font-mono cursor-not-allowed"
+                    />
+                    <button className="p-2 border rounded-md bg-slate-100 border-slate-300 text-slate-700">
+                        <ClipboardIcon className="h-5 w-5" />
+                    </button>
+                </div>
+            </div>
+            <div className="flex justify-end pt-4 border-t border-slate-200">
+                <button
+                disabled
+                className="inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-company-blue/80 cursor-not-allowed"
+                >
+                Generate New Code
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
 const Callout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <div className="bg-blue-50 border-l-4 border-blue-400 p-4 my-4">
         <div className="flex">
@@ -194,7 +251,11 @@ const HelpPage: React.FC = () => {
             { id: 'settings-page', title: 'Changing Settings' },
             { id: 'sign-out', title: 'Signing Out' },
         ]},
-        { id: 'offline-use', title: '7. Offline Use' },
+        { id: 'inviting-officers', title: '7. Inviting New Officers', subSections: [
+            { id: 'generating-invite', title: 'Generating an Invite Code' },
+            { id: 'creating-account-invite', title: 'Creating an Account with a Code' },
+        ]},
+        { id: 'offline-use', title: '8. Offline Use' },
     ];
 
     return (
@@ -242,7 +303,7 @@ const HelpPage: React.FC = () => {
                         
                         <div id="login" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">How to Log In</h3>
-                            <p>You will be given a unique email and password to access the app. Simply enter these credentials on the login screen to get started.</p>
+                            <p>You will be given a unique email and password to access the app. Simply enter these credentials on the login screen to get started. If you are a new officer with an invite code, see Section 7.</p>
                             <LoginPreview />
                         </div>
 
@@ -420,9 +481,40 @@ const HelpPage: React.FC = () => {
                         </div>
                     </section>
                     
+                    {/* Inviting Officers */}
+                    <section id="inviting-officers" className="space-y-8 scroll-mt-24">
+                        <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">7. Inviting New Officers</h2>
+                        <p>To improve security and streamline onboarding, you can invite new officers using a unique, one-time use invite code. This avoids the need to manually create accounts and share passwords.</p>
+                        
+                        <div id="generating-invite" className="space-y-4 scroll-mt-24">
+                            <h3 className="text-2xl font-semibold text-slate-700">Generating an Invite Code</h3>
+                            <ol className="list-decimal list-inside space-y-2 pl-4">
+                                <li>Navigate to the <strong>Settings</strong> page using the cog icon (<CogIcon className="inline h-4 w-4 align-text-bottom"/>) in the header.</li>
+                                <li>Find the "Invite New Officer" card.</li>
+                                <li>Click the <strong className={`${accentTextColor}`}>Generate Invite Code</strong> button.</li>
+                                <li>A unique code will appear. Use the copy button (<ClipboardIcon className="inline h-4 w-4 align-text-bottom"/>) to copy it to your clipboard.</li>
+                                <li>Share this code securely with the new officer. The code is valid for one use only.</li>
+                            </ol>
+                            <Callout>Generating a new code will invalidate any previously generated, unused code. Only one active invite code can exist at a time per officer.</Callout>
+                            <SettingsInvitePreview />
+                        </div>
+
+                        <div id="creating-account-invite" className="space-y-4 scroll-mt-24">
+                            <h3 className="text-2xl font-semibold text-slate-700">Creating an Account with a Code</h3>
+                            <p>A new officer who has received a code should follow these steps:</p>
+                            <ol className="list-decimal list-inside space-y-2 pl-4">
+                                <li>Go to the app's main login page.</li>
+                                <li>Click the "<strong>Create an account</strong>" link below the "Sign In" button.</li>
+                                <li>On the sign-up page, enter the invite code, their desired email address, and a secure password.</li>
+                                <li>Click "Create Account". They will be logged in and can start using the app.</li>
+                            </ol>
+                            <SignUpPreview />
+                        </div>
+                    </section>
+
                     {/* Offline Use */}
                     <section id="offline-use" className="space-y-4 scroll-mt-24">
-                        <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">7. Offline Use & Data Syncing</h2>
+                        <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">8. Offline Use & Data Syncing</h2>
                         <p>The app is designed to work without an internet connection. All your data is saved securely in your browser. You can add members, enter marks, and make any other changes while offline.</p>
                         <p>When your device reconnects to the internet, the app will automatically sync all the changes you made with the central database, ensuring all officers have the most up-to-date information.</p>
                     </section>
