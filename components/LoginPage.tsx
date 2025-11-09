@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { getAuthInstance } from '../services/firebase';
+import { QuestionMarkCircleIcon } from './Icons';
 
-const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  onNavigateToHelp: () => void;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +43,15 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-200">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+      <div className="relative w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+        <button 
+            onClick={onNavigateToHelp} 
+            className="absolute top-4 right-4 text-slate-400 hover:text-junior-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue rounded-full"
+            aria-label="Help"
+        >
+            <QuestionMarkCircleIcon className="h-7 w-7" />
+        </button>
+
         <div className="text-center">
           <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="The Boys' Brigade Logo" className="w-48 mx-auto mb-4" />
           <h2 className="text-xl text-slate-600">

@@ -25,7 +25,13 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   4: 'text-yellow-600',
 };
 
-type EditableMark = Mark & { score: number | '', uniformScore?: number | '', behaviourScore?: number | '' };
+// FIX: Redefined type to allow score to be number or empty string, avoiding incorrect type intersection with the original Mark type.
+type EditableMark = {
+  date: string;
+  score: number | '';
+  uniformScore?: number | '';
+  behaviourScore?: number | '';
+};
 
 const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges, activeSection }) => {
   const [boy, setBoy] = useState<Boy | null>(null);
@@ -125,7 +131,8 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     setEditedMarks(currentMarks =>
       currentMarks.map(mark => {
         if (mark.date === date) {
-          const isPresent = mark.score >= 0;
+          // FIX: Use Number() to correctly compare score which could be an empty string.
+          const isPresent = Number(mark.score) >= 0;
           const newMark = { ...mark };
           if(isPresent) { // Toggling to absent
               newMark.score = -1;
@@ -163,7 +170,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
         // For Juniors
         const uniformScore = editableMark.uniformScore === '' ? 0 : Number(editableMark.uniformScore);
         const behaviourScore = editableMark.behaviourScore === '' ? 0 : Number(editableMark.behaviourScore);
-        const totalScore = editableMark.score < 0 ? -1 : uniformScore + behaviourScore; // Preserve absent status
+        const totalScore = Number(editableMark.score) < 0 ? -1 : uniformScore + behaviourScore; // Preserve absent status
         return { date: editableMark.date, score: totalScore, uniformScore, behaviourScore };
       });
 
@@ -202,7 +209,8 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
           if (isCompany || m.uniformScore === undefined) return m;
           const uniform = m.uniformScore === '' ? 0 : Number(m.uniformScore);
           const behaviour = m.behaviourScore === '' ? 0 : Number(m.behaviourScore);
-          return { ...m, score: m.score < 0 ? -1 : uniform + behaviour };
+          // FIX: Use Number() to correctly compare score which could be an empty string.
+          return { ...m, score: Number(m.score) < 0 ? -1 : uniform + behaviour };
       });
 
     if (marksToConsider.length === 0) {
@@ -252,7 +260,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
         ) : (
           <ul className="divide-y divide-slate-200">
             {editedMarks.map((mark) => {
-              const isPresent = mark.score >= 0;
+              const isPresent = Number(mark.score) >= 0;
               const formattedDate = new Date(mark.date + 'T00:00:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
               return (
@@ -277,7 +285,8 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                   {isCompany ? (
                     <input
                       type="number" min="0" max="10"
-                      value={mark.score < 0 ? '' : mark.score ?? ''}
+                      // FIX: Use Number() to correctly compare score which could be an empty string.
+                      value={Number(mark.score) < 0 ? '' : mark.score ?? ''}
                       onChange={(e) => handleMarkChange(mark.date, 'score', e.target.value)}
                       disabled={!isPresent}
                       className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
@@ -290,7 +299,8 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                             <>
                                 <input
                                   type="number" min="0" max="10"
-                                  value={mark.score < 0 ? '' : mark.uniformScore ?? ''}
+                                  // FIX: Use Number() to correctly compare score which could be an empty string.
+                                  value={Number(mark.score) < 0 ? '' : mark.uniformScore ?? ''}
                                   onChange={(e) => handleMarkChange(mark.date, 'uniform', e.target.value)}
                                   disabled={!isPresent}
                                   className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
@@ -299,7 +309,8 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                                 />
                                 <input
                                   type="number" min="0" max="5"
-                                  value={mark.score < 0 ? '' : mark.behaviourScore ?? ''}
+                                  // FIX: Use Number() to correctly compare score which could be an empty string.
+                                  value={Number(mark.score) < 0 ? '' : mark.behaviourScore ?? ''}
                                   onChange={(e) => handleMarkChange(mark.date, 'behaviour', e.target.value)}
                                   disabled={!isPresent}
                                   className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}

@@ -126,34 +126,12 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
   const squadLeaders = useMemo(() => {
     const leaders: Record<string, string | undefined> = {};
-    const allBoysBySquad: Record<string, Boy[]> = {};
-
-    boys.forEach(boy => {
-      if (!allBoysBySquad[boy.squad]) {
-        allBoysBySquad[boy.squad] = [];
-      }
-      allBoysBySquad[boy.squad].push(boy);
-    });
-    
-    for (const squad of Object.keys(allBoysBySquad)) {
-      allBoysBySquad[squad].sort((a, b) => {
-          const yearA = a.year || 0;
-          const yearB = b.year || 0;
-          if (typeof yearA === 'string' && typeof yearB === 'string') {
-              return yearB.localeCompare(yearA);
-          }
-          if (typeof yearA === 'number' && typeof yearB === 'number') {
-              return yearB - yearA;
-          }
-          return a.name.localeCompare(b.name);
-      });
-    }
-
-    Object.keys(allBoysBySquad).forEach(squad => {
-      const squadBoys = allBoysBySquad[squad];
+    Object.keys(boysBySquad).forEach(squad => {
+      const squadBoys = boysBySquad[squad];
       if (squadBoys.length === 0) return;
       let leader = squadBoys.find(b => b.isSquadLeader);
       if (!leader && squadBoys.length > 0) {
+        // The list is already sorted by year, so the first boy is the most senior.
         leader = squadBoys[0];
       }
       if (leader) {
@@ -161,7 +139,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       }
     });
     return leaders;
-  }, [boys]);
+  }, [boysBySquad]);
 
 
   const calculateTotalMarks = (boy: Boy) => {

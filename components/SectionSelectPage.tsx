@@ -1,13 +1,23 @@
 import React from 'react';
 import { Section } from '../types';
+import { QuestionMarkCircleIcon } from './Icons';
 
 interface SectionSelectPageProps {
   onSelectSection: (section: Section) => void;
+  onNavigateToHelp: () => void;
 }
 
-const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection }) => {
+const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, onNavigateToHelp }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-200 p-4">
+       <button 
+        onClick={onNavigateToHelp} 
+        className="absolute top-6 right-6 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full"
+        aria-label="Help"
+      >
+        <QuestionMarkCircleIcon className="h-8 w-8" />
+      </button>
+
       <div className="w-full max-w-lg text-center">
         <img 
           src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 

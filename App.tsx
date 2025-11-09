@@ -9,6 +9,7 @@ import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
 import SectionSelectPage from './components/SectionSelectPage';
 import SettingsPage from './components/SettingsPage';
+import HelpPage from './components/HelpPage';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, migrateFirestoreDataIfNeeded } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
@@ -196,34 +197,70 @@ const App: React.FC = () => {
 
     switch (view.page) {
       case 'home':
-        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection} />;
+        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} />;
       case 'weeklyMarks':
-        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection} settings={settings} />;
+        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} settings={settings} />;
       case 'dashboard':
-        return <DashboardPage boys={boys} activeSection={activeSection} />;
+        return <DashboardPage boys={boys} activeSection={activeSection!} />;
       case 'auditLog':
-        return <AuditLogPage refreshData={refreshData} activeSection={activeSection} />;
+        return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} />;
       case 'settings':
-        return <SettingsPage activeSection={activeSection} currentSettings={settings} onSettingsSaved={setSettings} />;
+        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} />;
+      case 'help':
+        return <HelpPage />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
-        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection} />;
+        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} />;
       default:
-        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection} />;
+        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} />;
     }
   };
 
+  const handleGoBackFromHelp = () => {
+    setView({ page: 'home' });
+  };
+
   const renderApp = () => {
+    if (view.page === 'help') {
+      return (
+        <>
+          {currentUser && activeSection ? (
+            <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} />
+          ) : (
+            <header className="bg-slate-700 text-white shadow-md sticky top-0 z-20">
+              <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center h-20">
+                  <div className="flex items-center space-x-4">
+                     <img 
+                        src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 
+                        alt="The Boys' Brigade Logo" 
+                        className="h-14 rounded-md"
+                      />
+                  </div>
+                  <button onClick={handleGoBackFromHelp} className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-slate-700">
+                    Back to App
+                  </button>
+                </div>
+              </nav>
+            </header>
+          )}
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <HelpPage />
+          </main>
+        </>
+      );
+    }
+
     if (currentUser === undefined || (currentUser && isLoading && activeSection)) {
         return <HomePageSkeleton />;
     }
     
     if (!currentUser) {
-        return <LoginPage />;
+        return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} />;
     }
     
     if (!activeSection) {
-        return <SectionSelectPage onSelectSection={handleSelectSection} />;
+        return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => setView({ page: 'help' })} />;
     }
     
     if (error) {

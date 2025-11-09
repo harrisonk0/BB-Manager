@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from 'firebase/auth';
-import { MenuIcon, XIcon, CogIcon, SwitchHorizontalIcon } from './Icons';
+import { MenuIcon, XIcon, CogIcon, SwitchHorizontalIcon, QuestionMarkCircleIcon } from './Icons';
 import { Page, Section } from '../types';
 
 interface HeaderProps {
@@ -64,6 +64,9 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                 <button onClick={() => handleNavClick('weeklyMarks')} className={navLinkClasses}>Weekly Marks</button>
                                 <button onClick={() => handleNavClick('auditLog')} className={navLinkClasses}>Audit Log</button>
                                 
+                                <button onClick={() => handleNavClick('help')} title="Help" aria-label="Help" className={iconButtonClasses}>
+                                    <QuestionMarkCircleIcon className="h-6 w-6"/>
+                                </button>
                                 <button onClick={() => handleNavClick('settings')} title="Settings" aria-label="Settings" className={iconButtonClasses}>
                                     <CogIcon className="h-6 w-6"/>
                                 </button>
@@ -99,6 +102,9 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                         <button onClick={() => handleNavClick('dashboard')} className={mobileNavLinkClasses}>Dashboard</button>
                         <button onClick={() => handleNavClick('weeklyMarks')} className={mobileNavLinkClasses}>Weekly Marks</button>
                         <button onClick={() => handleNavClick('auditLog')} className={mobileNavLinkClasses}>Audit Log</button>
+                        <button onClick={() => handleNavClick('help')} className={mobileNavLinkClasses}>
+                            <div className="flex items-center"><QuestionMarkCircleIcon className="h-5 w-5 mr-3"/><span>Help</span></div>
+                        </button>
                         <button onClick={() => handleNavClick('settings')} className={mobileNavLinkClasses}>
                             <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Settings</span></div>
                         </button>

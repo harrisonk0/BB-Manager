@@ -34,7 +34,7 @@ export interface AuditLog {
   reverted?: boolean;
 }
 
-export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings';
+export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'help';
 
 export interface BoyMarksPageView {
   page: 'boyMarks';
