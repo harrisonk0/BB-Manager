@@ -1,6 +1,6 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
 // FIX: Changed to named imports for Firebase v9 compatibility.
-import { Firestore, getFirestore, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { Firestore, getFirestore, doc, getDoc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { getAuth, Auth, createUserWithEmailAndPassword, UserCredential } from 'firebase/auth';
 
 export interface FirebaseConfig {
@@ -57,31 +57,31 @@ export const getAuthInstance = (): Auth => {
   return auth;
 };
 
-export const createOfficerAccount = async (code: string, email: string, password: string): Promise<UserCredential> => {
+export const createOfficerAccount = async (email: string, password: string, inviteId: string): Promise<UserCredential> => {
     const dbInstance = getDb();
     const authInstance = getAuthInstance();
     
-    const codeRef = doc(dbInstance, 'invite_codes', code);
-    const codeSnap = await getDoc(codeRef);
+    const inviteRef = doc(dbInstance, 'invites', inviteId);
+    const inviteSnap = await getDoc(inviteRef);
     
-    if (!codeSnap.exists() || codeSnap.data().isUsed) {
-        throw new Error('This invite code is invalid or has already been used.');
+    if (!inviteSnap.exists() || inviteSnap.data().isUsed) {
+        throw new Error('This invitation link is invalid or has already been used.');
     }
     
     // Try to create the user first
     const userCredential = await createUserWithEmailAndPassword(authInstance, email, password);
     
-    // If successful, mark the code as used
+    // If successful, mark the invite as used
     try {
-        await updateDoc(codeRef, { 
+        await updateDoc(inviteRef, { 
             isUsed: true,
-            redeemedBy: userCredential.user.email,
-            redeemedAt: serverTimestamp()
+            redeemedAt: serverTimestamp(),
+            redeemedBy: email
         });
     } catch (dbError) {
-        // This is a fallback. If updating the code fails, the user is created but the code isn't marked.
-        // This is an acceptable edge case to avoid complexity of deleting the user.
-        console.error("CRITICAL: Failed to mark invite code as used after user creation.", dbError);
+        // This is a fallback. If updating the code fails, the user is created but the invite isn't marked.
+        // The next time they try to sign up it will fail at createUserWithEmailAndPassword, so it's not a major security issue, just a dangling invite.
+        console.error("CRITICAL: Failed to mark invite as used after user creation.", dbError);
     }
     
     return userCredential;

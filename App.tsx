@@ -19,13 +19,11 @@ import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings } from './t
 import Modal from './components/Modal';
 
 type ConfirmationModalType = 'navigate' | 'switchSection' | 'signOut' | null;
-type AuthView = 'login' | 'signup';
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined);
   const [activeSection, setActiveSection] = useState<Section | null>(() => localStorage.getItem('activeSection') as Section | null);
   const [view, setView] = useState<View>({ page: 'home' });
-  const [authView, setAuthView] = useState<AuthView>('login');
   const [boys, setBoys] = useState<Boy[]>([]);
   const [settings, setSettings] = useState<SectionSettings | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -34,6 +32,10 @@ const App: React.FC = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [confirmModalType, setConfirmModalType] = useState<ConfirmationModalType>(null);
   const [nextView, setNextView] = useState<View | null>(null);
+  
+  // A state to force re-render after clearing URL params
+  const [_, setForceRender] = useState(0);
+
 
   const refreshData = useCallback(async () => {
     if (!activeSection) return;
@@ -105,7 +107,6 @@ const App: React.FC = () => {
           setIsLoading(false); 
           setActiveSection(null);
           setSettings(null);
-          setAuthView('login');
           localStorage.removeItem('activeSection');
         }
       });
@@ -260,10 +261,19 @@ const App: React.FC = () => {
     }
     
     if (!currentUser) {
-        if (authView === 'signup') {
-            return <SignUpPage onNavigateToLogin={() => setAuthView('login')} />;
-        }
-        return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} onNavigateToSignUp={() => setAuthView('signup')} />;
+      const urlParams = new URLSearchParams(window.location.search);
+      const inviteIdFromUrl = urlParams.get('invite');
+
+      if (inviteIdFromUrl) {
+          return <SignUpPage 
+              inviteId={inviteIdFromUrl} 
+              onNavigateToLogin={() => {
+                  window.history.pushState({}, '', window.location.pathname);
+                  setForceRender(c => c + 1); // Force re-render to show login page
+              }}
+          />;
+      }
+      return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} />;
     }
     
     if (!activeSection) {

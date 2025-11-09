@@ -46,3 +46,13 @@ export type View = { page: Page } | BoyMarksPageView;
 export interface SectionSettings {
   meetingDay: number; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 }
+
+export interface Invite {
+  id: string;
+  note?: string; // Optional note from the inviter
+  invitedBy: string;
+  invitedAt: any; // Can be number (client) or Timestamp (server)
+  isUsed: boolean;
+  redeemedAt?: any;
+  redeemedBy?: string; // The email of the user who redeemed it
+}

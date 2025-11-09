@@ -16,51 +16,67 @@ import {
     Timestamp,
     limit,
 } from 'firebase/firestore';
-import { Boy, AuditLog, Section } from '../types';
+import { Boy, AuditLog, Section, Invite } from '../types';
 import { getDb, getAuthInstance } from './firebase';
 import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB } from './offlineDb';
 
 const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs') => `${section}_${resource}`;
-const INVITE_CODES_COLLECTION = 'invite_codes';
+const INVITES_COLLECTION = 'invites';
 
-// --- Invite Code Functions ---
-export const generateInviteCode = async (userEmail: string): Promise<string> => {
+// --- Invite Functions ---
+export const generateInvite = async (inviterEmail: string, note?: string): Promise<string> => {
     const db = getDb();
-    const inviteCodesRef = collection(db, INVITE_CODES_COLLECTION);
+    const inviteRef = doc(collection(db, INVITES_COLLECTION));
     
-    // Atomically find and delete any existing unused code for this user
-    const q = query(inviteCodesRef, where('generatedBy', '==', userEmail), where('isUsed', '==', false));
-    const existingCodesSnap = await getDocs(q);
-    
-    if (!existingCodesSnap.empty) {
-        const batch = writeBatch(db);
-        existingCodesSnap.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
+    const inviteData: Omit<Invite, 'id'> = {
+        invitedBy: inviterEmail,
+        invitedAt: serverTimestamp(),
+        isUsed: false,
+    };
+    if (note) {
+        inviteData.note = note;
     }
     
-    // Generate new code
-    const newCode = `INV-${crypto.randomUUID().split('-')[0].toUpperCase()}`;
-    const newCodeRef = doc(db, INVITE_CODES_COLLECTION, newCode);
-    
-    await setDoc(newCodeRef, {
-        code: newCode,
-        generatedBy: userEmail,
-        isUsed: false,
-        createdAt: serverTimestamp()
-    });
-    
-    return newCode;
+    await setDoc(inviteRef, inviteData);
+    return inviteRef.id;
 };
 
-export const fetchActiveInviteCode = async (userEmail: string): Promise<string | null> => {
+export const getInviteById = async (inviteId: string): Promise<Invite> => {
     const db = getDb();
-    const q = query(collection(db, INVITE_CODES_COLLECTION), where('generatedBy', '==', userEmail), where('isUsed', '==', false), limit(1));
+    const inviteRef = doc(db, INVITES_COLLECTION, inviteId);
+    const docSnap = await getDoc(inviteRef);
+
+    if (!docSnap.exists() || docSnap.data().isUsed) {
+        throw new Error('This invitation link is invalid or has already been used.');
+    }
+    
+    const data = docSnap.data();
+    return {
+        ...data,
+        id: docSnap.id,
+        invitedAt: data.invitedAt?.toDate()?.getTime() || Date.now(),
+    } as Invite;
+};
+
+export const fetchInvites = async (): Promise<Invite[]> => {
+    const db = getDb();
+    const q = query(collection(db, INVITES_COLLECTION), where('isUsed', '==', false), orderBy('invitedAt', 'desc'));
     const snapshot = await getDocs(q);
     
-    if (snapshot.empty) {
-        return null;
-    }
-    return snapshot.docs[0].data().code;
+    return snapshot.docs.map(docSnapshot => {
+        const data = docSnapshot.data();
+        return {
+            ...data,
+            id: docSnapshot.id,
+            invitedAt: data.invitedAt?.toDate()?.getTime() || Date.now(),
+        } as Invite
+    });
+};
+
+export const revokeInvite = async (inviteId: string): Promise<void> => {
+    const db = getDb();
+    const inviteRef = doc(db, INVITES_COLLECTION, inviteId);
+    await deleteDoc(inviteRef);
 };
 
 

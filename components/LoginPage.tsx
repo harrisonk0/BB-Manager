@@ -5,10 +5,9 @@ import { QuestionMarkCircleIcon } from './Icons';
 
 interface LoginPageProps {
   onNavigateToHelp: () => void;
-  onNavigateToSignUp: () => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, onNavigateToSignUp }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -110,13 +109,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, onNavigateToSig
         </form>
 
         <p className="mt-4 text-center text-sm text-slate-500">
-            Have an invite code?{' '}
-            <button 
-                onClick={onNavigateToSignUp}
-                className="font-medium text-junior-blue hover:text-junior-blue/80 focus:outline-none focus:underline"
-            >
-                Create an account
-            </button>
+            Don't have an account?{' '}
+            <span className="font-medium text-slate-600">
+                Please use an invite link from an officer to sign up.
+            </span>
         </p>
 
       </div>

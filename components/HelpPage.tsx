@@ -30,8 +30,8 @@ const LoginPreview: React.FC = () => (
             <button disabled className="w-full py-2 px-4 rounded-md text-white bg-junior-blue/80 cursor-not-allowed">Sign In</button>
         </div>
         <p className="mt-4 text-center text-sm text-slate-500">
-            Have an invite code?{' '}
-            <span className="font-medium text-junior-blue cursor-pointer">Create an account</span>
+            Don't have an account?{' '}
+            <span className="font-medium text-slate-600">Please use an invite link...</span>
         </p>
     </div>
 );
@@ -43,7 +43,6 @@ const SignUpPreview: React.FC = () => (
             <h2 className="text-lg text-slate-600">Create Officer Account</h2>
         </div>
         <div className="mt-4 space-y-3">
-            <input type="text" placeholder="Invite Code" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
             <input type="email" placeholder="Email address" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
             <input type="password" placeholder="Password" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
             <button disabled className="w-full py-2 px-4 rounded-md text-white bg-junior-blue/80 cursor-not-allowed">Create Account</button>
@@ -171,27 +170,31 @@ const SettingsInvitePreview: React.FC = () => (
             <div>
                 <h2 className="text-lg font-semibold text-company-blue">Invite New Officer</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                    Generate a one-time use code to invite another officer...
+                    Generate a unique, single-use link to invite a new officer...
                 </p>
-                <div className="mt-3 flex items-center space-x-2">
+                <div className="mt-3 flex items-stretch gap-2">
                     <input
                         type="text"
-                        readOnly
-                        value="INV-ABC123D4"
-                        className="flex-grow px-3 py-2 bg-slate-100 border border-slate-300 rounded-md font-mono cursor-not-allowed"
+                        placeholder="Add an optional note..."
+                        className="flex-grow px-3 py-2 bg-slate-100 border border-slate-300 rounded-md cursor-not-allowed"
+                        disabled
                     />
-                    <button className="p-2 border rounded-md bg-slate-100 border-slate-300 text-slate-700">
-                        <ClipboardIcon className="h-5 w-5" />
+                    <button
+                        disabled
+                        className="inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-company-blue/80 cursor-not-allowed"
+                    >
+                        Generate Invite Link
                     </button>
                 </div>
             </div>
-            <div className="flex justify-end pt-4 border-t border-slate-200">
-                <button
-                disabled
-                className="inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-company-blue/80 cursor-not-allowed"
-                >
-                Generate New Code
-                </button>
+            <div className="pt-4 border-t border-slate-200">
+                <h3 className="text-md font-medium text-slate-800">Pending Invite Links</h3>
+                 <li className="flex items-center justify-between p-2 bg-slate-50 rounded-md mt-2">
+                    <span className="text-sm text-slate-700 italic truncate">For Jane Doe</span>
+                    <button disabled className="p-1.5 text-slate-400 cursor-not-allowed">
+                        <TrashIcon className="h-4 w-4" />
+                    </button>
+                </li>
             </div>
         </div>
     </div>
@@ -252,8 +255,8 @@ const HelpPage: React.FC = () => {
             { id: 'sign-out', title: 'Signing Out' },
         ]},
         { id: 'inviting-officers', title: '7. Inviting New Officers', subSections: [
-            { id: 'generating-invite', title: 'Generating an Invite Code' },
-            { id: 'creating-account-invite', title: 'Creating an Account with a Code' },
+            { id: 'sending-invite', title: 'How to Invite an Officer' },
+            { id: 'creating-account-invite', title: 'Signing Up with an Invitation Link' },
         ]},
         { id: 'offline-use', title: '8. Offline Use' },
     ];
@@ -303,7 +306,7 @@ const HelpPage: React.FC = () => {
                         
                         <div id="login" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">How to Log In</h3>
-                            <p>You will be given a unique email and password to access the app. Simply enter these credentials on the login screen to get started. If you are a new officer with an invite code, see Section 7.</p>
+                            <p>You will be given a unique email and password to access the app. Simply enter these credentials on the login screen to get started. If you are a new officer who has been invited, see Section 7.</p>
                             <LoginPreview />
                         </div>
 
@@ -484,29 +487,29 @@ const HelpPage: React.FC = () => {
                     {/* Inviting Officers */}
                     <section id="inviting-officers" className="space-y-8 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">7. Inviting New Officers</h2>
-                        <p>To improve security and streamline onboarding, you can invite new officers using a unique, one-time use invite code. This avoids the need to manually create accounts and share passwords.</p>
+                        <p>To improve security and streamline onboarding, new officers must be invited via a unique link before they can create an account.</p>
                         
-                        <div id="generating-invite" className="space-y-4 scroll-mt-24">
-                            <h3 className="text-2xl font-semibold text-slate-700">Generating an Invite Code</h3>
+                        <div id="sending-invite" className="space-y-4 scroll-mt-24">
+                            <h3 className="text-2xl font-semibold text-slate-700">How to Invite an Officer</h3>
                             <ol className="list-decimal list-inside space-y-2 pl-4">
                                 <li>Navigate to the <strong>Settings</strong> page using the cog icon (<CogIcon className="inline h-4 w-4 align-text-bottom"/>) in the header.</li>
-                                <li>Find the "Invite New Officer" card.</li>
-                                <li>Click the <strong className={`${accentTextColor}`}>Generate Invite Code</strong> button.</li>
-                                <li>A unique code will appear. Use the copy button (<ClipboardIcon className="inline h-4 w-4 align-text-bottom"/>) to copy it to your clipboard.</li>
-                                <li>Share this code securely with the new officer. The code is valid for one use only.</li>
+                                <li>Find the "Invite New Officer" section.</li>
+                                <li>Optionally, add a note to remember who the link is for (e.g., "For John Smith").</li>
+                                <li>Click the <strong className={`${accentTextColor}`}>Generate Invite Link</strong> button.</li>
+                                <li>A pop-up will appear with the unique, single-use link. Click the copy icon (<ClipboardIcon className="inline h-4 w-4 align-text-bottom"/>) to copy it.</li>
+                                <li>Send this link to the new officer via text, email, or any other method.</li>
                             </ol>
-                            <Callout>Generating a new code will invalidate any previously generated, unused code. Only one active invite code can exist at a time per officer.</Callout>
+                            <Callout>You can see all your unused links in the "Pending Invite Links" list and revoke one at any time by clicking the trash can icon.</Callout>
                             <SettingsInvitePreview />
                         </div>
 
                         <div id="creating-account-invite" className="space-y-4 scroll-mt-24">
-                            <h3 className="text-2xl font-semibold text-slate-700">Creating an Account with a Code</h3>
-                            <p>A new officer who has received a code should follow these steps:</p>
+                            <h3 className="text-2xl font-semibold text-slate-700">Signing Up with an Invitation Link</h3>
+                            <p>A new officer who receives a link should follow these steps:</p>
                             <ol className="list-decimal list-inside space-y-2 pl-4">
-                                <li>Go to the app's main login page.</li>
-                                <li>Click the "<strong>Create an account</strong>" link below the "Sign In" button.</li>
-                                <li>On the sign-up page, enter the invite code, their desired email address, and a secure password.</li>
-                                <li>Click "Create Account". They will be logged in and can start using the app.</li>
+                                <li>Click the invitation link. They will be taken directly to the account creation page.</li>
+                                <li>On the sign-up page, they must enter their email address and a secure password.</li>
+                                <li>Click "Create Account". They will be logged in and can start using the app. The link they used will now be invalid.</li>
                             </ol>
                             <SignUpPreview />
                         </div>

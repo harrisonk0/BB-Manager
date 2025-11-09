@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Section, SectionSettings } from '../types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Section, SectionSettings, Invite } from '../types';
 import { saveSettings } from '../services/settings';
-import { createAuditLog, generateInviteCode, fetchActiveInviteCode } from '../services/db';
+import { createAuditLog, generateInvite, fetchInvites, revokeInvite } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
-import { ClipboardIcon, CheckIcon } from './Icons';
+import { TrashIcon, ClipboardIcon, CheckIcon } from './Icons';
+import Modal from './Modal';
 
 interface SettingsPageProps {
   activeSection: Section;
@@ -21,21 +22,23 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [inviteNote, setInviteNote] = useState('');
+  const [pendingInvites, setPendingInvites] = useState<Invite[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const loadInvites = useCallback(async () => {
+      fetchInvites().then(setPendingInvites).catch(() => setInviteError("Could not load pending invites."));
+  }, []);
 
   useEffect(() => {
     if (currentSettings) {
       setMeetingDay(currentSettings.meetingDay);
     }
-    const user = getAuthInstance().currentUser;
-    if (user) {
-        fetchActiveInviteCode(user.email!).then(code => {
-            setInviteCode(code);
-        });
-    }
-  }, [currentSettings]);
+    loadInvites();
+  }, [currentSettings, loadInvites]);
 
   const handleSave = async () => {
     if (!currentSettings || currentSettings.meetingDay === meetingDay) {
@@ -74,32 +77,55 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     }
   };
 
-  const handleGenerateCode = async () => {
-      setIsGenerating(true);
-      const userEmail = getAuthInstance().currentUser?.email;
-      if (!userEmail) {
-          setError("User not found.");
-          setIsGenerating(false);
-          return;
-      }
-      try {
-        const newCode = await generateInviteCode(userEmail);
-        setInviteCode(newCode);
-      } catch (err) {
-        console.error("Failed to generate invite code:", err);
-        setError("Could not generate invite code. Please try again.");
-      } finally {
+  const handleGenerateLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInviteError(null);
+    setIsGenerating(true);
+    
+    const user = getAuthInstance().currentUser;
+    if (!user) {
+        setInviteError("You must be logged in to generate a link.");
         setIsGenerating(false);
-      }
+        return;
+    }
+    
+    try {
+        const inviteId = await generateInvite(user.email!, inviteNote || undefined);
+        const link = `${window.location.origin}?invite=${inviteId}`;
+        setGeneratedLink(link);
+        setInviteNote('');
+        loadInvites();
+    } catch (err: any) {
+        setInviteError(`Failed to generate link: ${err.message}`);
+        console.error(err);
+    } finally {
+        setIsGenerating(false);
+    }
   };
 
-  const handleCopyCode = () => {
-    if (!inviteCode) return;
-    navigator.clipboard.writeText(inviteCode).then(() => {
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
-    });
+  const handleRevoke = async (inviteId: string) => {
+    try {
+        await revokeInvite(inviteId);
+        loadInvites();
+    } catch (err: any) {
+        setInviteError(`Failed to revoke invite: ${err.message}`);
+        console.error(err);
+    }
   };
+  
+  const handleCopyToClipboard = () => {
+    if (generatedLink) {
+      navigator.clipboard.writeText(generatedLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleCloseLinkModal = () => {
+    setGeneratedLink(null);
+    setCopied(false);
+  }
+
 
   if (!currentSettings) {
     return <div className="text-center p-8">Loading settings...</div>;
@@ -160,36 +186,79 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
                 <div>
                     <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Invite New Officer</h2>
                     <p className="mt-2 text-sm text-slate-500">
-                        Generate a one-time use code to invite another officer to create an account.
+                        Generate a unique, single-use link to invite a new officer. Share this link with them to allow them to create an account.
                     </p>
-                    {inviteCode && (
-                        <div className="mt-4 flex items-center space-x-2">
-                            <input
-                                type="text"
-                                readOnly
-                                value={inviteCode}
-                                className="flex-grow px-3 py-2 bg-slate-100 border border-slate-300 rounded-md shadow-sm text-center font-mono tracking-widest sm:text-sm cursor-text"
-                                aria-label="Invite Code"
-                            />
-                            <button onClick={handleCopyCode} className={`p-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing} ${copySuccess ? 'bg-green-100 border-green-300 text-green-700' : 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'}`}>
-                                {copySuccess ? <CheckIcon className="h-5 w-5" /> : <ClipboardIcon className="h-5 w-5" />}
-                            </button>
-                        </div>
-                    )}
+                    <form onSubmit={handleGenerateLink} className="mt-4 flex flex-col sm:flex-row items-start sm:items-stretch gap-2">
+                        <input
+                            type="text"
+                            value={inviteNote}
+                            onChange={e => setInviteNote(e.target.value)}
+                            placeholder="Add an optional note (e.g., for Jane D.)"
+                            className={`flex-grow px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+                            aria-label="Optional note for invite"
+                        />
+                        <button
+                            type="submit"
+                            disabled={isGenerating}
+                            className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white w-full sm:w-auto ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                            {isGenerating ? 'Generating...' : 'Generate Invite Link'}
+                        </button>
+                    </form>
+                    {inviteError && <p className="text-red-500 text-sm mt-2">{inviteError}</p>}
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-slate-200">
-                    <button
-                    onClick={handleGenerateCode}
-                    disabled={isGenerating}
-                    className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white w-48 ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                    {isGenerating ? 'Generating...' : inviteCode ? 'Generate New Code' : 'Generate Invite Code'}
-                    </button>
+                <div className="pt-4 border-t border-slate-200">
+                    <h3 className="text-md font-medium text-slate-800">Pending Invite Links</h3>
+                    {pendingInvites.length === 0 ? (
+                        <p className="text-sm text-slate-500 mt-2">No pending invitations.</p>
+                    ) : (
+                        <ul className="mt-2 space-y-2">
+                            {pendingInvites.map(invite => (
+                                <li key={invite.id} className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
+                                    <span className="text-sm text-slate-700 italic truncate">{invite.note || 'No note'}</span>
+                                    <button onClick={() => handleRevoke(invite.id)} className="p-1.5 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-200" aria-label={`Revoke invite for ${invite.note || 'link'}`}>
+                                        <TrashIcon className="h-4 w-4" />
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
             </div>
         </div>
       </div>
+      
+      <Modal isOpen={!!generatedLink} onClose={handleCloseLinkModal} title="Invite Link Generated">
+        <div className="space-y-4">
+            <p className="text-slate-600">Share this unique link with the new officer. It can only be used once.</p>
+            <div className="flex items-center gap-2">
+                <input
+                    type="text"
+                    value={generatedLink || ''}
+                    readOnly
+                    className="w-full px-3 py-2 bg-slate-100 border border-slate-300 rounded-md text-sm text-slate-700"
+                />
+                 <button
+                    onClick={handleCopyToClipboard}
+                    className={`flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-md shadow-sm text-white ${copied ? 'bg-green-500' : accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+                    aria-label="Copy to clipboard"
+                  >
+                    {copied ? <CheckIcon className="h-5 w-5" /> : <ClipboardIcon className="h-5 w-5" />}
+                  </button>
+            </div>
+            <div className="flex justify-end pt-4">
+                 <button
+                    type="button"
+                    onClick={handleCloseLinkModal}
+                    className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+                  >
+                    Close
+                  </button>
+            </div>
+        </div>
+      </Modal>
+
     </div>
   );
 };
