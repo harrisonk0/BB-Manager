@@ -24,38 +24,16 @@ const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs') =>
 const INVITES_COLLECTION = 'invites';
 
 // --- Invite Functions ---
-export const generateInvite = async (inviterEmail: string, note?: string): Promise<string> => {
+export const inviteOfficer = async (emailToInvite: string, inviterEmail: string): Promise<void> => {
     const db = getDb();
-    const inviteRef = doc(collection(db, INVITES_COLLECTION));
+    const inviteRef = doc(db, INVITES_COLLECTION, emailToInvite);
     
-    const inviteData: Omit<Invite, 'id'> = {
+    await setDoc(inviteRef, {
+        email: emailToInvite,
         invitedBy: inviterEmail,
         invitedAt: serverTimestamp(),
         isUsed: false,
-    };
-    if (note) {
-        inviteData.note = note;
-    }
-    
-    await setDoc(inviteRef, inviteData);
-    return inviteRef.id;
-};
-
-export const getInviteById = async (inviteId: string): Promise<Invite> => {
-    const db = getDb();
-    const inviteRef = doc(db, INVITES_COLLECTION, inviteId);
-    const docSnap = await getDoc(inviteRef);
-
-    if (!docSnap.exists() || docSnap.data().isUsed) {
-        throw new Error('This invitation link is invalid or has already been used.');
-    }
-    
-    const data = docSnap.data();
-    return {
-        ...data,
-        id: docSnap.id,
-        invitedAt: data.invitedAt?.toDate()?.getTime() || Date.now(),
-    } as Invite;
+    });
 };
 
 export const fetchInvites = async (): Promise<Invite[]> => {
@@ -67,15 +45,15 @@ export const fetchInvites = async (): Promise<Invite[]> => {
         const data = docSnapshot.data();
         return {
             ...data,
-            id: docSnapshot.id,
+            email: docSnapshot.id,
             invitedAt: data.invitedAt?.toDate()?.getTime() || Date.now(),
         } as Invite
     });
 };
 
-export const revokeInvite = async (inviteId: string): Promise<void> => {
+export const revokeInvite = async (email: string): Promise<void> => {
     const db = getDb();
-    const inviteRef = doc(db, INVITES_COLLECTION, inviteId);
+    const inviteRef = doc(db, INVITES_COLLECTION, email);
     await deleteDoc(inviteRef);
 };
 

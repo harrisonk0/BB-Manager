@@ -48,11 +48,9 @@ export interface SectionSettings {
 }
 
 export interface Invite {
-  id: string;
-  note?: string; // Optional note from the inviter
+  email: string;
   invitedBy: string;
   invitedAt: any; // Can be number (client) or Timestamp (server)
   isUsed: boolean;
   redeemedAt?: any;
-  redeemedBy?: string; // The email of the user who redeemed it
 }

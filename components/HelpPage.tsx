@@ -31,7 +31,7 @@ const LoginPreview: React.FC = () => (
         </div>
         <p className="mt-4 text-center text-sm text-slate-500">
             Don't have an account?{' '}
-            <span className="font-medium text-slate-600">Please use an invite link...</span>
+            <span className="font-medium text-junior-blue cursor-pointer">Sign Up</span>
         </p>
     </div>
 );
@@ -170,12 +170,12 @@ const SettingsInvitePreview: React.FC = () => (
             <div>
                 <h2 className="text-lg font-semibold text-company-blue">Invite New Officer</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                    Generate a unique, single-use link to invite a new officer...
+                    Enter the email address of the officer you wish to invite...
                 </p>
                 <div className="mt-3 flex items-stretch gap-2">
                     <input
-                        type="text"
-                        placeholder="Add an optional note..."
+                        type="email"
+                        placeholder="new.officer@example.com"
                         className="flex-grow px-3 py-2 bg-slate-100 border border-slate-300 rounded-md cursor-not-allowed"
                         disabled
                     />
@@ -183,18 +183,13 @@ const SettingsInvitePreview: React.FC = () => (
                         disabled
                         className="inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-company-blue/80 cursor-not-allowed"
                     >
-                        Generate Invite Link
+                        Send Invite
                     </button>
                 </div>
             </div>
             <div className="pt-4 border-t border-slate-200">
-                <h3 className="text-md font-medium text-slate-800">Pending Invite Links</h3>
-                 <li className="flex items-center justify-between p-2 bg-slate-50 rounded-md mt-2">
-                    <span className="text-sm text-slate-700 italic truncate">For Jane Doe</span>
-                    <button disabled className="p-1.5 text-slate-400 cursor-not-allowed">
-                        <TrashIcon className="h-4 w-4" />
-                    </button>
-                </li>
+                <h3 className="text-md font-medium text-slate-800">Pending Invites</h3>
+                <p className="text-sm text-slate-500 mt-2">No pending invitations.</p>
             </div>
         </div>
     </div>
@@ -256,7 +251,7 @@ const HelpPage: React.FC = () => {
         ]},
         { id: 'inviting-officers', title: '7. Inviting New Officers', subSections: [
             { id: 'sending-invite', title: 'How to Invite an Officer' },
-            { id: 'creating-account-invite', title: 'Signing Up with an Invitation Link' },
+            { id: 'creating-account-invite', title: 'Signing Up with an Invitation' },
         ]},
         { id: 'offline-use', title: '8. Offline Use' },
     ];
@@ -487,29 +482,29 @@ const HelpPage: React.FC = () => {
                     {/* Inviting Officers */}
                     <section id="inviting-officers" className="space-y-8 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">7. Inviting New Officers</h2>
-                        <p>To improve security and streamline onboarding, new officers must be invited via a unique link before they can create an account.</p>
+                        <p>To improve security and streamline onboarding, new officers must be invited before they can create an account. This is done by adding their email address to an approved list.</p>
                         
                         <div id="sending-invite" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">How to Invite an Officer</h3>
                             <ol className="list-decimal list-inside space-y-2 pl-4">
                                 <li>Navigate to the <strong>Settings</strong> page using the cog icon (<CogIcon className="inline h-4 w-4 align-text-bottom"/>) in the header.</li>
                                 <li>Find the "Invite New Officer" section.</li>
-                                <li>Optionally, add a note to remember who the link is for (e.g., "For John Smith").</li>
-                                <li>Click the <strong className={`${accentTextColor}`}>Generate Invite Link</strong> button.</li>
-                                <li>A pop-up will appear with the unique, single-use link. Click the copy icon (<ClipboardIcon className="inline h-4 w-4 align-text-bottom"/>) to copy it.</li>
-                                <li>Send this link to the new officer via text, email, or any other method.</li>
+                                <li>Enter the new officer's email address into the input field.</li>
+                                <li>Click the <strong className={`${accentTextColor}`}>Send Invite</strong> button.</li>
+                                <li>The email will be added to the "Pending Invites" list. The new officer can now create an account using that email.</li>
                             </ol>
-                            <Callout>You can see all your unused links in the "Pending Invite Links" list and revoke one at any time by clicking the trash can icon.</Callout>
+                            <Callout>You can revoke an invitation at any time by clicking the trash can icon next to a pending invite.</Callout>
                             <SettingsInvitePreview />
                         </div>
 
                         <div id="creating-account-invite" className="space-y-4 scroll-mt-24">
-                            <h3 className="text-2xl font-semibold text-slate-700">Signing Up with an Invitation Link</h3>
-                            <p>A new officer who receives a link should follow these steps:</p>
+                            <h3 className="text-2xl font-semibold text-slate-700">Signing Up with an Invitation</h3>
+                            <p>A new officer who has been invited should follow these steps:</p>
                             <ol className="list-decimal list-inside space-y-2 pl-4">
-                                <li>Click the invitation link. They will be taken directly to the account creation page.</li>
-                                <li>On the sign-up page, they must enter their email address and a secure password.</li>
-                                <li>Click "Create Account". They will be logged in and can start using the app. The link they used will now be invalid.</li>
+                                <li>Go to the app's main login page.</li>
+                                <li>Click the "<strong>Sign Up</strong>" link below the "Sign In" button.</li>
+                                <li>On the sign-up page, enter their invited email address and a secure password.</li>
+                                <li>Click "Create Account". They will be logged in and can start using the app.</li>
                             </ol>
                             <SignUpPreview />
                         </div>

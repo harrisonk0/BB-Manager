@@ -57,15 +57,15 @@ export const getAuthInstance = (): Auth => {
   return auth;
 };
 
-export const createOfficerAccount = async (email: string, password: string, inviteId: string): Promise<UserCredential> => {
+export const createOfficerAccount = async (email: string, password: string): Promise<UserCredential> => {
     const dbInstance = getDb();
     const authInstance = getAuthInstance();
     
-    const inviteRef = doc(dbInstance, 'invites', inviteId);
+    const inviteRef = doc(dbInstance, 'invites', email);
     const inviteSnap = await getDoc(inviteRef);
     
     if (!inviteSnap.exists() || inviteSnap.data().isUsed) {
-        throw new Error('This invitation link is invalid or has already been used.');
+        throw new Error('This email address has not been invited or the invite has already been used.');
     }
     
     // Try to create the user first
@@ -75,8 +75,7 @@ export const createOfficerAccount = async (email: string, password: string, invi
     try {
         await updateDoc(inviteRef, { 
             isUsed: true,
-            redeemedAt: serverTimestamp(),
-            redeemedBy: email
+            redeemedAt: serverTimestamp()
         });
     } catch (dbError) {
         // This is a fallback. If updating the code fails, the user is created but the invite isn't marked.
