@@ -1,23 +1,48 @@
+/**
+ * @file offlineDb.ts
+ * @description This file provides a Promise-based wrapper around the IndexedDB API.
+ * It manages the local database for offline storage of boys, audit logs, and pending
+ * writes that need to be synced to Firestore. It also handles database schema creation
+ * and version migrations.
+ */
+
 import { Boy, AuditLog, Section } from '../types';
 
+/**
+ * Defines the structure of an object in the 'pending_writes' store.
+ * Each object represents a database operation that occurred while offline.
+ */
 export type PendingWrite = {
   id?: number;
   section: Section;
   type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG' | 'UPDATE_AUDIT_LOG';
   payload: any;
-  tempId?: string;
+  tempId?: string; // Used to track temporarily created boys before they get a real Firestore ID.
 };
 
 const DB_NAME = 'BBManagerDB';
-const DB_VERSION = 2; // Incremented version for migration
+const DB_VERSION = 2; // Increment this to trigger the 'onupgradeneeded' event for schema changes.
 const PENDING_WRITES_STORE = 'pending_writes';
 
+/**
+ * Generates a consistent object store name based on the section and resource type.
+ * @param section The section ('company' or 'junior').
+ * @param resource The resource type ('boys' or 'audit_logs').
+ * @returns The name of the IndexedDB object store.
+ */
 const getStoreName = (section: Section, resource: 'boys' | 'audit_logs') => `${section}_${resource}`;
 
+// A singleton instance of the database connection.
 let db: IDBDatabase;
 
+/**
+ * Opens and initializes the IndexedDB database. This is the entry point for all DB operations.
+ * It handles the creation and migration of the database schema.
+ * @returns A promise that resolves with the database instance.
+ */
 export const openDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
+    // If the connection is already open, resolve immediately.
     if (db) {
       return resolve(db);
     }
@@ -34,13 +59,19 @@ export const openDB = (): Promise<IDBDatabase> => {
       resolve(db);
     };
 
+    /**
+     * This event is only triggered when the DB_VERSION is higher than the existing
+     * database version on the client, or if the database doesn't exist.
+     * It's the only place where you can alter the database schema.
+     */
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
       const transaction = (event.target as IDBOpenDBRequest).transaction;
 
-      // New stores for version 2
+      // Migration from v1 to v2: introduces section-specific stores.
       if (event.oldVersion < 2) {
           console.log("Upgrading IndexedDB to v2: creating section-specific stores.");
+          // Create new stores for both sections.
           db.createObjectStore(getStoreName('company', 'boys'), { keyPath: 'id' });
           db.createObjectStore(getStoreName('company', 'audit_logs'), { keyPath: 'id' });
           db.createObjectStore(getStoreName('junior', 'boys'), { keyPath: 'id' });
@@ -50,7 +81,7 @@ export const openDB = (): Promise<IDBDatabase> => {
               db.createObjectStore(PENDING_WRITES_STORE, { autoIncrement: true, keyPath: 'id' });
           }
 
-          // Migrate old data if it exists
+          // If old v1 stores exist, migrate their data to the new 'company' stores by default.
           if (db.objectStoreNames.contains('boys')) {
               console.log("Migrating old 'boys' data to 'company_boys'...");
               const oldStore = transaction!.objectStore('boys');
@@ -86,12 +117,19 @@ export const openDB = (): Promise<IDBDatabase> => {
   });
 };
 
+/**
+ * A helper function to get an object store from the database within a new transaction.
+ * @param storeName The name of the store to access.
+ * @param mode The transaction mode ('readonly' or 'readwrite').
+ * @returns The IDBObjectStore instance.
+ */
 const getStore = (storeName: string, mode: IDBTransactionMode): IDBObjectStore => {
   const tx = db.transaction(storeName, mode);
   return tx.objectStore(storeName);
 };
 
 // --- Boy Functions ---
+/** Saves a single boy to the appropriate IndexedDB store. 'put' is used for both create and update. */
 export const saveBoyToDB = async (boy: Boy, section: Section): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -102,6 +140,7 @@ export const saveBoyToDB = async (boy: Boy, section: Section): Promise<void> => 
   });
 };
 
+/** Saves an array of boys in a single transaction for efficiency. */
 export const saveBoysToDB = async (boys: Boy[], section: Section): Promise<void> => {
     await openDB();
     return new Promise((resolve, reject) => {
@@ -113,6 +152,7 @@ export const saveBoysToDB = async (boys: Boy[], section: Section): Promise<void>
     });
 };
 
+/** Retrieves all boys from the appropriate IndexedDB store. */
 export const getBoysFromDB = async (section: Section): Promise<Boy[]> => {
     await openDB();
     return new Promise((resolve, reject) => {
@@ -123,6 +163,7 @@ export const getBoysFromDB = async (section: Section): Promise<Boy[]> => {
     });
 };
 
+/** Retrieves a single boy by their ID. */
 export const getBoyFromDB = async (id: string, section: Section): Promise<Boy | undefined> => {
     await openDB();
     return new Promise((resolve, reject) => {
@@ -133,6 +174,7 @@ export const getBoyFromDB = async (id: string, section: Section): Promise<Boy | 
     });
 };
 
+/** Deletes a boy by their ID. */
 export const deleteBoyFromDB = async (id: string, section: Section): Promise<void> => {
     await openDB();
     return new Promise((resolve, reject) => {
@@ -144,6 +186,7 @@ export const deleteBoyFromDB = async (id: string, section: Section): Promise<voi
 };
 
 // --- Audit Log Functions ---
+/** Saves a single audit log entry to the appropriate store. */
 export const saveLogToDB = async (log: AuditLog, section: Section): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -154,6 +197,7 @@ export const saveLogToDB = async (log: AuditLog, section: Section): Promise<void
   });
 };
 
+/** Saves an array of logs in a single transaction. */
 export const saveLogsToDB = async (logs: AuditLog[], section: Section): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -165,6 +209,7 @@ export const saveLogsToDB = async (logs: AuditLog[], section: Section): Promise<
   });
 };
 
+/** Retrieves all logs from the appropriate store, sorting them by timestamp descending. */
 export const getLogsFromDB = async (section: Section): Promise<AuditLog[]> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -178,6 +223,7 @@ export const getLogsFromDB = async (section: Section): Promise<AuditLog[]> => {
   });
 };
 
+/** Deletes a single log by its ID. */
 export const deleteLogFromDB = async (id: string, section: Section): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -188,6 +234,7 @@ export const deleteLogFromDB = async (id: string, section: Section): Promise<voi
   });
 };
 
+/** Deletes an array of logs by their IDs in a single transaction. */
 export const deleteLogsFromDB = async (logIds: string[], section: Section): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -201,6 +248,7 @@ export const deleteLogsFromDB = async (logIds: string[], section: Section): Prom
 
 
 // --- Pending Writes Functions ---
+/** Adds a new offline operation to the pending writes queue. */
 export const addPendingWrite = async (write: Omit<PendingWrite, 'id'>): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -211,6 +259,7 @@ export const addPendingWrite = async (write: Omit<PendingWrite, 'id'>): Promise<
   });
 };
 
+/** Retrieves all operations from the pending writes queue. */
 export const getPendingWrites = async (): Promise<PendingWrite[]> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -221,6 +270,7 @@ export const getPendingWrites = async (): Promise<PendingWrite[]> => {
   });
 };
 
+/** Clears the entire pending writes queue, typically after a successful sync to Firestore. */
 export const clearPendingWrites = async (): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {

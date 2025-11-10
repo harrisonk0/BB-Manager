@@ -1,3 +1,10 @@
+/**
+ * @file BoyMarksPage.tsx
+ * @description A detailed view showing the entire mark history for a single boy.
+ * It allows for correcting past marks, changing attendance status for past dates,
+ * and deleting incorrect mark entries.
+ */
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchBoyById, updateBoy, createAuditLog } from '../services/db';
 import { Boy, Mark, Squad, Section, JuniorSquad } from '../types';
@@ -12,6 +19,7 @@ interface BoyMarksPageProps {
   activeSection: Section;
 }
 
+// Section-specific color mappings.
 const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
   1: 'text-red-600',
   2: 'text-green-600',
@@ -25,6 +33,11 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   4: 'text-yellow-600',
 };
 
+/**
+ * A local type for managing marks in the component's state.
+ * It allows scores to be an empty string ('') during editing, which is
+ * different from the main `Mark` type where `score` is always a number.
+ */
 // FIX: Redefined type to allow score to be number or empty string, avoiding incorrect type intersection with the original Mark type.
 type EditableMark = {
   date: string;
@@ -34,6 +47,7 @@ type EditableMark = {
 };
 
 const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges, activeSection }) => {
+  // --- STATE MANAGEMENT ---
   const [boy, setBoy] = useState<Boy | null>(null);
   const [editedMarks, setEditedMarks] = useState<EditableMark[]>([]);
   const [isDirty, setIsDirty] = useState(false);
@@ -45,14 +59,19 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
+  /**
+   * Fetches the specific boy's data from the database.
+   */
   const fetchBoyData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const boyData = await fetchBoyById(boyId, activeSection);
       if (boyData) {
+        // Sort marks by date descending for display.
         boyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setBoy(boyData);
+        // Create a deep copy of the marks for editing to avoid mutating the original state.
         setEditedMarks(JSON.parse(JSON.stringify(boyData.marks)));
       } else {
         setError('Boy not found.');
@@ -65,13 +84,21 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     }
   }, [boyId, activeSection]);
 
+  // Fetch data when the component mounts or the ID changes.
   useEffect(() => {
     fetchBoyData();
   }, [fetchBoyData]);
 
+  /**
+   * EFFECT: Detects if there are any unsaved changes by comparing the original
+   * marks with the `editedMarks` state. This is a crucial piece of logic for
+   * managing the `isDirty` state.
+   */
   useEffect(() => {
     if (boy) {
+      // Create a clean, sorted version of the original marks.
       const originalMarksSorted = [...boy.marks].sort((a, b) => a.date.localeCompare(b.date));
+      // Create a clean, sorted version of the edited marks, converting empty strings to numbers.
       const editedMarksSorted = [...editedMarks]
         .filter(m => m.score !== '')
         .map(m => {
@@ -82,34 +109,37 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
         })
         .sort((a, b) => a.date.localeCompare(b.date));
       
+      // Compare the stringified versions to check for differences.
       setIsDirty(JSON.stringify(originalMarksSorted) !== JSON.stringify(editedMarksSorted));
     } else {
         setIsDirty(false);
     }
   }, [boy, editedMarks]);
   
+  /**
+   * EFFECT: Manages the 'beforeunload' event to warn users about unsaved changes.
+   */
   useEffect(() => {
     setHasUnsavedChanges(isDirty);
-
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (isDirty) {
         event.preventDefault();
-        event.returnValue = ''; // Required for modern browsers
+        event.returnValue = '';
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       setHasUnsavedChanges(false);
     };
   }, [isDirty, setHasUnsavedChanges]);
   
+  // --- EVENT HANDLERS ---
   const handleMarkChange = (date: string, type: 'score' | 'uniform' | 'behaviour', newScoreStr: string) => {
     const maxScore = type === 'uniform' ? 10 : (type === 'behaviour' ? 5 : 10);
     const newScore = parseInt(newScoreStr, 10);
     
+    // Validate input before updating state.
     if (newScoreStr === '' || (!isNaN(newScore) && newScore >= 0 && newScore <= maxScore)) {
       setEditedMarks(currentMarks =>
         currentMarks.map(mark => {
@@ -126,7 +156,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     }
   };
 
-
   const handleAttendanceToggle = (date: string) => {
     setEditedMarks(currentMarks =>
       currentMarks.map(mark => {
@@ -136,7 +165,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
           const newMark = { ...mark };
           if(isPresent) { // Toggling to absent
               newMark.score = -1;
-          } else { // Toggling to present
+          } else { // Toggling to present, clear the score fields.
               if(isCompany) {
                   newMark.score = '';
               } else {
@@ -153,6 +182,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
   };
 
   const handleDeleteMark = (date: string) => {
+    // This effectively removes the mark for this date from the boy's record.
     setEditedMarks(currentMarks => currentMarks.filter(mark => mark.date !== date));
   };
 
@@ -161,16 +191,17 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     setIsSaving(true);
     setError(null);
 
+    // Convert the local `EditableMark[]` state back into the strict `Mark[]` type for saving.
     const validMarks: Mark[] = editedMarks
-      .filter(mark => mark.score !== '')
+      .filter(mark => mark.score !== '') // Discard any empty entries.
       .map(editableMark => {
         if(isCompany || editableMark.uniformScore === undefined) {
              return { date: editableMark.date, score: Number(editableMark.score) };
         }
-        // For Juniors
+        // For Juniors, recalculate the total score from uniform and behaviour.
         const uniformScore = editableMark.uniformScore === '' ? 0 : Number(editableMark.uniformScore);
         const behaviourScore = editableMark.behaviourScore === '' ? 0 : Number(editableMark.behaviourScore);
-        const totalScore = Number(editableMark.score) < 0 ? -1 : uniformScore + behaviourScore; // Preserve absent status
+        const totalScore = Number(editableMark.score) < 0 ? -1 : uniformScore + behaviourScore; // Preserve absent status.
         return { date: editableMark.date, score: totalScore, uniformScore, behaviourScore };
       });
 
@@ -180,18 +211,20 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
       const auth = getAuthInstance();
       const userEmail = auth.currentUser?.email || 'Unknown User';
       
+      // Create an audit log entry for the change.
       await createAuditLog({
         userEmail,
         actionType: 'UPDATE_BOY',
         description: `Updated marks for ${boy.name}.`,
-        revertData: { boyData: JSON.parse(JSON.stringify(boy)) },
+        revertData: { boyData: JSON.parse(JSON.stringify(boy)) }, // Save old data for revert.
       }, activeSection);
 
       await updateBoy(updatedBoyData, activeSection);
+      // Update local state to match the saved data.
       updatedBoyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setBoy(updatedBoyData);
       setEditedMarks(JSON.parse(JSON.stringify(updatedBoyData.marks)));
-      refreshData();
+      refreshData(); // Refresh data in the main App component.
       setIsDirty(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
@@ -203,7 +236,12 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     }
   };
 
+  /**
+   * Memoized calculation of total marks and attendance percentage based on the `editedMarks` state.
+   * This provides instant feedback to the user as they make changes.
+   */
   const { totalMarks, attendancePercentage } = useMemo(() => {
+     // Recalculate junior scores for accuracy during editing.
      const marksToConsider = editedMarks
       .map(m => {
           if (isCompany || m.uniformScore === undefined) return m;
@@ -222,7 +260,8 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     const total = attendedMarks.reduce((sum, mark) => sum + (Number(mark.score) || 0), 0);
     return { totalMarks: total, attendancePercentage: percentage };
   }, [editedMarks, isCompany]);
-
+  
+  // --- RENDER LOGIC ---
   if (loading) return <BoyMarksPageSkeleton />;
   if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
   if (!boy) return <div className="text-center p-8">Boy data not available.</div>;
@@ -295,6 +334,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                     />
                   ) : (
                     <div className="flex items-center space-x-2">
+                        {/* Show separate inputs for Juniors if uniform/behaviour scores exist, otherwise show total. */}
                         {mark.uniformScore !== undefined ? (
                             <>
                                 <input
@@ -339,6 +379,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
         )}
       </div>
       
+       {/* Floating Action Button for saving changes */}
        {(isDirty || saveSuccess) && (
           <button
             onClick={handleSaveChanges}

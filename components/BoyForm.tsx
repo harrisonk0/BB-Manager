@@ -1,34 +1,52 @@
+/**
+ * @file BoyForm.tsx
+ * @description A form component used for both creating a new boy and editing an existing one.
+ * It is displayed within a modal.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Boy, Squad, SchoolYear, Section, JuniorSquad, JuniorYear } from '../types';
 import { createBoy, updateBoy, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
 
 interface BoyFormProps {
+  /** If provided, the form will be in 'edit' mode, pre-filled with this boy's data. If null/undefined, it's in 'add' mode. */
   boyToEdit?: Boy | null;
+  /** Callback function to be executed after a successful save. */
   onSave: () => void;
+  /** Callback function to close the form/modal. */
   onClose: () => void;
+  /** The currently active section, which determines the available options (e.g., squads, years). */
   activeSection: Section;
 }
 
 const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSection }) => {
   const isCompany = activeSection === 'company';
   
+  // Set initial form state based on the active section.
   const initialSquad = isCompany ? 1 : 1;
   const initialYear = isCompany ? 8 : 'P4';
   
+  // Form field states.
   const [name, setName] = useState('');
   const [squad, setSquad] = useState<Squad | JuniorSquad>(initialSquad);
   const [year, setYear] = useState<SchoolYear | JuniorYear>(initialYear);
   const [isSquadLeader, setIsSquadLeader] = useState(false);
   const [error, setError] = useState('');
 
+  /**
+   * EFFECT: Populates the form fields when `boyToEdit` prop changes.
+   * This handles switching between 'add' and 'edit' modes.
+   */
   useEffect(() => {
     if (boyToEdit) {
+      // Edit mode: set state from the boy's data.
       setName(boyToEdit.name);
       setSquad(boyToEdit.squad);
       setYear(boyToEdit.year || initialYear);
       setIsSquadLeader(boyToEdit.isSquadLeader || false);
     } else {
+      // Add mode: reset form to initial values.
       setName('');
       setSquad(initialSquad);
       setYear(initialYear);
@@ -36,6 +54,11 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     }
   }, [boyToEdit, activeSection]);
 
+  /**
+   * Handles the form submission.
+   * It performs validation, then calls the appropriate database service (create or update),
+   * creates an audit log entry for the action, and finally calls the onSave callback.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -49,28 +72,32 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
       const userEmail = auth.currentUser?.email || 'Unknown User';
 
       if (boyToEdit) {
+        // --- UPDATE LOGIC ---
+        // Construct a description of the changes for the audit log.
         const changes: string[] = [];
         if (boyToEdit.name !== name) changes.push(`name to "${name}"`);
         if (boyToEdit.squad !== squad) changes.push(`squad to ${squad}`);
         if (boyToEdit.year !== year) changes.push(`year to ${year}`);
         if (!!boyToEdit.isSquadLeader !== isSquadLeader) changes.push(`squad leader status to ${isSquadLeader}`);
         
+        // Only create an audit log if something actually changed.
         if (changes.length > 0) {
             await createAuditLog({
                 userEmail,
                 actionType: 'UPDATE_BOY',
                 description: `Updated ${boyToEdit.name}: changed ${changes.join(', ')}.`,
-                revertData: { boyData: boyToEdit },
+                revertData: { boyData: boyToEdit }, // Save the old data for potential revert.
             }, activeSection);
         }
         await updateBoy({ ...boyToEdit, name, squad, year, isSquadLeader }, activeSection);
       } else {
+        // --- CREATE LOGIC ---
         const newBoy = await createBoy({ name, squad, year, marks: [], isSquadLeader }, activeSection);
         await createAuditLog({
             userEmail,
             actionType: 'CREATE_BOY',
             description: `Added new boy: ${name}`,
-            revertData: { boyId: newBoy.id },
+            revertData: { boyId: newBoy.id }, // Save the new ID for potential revert.
         }, activeSection);
       }
       onSave();
@@ -80,6 +107,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     }
   };
   
+  // Define available form options based on the active section.
   const companyYears: SchoolYear[] = [8, 9, 10, 11, 12, 13, 14];
   const juniorYears: JuniorYear[] = ['P4', 'P5', 'P6', 'P7'];
   const schoolYears = isCompany ? companyYears : juniorYears;
@@ -88,6 +116,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
   const juniorSquads: JuniorSquad[] = [1, 2, 3, 4];
   const squadOptions = isCompany ? companySquads : juniorSquads;
 
+  // Define dynamic styles based on the active section.
   const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
   const accentText = isCompany ? 'text-company-blue focus:ring-company-blue' : 'text-junior-blue focus:ring-junior-blue';
   const accentBg = isCompany ? 'bg-company-blue focus:ring-company-blue' : 'bg-junior-blue focus:ring-junior-blue';
@@ -116,6 +145,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
           id="year"
           value={year}
           onChange={(e) => {
+            // Handle parsing to number for Company Section years.
             const value = isCompany ? parseInt(e.target.value, 10) : e.target.value;
             setYear(value as SchoolYear | JuniorYear);
           }}
@@ -157,6 +187,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
           <span className="ml-2 text-sm text-slate-700">Set as Squad Leader</span>
         </label>
       </div>
+      {/* Form action buttons */}
       <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
         <button
           type="button"

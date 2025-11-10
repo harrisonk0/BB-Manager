@@ -1,9 +1,23 @@
+/**
+ * @file SkeletonLoaders.tsx
+ * @description A collection of "skeleton" or "placeholder" components.
+ * These are shown to the user while data is being fetched from the database.
+ * They mimic the layout of the actual content, providing a better user experience
+ * than a simple loading spinner by reducing layout shift and perceived loading time.
+ */
+
 import React from 'react';
 
+/**
+ * A generic, reusable skeleton block component.
+ */
 const Skeleton: React.FC<{ className?: string }> = ({ className }) => (
   <div className={`bg-slate-300 rounded animate-pulse ${className}`} />
 );
 
+/**
+ * A skeleton loader specifically designed to look like the HomePage component.
+ */
 export const HomePageSkeleton: React.FC = () => (
   <>
     {/* Fake Header */}
@@ -60,7 +74,9 @@ export const HomePageSkeleton: React.FC = () => (
   </>
 );
 
-
+/**
+ * A skeleton loader specifically designed to look like the BoyMarksPage component.
+ */
 export const BoyMarksPageSkeleton: React.FC = () => (
   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div className="mb-6 pb-4 border-b border-slate-200">

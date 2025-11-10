@@ -1,3 +1,10 @@
+/**
+ * @file DashboardPage.tsx
+ * @description Displays a summary dashboard of member performance.
+ * It shows a table of all members with their total marks broken down by month,
+ * providing a high-level overview for reporting and comparison.
+ */
+
 import React, { useMemo } from 'react';
 import { Boy, Squad, Section, JuniorSquad } from '../types';
 
@@ -6,6 +13,7 @@ interface DashboardPageProps {
   activeSection: Section;
 }
 
+// Section-specific color mappings.
 const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
   1: 'text-red-600',
   2: 'text-green-600',
@@ -23,6 +31,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
+  // --- MEMOIZED COMPUTATIONS ---
+  // These useMemo hooks are critical for performance, ensuring that the expensive
+  // data processing only runs when the underlying `boys` data changes.
+
+  /**
+   * Memoized grouping and sorting of boys by squad.
+   */
   const boysBySquad = useMemo(() => {
     const grouped: Record<string, Boy[]> = {};
     boys.forEach(boy => {
@@ -31,7 +46,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
       }
       grouped[boy.squad].push(boy);
     });
-
+    // Sort boys within each squad for consistent display.
     for (const squad of Object.keys(grouped)) {
         grouped[squad].sort((a, b) => {
             const yearA = a.year || 0;
@@ -49,6 +64,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
     return grouped;
   }, [boys]);
 
+  /**
+   * Memoized calculation of squad leaders.
+   */
   const squadLeaders = useMemo(() => {
     const leaders: Record<string, string | undefined> = {};
     Object.keys(boysBySquad).forEach(squad => {
@@ -56,7 +74,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
         if (squadBoys.length === 0) return;
         let leader = squadBoys.find(b => b.isSquadLeader);
         if (!leader) {
-            leader = squadBoys[0];
+            leader = squadBoys[0]; // Default to most senior boy
         }
         if (leader) {
             leaders[squad] = leader.id;
@@ -65,35 +83,49 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
     return leaders;
   }, [boysBySquad]);
 
+  /**
+   * Memoized calculation of all unique months for which marks exist.
+   * This dynamically generates the columns for the dashboard table.
+   */
   const allMonths = useMemo(() => {
     const allMonthStrings = new Set<string>();
     boys.forEach(boy => {
       boy.marks.forEach(mark => {
-        allMonthStrings.add(mark.date.substring(0, 7)); // "YYYY-MM"
+        allMonthStrings.add(mark.date.substring(0, 7)); // Extracts "YYYY-MM"
       });
     });
+    // Return sorted array of months, most recent first.
     return Array.from(allMonthStrings).sort((a, b) => b.localeCompare(a));
   }, [boys]);
+  
+  // --- UTILITY FUNCTIONS ---
 
+  /** Calculates the total marks for a boy, ignoring absences. */
   const calculateTotalMarks = (boy: Boy) => {
     return boy.marks.reduce((total, mark) => total + (mark.score > 0 ? mark.score : 0), 0);
   };
 
+  /** Calculates a boy's total marks for a specific month. */
   const getMarksForMonth = (boy: Boy, month: string) => {
     const total = boy.marks
       .filter(mark => mark.date.startsWith(month) && mark.score >= 0)
       .reduce((sum, mark) => sum + mark.score, 0);
       
+    // Check if the boy has any mark entries (even absences) in the month.
     const hasMarksInMonth = boy.marks.some(mark => mark.date.startsWith(month));
     
+    // Return the total, or a dash if they have no records for that month.
     return hasMarksInMonth ? total.toString() : <span className="text-slate-400">-</span>;
   };
   
+  /** Formats a "YYYY-MM" string into a more readable format, e.g., "Sep 2024". */
   const formatMonth = (monthString: string) => {
     const [year, month] = monthString.split('-');
     const date = new Date(parseInt(year), parseInt(month) - 1, 1);
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
   };
+  
+  // --- RENDER LOGIC ---
 
   const sortedSquads = Object.keys(boysBySquad).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
@@ -109,6 +141,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
               <table className="min-w-full bg-white">
                 <thead className="bg-slate-100">
                   <tr>
+                    {/* Sticky columns ensure Name and Total are always visible on horizontal scroll */}
                     <th scope="col" className="sticky left-0 bg-slate-100 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6 z-10 w-48 min-w-[12rem]">Name</th>
                     {allMonths.map(month => (
                       <th key={month} scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900 w-24">{formatMonth(month)}</th>
@@ -143,6 +176,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
           </div>
         </div>
       ))}
+      {/* Empty state message if there are no boys in the section */}
       {boys.length === 0 && (
           <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
               <h3 className="text-lg font-medium text-slate-900">No members yet!</h3>

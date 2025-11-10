@@ -8,14 +8,21 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png">
     <title>BB Manager</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      /* Custom font definition */
       @font-face {
         font-family: 'Futura';
         font-weight: bold;
         src: local('Futura Book Bold');
       }
     </style>
+    <!-- 
+      Inline script to configure Tailwind CSS with custom theme extensions.
+      This adds custom colors for different BB sections and sets a default font stack.
+      Doing this inline avoids needing a build step for CSS processing.
+    -->
     <script>
       const colors = tailwind.colors;
       tailwind.config = {
@@ -48,6 +55,11 @@
         },
       }
     </script>
+  <!-- 
+    Import Map: This allows using bare module specifiers (e.g., "react") in JavaScript modules,
+    similar to Node.js. It maps these specifiers to full URLs, enabling a build-less
+    development environment for dependencies like React and Firebase.
+  -->
   <script type="importmap">
 {
   "imports": {
@@ -60,8 +72,15 @@
 </script>
 </head>
   <body class="bg-slate-200">
+    <!-- The root element where the React app will be mounted -->
     <div id="root"></div>
+    <!-- Main application script, loaded as a module -->
     <script type="module" src="/index.tsx"></script>
+    <!-- 
+      Service Worker Registration: This script checks if the browser supports
+      service workers and registers sw.js to enable Progressive Web App (PWA)
+      features like offline caching and background sync.
+    -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

@@ -1,4 +1,12 @@
+/**
+ * @file App.tsx
+ * @description The root component of the application.
+ * It manages global state such as the current user, active section, and current view.
+ * It also handles routing, data fetching, authentication, and offline synchronization.
+ */
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+// FIX: Use named imports for Firebase v9 compatibility.
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import HomePage from './components/HomePage';
 import WeeklyMarksPage from './components/WeeklyMarksPage';
@@ -17,21 +25,36 @@ import { getSettings } from './services/settings';
 import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings } from './types';
 import Modal from './components/Modal';
 
+// Defines the possible reasons for showing the confirmation modal.
 type ConfirmationModalType = 'navigate' | 'switchSection' | 'signOut' | null;
 
 const App: React.FC = () => {
+  // --- STATE MANAGEMENT ---
+  // `undefined` represents the initial state before auth status is checked.
+  // `null` means the user is logged out.
+  // `User` object means the user is logged in.
   const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined);
+  // The currently active section ('company' or 'junior'), persisted in localStorage.
   const [activeSection, setActiveSection] = useState<Section | null>(() => localStorage.getItem('activeSection') as Section | null);
+  // The current view/page being displayed to the user.
   const [view, setView] = useState<View>({ page: 'home' });
+  // The list of all boys for the active section.
   const [boys, setBoys] = useState<Boy[]>([]);
+  // The settings for the active section (e.g., meeting day).
   const [settings, setSettings] = useState<SectionSettings | null>(null);
+  // Global loading state, primarily used on initial data load.
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  // Global error state to display critical errors to the user.
   const [error, setError] = useState<string | null>(null);
-
+  
+  // State for handling unsaved changes warning.
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [confirmModalType, setConfirmModalType] = useState<ConfirmationModalType>(null);
   const [nextView, setNextView] = useState<View | null>(null);
 
+  /**
+   * Fetches all necessary data for the active section (boys, settings) and updates the state.
+   */
   const refreshData = useCallback(async () => {
     if (!activeSection) return;
     try {
@@ -47,6 +70,11 @@ const App: React.FC = () => {
     }
   }, [activeSection]);
 
+  /**
+   * EFFECT: Handles online/offline status changes.
+   * When the app comes online, it attempts to sync any pending offline writes.
+   * If the sync is successful, it refreshes the local data.
+   */
   useEffect(() => {
     const handleOnline = () => {
         console.log('App is online, attempting to sync...');
@@ -59,6 +87,7 @@ const App: React.FC = () => {
     };
     
     window.addEventListener('online', handleOnline);
+    // Also attempt a sync on initial app load.
     syncPendingWrites().then(synced => {
         if(synced) refreshData();
     });
@@ -68,6 +97,9 @@ const App: React.FC = () => {
     };
   }, [refreshData]);
   
+  /**
+   * A wrapper around refreshData that also manages the global loading state.
+   */
   const loadDataAndSettings = useCallback(async () => {
     if (!activeSection) return;
     setIsLoading(true);
@@ -82,36 +114,46 @@ const App: React.FC = () => {
     }
   }, [activeSection, refreshData]);
   
+  /**
+   * EFFECT: Handles Firebase initialization and authentication state.
+   * This is the main effect that drives the application's lifecycle.
+   */
   useEffect(() => {
     try {
       initializeFirebase();
       const auth = getAuthInstance();
+      // Listen for changes in the user's authentication state.
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         setCurrentUser(user);
         if (user) {
+          // If user is logged in, run data migrations and cleanup tasks.
           migrateFirestoreDataIfNeeded().then(() => {
             if(activeSection) {
               deleteOldAuditLogs(activeSection).then(() => {
                 loadDataAndSettings();
               });
             } else {
+              // If logged in but no section selected, stop loading and show section select page.
               setIsLoading(false); 
             }
           });
         } else {
+          // If user is logged out, clear all state and stop loading.
           setIsLoading(false); 
           setActiveSection(null);
           setSettings(null);
           localStorage.removeItem('activeSection');
         }
       });
+      // Cleanup subscription on component unmount.
       return () => unsubscribe();
-    } catch (err: any)
-{
+    } catch (err: any) {
       setError(`Failed to initialize Firebase. Error: ${err.message}`);
       setIsLoading(false);
     }
   }, [loadDataAndSettings, activeSection]);
+  
+  // --- EVENT HANDLERS ---
   
   const handleSelectSection = (section: Section) => {
     localStorage.setItem('activeSection', section);
@@ -140,6 +182,7 @@ const App: React.FC = () => {
     try {
       const auth = getAuthInstance();
       await signOut(auth);
+      // Clear all user-related state after sign out.
       setBoys([]);
       setSettings(null);
       setView({ page: 'home' });
@@ -160,6 +203,10 @@ const App: React.FC = () => {
     }
   };
 
+  /**
+   * Handles navigation requests. If there are unsaved changes, it shows a confirmation modal.
+   * Otherwise, it navigates directly.
+   */
   const handleNavigation = (newView: View) => {
     if (hasUnsavedChanges && newView.page !== view.page) {
       setNextView(newView);
@@ -169,6 +216,10 @@ const App: React.FC = () => {
     }
   };
 
+  /**
+   * Logic for the confirmation modal's "Leave" button.
+   * Performs the action that was originally blocked.
+   */
   const confirmAction = () => {
     switch (confirmModalType) {
       case 'navigate':
@@ -192,6 +243,11 @@ const App: React.FC = () => {
     setNextView(null);
   };
 
+  // --- RENDER LOGIC ---
+
+  /**
+   * Renders the main content based on the current view state.
+   */
   const renderMainContent = () => {
     if (!activeSection) return null;
 
@@ -215,12 +271,18 @@ const App: React.FC = () => {
         return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} />;
     }
   };
-
+  
   const handleGoBackFromHelp = () => {
     setView({ page: 'home' });
   };
-
+  
+  /**
+   * The main render function that decides what to show based on the app's state
+   * (e.g., loading, logged out, no section selected, error).
+   */
   const renderApp = () => {
+    // Special case for the Help page to ensure it has a proper header/back button
+    // even when the user is not fully logged in.
     if (view.page === 'help') {
       return (
         <>
@@ -250,23 +312,28 @@ const App: React.FC = () => {
         </>
       );
     }
-
+    
+    // 1. Show skeleton loader while checking auth or loading initial data.
     if (currentUser === undefined || (currentUser && isLoading && activeSection)) {
         return <HomePageSkeleton />;
     }
     
+    // 2. If user is not logged in, show the login page.
     if (!currentUser) {
         return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} />;
     }
     
+    // 3. If logged in but no section is selected, show the section select page.
     if (!activeSection) {
         return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => setView({ page: 'help' })} />;
     }
     
+    // 4. If there's a critical error, display it.
     if (error) {
         return <div className="text-center p-8 text-red-500">{error}</div>;
     }
 
+    // 5. If fully loaded and authenticated, render the main app layout.
     return (
         <>
             <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} />

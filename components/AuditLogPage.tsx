@@ -1,3 +1,10 @@
+/**
+ * @file AuditLogPage.tsx
+ * @description This page displays a chronological list of all actions performed within the app.
+ * It provides a history of changes for accountability and includes the crucial functionality
+ * to revert most actions, such as accidental deletions or incorrect mark updates.
+ */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchAuditLogs, createAuditLog, updateAuditLog, deleteBoyById, recreateBoy, updateBoy } from '../services/db';
 import { saveSettings } from '../services/settings';
@@ -11,6 +18,7 @@ interface AuditLogPageProps {
   activeSection: Section;
 }
 
+// A mapping of action types to their corresponding icons for visual representation.
 const ACTION_ICONS: Record<string, React.FC<{className?: string}>> = {
   CREATE_BOY: PlusIcon,
   UPDATE_BOY: PencilIcon,
@@ -20,6 +28,7 @@ const ACTION_ICONS: Record<string, React.FC<{className?: string}>> = {
 };
 
 const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection }) => {
+  // --- STATE MANAGEMENT ---
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +37,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
 
   const isCompany = activeSection === 'company';
   
+  // A mapping of action types to color styles for visual distinction.
   const ACTION_COLORS: Record<string, string> = {
     CREATE_BOY: 'bg-green-100 text-green-700',
     UPDATE_BOY: isCompany ? 'bg-company-blue/10 text-company-blue' : 'bg-junior-blue/10 text-junior-blue',
@@ -36,6 +46,9 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
     REVERT_ACTION: 'bg-yellow-100 text-yellow-700',
   };
 
+  /**
+   * Fetches the audit logs for the active section from the database.
+   */
   const loadLogs = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -50,10 +63,12 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
     }
   }, [activeSection]);
 
+  // Load logs on component mount or when the section changes.
   useEffect(() => {
     loadLogs();
   }, [loadLogs]);
-
+  
+  // --- EVENT HANDLERS ---
   const handleOpenRevertModal = (log: AuditLog) => {
     setLogToRevert(log);
   };
@@ -62,6 +77,11 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
     setLogToRevert(null);
   };
 
+  /**
+   * The core logic for reverting an action. This is a critical and powerful feature.
+   * It uses the `revertData` stored in the original log to restore the application's
+   * state to what it was before the action occurred.
+   */
   const handleRevert = async () => {
     if (!logToRevert) return;
 
@@ -70,43 +90,52 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
 
     try {
       const { actionType, revertData } = logToRevert;
+      
+      // Determine the correct "undo" operation based on the original action type.
       switch (actionType) {
         case 'CREATE_BOY':
+          // To revert a creation, we delete the boy using the ID saved in `revertData`.
           await deleteBoyById(revertData.boyId, activeSection);
           break;
         case 'DELETE_BOY':
+          // To revert a deletion, we recreate the boy using the full boy object saved in `revertData`.
           await recreateBoy(revertData.boyData as Boy, activeSection);
           break;
         case 'UPDATE_BOY':
-          if (revertData.boyData) { // Single boy update
+          // To revert an update, we update the boy(s) again, but with the old data saved in `revertData`.
+          if (revertData.boyData) { // Handle single boy update.
             await updateBoy(revertData.boyData as Boy, activeSection);
-          } else if (revertData.boysData) { // Batch update from weekly marks
+          } else if (revertData.boysData) { // Handle batch update from weekly marks.
             const updates = (revertData.boysData as Boy[]).map(boy => updateBoy(boy, activeSection));
             await Promise.all(updates);
           }
           break;
         case 'UPDATE_SETTINGS':
-          await saveSettings(activeSection, revertData.settings as SectionSettings);
-          break;
+            // To revert a settings change, we save the old settings object.
+            await saveSettings(activeSection, revertData.settings as SectionSettings);
+            break;
         default:
           throw new Error('This action cannot be reverted.');
       }
       
-      // Mark original log as reverted
+      // After successfully reverting, perform cleanup and logging.
+      
+      // 1. Mark the original log entry as 'reverted' so it can't be reverted again.
       await updateAuditLog({ ...logToRevert, reverted: true }, activeSection);
 
-      // Create a new log for the revert action
+      // 2. Create a new log entry for the revert action itself.
       const auth = getAuthInstance();
       const userEmail = auth.currentUser?.email || 'Unknown User';
       await createAuditLog({
         userEmail,
         actionType: 'REVERT_ACTION',
         description: `Reverted action: "${logToRevert.description}"`,
-        revertData: {},
+        revertData: {}, // Revert actions cannot be reverted.
       }, activeSection);
 
-      refreshData(); // Refresh main app data
-      loadLogs(); // Refresh logs to show reverted status
+      // 3. Refresh the main application data and the audit log list.
+      refreshData();
+      loadLogs();
 
     } catch (err: any) {
       console.error('Failed to revert action:', err);
@@ -116,7 +145,8 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
       handleCloseRevertModal();
     }
   };
-
+  
+  // --- UTILITY FUNCTIONS ---
   const formatTimestamp = (timestamp: number) => {
     return new Date(timestamp).toLocaleString(undefined, {
       dateStyle: 'medium',
@@ -124,6 +154,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
     });
   };
 
+  // --- RENDER LOGIC ---
   if (loading) return <div className="text-center p-8">Loading audit trail...</div>;
   if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
   

@@ -1,3 +1,10 @@
+/**
+ * @file settings.ts
+ * @description This file contains functions for managing application settings.
+ * Settings are stored in a dedicated 'settings' collection in Firestore, with each
+ * document corresponding to a section ('company' or 'junior').
+ */
+
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getDb } from './firebase';
 import { Section, SectionSettings } from '../types';
@@ -7,7 +14,8 @@ const DEFAULT_MEETING_DAY = 5; // Friday
 
 /**
  * Fetches the settings for a given section from Firestore.
- * If no settings exist, it returns default values.
+ * If no settings document exists for the section, it returns default values.
+ * This ensures the app always has valid settings to work with.
  * @param section The section ('company' or 'junior') to fetch settings for.
  * @returns A promise that resolves to the section's settings.
  */
@@ -17,14 +25,15 @@ export const getSettings = async (section: Section): Promise<SectionSettings> =>
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
+      // If settings exist, return them.
       return docSnap.data() as SectionSettings;
     } else {
-      // Return default settings if none are found in Firestore
+      // Return default settings if none are found in Firestore.
       return { meetingDay: DEFAULT_MEETING_DAY };
     }
   } catch (error) {
     console.error(`Error fetching settings for ${section}:`, error);
-    // Return defaults in case of an error
+    // Also return defaults in case of a network or permission error.
     return { meetingDay: DEFAULT_MEETING_DAY };
   }
 };
@@ -37,5 +46,7 @@ export const getSettings = async (section: Section): Promise<SectionSettings> =>
  */
 export const saveSettings = async (section: Section, settings: SectionSettings): Promise<void> => {
   const docRef = doc(getDb(), SETTINGS_COLLECTION, section);
+  // `setDoc` with `merge: true` is used to create the document if it doesn't exist,
+  // or update it if it does, without overwriting other fields.
   await setDoc(docRef, settings, { merge: true });
 };

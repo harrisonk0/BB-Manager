@@ -1,31 +1,51 @@
+/**
+ * @file Header.tsx
+ * @description The main header and navigation bar for the application.
+ * It provides links to different pages, displays user information, and handles sign-out
+ * and section switching. The header's appearance dynamically changes based on the active section.
+ */
+
 import React, { useState } from 'react';
-import { User } from 'firebase/auth';
+// FIX: Use named imports for Firebase v9 compatibility.
+import { type User } from 'firebase/auth';
 import { MenuIcon, XIcon, CogIcon, SwitchHorizontalIcon, QuestionMarkCircleIcon } from './Icons';
 import { Page, Section } from '../types';
 
 interface HeaderProps {
+    /** Function to change the current view/page. */
     setView: (view: { page: Page }) => void;
+    /** The currently authenticated Firebase user object, or null if not signed in. */
+    // FIX: Use User type from named import.
     user: User | null;
+    /** Callback function to handle the sign-out process. */
     onSignOut: () => void;
+    /** The currently active section ('company' or 'junior'). */
     activeSection: Section;
+    /** Callback function to handle switching between sections. */
     onSwitchSection: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection, onSwitchSection }) => {
+    // State to manage the visibility of the mobile menu.
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     
+    /**
+     * Handles navigation clicks from both desktop and mobile menus.
+     * @param page The page to navigate to.
+     */
     const handleNavClick = (page: Page) => {
         setView({ page });
-        setIsMenuOpen(false);
+        setIsMenuOpen(false); // Close mobile menu after navigation
     };
 
+    // Determine section-specific assets and styles.
     const isCompany = activeSection === 'company';
     const sectionName = isCompany ? 'Company Section' : 'Junior Section';
-
     const bgColor = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
-    const ringColor = 'focus:ring-white';
     const ringOffsetColor = isCompany ? 'focus:ring-offset-company-blue' : 'focus:ring-offset-junior-blue';
+    const ringColor = 'focus:ring-white';
 
+    // Shared Tailwind CSS class strings for consistent styling.
     const navLinkClasses = `px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`;
     const iconButtonClasses = `p-2 rounded-full text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`;
     const mobileNavLinkClasses = `block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-white/10 hover:text-white`;
@@ -35,6 +55,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
             <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-20">
                     <div className="flex items-center space-x-4">
+                        {/* Main BB Logo - acts as a "Home" button */}
                         <button 
                             onClick={() => handleNavClick('home')} 
                             className={`focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor} rounded-md`}
@@ -46,6 +67,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                 className="h-14 rounded-md"
                             />
                         </button>
+                        {/* Section-specific logo, hidden on small screens */}
                         <div className="hidden sm:flex items-center border-l border-white/20 pl-4">
                           <img
                             src={isCompany ? "https://i.postimg.cc/0j44DjdY/company-boxed-colour.png" : "https://i.postimg.cc/W1qvWLdp/juniors-boxed-colour.png"}
@@ -64,6 +86,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                 <button onClick={() => handleNavClick('weeklyMarks')} className={navLinkClasses}>Weekly Marks</button>
                                 <button onClick={() => handleNavClick('auditLog')} className={navLinkClasses}>Audit Log</button>
                                 
+                                {/* Icon-based buttons for less frequent actions */}
                                 <button onClick={() => handleNavClick('help')} title="Help" aria-label="Help" className={iconButtonClasses}>
                                     <QuestionMarkCircleIcon className="h-6 w-6"/>
                                 </button>
@@ -74,6 +97,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                     <SwitchHorizontalIcon className="h-6 w-6"/>
                                 </button>
                                 
+                                {/* User info and Sign Out button */}
                                 <div className="flex items-center space-x-2 border-l border-white/20 pl-4 ml-2">
                                     <span className="text-sm text-gray-300 truncate max-w-[120px]">{user.email}</span>
                                     <button onClick={onSignOut} className={`px-3 py-2 rounded-md text-sm font-medium text-white bg-white/10 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`}>Sign Out</button>
@@ -82,7 +106,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                         )}
                     </div>
                     
-                    {/* Mobile Menu Button */}
+                    {/* Mobile Menu Button (Hamburger Icon) */}
                     <div className="md:hidden flex items-center">
                         {user && (
                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset ${ringColor}`}>
@@ -94,7 +118,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                 </div>
             </nav>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu Panel */}
             {isMenuOpen && user && (
                 <div className={`md:hidden absolute w-full ${bgColor} shadow-lg z-30`} id="mobile-menu">
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">

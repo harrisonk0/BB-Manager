@@ -1,3 +1,10 @@
+/**
+ * @file SettingsPage.tsx
+ * @description This page provides a user interface for changing application settings,
+ * such as the default meeting day. Changes made here are saved to Firestore and
+ * recorded in the audit log.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Section, SectionSettings } from '../types';
 import { saveSettings } from '../services/settings';
@@ -7,6 +14,7 @@ import { getAuthInstance } from '../services/firebase';
 interface SettingsPageProps {
   activeSection: Section;
   currentSettings: SectionSettings | null;
+  /** Callback to update the settings state in the parent App component. */
   onSettingsSaved: (newSettings: SectionSettings) => void;
 }
 
@@ -15,18 +23,27 @@ const WEEKDAYS = [
 ];
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved }) => {
+  // Local state for the form inputs.
   const [meetingDay, setMeetingDay] = useState<number>(5); // Default to Friday
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * EFFECT: Populates the local state with the current settings when they are loaded.
+   */
   useEffect(() => {
     if (currentSettings) {
       setMeetingDay(currentSettings.meetingDay);
     }
   }, [currentSettings]);
 
+  /**
+   * Handles the save button click.
+   * It persists the new settings to the database and creates an audit log entry.
+   */
   const handleSave = async () => {
+    // Prevent saving if no changes have been made.
     if (!currentSettings || currentSettings.meetingDay === meetingDay) {
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 2000);
@@ -44,17 +61,18 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       const oldDay = WEEKDAYS[currentSettings.meetingDay];
       const newDay = WEEKDAYS[meetingDay];
 
+      // Create an audit log entry describing the change.
       await createAuditLog({
         userEmail,
         actionType: 'UPDATE_SETTINGS',
         description: `Updated meeting day from ${oldDay} to ${newDay}.`,
-        revertData: { settings: currentSettings },
+        revertData: { settings: currentSettings }, // Save old settings for potential revert.
       }, activeSection);
 
       await saveSettings(activeSection, newSettings);
-      onSettingsSaved(newSettings);
+      onSettingsSaved(newSettings); // Update the parent component's state.
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000);
+      setTimeout(() => setSaveSuccess(false), 2000); // Show success feedback.
     } catch (err) {
       console.error("Failed to save settings:", err);
       setError("An error occurred while saving. Please try again.");
@@ -66,7 +84,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   if (!currentSettings) {
     return <div className="text-center p-8">Loading settings...</div>;
   }
-
+  
+  // --- Dynamic styles based on active section ---
   const isCompany = activeSection === 'company';
   const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
   const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
@@ -77,7 +96,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       <h1 className="text-3xl font-bold tracking-tight text-slate-900">Settings</h1>
       
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* General Settings */}
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
           <div className="space-y-6">
             <div>

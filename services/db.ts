@@ -1,3 +1,11 @@
+/**
+ * @file db.ts
+ * @description This file is the central data layer for the application.
+ * It abstracts all interactions with both Firestore (for online data persistence)
+ * and IndexedDB (for offline storage and caching). It handles data migration,
+ * synchronization of offline writes, and provides a unified API for CRUD operations.
+ */
+
 // FIX: Changed to named imports for Firebase v9 compatibility.
 import {
     collection,
@@ -20,9 +28,22 @@ import { Boy, AuditLog, Section } from '../types';
 import { getDb, getAuthInstance } from './firebase';
 import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB } from './offlineDb';
 
+/**
+ * Generates a consistent collection name for Firestore based on the active section and resource type.
+ * E.g., ('company', 'boys') => 'company_boys'.
+ * @param section The active section ('company' or 'junior').
+ * @param resource The type of data ('boys' or 'audit_logs').
+ * @returns The formatted collection name string.
+ */
 const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs') => `${section}_${resource}`;
 
 // --- Data Migration ---
+/**
+ * One-time migration function to move data from old, non-sectioned Firestore collections
+ * ('boys', 'audit_logs') to new, section-specific collections ('company_boys', etc.).
+ * This is crucial for supporting the multi-section feature. It uses localStorage to ensure
+ * it only runs once per client.
+ */
 export const migrateFirestoreDataIfNeeded = async () => {
     const migrationKey = 'firestore_migration_v2_complete';
     if (localStorage.getItem(migrationKey)) {
@@ -43,13 +64,13 @@ export const migrateFirestoreDataIfNeeded = async () => {
     console.log(`Found ${oldBoysSnapshot.size} documents to migrate.`);
     const batch = writeBatch(db);
 
-    // Migrate boys
+    // Migrate boys to the 'company' section by default.
     oldBoysSnapshot.forEach(docSnapshot => {
         const newDocRef = doc(db, getCollectionName('company', 'boys'), docSnapshot.id);
         batch.set(newDocRef, docSnapshot.data());
     });
 
-    // Migrate audit logs
+    // Migrate audit logs to the 'company' section by default.
     const oldLogsCollection = collection(db, 'audit_logs');
     const oldLogsSnapshot = await getDocs(oldLogsCollection);
     oldLogsSnapshot.forEach(docSnapshot => {
@@ -67,6 +88,12 @@ export const migrateFirestoreDataIfNeeded = async () => {
 };
 
 // --- Sync Function ---
+/**
+ * The core of the offline functionality. This function reads all pending writes
+ * from IndexedDB, bundles them into a single Firestore batch write, and executes it.
+ * If successful, it clears the pending writes queue in IndexedDB.
+ * @returns A promise that resolves to true if sync was successful or not needed, and false on failure.
+ */
 export const syncPendingWrites = async (): Promise<boolean> => {
     if (!navigator.onLine) return false;
 
@@ -77,6 +104,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
     const db = getDb();
     const batch = writeBatch(db);
 
+    // Keep track of local IDB changes needed after a successful sync.
     const boysToUpdateInIDB: { boy: Boy, section: Section }[] = [];
     const boysToDeleteFromIDB: { tempId: string, section: Section }[] = [];
     
@@ -86,11 +114,15 @@ export const syncPendingWrites = async (): Promise<boolean> => {
 
         switch (write.type) {
             case 'CREATE_BOY': {
+                // When creating a boy offline, they get a temporary ID.
+                // Here, we create a new document in Firestore to get a real ID.
                 const docRef = doc(collection(db, boysCollection));
                 batch.set(docRef, write.payload);
                 const newBoy = { ...write.payload, id: docRef.id };
+                // We'll need to update the boy in IndexedDB with the new Firestore ID.
                 boysToUpdateInIDB.push({boy: newBoy, section: write.section});
                 if (write.tempId) {
+                    // And delete the old temporary record from IndexedDB.
                     boysToDeleteFromIDB.push({ tempId: write.tempId, section: write.section });
                 }
                 break;
@@ -106,6 +138,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 break;
             }
             case 'RECREATE_BOY': {
+                // This is used for reverting a deletion. `set` is used to restore the document with a specific ID.
                 const docRef = doc(db, boysCollection, write.payload.id);
                 const { id, ...boyData } = write.payload;
                 batch.set(docRef, boyData);
@@ -130,7 +163,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
         await batch.commit();
         await clearPendingWrites();
 
-        // Post-sync cleanup and updates in IndexedDB
+        // After a successful Firestore commit, apply the necessary updates to IndexedDB.
         for(const { tempId, section } of boysToDeleteFromIDB) {
             await deleteBoyFromDB(tempId, section);
         }
@@ -147,6 +180,13 @@ export const syncPendingWrites = async (): Promise<boolean> => {
 };
 
 // --- Boy Functions ---
+/**
+ * Creates a new boy. If online, it adds directly to Firestore and caches in IndexedDB.
+ * If offline, it creates a boy with a temporary ID in IndexedDB and queues a 'CREATE_BOY' write.
+ * @param boy The boy data to create (without an ID).
+ * @param section The section the boy belongs to.
+ * @returns The newly created Boy object, possibly with a temporary ID if offline.
+ */
 export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise<Boy> => {
   const auth = getAuthInstance();
   if (!auth.currentUser) throw new Error("User not authenticated");
@@ -166,13 +206,22 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise
   }
 };
 
+/**
+ * Fetches all boys for a given section. Implements a "cache-first, then network" strategy.
+ * It returns cached data from IndexedDB immediately for a fast UI response, then (if online)
+ * fetches the latest data from Firestore in the background to update the cache.
+ * @param section The section to fetch boys for.
+ * @returns An array of Boy objects.
+ */
 export const fetchBoys = async (section: Section): Promise<Boy[]> => {
-    await openDB(); // Ensure DB migration has run
+    await openDB(); // Ensure DB is ready
     const auth = getAuthInstance();
     if (!auth.currentUser) return [];
 
+    // Always try to return cached data first for speed.
     const cachedBoys = await getBoysFromDB(section);
     if (cachedBoys.length > 0) {
+        // If online, kick off a background fetch to update the cache for next time.
         if (navigator.onLine) {
             getDocs(collection(getDb(), getCollectionName(section, 'boys')))
                 .then(snapshot => {
@@ -183,6 +232,7 @@ export const fetchBoys = async (section: Section): Promise<Boy[]> => {
         return cachedBoys;
     }
 
+    // If no cached data, fetch from network if online.
     if (navigator.onLine) {
         const snapshot = await getDocs(collection(getDb(), getCollectionName(section, 'boys')));
         const boys = snapshot.docs.map((doc: any) => ({ ...doc.data(), id: doc.id } as Boy));
@@ -190,9 +240,16 @@ export const fetchBoys = async (section: Section): Promise<Boy[]> => {
         return boys;
     }
     
+    // If offline and no cache, return empty.
     return [];
 };
 
+/**
+ * Fetches a single boy by their ID. Prioritizes cache.
+ * @param id The ID of the boy to fetch.
+ * @param section The section the boy belongs to.
+ * @returns The Boy object, or undefined if not found.
+ */
 export const fetchBoyById = async (id: string, section: Section): Promise<Boy | undefined> => {
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated");
@@ -212,6 +269,9 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
     return undefined;
 };
 
+/**
+ * Private helper to handle the logic for updating a boy, reused by updateBoy and recreateBoy.
+ */
 const performBoyUpdate = async (boy: Boy, section: Section) => {
     if (navigator.onLine) {
         const { id, ...boyData } = boy;
@@ -223,6 +283,12 @@ const performBoyUpdate = async (boy: Boy, section: Section) => {
     }
 };
 
+/**
+ * Updates an existing boy's data. Handles online/offline logic.
+ * @param boy The complete Boy object with updated data.
+ * @param section The section the boy belongs to.
+ * @returns The updated Boy object.
+ */
 export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
     if (!boy.id) throw new Error("Boy must have an ID to be updated");
     const auth = getAuthInstance();
@@ -231,6 +297,13 @@ export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
     return boy;
 };
 
+/**
+ * Recreates a boy document in Firestore. This is used specifically for reverting a deletion.
+ * It uses `setDoc` instead of `updateDoc` to create the document if it doesn't exist.
+ * @param boy The complete Boy object to restore.
+ * @param section The section the boy belongs to.
+ * @returns The recreated Boy object.
+ */
 export const recreateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
     if (!boy.id) throw new Error("Boy must have an ID to be recreated");
     const auth = getAuthInstance();
@@ -247,6 +320,11 @@ export const recreateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
     return boy;
 };
 
+/**
+ * Deletes a boy by their ID. Handles online/offline logic.
+ * @param id The ID of the boy to delete.
+ * @param section The section the boy belongs to.
+ */
 export const deleteBoyById = async (id: string, section: Section): Promise<void> => {
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated");
@@ -261,6 +339,12 @@ export const deleteBoyById = async (id: string, section: Section): Promise<void>
 };
 
 // --- Audit Log Functions ---
+/**
+ * Creates a new audit log entry. Handles online/offline logic.
+ * @param log The log data to create.
+ * @param section The section the log pertains to.
+ * @returns The new AuditLog object.
+ */
 export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, section: Section): Promise<AuditLog> => {
   const auth = getAuthInstance();
   if (!auth.currentUser) throw new Error("User not authenticated for logging");
@@ -281,6 +365,11 @@ export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, se
   }
 };
 
+/**
+ * Fetches all audit logs for a section using the same cache-first strategy as fetchBoys.
+ * @param section The section to fetch logs for.
+ * @returns An array of AuditLog objects, sorted descending by timestamp.
+ */
 export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
     const auth = getAuthInstance();
     if (!auth.currentUser) return [];
@@ -293,6 +382,7 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
                 const freshLogs = snapshot.docs.map(doc => {
                     const data = doc.data();
                     const ts = data.timestamp;
+                    // Timestamps from Firestore are objects, but from IndexedDB might be numbers. This handles both.
                     let timestampInMillis: number;
                     if (ts && typeof ts.toMillis === 'function') {
                         timestampInMillis = ts.toMillis();
@@ -332,7 +422,12 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
     return [];
 };
 
-
+/**
+ * Updates an existing audit log (e.g., to mark it as 'reverted'). Handles online/offline logic.
+ * @param log The complete AuditLog object with updated data.
+ * @param section The section the log belongs to.
+ * @returns The updated AuditLog object.
+ */
 export const updateAuditLog = async (log: AuditLog, section: Section): Promise<AuditLog> => {
   if (!log.id) throw new Error("Log must have an ID to be updated");
   const auth = getAuthInstance();
@@ -349,10 +444,16 @@ export const updateAuditLog = async (log: AuditLog, section: Section): Promise<A
   return log;
 };
 
+/**
+ * Deletes audit logs older than 14 days from both IndexedDB and Firestore to manage storage.
+ * This is typically run on app startup.
+ * @param section The section to clean up logs for.
+ */
 export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
     const fourteenDaysInMillis = 14 * 24 * 60 * 60 * 1000;
     const cutoffTimestamp = Date.now() - fourteenDaysInMillis;
 
+    // Clean up local IndexedDB logs first.
     try {
         const localLogs = await getLogsFromDB(section);
         const oldLocalLogIds = localLogs
@@ -367,6 +468,7 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
         console.error("Failed to delete old logs from IndexedDB:", error);
     }
 
+    // If online, clean up Firestore logs.
     if (navigator.onLine) {
         try {
             const db = getDb();

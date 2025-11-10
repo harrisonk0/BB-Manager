@@ -1,3 +1,10 @@
+/**
+ * @file HelpPage.tsx
+ * @description A comprehensive, static user guide for the application.
+ * It is structured with a table of contents and detailed sections explaining every feature.
+ * It also includes small, non-interactive "preview" components to visually demonstrate UI elements.
+ */
+
 import React from 'react';
 import { Section } from '../types';
 import {
@@ -17,6 +24,8 @@ import {
 
 
 // --- UI Preview & Anatomy Components ---
+// These are small, non-interactive components used within the help text to
+// visually represent parts of the application's UI.
 
 const LoginPreview: React.FC = () => (
     <div className="w-full max-w-sm mx-auto p-6 bg-white rounded-lg shadow-md border border-slate-200">
@@ -141,6 +150,7 @@ const WeeklyMarksAnatomy: React.FC = () => (
     </div>
 );
 
+/** A styled callout box for highlighting important notes. */
 const Callout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <div className="bg-blue-50 border-l-4 border-blue-400 p-4 my-4">
         <div className="flex">
@@ -163,6 +173,7 @@ const HelpPage: React.FC = () => {
     const isCompany = activeSection === 'company';
     const accentTextColor = isCompany ? 'text-company-blue' : 'text-junior-blue';
 
+    // Defines the structure of the help document for generating the table of contents and sections.
     const sections = [
         { id: 'getting-started', title: '1. Getting Started', subSections: [
             { id: 'overview', title: 'App Overview' },
@@ -201,7 +212,7 @@ const HelpPage: React.FC = () => {
     return (
         <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 lg:p-10">
             <div className="flex flex-col lg:flex-row gap-12">
-                {/* Table of Contents */}
+                {/* Table of Contents - dynamically generated from the `sections` array */}
                 <aside className="lg:w-1/4 lg:sticky lg:top-28 self-start">
                     <h2 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2">Table of Contents</h2>
                     <nav>
@@ -224,7 +235,7 @@ const HelpPage: React.FC = () => {
                     </nav>
                 </aside>
 
-                {/* Main Content */}
+                {/* Main Content - sections are rendered with corresponding IDs for anchor linking */}
                 <main className="lg:w-3/4 space-y-16">
                     <div className="text-center border-b pb-8">
                         <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="Boys' Brigade Logo" className="h-20 mx-auto" />
@@ -232,7 +243,7 @@ const HelpPage: React.FC = () => {
                         <p className="mt-2 text-lg text-slate-600">Your step-by-step guide to using the BB Manager app.</p>
                     </div>
                 
-                    {/* Getting Started */}
+                    {/* Section 1: Getting Started */}
                     <section id="getting-started" className="space-y-8 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">1. Getting Started</h2>
                         
@@ -266,7 +277,7 @@ const HelpPage: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Managing Members */}
+                    {/* Section 2: Managing Members */}
                     <section id="managing-members" className="space-y-8 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">2. Managing Members</h2>
 
@@ -310,7 +321,7 @@ const HelpPage: React.FC = () => {
                         </div>
                     </section>
                     
-                    {/* Weekly Marks */}
+                    {/* Section 3: Weekly Marks */}
                     <section id="weekly-marks" className="space-y-8 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">3. Recording Weekly Marks</h2>
                         
@@ -355,7 +366,7 @@ const HelpPage: React.FC = () => {
                         </div>
                     </section>
                     
-                     {/* Viewing Records */}
+                    {/* Section 4: Viewing Records */}
                     <section id="viewing-records" className="space-y-8 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">4. Viewing & Correcting Records</h2>
                         
@@ -370,7 +381,7 @@ const HelpPage: React.FC = () => {
                         </div>
                     </section>
                     
-                    {/* Dashboard */}
+                    {/* Section 5: Dashboard */}
                     <section id="dashboard" className="space-y-4 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">5. Dashboard & Reporting</h2>
                         <p>The Dashboard gives you a bird's-eye view of your section's performance. It displays a table with all members, showing their total marks for each month and their all-time total for the session. This is great for tracking progress and identifying top performers.</p>
@@ -396,7 +407,7 @@ const HelpPage: React.FC = () => {
                         </div>
                     </section>
                     
-                    {/* Administration */}
+                    {/* Section 6: Administration */}
                     <section id="administration" className="space-y-8 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">6. App Administration</h2>
                         
@@ -421,7 +432,7 @@ const HelpPage: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Offline Use */}
+                    {/* Section 7: Offline Use */}
                     <section id="offline-use" className="space-y-4 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">7. Offline Use & Data Syncing</h2>
                         <p>The app is designed to work without an internet connection. All your data is saved securely in your browser. You can add members, enter marks, and make any other changes while offline.</p>

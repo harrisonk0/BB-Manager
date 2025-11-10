@@ -1,3 +1,8 @@
+/**
+ * @file Icons.tsx
+ * @description A collection of simple, reusable SVG icon components used throughout the application.
+ * Each component accepts an optional `className` prop for easy styling with Tailwind CSS.
+ */
 import React from 'react';
 
 export const PlusIcon: React.FC<{ className?: string }> = ({ className }) => (

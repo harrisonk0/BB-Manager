@@ -1,3 +1,9 @@
+/**
+ * @file HomePage.tsx
+ * @description The main landing page after logging in. It displays a roster of all members,
+ * grouped by squad. It allows for searching, adding, editing, and deleting members.
+ */
+
 import React, { useState, useMemo } from 'react';
 import { Boy, Squad, View, Section, JuniorSquad } from '../types';
 import Modal from './Modal';
@@ -7,12 +13,17 @@ import { deleteBoyById, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
 
 interface HomePageProps {
+  /** The list of all boys for the active section. */
   boys: Boy[];
+  /** Function to navigate to a different view. */
   setView: (view: View) => void;
+  /** Callback to trigger a refresh of the boys data from the database. */
   refreshData: () => void;
+  /** The currently active section. */
   activeSection: Section;
 }
 
+// Color mappings for squad names, specific to each section.
 const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
   1: 'text-red-600',
   2: 'text-green-600',
@@ -27,6 +38,7 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
 };
 
 const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection }) => {
+  // --- STATE MANAGEMENT ---
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [boyToEdit, setBoyToEdit] = useState<Boy | null>(null);
@@ -36,6 +48,12 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
+  // --- MEMOIZED COMPUTATIONS ---
+
+  /**
+   * Memoized filtering of boys based on the search query.
+   * This prevents re-filtering on every render unless the boys array or search query changes.
+   */
   const filteredBoys = useMemo(() => {
     if (!searchQuery.trim()) {
       return boys;
@@ -45,8 +63,62 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     );
   }, [boys, searchQuery]);
 
+  /**
+   * Memoized grouping and sorting of boys by squad.
+   * This is a key performance optimization, as it avoids expensive sorting on every render.
+   */
+  const boysBySquad = useMemo(() => {
+    const grouped: Record<string, Boy[]> = {};
+    filteredBoys.forEach(boy => {
+        if (!grouped[boy.squad]) {
+            grouped[boy.squad] = [];
+        }
+        grouped[boy.squad].push(boy);
+    });
+
+    // Sort boys within each squad, primarily by year (descending) and then by name.
+    for (const squad of Object.keys(grouped)) {
+        grouped[squad].sort((a, b) => {
+            const yearA = a.year || 0;
+            const yearB = b.year || 0;
+            if (typeof yearA === 'string' && typeof yearB === 'string') {
+                return yearB.localeCompare(yearA); // P7 > P6
+            }
+            if (typeof yearA === 'number' && typeof yearB === 'number') {
+                return yearB - yearA; // 14 > 13
+            }
+            return a.name.localeCompare(b.name);
+        });
+    }
+
+    return grouped;
+  }, [filteredBoys]);
+  
+  /**
+   * Memoized calculation of squad leaders.
+   * Finds the designated squad leader, or defaults to the most senior boy if none is set.
+   */
+  const squadLeaders = useMemo(() => {
+    const leaders: Record<string, string | undefined> = {};
+    Object.keys(boysBySquad).forEach(squad => {
+      const squadBoys = boysBySquad[squad];
+      if (squadBoys.length === 0) return;
+      let leader = squadBoys.find(b => b.isSquadLeader);
+      if (!leader && squadBoys.length > 0) {
+        // The list is already sorted by year, so the first boy is the most senior.
+        leader = squadBoys[0];
+      }
+      if (leader) {
+        leaders[squad] = leader.id;
+      }
+    });
+    return leaders;
+  }, [boysBySquad]);
+
+
+  // --- EVENT HANDLERS ---
   const handleAddBoy = () => {
-    setBoyToEdit(null);
+    setBoyToEdit(null); // Ensure form is in 'add' mode
     setIsFormModalOpen(true);
   };
 
@@ -77,11 +149,12 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       const auth = getAuthInstance();
       const userEmail = auth.currentUser?.email || 'Unknown User';
       
+      // Create an audit log entry before performing the deletion.
       await createAuditLog({
           userEmail,
           actionType: 'DELETE_BOY',
           description: `Deleted boy: ${boyToDelete.name}`,
-          revertData: { boyData: boyToDelete },
+          revertData: { boyData: boyToDelete }, // Save the full boy object for potential revert.
       }, activeSection);
       
       await deleteBoyById(boyToDelete.id!, activeSection);
@@ -93,55 +166,13 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     }
   };
 
+  /** Callback for the BoyForm, triggers a data refresh after saving. */
   const handleSave = () => {
     handleCloseFormModal();
     refreshData();
   }
 
-  const boysBySquad = useMemo(() => {
-    const grouped: Record<string, Boy[]> = {};
-    filteredBoys.forEach(boy => {
-        if (!grouped[boy.squad]) {
-            grouped[boy.squad] = [];
-        }
-        grouped[boy.squad].push(boy);
-    });
-
-    for (const squad of Object.keys(grouped)) {
-        grouped[squad].sort((a, b) => {
-            const yearA = a.year || 0;
-            const yearB = b.year || 0;
-            if (typeof yearA === 'string' && typeof yearB === 'string') {
-                return yearB.localeCompare(yearA); // P7 > P6
-            }
-            if (typeof yearA === 'number' && typeof yearB === 'number') {
-                return yearB - yearA; // 14 > 13
-            }
-            return a.name.localeCompare(b.name);
-        });
-    }
-
-    return grouped;
-  }, [filteredBoys]);
-
-  const squadLeaders = useMemo(() => {
-    const leaders: Record<string, string | undefined> = {};
-    Object.keys(boysBySquad).forEach(squad => {
-      const squadBoys = boysBySquad[squad];
-      if (squadBoys.length === 0) return;
-      let leader = squadBoys.find(b => b.isSquadLeader);
-      if (!leader && squadBoys.length > 0) {
-        // The list is already sorted by year, so the first boy is the most senior.
-        leader = squadBoys[0];
-      }
-      if (leader) {
-        leaders[squad] = leader.id;
-      }
-    });
-    return leaders;
-  }, [boysBySquad]);
-
-
+  // --- UTILITY FUNCTIONS ---
   const calculateTotalMarks = (boy: Boy) => {
     return boy.marks.reduce((total, mark) => total + (mark.score > 0 ? mark.score : 0), 0);
   };
@@ -163,6 +194,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     return Math.round((totalActualAttendances / totalPossibleAttendances) * 100);
   };
 
+  // --- RENDER LOGIC ---
   const sortedSquads = Object.keys(boysBySquad).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
   const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
@@ -195,6 +227,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
         />
       </div>
 
+      {/* Conditional rendering for empty or no-result states */}
       {boys.length === 0 && (
           <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
               <h3 className="text-lg font-medium text-slate-900">No members yet!</h3>
@@ -209,6 +242,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
           </div>
       )}
 
+      {/* Main content: list of squads and their members */}
       {sortedSquads.map((squad) => (
         <div key={squad}>
           <div className="flex justify-between items-baseline mb-4">
@@ -267,6 +301,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
         </div>
       ))}
 
+      {/* Modals for Add/Edit Form and Delete Confirmation */}
       <Modal isOpen={isFormModalOpen} onClose={handleCloseFormModal} title={boyToEdit ? 'Edit Boy' : 'Add New Boy'}>
         <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} activeSection={activeSection} />
       </Modal>

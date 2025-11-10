@@ -1,27 +1,44 @@
+/**
+ * @file LoginPage.tsx
+ * @description The component responsible for handling user authentication.
+ * It provides a simple form for email and password sign-in.
+ */
+
 import React, { useState } from 'react';
+// FIX: Use named imports for Firebase v9 compatibility.
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { getAuthInstance } from '../services/firebase';
 import { QuestionMarkCircleIcon } from './Icons';
 
 interface LoginPageProps {
+  /** Callback to navigate to the help page. */
   onNavigateToHelp: () => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp }) => {
+  // State for form inputs, error messages, and loading status.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  /**
+   * Handles the sign-in form submission.
+   * It calls the Firebase authentication service and provides user-friendly error messages
+   * for common authentication failures.
+   */
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
       const auth = getAuthInstance();
+      // FIX: Use signInWithEmailAndPassword function from named import.
       await signInWithEmailAndPassword(auth, email, password);
-      // onAuthStateChanged in App.tsx will handle the redirect
+      // After successful sign-in, the onAuthStateChanged listener in App.tsx
+      // will detect the change and update the application state accordingly.
     } catch (err: any) {
+      // Handle specific Firebase auth errors with user-friendly messages.
       switch (err.code) {
         case 'auth/user-not-found':
         case 'auth/wrong-password':
@@ -59,6 +76,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp }) => {
           </h2>
         </div>
 
+        {/* Display error message if login fails */}
         {error && (
           <div className="p-4 text-sm text-red-700 bg-red-100 rounded-md">
             <strong>Login Failed:</strong> {error}

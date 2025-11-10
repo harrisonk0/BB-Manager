@@ -1,3 +1,10 @@
+/**
+ * @file WeeklyMarksPage.tsx
+ * @description This page allows officers to enter marks for all boys for a specific date.
+ * It handles different marking schemes for Company and Junior sections and includes logic
+ * for attendance. All changes for a given date are saved in a single batch operation.
+ */
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
@@ -7,17 +14,18 @@ import { SaveIcon } from './Icons';
 interface WeeklyMarksPageProps {
   boys: Boy[];
   refreshData: () => void;
+  /** A callback to inform the main App component if there are unsaved changes. */
   setHasUnsavedChanges: (dirty: boolean) => void;
   activeSection: Section;
   settings: SectionSettings | null;
 }
 
+// Section-specific color mappings for squad names.
 const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
   1: 'text-red-600',
   2: 'text-green-600',
   3: 'text-yellow-600',
 };
-
 const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   1: 'text-red-600',
   2: 'text-green-600',
@@ -25,37 +33,51 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   4: 'text-yellow-600',
 };
 
+// Type definitions for the local state of marks, which can be partially entered.
 type JuniorMarkState = { uniform: number | '', behaviour: number | '' };
 type CompanyMarkState = number | string;
 
+/**
+ * Calculates the date of the nearest upcoming meeting day based on settings.
+ * @param meetingDay The day of the week for meetings (0=Sun, 1=Mon...).
+ * @returns A date string in 'YYYY-MM-DD' format.
+ */
 const getNearestMeetingDay = (meetingDay: number): string => {
   const today = new Date();
-  const currentDay = today.getDay(); // 0=Sun, 1=Mon...
+  const currentDay = today.getDay();
   let diff = meetingDay - currentDay;
   if (diff < 0) {
-    diff += 7; // Ensure we always go forward to the next meeting day
+    diff += 7; // Ensure we always find the *next* meeting day, not a past one.
   }
   today.setDate(today.getDate() + diff);
   return today.toISOString().split('T')[0];
 };
 
 const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings }) => {
+  // --- STATE MANAGEMENT ---
   const [selectedDate, setSelectedDate] = useState('');
   const [marks, setMarks] = useState<Record<string, CompanyMarkState | JuniorMarkState>>({});
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
+  const [isDirty, setIsDirty] = useState(false); // Tracks if there are unsaved changes.
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
+  /**
+   * EFFECT: Sets the initial date for the marks page based on the user's settings.
+   */
   useEffect(() => {
     if (settings && !selectedDate) {
       setSelectedDate(getNearestMeetingDay(settings.meetingDay));
     }
   }, [settings, selectedDate]);
 
+  /**
+   * EFFECT: Populates the marks and attendance state based on the selected date and boys data.
+   * This runs whenever the date changes, pulling existing marks for that day or setting defaults.
+   */
   useEffect(() => {
     if (!selectedDate) return;
 
@@ -66,16 +88,16 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       if (boy.id) {
         const markForDate = boy.marks.find(m => m.date === selectedDate);
         if (markForDate) {
-          if (markForDate.score < 0) { // Absent
+          if (markForDate.score < 0) { // Boy was marked absent.
             newAttendance[boy.id] = 'absent';
             newMarks[boy.id] = isCompany ? -1 : { uniform: -1, behaviour: -1 };
-          } else { // Present
+          } else { // Boy was present, load their existing scores.
             newAttendance[boy.id] = 'present';
             newMarks[boy.id] = isCompany
               ? markForDate.score
               : { uniform: markForDate.uniformScore ?? '', behaviour: markForDate.behaviourScore ?? '' };
           }
-        } else { // No mark yet
+        } else { // No mark exists for this date, default to present with empty scores.
           newAttendance[boy.id] = 'present';
           newMarks[boy.id] = isCompany ? '' : { uniform: '', behaviour: '' };
         }
@@ -83,29 +105,33 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     });
     setMarks(newMarks);
     setAttendance(newAttendance);
-    setIsDirty(false);
+    setIsDirty(false); // Reset dirty state on date change.
   }, [selectedDate, boys, isCompany]);
 
+  /**
+   * EFFECT: Manages the 'beforeunload' event to warn users about unsaved changes.
+   * Also communicates the dirty state to the parent App component.
+   */
   useEffect(() => {
     setHasUnsavedChanges(isDirty);
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (isDirty) {
         event.preventDefault();
-        event.returnValue = ''; // Required for modern browsers
+        event.returnValue = ''; // Required by browsers to show the confirmation prompt.
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
-
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       setHasUnsavedChanges(false);
     };
   }, [isDirty, setHasUnsavedChanges]);
-
+  
+  // --- EVENT HANDLERS ---
   const handleCompanyMarkChange = (boyId: string, score: string) => {
     const numericScore = parseInt(score, 10);
+    // Basic validation for Company section marks.
     if (score === '' || (!isNaN(numericScore) && numericScore >= 0 && numericScore <= 10)) {
       setMarks(prev => ({ ...prev, [boyId]: score }));
       setIsDirty(true);
@@ -115,6 +141,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   const handleJuniorMarkChange = (boyId: string, type: 'uniform' | 'behaviour', score: string) => {
     const maxScore = type === 'uniform' ? 10 : 5;
     const numericScore = parseInt(score, 10);
+    // Basic validation for Junior section marks.
     if (score === '' || (!isNaN(numericScore) && numericScore >= 0 && numericScore <= maxScore)) {
       // FIX: Ensure the object created always has both uniform and behaviour properties to match JuniorMarkState type.
       setMarks(prev => {
@@ -130,8 +157,10 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     setAttendance(prev => ({ ...prev, [boyId]: newStatus }));
 
     if (newStatus === 'absent') {
+      // If absent, set score to -1.
       setMarks(prev => ({ ...prev, [boyId]: isCompany ? -1 : { uniform: -1, behaviour: -1 } }));
     } else {
+      // If toggled back to present, restore their previous mark for this date if it exists, otherwise clear it.
       const markForDate = boys.find(b => b.id === boyId)?.marks.find(m => m.date === selectedDate);
       const presentMark = (markForDate && markForDate.score >= 0);
       
@@ -144,10 +173,15 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     setIsDirty(true);
   };
 
+  /**
+   * Core save logic. This function processes all local state changes, determines which boys
+   * need updating, bundles these updates into a single transaction, and creates a single audit log entry.
+   */
   const handleSaveMarks = async () => {
     setIsSaving(true);
     
     const changedBoysOldData: Boy[] = [];
+    // Map over all boys to create an array of update promises.
     const updates = boys.map(boy => {
         if (!boy.id) return Promise.resolve(null);
         
@@ -159,12 +193,12 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
 
         if (attendanceStatus === 'absent') {
             const finalScore = -1;
-            if (markIndex > -1) {
-                if (updatedMarks[markIndex].score !== finalScore) {
+            if (markIndex > -1) { // A mark for this date already exists
+                if (updatedMarks[markIndex].score !== finalScore) { // It has changed
                     updatedMarks[markIndex] = { date: selectedDate, score: finalScore };
                     hasChanged = true;
                 }
-            } else {
+            } else { // No mark existed, so it's a new entry
                 updatedMarks.push({ date: selectedDate, score: finalScore });
                 hasChanged = true;
             }
@@ -172,6 +206,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             if (isCompany) {
                 const newScoreRaw = marks[boy.id] as CompanyMarkState;
                 const newScore = typeof newScoreRaw === 'string' ? parseInt(newScoreRaw, 10) : newScoreRaw;
+                // Default empty strings to 0.
                 const finalScore = (newScoreRaw !== '' && !isNaN(newScore as number)) ? newScore : 0;
 
                 if (markIndex > -1) {
@@ -202,14 +237,16 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             }
         }
         
+        // If this boy's marks have changed, add them to the update list.
         if (hasChanged) {
-            changedBoysOldData.push(JSON.parse(JSON.stringify(boy))); // Deep copy
+            changedBoysOldData.push(JSON.parse(JSON.stringify(boy))); // Deep copy for revert data.
             return updateBoy({ ...boy, marks: updatedMarks }, activeSection);
         }
         return Promise.resolve(null);
     });
 
     try {
+        // If any boys were changed, create a single, comprehensive audit log entry.
         if (changedBoysOldData.length > 0) {
             const auth = getAuthInstance();
             const userEmail = auth.currentUser?.email || 'Unknown User';
@@ -217,21 +254,22 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                 userEmail,
                 actionType: 'UPDATE_BOY',
                 description: `Updated weekly marks for ${selectedDate} for ${changedBoysOldData.length} boys.`,
-                revertData: { boysData: changedBoysOldData },
+                revertData: { boysData: changedBoysOldData }, // Save all old boy objects for potential revert.
             }, activeSection);
         }
         await Promise.all(updates);
         refreshData();
         setIsDirty(false);
         setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
+        setTimeout(() => setSaveSuccess(false), 2000); // Show success state briefly.
     } catch(error) {
         console.error("Failed to save marks", error);
     } finally {
         setIsSaving(false);
     }
   };
-
+  
+  // --- MEMOIZED COMPUTATIONS for rendering ---
   const boysBySquad = useMemo(() => {
     const grouped: Record<string, Boy[]> = {};
     boys.forEach(boy => {
@@ -241,6 +279,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       grouped[boy.squad].push(boy);
     });
     
+    // Sort boys within squads for consistent display order.
     for (const squad of Object.keys(grouped)) {
         grouped[squad].sort((a, b) => {
             const yearA = a.year || 0;
@@ -273,6 +312,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     return leaders;
   }, [boysBySquad]);
 
+  // --- RENDER LOGIC ---
   const sortedSquads = Object.keys(boysBySquad).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
   const accentBg = isCompany ? 'bg-company-blue focus:ring-company-blue disabled:bg-company-blue' : 'bg-junior-blue focus:ring-junior-blue disabled:bg-junior-blue';
@@ -380,6 +420,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         ))}
       </div>
 
+       {/* Floating Action Button for saving */}
        {(isDirty || saveSuccess) && (
           <button
             onClick={handleSaveMarks}
@@ -388,7 +429,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             aria-label="Save Marks"
           >
             {isSaving ? (
-              <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
