@@ -19,7 +19,7 @@ import SectionSelectPage from './components/SectionSelectPage';
 import SettingsPage from './components/SettingsPage';
 import HelpPage from './components/HelpPage';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, migrateFirestoreDataIfNeeded } from './services/db';
+import { fetchBoys, syncPendingWrites, deleteOldAuditLogs } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
 import { getSettings } from './services/settings';
 import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings } from './types';
@@ -126,17 +126,15 @@ const App: React.FC = () => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         setCurrentUser(user);
         if (user) {
-          // If user is logged in, run data migrations and cleanup tasks.
-          migrateFirestoreDataIfNeeded().then(() => {
-            if(activeSection) {
-              deleteOldAuditLogs(activeSection).then(() => {
-                loadDataAndSettings();
-              });
-            } else {
-              // If logged in but no section selected, stop loading and show section select page.
-              setIsLoading(false); 
-            }
-          });
+          // If user is logged in, run cleanup tasks.
+          if(activeSection) {
+            deleteOldAuditLogs(activeSection).then(() => {
+              loadDataAndSettings();
+            });
+          } else {
+            // If logged in but no section selected, stop loading and show section select page.
+            setIsLoading(false); 
+          }
         } else {
           // If user is logged out, clear all state and stop loading.
           setIsLoading(false); 

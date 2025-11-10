@@ -96,25 +96,39 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
    */
   useEffect(() => {
     if (boy) {
-      // Create a clean, sorted version of the original marks.
-      const originalMarksSorted = [...boy.marks].sort((a, b) => a.date.localeCompare(b.date));
-      // Create a clean, sorted version of the edited marks, converting empty strings to numbers.
-      const editedMarksSorted = [...editedMarks]
-        .filter(m => m.score !== '')
+      // Create a canonical, sorted representation of the original marks to ensure consistent key order and data types for comparison.
+      const originalMarksCanonical = [...boy.marks]
         .map(m => {
-            const cleanMark: any = { date: m.date, score: Number(m.score) };
-            if (m.uniformScore !== undefined) cleanMark.uniformScore = Number(m.uniformScore);
-            if (m.behaviourScore !== undefined) cleanMark.behaviourScore = Number(m.behaviourScore);
+            const cleanMark: any = { date: m.date, score: m.score };
+            if (m.uniformScore !== undefined) cleanMark.uniformScore = m.uniformScore;
+            if (m.behaviourScore !== undefined) cleanMark.behaviourScore = m.behaviourScore;
             return cleanMark;
+        })
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      // Create a canonical, sorted representation of the edited marks.
+      // Empty string inputs are converted to 0, which mirrors the save logic.
+      const editedMarksCanonical = [...editedMarks]
+        .map(editableMark => {
+            if (isCompany || editableMark.uniformScore === undefined) {
+                // An empty string for a score is treated as 0 for comparison.
+                const score = editableMark.score === '' ? 0 : Number(editableMark.score);
+                return { date: editableMark.date, score };
+            }
+            // For Juniors, recalculate the total score from uniform and behaviour.
+            const uniformScore = editableMark.uniformScore === '' ? 0 : Number(editableMark.uniformScore);
+            const behaviourScore = editableMark.behaviourScore === '' ? 0 : Number(editableMark.behaviourScore);
+            const totalScore = Number(editableMark.score) < 0 ? -1 : uniformScore + behaviourScore; // Preserve absent status.
+            return { date: editableMark.date, score: totalScore, uniformScore, behaviourScore };
         })
         .sort((a, b) => a.date.localeCompare(b.date));
       
       // Compare the stringified versions to check for differences.
-      setIsDirty(JSON.stringify(originalMarksSorted) !== JSON.stringify(editedMarksSorted));
+      setIsDirty(JSON.stringify(originalMarksCanonical) !== JSON.stringify(editedMarksCanonical));
     } else {
         setIsDirty(false);
     }
-  }, [boy, editedMarks]);
+  }, [boy, editedMarks, isCompany]);
   
   /**
    * EFFECT: Manages the 'beforeunload' event to warn users about unsaved changes.
@@ -193,10 +207,11 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
 
     // Convert the local `EditableMark[]` state back into the strict `Mark[]` type for saving.
     const validMarks: Mark[] = editedMarks
-      .filter(mark => mark.score !== '') // Discard any empty entries.
       .map(editableMark => {
         if(isCompany || editableMark.uniformScore === undefined) {
-             return { date: editableMark.date, score: Number(editableMark.score) };
+             // An empty string for a score should be saved as 0.
+             const score = editableMark.score === '' ? 0 : Number(editableMark.score);
+             return { date: editableMark.date, score };
         }
         // For Juniors, recalculate the total score from uniform and behaviour.
         const uniformScore = editableMark.uniformScore === '' ? 0 : Number(editableMark.uniformScore);

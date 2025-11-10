@@ -37,56 +37,6 @@ import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPend
  */
 const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs') => `${section}_${resource}`;
 
-// --- Data Migration ---
-/**
- * One-time migration function to move data from old, non-sectioned Firestore collections
- * ('boys', 'audit_logs') to new, section-specific collections ('company_boys', etc.).
- * This is crucial for supporting the multi-section feature. It uses localStorage to ensure
- * it only runs once per client.
- */
-export const migrateFirestoreDataIfNeeded = async () => {
-    const migrationKey = 'firestore_migration_v2_complete';
-    if (localStorage.getItem(migrationKey)) {
-        return;
-    }
-    
-    console.log("Checking for Firestore data to migrate...");
-    const db = getDb();
-    const oldBoysCollection = collection(db, 'boys');
-    const oldBoysSnapshot = await getDocs(oldBoysCollection);
-
-    if (oldBoysSnapshot.empty) {
-        console.log("No old data found to migrate.");
-        localStorage.setItem(migrationKey, 'true');
-        return;
-    }
-    
-    console.log(`Found ${oldBoysSnapshot.size} documents to migrate.`);
-    const batch = writeBatch(db);
-
-    // Migrate boys to the 'company' section by default.
-    oldBoysSnapshot.forEach(docSnapshot => {
-        const newDocRef = doc(db, getCollectionName('company', 'boys'), docSnapshot.id);
-        batch.set(newDocRef, docSnapshot.data());
-    });
-
-    // Migrate audit logs to the 'company' section by default.
-    const oldLogsCollection = collection(db, 'audit_logs');
-    const oldLogsSnapshot = await getDocs(oldLogsCollection);
-    oldLogsSnapshot.forEach(docSnapshot => {
-        const newDocRef = doc(db, getCollectionName('company', 'audit_logs'), docSnapshot.id);
-        batch.set(newDocRef, docSnapshot.data());
-    });
-    
-    try {
-        await batch.commit();
-        console.log("Firestore data migration successful.");
-        localStorage.setItem(migrationKey, 'true');
-    } catch(error) {
-        console.error("Firestore data migration failed:", error);
-    }
-};
-
 // --- Sync Function ---
 /**
  * The core of the offline functionality. This function reads all pending writes
