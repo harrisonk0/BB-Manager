@@ -16,6 +16,7 @@ The root component of the entire application. It doesn't render much UI directly
     -   Handles the main "routing" logic by deciding which page component to render based on the `view` state.
     -   Orchestrates data fetching (`refreshData`) and offline synchronization (`syncPendingWrites`).
     -   Manages the "unsaved changes" confirmation modal.
+    -   Manages and renders the global toast notification system.
 -   **Key Props**: None.
 
 ---
@@ -31,10 +32,11 @@ The main landing page after login, displaying the member roster.
 -   **Responsibilities**:
     -   Displays a list of all members, grouped and sorted by squad.
     -   Calculates and displays squad-level and individual-level statistics (total marks, attendance).
-    -   Implements a search/filter functionality for the member list.
-    -   Handles user interactions for adding, editing, and deleting members by controlling the visibility of the `BoyForm` and delete confirmation modals.
+    -   Implements advanced search, filtering (by squad/year), and sorting (by name/marks/attendance) via a modal interface.
+    -   Features a modern UI with toggleable icon buttons for accessing page controls.
+    -   Handles user interactions for adding, editing, and deleting members.
     -   Navigates to the `BoyMarksPage` when a member's chart icon is clicked.
--   **Key Props**: `boys`, `setView`, `refreshData`, `activeSection`.
+-   **Key Props**: `boys`, `setView`, `refreshData`, `activeSection`, `showToast`.
 
 #### `WeeklyMarksPage.tsx`
 
@@ -42,12 +44,12 @@ The interface for entering weekly attendance and scores for all members.
 
 -   **Responsibilities**:
     -   Displays all members grouped by squad.
+    -   Displays real-time squad attendance statistics as marks are entered.
+    -   Implements a read-only (locked) mode for past dates to prevent accidental edits, which can be unlocked by the user.
     -   Manages a date selector, defaulting to the next meeting day based on settings.
-    -   Manages the local state for attendance and marks (`marks`, `attendance`) for the selected date.
-    -   Handles input validation for scores.
-    -   Tracks unsaved changes (`isDirty`) and communicates this to the `App` component.
-    -   Saves all changes for the selected date in a single batch operation and creates a comprehensive audit log entry.
--   **Key Props**: `boys`, `refreshData`, `setHasUnsavedChanges`, `activeSection`, `settings`.
+    -   Tracks unsaved changes and communicates this to the `App` component.
+    -   Saves all changes for the selected date in a single batch operation.
+-   **Key Props**: `boys`, `refreshData`, `setHasUnsavedChanges`, `activeSection`, `settings`, `showToast`.
 
 #### `BoyMarksPage.tsx`
 
@@ -59,16 +61,18 @@ A detailed view showing the entire mark history for a single member.
     -   Allows for editing of past scores, changing attendance status, and deleting mark entries.
     -   Tracks unsaved changes by performing a deep comparison between the original and edited marks.
     -   Saves all corrections and creates an audit log entry.
--   **Key Props**: `boyId`, `refreshData`, `setHasUnsavedChanges`, `activeSection`.
+-   **Key Props**: `boyId`, `refreshData`, `setHasUnsavedChanges`, `activeSection`, `showToast`.
 
 #### `DashboardPage.tsx`
 
-A summary report view showing member performance over time.
+A visual summary report view of member and squad performance.
 
 -   **Responsibilities**:
-    -   Dynamically determines all unique months for which marks exist to create table columns.
-    -   Renders a table of all members, grouped by squad.
-    -   Calculates and displays each member's total marks for each month, as well as their all-time total.
+    -   Renders a visual dashboard with key performance indicators.
+    -   Displays a "Top 5 Members" leaderboard based on total marks.
+    -   Shows a bar chart comparing the total marks accumulated by each squad.
+    -   Presents an attendance trend heatmap, showing each squad's attendance percentage for every recorded date.
+    -   Includes a detailed "Marks Breakdown by Month" table for granular reporting.
 -   **Key Props**: `boys`, `activeSection`.
 
 #### `AuditLogPage.tsx`
@@ -80,7 +84,7 @@ Displays a chronological history of all actions taken in the app.
     -   Provides the UI for reverting actions.
     -   Manages the state for the revert confirmation modal.
     -   Handles the `handleRevert` logic, which calls the appropriate inverse data service functions.
--   **Key Props**: `refreshData`, `activeSection`.
+-   **Key Props**: `refreshData`, `activeSection`, `showToast`.
 
 #### `SettingsPage.tsx`
 
@@ -90,7 +94,7 @@ Allows users to configure application settings.
     -   Displays form inputs for available settings (e.g., meeting day).
     -   Handles saving the settings to Firestore.
     -   Creates an audit log entry when settings are changed.
--   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`.
+-   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`.
 
 #### `HelpPage.tsx`
 
@@ -153,6 +157,10 @@ A collection of simple, stateless SVG icon components.
     -   Exports multiple functional components, each rendering a specific SVG icon.
     -   Accepts an optional `className` prop for easy styling with Tailwind CSS.
 
+---
+
+### Feedback & Visualization Components
+
 #### `SkeletonLoaders.tsx`
 
 Components used to provide a better loading experience.
@@ -161,3 +169,23 @@ Components used to provide a better loading experience.
     -   `HomePageSkeleton` and `BoyMarksPageSkeleton` render placeholder UIs that mimic the layout of their respective pages.
     -   This reduces layout shift and perceived wait time while data is being fetched.
 -   **Key Props**: None.
+
+#### `Toast.tsx`
+
+A component for displaying a single, self-dismissing notification.
+
+-   **Responsibilities**:
+    -   Renders a toast message with a corresponding icon (success, error, info).
+    -   Automatically dismisses itself after a set duration.
+    -   Provides a close button for manual dismissal.
+-   **Key Props**: `toast`, `removeToast`.
+
+#### `BarChart.tsx`
+
+A simple, reusable SVG bar chart.
+
+-   **Responsibilities**:
+    -   Renders a bar chart based on a given data set.
+    -   Includes labels for each bar and its value.
+    -   Used on the Dashboard to visualize squad performance.
+-   **Key Props**: `data`.

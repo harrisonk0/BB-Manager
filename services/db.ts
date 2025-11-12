@@ -176,7 +176,34 @@ export const fetchBoys = async (section: Section): Promise<Boy[]> => {
             getDocs(collection(getDb(), getCollectionName(section, 'boys')))
                 .then(snapshot => {
                     const freshBoys = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Boy));
-                    saveBoysToDB(freshBoys, section);
+                    
+                    // Creates a consistent, comparable object to avoid false positives from minor differences (e.g., undefined vs. false).
+                    const comparable = (b: Boy) => ({
+                        id: b.id,
+                        name: b.name,
+                        squad: b.squad,
+                        year: b.year,
+                        isSquadLeader: !!b.isSquadLeader, // Coerce undefined to false
+                        marks: b.marks.map(m => ({
+                            date: m.date,
+                            score: m.score,
+                            // Coerce undefined to null, which is handled consistently by JSON.stringify
+                            uniformScore: m.uniformScore ?? null, 
+                            behaviourScore: m.behaviourScore ?? null,
+                        })).sort((a, b) => a.date.localeCompare(b.date)), // Sort marks for consistency
+                    });
+
+                    // Sort both arrays by ID to ensure consistent order for comparison.
+                    const sortedFresh = [...freshBoys].sort((a, b) => (a.id ?? '').localeCompare(b.id ?? ''));
+                    const sortedCached = [...cachedBoys].sort((a, b) => (a.id ?? '').localeCompare(b.id ?? ''));
+
+                    if (JSON.stringify(sortedFresh.map(comparable)) !== JSON.stringify(sortedCached.map(comparable))) {
+                        console.log(`Background fetch for ${section} boys found updates. Refreshing cache.`);
+                        saveBoysToDB(freshBoys, section).then(() => {
+                            // Notify the app that data has been updated in the background
+                            window.dispatchEvent(new CustomEvent('datarefreshed', { detail: { section } }));
+                        });
+                    }
                 }).catch(err => console.error("Background fetch failed:", err));
         }
         return cachedBoys;
@@ -343,7 +370,21 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
                     }
                     return { ...data, id: doc.id, timestamp: timestampInMillis } as AuditLog;
                 });
-                saveLogsToDB(freshLogs, section);
+
+                // More robust deep comparison logic
+                const comparableLog = (log: AuditLog) => ({
+                    ...log,
+                    reverted: !!log.reverted, // Coerce undefined to false
+                });
+
+                // Both fresh and cached logs are already sorted by timestamp.
+                if (JSON.stringify(freshLogs.map(comparableLog)) !== JSON.stringify(cachedLogs.map(comparableLog))) {
+                    console.log(`Background fetch for ${section} logs found updates. Refreshing cache.`);
+                    saveLogsToDB(freshLogs, section).then(() => {
+                        // Notify the app that logs have been updated in the background
+                        window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section } }));
+                    });
+                }
             });
         }
         return cachedLogs;

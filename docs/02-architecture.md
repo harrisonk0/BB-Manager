@@ -21,16 +21,17 @@ The offline-first approach is the cornerstone of this application's architecture
 [ User Action ] -> [ React Component ] -> [ services/db.ts ] -> [ services/offlineDb.ts (IndexedDB) ]
        ^                                                                          |
        |                                                                          | (If online)
-       +------------------- [ UI Update (Instant) ] <------------------------------+
+       +--- [ UI Update (Local) ] <------------------------------------------------+
                                                                                     |
                                                                                     v
-                                                                            [ Firestore Sync ]
+       ^------------------------- [ UI Update (Remote) ] <--- [ Event Listener ] <- [ Firestore Sync ]
 ```
 
 1.  **App Shell Caching**: The Service Worker (`sw.js`) pre-caches the main application shell (HTML, JS, manifest). This makes the initial load nearly instantaneous on subsequent visits.
 2.  **Local Database (IndexedDB)**: `services/offlineDb.ts` sets up and manages a local IndexedDB database. This is the primary data source for the entire application. All `Boy` records, `AuditLog` entries, and other data are stored here.
 3.  **UI Interaction**: When a user views a list of members or edits a mark, the React UI is reading from and writing to IndexedDB. This is why the interface feels incredibly fast—there are no network requests blocking the user's actions.
 4.  **Pending Writes Queue**: When a write operation (create, update, delete) occurs, it is immediately applied to the local IndexedDB. Simultaneously, a record of this operation is added to a special `pending_writes` store. This queue acts as a durable log of all changes that have not yet been saved to the central server.
+5.  **Event-Driven UI Refresh**: When the background sync successfully fetches new data from Firestore, it dispatches a custom browser event (e.g., `datarefreshed`). The root `App` component listens for this event and triggers a data refresh in the UI. This ensures the user sees the latest data without needing to manually reload the page after coming online.
 
 ---
 
@@ -45,6 +46,8 @@ Synchronization is the process of reconciling the local data with the remote Fir
     3.  It constructs a single **Firestore Write Batch**. A batch is a set of write operations that are executed as a single atomic unit. This is crucial for data integrity—either all offline changes are saved, or none are. This prevents the database from ending up in a partially updated state.
     4.  The batch is committed to Firestore.
     5.  **Only upon a successful commit**, the `pending_writes` queue in IndexedDB is cleared. If the commit fails (e.g., due to a temporary network blip or a permissions error), the queue remains intact, and the sync will be re-attempted later.
+
+-   **Intelligent Cache Updates**: When fetching data from Firestore to update the local cache, the application performs an intelligent **deep comparison** between the fresh data and the cached data. An update to the local cache (and the subsequent UI refresh) is only triggered if the data has *actually changed*. This prevents unnecessary writes and avoids performance issues like infinite refresh loops.
 
 -   **Offline ID Handling**: A key challenge in offline creation is handling object IDs.
     -   When a new member is created offline, a temporary, unique ID is generated (e.g., `offline_...`).

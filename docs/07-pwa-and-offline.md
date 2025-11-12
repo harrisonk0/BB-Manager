@@ -43,6 +43,16 @@ The database schema is defined and migrated in the `openDB` function within `ser
     -   It has an `autoIncrement` key, meaning each new entry gets a unique, sequential ID.
     -   It stores `PendingWrite` objects, which contain the type of operation (`CREATE_BOY`, `UPDATE_BOY`, etc.), the data payload, and the relevant section.
 
+**The Offline-to-Online Flow**:
+The combination of these technologies creates a seamless experience:
+1.  User makes changes offline. All changes are saved to IndexedDB.
+2.  User comes back online. The `online` event triggers `syncPendingWrites()`.
+3.  `syncPendingWrites()` sends all queued changes to Firestore.
+4.  Simultaneously, `fetchBoys()` runs a background fetch. It detects that the server data may be newer than the local cache.
+5.  After fetching, it compares the new data with the old. If changes are found, it updates the local IndexedDB cache.
+6.  This update dispatches a `datarefreshed` event, which the main `App` component is listening for.
+7.  The `App` component re-fetches data from the (now updated) IndexedDB and re-renders the UI, showing the user the latest information from all sources without requiring a manual page refresh.
+
 **Schema Migration**:
 
 The database version is managed by the `DB_VERSION` constant. If a developer needs to change the database schema (e.g., add a new object store or an index), they must:

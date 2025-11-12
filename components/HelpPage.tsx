@@ -18,8 +18,9 @@ import {
     SwitchHorizontalIcon,
     SaveIcon,
     SearchIcon,
-    ClockIcon,
-    ClipboardIcon,
+    StarIcon,
+    FilterIcon,
+    LockClosedIcon,
 } from './Icons';
 
 
@@ -78,33 +79,13 @@ const HeaderAnatomy: React.FC = () => {
     );
 };
 
-const HomePageAnatomy: React.FC = () => (
-    <div className="p-4 bg-slate-100 rounded-lg border border-slate-200 space-y-4">
-        <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center"><SearchIcon className="h-5 w-5 text-slate-400" /></div>
-            <input type="text" placeholder="Search members..." disabled className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md bg-white cursor-not-allowed" />
-        </div>
-        <div className="relative bg-white p-4 rounded-lg shadow-md">
-             <div className="flex justify-between items-baseline mb-2">
-                <h3 className="text-lg font-semibold text-slate-800">Squad 1</h3>
-                <div className="text-right text-sm">
-                    <p className="font-semibold text-slate-600">Total Marks: 450</p>
-                </div>
-            </div>
-            <ul className="divide-y divide-slate-200">
-                <li className="py-3 flex justify-between items-center">
-                    <div>
-                        <p className="font-medium text-red-600">John Smith</p>
-                        <p className="text-sm text-slate-500">Year 12 • Total Marks: 85</p>
-                    </div>
-                    <div className="flex space-x-1">
-                        <div className="p-2 border rounded-full"><ChartBarIcon className="h-4 w-4 text-slate-400" /></div>
-                        <div className="p-2 border rounded-full"><PencilIcon className="h-4 w-4 text-slate-400" /></div>
-                        <div className="p-2 border rounded-full"><TrashIcon className="h-4 w-4 text-slate-400" /></div>
-                    </div>
-                </li>
-            </ul>
-        </div>
+const HomePageControlsPreview: React.FC = () => (
+    <div className="flex justify-end items-center space-x-2 p-4 bg-slate-100 rounded-lg border border-slate-200">
+        <div className="p-2 border rounded-full"><SearchIcon className="h-5 w-5 text-slate-400" /></div>
+        <div className="p-2 border rounded-full"><FilterIcon className="h-5 w-5 text-slate-400" /></div>
+        <button disabled className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white bg-company-blue/80 cursor-not-allowed">
+            <PlusIcon className="h-5 w-5 mr-2 -ml-1"/> Add Boy
+        </button>
     </div>
 );
 
@@ -137,6 +118,13 @@ const AddMemberFormPreview: React.FC = () => (
 
 const WeeklyMarksAnatomy: React.FC = () => (
      <div className="relative p-4 bg-white rounded-lg shadow-md border border-slate-200">
+         <div className="flex justify-between items-baseline mb-2">
+            <h3 className="text-lg font-semibold text-slate-800">Squad 1</h3>
+            <div className="text-right text-sm">
+                <p className="font-semibold text-slate-600">Attendance: 100%</p>
+                <p className="text-sm text-slate-500">(5 / 5 present)</p>
+            </div>
+        </div>
         <li className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <div className="flex-1">
                 <span className="text-lg font-medium text-green-600">David Miller</span>
@@ -147,6 +135,35 @@ const WeeklyMarksAnatomy: React.FC = () => (
                 <input type="number" placeholder="0-10" disabled className="w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm cursor-not-allowed" />
             </div>
         </li>
+    </div>
+);
+
+const DashboardPreview: React.FC = () => (
+    <div className="p-4 bg-slate-100 rounded-lg border border-slate-200 space-y-4">
+        {/* Leaderboard */}
+        <div className="bg-white p-4 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold text-slate-800 mb-2 flex items-center">
+                <StarIcon className="h-5 w-5 mr-2 text-yellow-500" /> Top 5 Members
+            </h3>
+            <ol className="space-y-2 text-sm">
+                <li className="flex justify-between"><span>1. John Smith</span><strong>85</strong></li>
+                <li className="flex justify-between"><span>2. Peter Jones</span><strong>82</strong></li>
+            </ol>
+        </div>
+        {/* Heatmap */}
+        <div className="bg-white p-4 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold text-slate-800 mb-2">Squad Attendance Trend</h3>
+            <div className="flex justify-around text-xs text-center">
+                <div>
+                    <div className="font-bold">Squad 1</div>
+                    <div className="mt-1 p-2 rounded bg-green-200">100%</div>
+                </div>
+                <div>
+                    <div className="font-bold">Squad 2</div>
+                    <div className="mt-1 p-2 rounded bg-yellow-200">75%</div>
+                </div>
+            </div>
+        </div>
     </div>
 );
 
@@ -183,6 +200,7 @@ const HelpPage: React.FC = () => {
         ]},
         { id: 'managing-members', title: '2. Managing Members', subSections: [
             { id: 'home-page', title: 'The Member Roster' },
+            { id: 'filter-sort', title: 'Searching & Filtering' },
             { id: 'add-member', title: 'How to Add a Member' },
             { id: 'edit-member', title: 'How to Edit a Member' },
             { id: 'squad-leader', title: 'How to Set a Squad Leader' },
@@ -194,8 +212,9 @@ const HelpPage: React.FC = () => {
             { id: 'marking-attendance', title: 'Marking Attendance' },
             { id: 'entering-marks', title: 'Entering Marks' },
             { id: 'saving-marks', title: 'Saving Marks' },
+            { id: 'past-marks', title: 'Editing Past Marks (Read-Only Mode)'},
         ]},
-        { id: 'viewing-records', title: '4. Viewing & Correcting', subSections: [
+        { id: 'viewing-records', title: '4. Viewing Individual Records', subSections: [
             { id: 'member-history', title: 'Viewing a Member\'s History' },
             { id: 'correcting-marks', title: 'Correcting a Past Mark' },
         ]},
@@ -222,6 +241,7 @@ const HelpPage: React.FC = () => {
                                     <a href={`#${section.id}`} className={`font-semibold ${accentTextColor} hover:underline`}>{section.title}</a>
                                     {section.subSections && (
                                         <ul className="pl-4 mt-1 space-y-1">
+                                            {/* FIX: Changed `sub` to `section` to correctly reference the variable from the parent map function. */}
                                             {section.subSections.map(sub => (
                                                 <li key={sub.id}>
                                                     <a href={`#${sub.id}`} className="text-slate-600 hover:text-slate-900 hover:underline text-sm">{sub.title}</a>
@@ -283,11 +303,9 @@ const HelpPage: React.FC = () => {
 
                         <div id="home-page" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">The Member Roster (Home Page)</h3>
-                            <p>The Home page lists all members, grouped by squad. From here you can search for members, see squad performance, and access actions for each individual. The main components are:</p>
+                            <p>The Home page lists all members, grouped by squad. From here you can see squad performance, and access actions for each individual. The controls are located in the top-right corner:</p>
+                             <HomePageControlsPreview />
                              <ul className="list-disc list-inside space-y-1 pl-4">
-                                <li><strong>Search Bar:</strong> Quickly find a member by typing their name.</li>
-                                <li><strong>Squad Header:</strong> Shows the squad number and its total marks for the year.</li>
-                                <li><strong>Member Card:</strong> Displays the member's name, year, and key stats.</li>
                                 <li><strong>Action Buttons:</strong>
                                     <ul className="list-['-_'] list-inside pl-6">
                                         <li><ChartBarIcon className="inline h-4 w-4 align-text-bottom"/> View a member's full mark history.</li>
@@ -296,9 +314,17 @@ const HelpPage: React.FC = () => {
                                     </ul>
                                 </li>
                             </ul>
-                            <HomePageAnatomy />
                         </div>
                         
+                         <div id="filter-sort" className="space-y-4 scroll-mt-24">
+                            <h3 className="text-2xl font-semibold text-slate-700">Searching & Filtering</h3>
+                            <p>Use the icon buttons in the header to find members quickly:</p>
+                             <ul className="list-disc list-inside space-y-1 pl-4">
+                                <li><strong>Search (<SearchIcon className="inline h-4 w-4 align-text-bottom"/>):</strong> Click to reveal a search bar and find members by name.</li>
+                                <li><strong>Filter & Sort (<FilterIcon className="inline h-4 w-4 align-text-bottom"/>):</strong> Click to open a modal where you can filter the list by Squad or School Year, and sort members by Name, Total Marks, or Attendance.</li>
+                            </ul>
+                        </div>
+
                         <div id="add-member" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">How to Add a Member</h3>
                             <p>Click the <strong className={`${accentTextColor}`}>+ Add Boy</strong> button at the top of the Home page. A form will appear where you can enter the member's name, school year, and squad. Click "Add Boy" to save.</p>
@@ -327,12 +353,7 @@ const HelpPage: React.FC = () => {
                         
                         <div id="accessing-marks" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Accessing the Marks Page</h3>
-                            <p>Click on "Weekly Marks" in the header. This page lists all members by squad, ready for you to input their scores for the night. Each member's row consists of:</p>
-                            <ul className="list-disc list-inside space-y-1 pl-4">
-                                <li><strong>Member Details:</strong> Their name and school year.</li>
-                                <li><strong>Attendance Toggle:</strong> A button to switch between "Present" and "Absent".</li>
-                                <li><strong>Score Input(s):</strong> One or more fields to enter their marks for the night.</li>
-                            </ul>
+                            <p>Click on "Weekly Marks" in the header. This page lists all members by squad. As you mark attendance, the squad header will update in real-time to show the current attendance percentage for the night.</p>
                             <WeeklyMarksAnatomy />
                         </div>
                         
@@ -357,18 +378,23 @@ const HelpPage: React.FC = () => {
                         
                         <div id="saving-marks" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Saving Marks</h3>
-                            <p>As soon as you make a change, a floating save button will appear in the bottom-right corner. Click this to save all marks for the selected date. It will turn green briefly to confirm the save was successful.</p>
+                            <p>As soon as you make a change, a floating save button will appear in the bottom-right corner. Click this to save all marks for the selected date. A notification will appear in the top-right to confirm the save was successful.</p>
                             <div className="flex justify-center">
                                 <button disabled className={`w-14 h-14 rounded-full text-white shadow-lg flex items-center justify-center bg-green-500`}>
                                     <SaveIcon className="h-7 w-7" />
                                 </button>
                             </div>
                         </div>
+
+                        <div id="past-marks" className="space-y-4 scroll-mt-24">
+                            <h3 className="text-2xl font-semibold text-slate-700">Editing Past Marks (Read-Only Mode)</h3>
+                            <p>To prevent accidental changes, when you select a date in the past, the page will be in a read-only "locked" mode. To make a correction, click the <strong className="text-slate-600">lock icon</strong> (<LockClosedIcon className="inline h-4 w-4 align-text-bottom"/>) in the header to unlock the page for editing.</p>
+                        </div>
                     </section>
                     
                     {/* Section 4: Viewing Records */}
                     <section id="viewing-records" className="space-y-8 scroll-mt-24">
-                        <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">4. Viewing & Correcting Records</h2>
+                        <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">4. Viewing Individual Records</h2>
                         
                         <div id="member-history" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Viewing a Member's Full Mark History</h3>
@@ -384,27 +410,14 @@ const HelpPage: React.FC = () => {
                     {/* Section 5: Dashboard */}
                     <section id="dashboard" className="space-y-4 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">5. Dashboard & Reporting</h2>
-                        <p>The Dashboard gives you a bird's-eye view of your section's performance. It displays a table with all members, showing their total marks for each month and their all-time total for the session. This is great for tracking progress and identifying top performers.</p>
-                        <div className="shadow-md rounded-lg overflow-hidden border border-slate-200">
-                             <table className="min-w-full bg-white text-sm">
-                                <thead className="bg-slate-100">
-                                <tr>
-                                    <th className="py-2 px-2 text-left font-semibold text-slate-900">Name</th>
-                                    <th className="px-2 py-2 text-center font-semibold text-slate-900">Sep 2024</th>
-                                    <th className="px-2 py-2 text-center font-semibold text-slate-900">Oct 2024</th>
-                                    <th className="px-2 py-2 text-center font-semibold text-slate-900">Total</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td className="py-2 px-2 font-medium text-red-600">John Smith</td>
-                                        <td className="px-2 py-2 text-center text-slate-500">35</td>
-                                        <td className="px-2 py-2 text-center text-slate-500">42</td>
-                                        <td className="px-2 py-2 text-center font-semibold text-slate-900">77</td>
-                                    </tr>
-                                </tbody>
-                             </table>
-                        </div>
+                        <p>The Dashboard gives you a bird's-eye view of your section's performance. It is composed of several widgets:</p>
+                        <ul className="list-disc list-inside space-y-2 pl-4">
+                            <li><strong>Top 5 Members:</strong> A leaderboard showing the highest-scoring members for the session.</li>
+                            <li><strong>Squad Performance:</strong> A bar chart that visually compares the total marks accumulated by each squad.</li>
+                            <li><strong>Squad Attendance Trend:</strong> A heatmap showing each squad's attendance percentage for every recorded date, making it easy to spot trends.</li>
+                            <li><strong>Marks Breakdown by Month:</strong> A detailed table showing every member's total marks for each month of the session.</li>
+                        </ul>
+                        <DashboardPreview />
                     </section>
                     
                     {/* Section 6: Administration */}
@@ -436,7 +449,7 @@ const HelpPage: React.FC = () => {
                     <section id="offline-use" className="space-y-4 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">7. Offline Use & Data Syncing</h2>
                         <p>The app is designed to work without an internet connection. All your data is saved securely in your browser. You can add members, enter marks, and make any other changes while offline.</p>
-                        <p>When your device reconnects to the internet, the app will automatically sync all the changes you made with the central database, ensuring all officers have the most up-to-date information.</p>
+                        <p>When your device reconnects to the internet, the app will automatically sync all the changes you made with the central database, ensuring all officers have the most up-to-date information. A toast notification will confirm when a sync is complete.</p>
                     </section>
 
                 </main>

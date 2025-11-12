@@ -18,11 +18,12 @@ import AuditLogPage from './components/AuditLogPage';
 import SectionSelectPage from './components/SectionSelectPage';
 import SettingsPage from './components/SettingsPage';
 import HelpPage from './components/HelpPage';
+import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { fetchBoys, syncPendingWrites, deleteOldAuditLogs } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
 import { getSettings } from './services/settings';
-import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings } from './types';
+import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings, ToastMessage, ToastType } from './types';
 import Modal from './components/Modal';
 
 // Defines the possible reasons for showing the confirmation modal.
@@ -51,6 +52,24 @@ const App: React.FC = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [confirmModalType, setConfirmModalType] = useState<ConfirmationModalType>(null);
   const [nextView, setNextView] = useState<View | null>(null);
+
+  // State for toast notifications.
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  /**
+   * Displays a toast notification.
+   */
+  const showToast = useCallback((message: string, type: ToastType = 'info') => {
+    const id = crypto.randomUUID();
+    setToasts(prev => [...prev, { id, message, type }]);
+  }, []);
+  
+  /**
+   * Removes a toast notification by its ID.
+   */
+  const removeToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
 
   /**
    * Fetches all necessary data for the active section (boys, settings) and updates the state.
@@ -81,6 +100,7 @@ const App: React.FC = () => {
         syncPendingWrites().then(synced => {
             if (synced) {
                 console.log('Sync complete, refreshing data.');
+                showToast('Data synced successfully.', 'success');
                 refreshData();
             }
         });
@@ -95,7 +115,7 @@ const App: React.FC = () => {
     return () => {
         window.removeEventListener('online', handleOnline);
     };
-  }, [refreshData]);
+  }, [refreshData, showToast]);
   
   /**
    * A wrapper around refreshData that also manages the global loading state.
@@ -150,6 +170,28 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   }, [loadDataAndSettings, activeSection]);
+
+  /**
+   * EFFECT: Listens for custom 'datarefreshed' event.
+   * This is triggered by the background sync in services/db.ts. When the local cache
+   * is updated with fresh data from the server, this effect will trigger a UI refresh.
+   */
+  useEffect(() => {
+    const handleDataRefresh = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        // Only refresh if the update was for the currently active section
+        if (activeSection && customEvent.detail.section === activeSection) {
+            console.log('Cache updated in background, refreshing UI data...');
+            refreshData();
+        }
+    };
+
+    window.addEventListener('datarefreshed', handleDataRefresh);
+
+    return () => {
+        window.removeEventListener('datarefreshed', handleDataRefresh);
+    };
+  }, [activeSection, refreshData]);
   
   // --- EVENT HANDLERS ---
   
@@ -251,22 +293,22 @@ const App: React.FC = () => {
 
     switch (view.page) {
       case 'home':
-        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} />;
+        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
       case 'weeklyMarks':
-        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} settings={settings} />;
+        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} settings={settings} showToast={showToast} />;
       case 'dashboard':
         return <DashboardPage boys={boys} activeSection={activeSection!} />;
       case 'auditLog':
-        return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} />;
+        return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
       case 'settings':
-        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} />;
+        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} />;
       case 'help':
         return <HelpPage />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
-        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} />;
+        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} showToast={showToast} />;
       default:
-        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} />;
+        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
     }
   };
   
@@ -344,7 +386,18 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-200 text-slate-800">
+      {/* Toast Notification Container */}
+      <div
+        aria-live="assertive"
+        className="fixed inset-0 flex flex-col items-end px-4 py-6 space-y-2 pointer-events-none sm:p-6 sm:items-end sm:justify-start z-[100]"
+      >
+        {toasts.map((toast) => (
+          <Toast key={toast.id} toast={toast} removeToast={removeToast} />
+        ))}
+      </div>
+
       {renderApp()}
+      
       <Modal isOpen={!!confirmModalType} onClose={cancelAction} title="Unsaved Changes">
         <div className="space-y-4">
             <p className="text-slate-600">You have unsaved changes. Are you sure you want to leave? Your changes will be lost.</p>

@@ -11,7 +11,8 @@ The general data flow for read and write operations is designed to be robust and
     2.  `db.ts` first attempts to retrieve the data from IndexedDB via `services/offlineDb.ts`.
     3.  The cached data is returned to the UI immediately for a fast response.
     4.  If the device is online, `db.ts` *also* makes a background request to Firestore to get the latest data.
-    5.  When the fresh data arrives, it is used to update the IndexedDB cache, ensuring the local data is kept up-to-date for the next time the app is used.
+    5.  When the fresh data arrives, it is **deeply compared** with the existing cached data.
+    6.  **Only if the data has actually changed**, the local IndexedDB cache is updated, and a `datarefreshed` event is dispatched to notify the UI to refresh itself. This intelligent check prevents unnecessary updates and performance issues.
 
 -   **Write Operations (e.g., `createBoy`)**:
     1.  The UI component calls a function in `services/db.ts`.
@@ -29,7 +30,7 @@ This is the most important file in the services directory. It provides a simple,
 
 **Key Responsibilities**:
 -   Abstracting away the dual data sources. A component calling `fetchBoys` doesn't need to know or care if the data is coming from the local cache or the remote server.
--   Implementing the cache-first read strategy.
+-   Implementing the cache-first, intelligent read strategy with deep data comparison.
 -   Handling the online/offline logic for write operations.
 -   Containing the `syncPendingWrites()` function, the core of the offline-to-online data synchronization process.
 -   Generating dynamic collection names (e.g., `company_boys`) based on the active section.

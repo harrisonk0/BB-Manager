@@ -18,9 +18,10 @@ This documentation provides a complete guide to the application's architecture, 
 
 -   **Member Management**: Full CRUD (Create, Read, Update, Delete) functionality for member records.
 -   **Multi-Section Support**: Manage **Company Section** and **Junior Section** data completely separately.
--   **Weekly Mark Recording**: A dedicated interface for quickly entering attendance and scores.
+-   **Weekly Mark Recording**: A dedicated interface for quickly entering attendance and scores, with real-time feedback.
+-   **Visual Dashboard & Reporting**: At-a-glance dashboard with leaderboards, squad performance charts, and attendance heatmaps.
+-   **Advanced Roster Filtering**: Instantly search, sort, and filter members by squad, year, and performance metrics.
 -   **100% Offline Functionality**: All changes are saved locally and synced automatically when the user goes online.
--   **Dashboard Reporting**: A high-level dashboard that summarizes member marks by month.
 -   **Audit Logging & Reversion**: Every significant action is logged and can be easily reverted.
 -   **Secure Authentication**: User access is managed through Firebase Authentication.
 

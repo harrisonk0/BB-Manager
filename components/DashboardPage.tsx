@@ -6,7 +6,10 @@
  */
 
 import React, { useMemo } from 'react';
-import { Boy, Squad, Section, JuniorSquad } from '../types';
+import { Boy, Squad, Section, JuniorSquad, Mark } from '../types';
+import { StarIcon } from './Icons';
+import BarChart from './BarChart';
+
 
 interface DashboardPageProps {
   boys: Boy[];
@@ -27,156 +30,232 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   4: 'text-yellow-600',
 };
 
+const SQUAD_CHART_COLORS: Record<string, string> = {
+    '1': '#ef4444', // red-500
+    '2': '#22c55e', // green-500
+    '3': '#eab308', // yellow-500
+    '4': '#3b82f6', // blue-500
+}
+
 const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) => {
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
-  // --- MEMOIZED COMPUTATIONS ---
-  // These useMemo hooks are critical for performance, ensuring that the expensive
-  // data processing only runs when the underlying `boys` data changes.
-
-  /**
-   * Memoized grouping and sorting of boys by squad.
-   */
-  const boysBySquad = useMemo(() => {
-    const grouped: Record<string, Boy[]> = {};
-    boys.forEach(boy => {
-      if (!grouped[boy.squad]) {
-        grouped[boy.squad] = [];
-      }
-      grouped[boy.squad].push(boy);
-    });
-    // Sort boys within each squad for consistent display.
-    for (const squad of Object.keys(grouped)) {
-        grouped[squad].sort((a, b) => {
-            const yearA = a.year || 0;
-            const yearB = b.year || 0;
-            if (typeof yearA === 'string' && typeof yearB === 'string') {
-                return yearB.localeCompare(yearA);
-            }
-            if (typeof yearA === 'number' && typeof yearB === 'number') {
-                return yearB - yearA;
-            }
-            return a.name.localeCompare(b.name);
-        });
-    }
-
-    return grouped;
-  }, [boys]);
-
-  /**
-   * Memoized calculation of squad leaders.
-   */
-  const squadLeaders = useMemo(() => {
-    const leaders: Record<string, string | undefined> = {};
-    Object.keys(boysBySquad).forEach(squad => {
-        const squadBoys = boysBySquad[squad];
-        if (squadBoys.length === 0) return;
-        let leader = squadBoys.find(b => b.isSquadLeader);
-        if (!leader) {
-            leader = squadBoys[0]; // Default to most senior boy
-        }
-        if (leader) {
-            leaders[squad] = leader.id;
-        }
-    });
-    return leaders;
-  }, [boysBySquad]);
-
-  /**
-   * Memoized calculation of all unique months for which marks exist.
-   * This dynamically generates the columns for the dashboard table.
-   */
-  const allMonths = useMemo(() => {
-    const allMonthStrings = new Set<string>();
-    boys.forEach(boy => {
-      boy.marks.forEach(mark => {
-        allMonthStrings.add(mark.date.substring(0, 7)); // Extracts "YYYY-MM"
-      });
-    });
-    // Return sorted array of months, most recent first.
-    return Array.from(allMonthStrings).sort((a, b) => b.localeCompare(a));
-  }, [boys]);
-  
   // --- UTILITY FUNCTIONS ---
-
-  /** Calculates the total marks for a boy, ignoring absences. */
   const calculateTotalMarks = (boy: Boy) => {
     return boy.marks.reduce((total, mark) => total + (mark.score > 0 ? mark.score : 0), 0);
   };
+  
+  // --- MEMOIZED COMPUTATIONS ---
+  const boysBySquad = useMemo(() => {
+    const grouped: Record<string, Boy[]> = {};
+    boys.forEach(boy => {
+      if (!grouped[boy.squad]) grouped[boy.squad] = [];
+      grouped[boy.squad].push(boy);
+    });
+    return grouped;
+  }, [boys]);
 
-  /** Calculates a boy's total marks for a specific month. */
+  const allMonths = useMemo(() => {
+    const allMonthStrings = new Set<string>();
+    boys.forEach(boy => {
+      boy.marks.forEach(mark => allMonthStrings.add(mark.date.substring(0, 7)));
+    });
+    return Array.from(allMonthStrings).sort((a, b) => b.localeCompare(a));
+  }, [boys]);
+
+  const leaderboard = useMemo(() => {
+    return [...boys]
+        .map(boy => ({ ...boy, totalMarks: calculateTotalMarks(boy) }))
+        .sort((a, b) => b.totalMarks - a.totalMarks)
+        .slice(0, 5);
+  }, [boys]);
+
+  const squadMarksData = useMemo(() => {
+    return Object.keys(boysBySquad)
+        .map(squad => ({
+            label: `Squad ${squad}`,
+            value: boysBySquad[squad].reduce((total, boy) => total + calculateTotalMarks(boy), 0),
+            color: SQUAD_CHART_COLORS[squad] || '#64748b' // slate-500
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
+  }, [boysBySquad]);
+
+  const heatmapData = useMemo(() => {
+    const allDates = Array.from(new Set(boys.flatMap(b => b.marks.map(m => m.date)))).sort();
+    const sortedSquads = Object.keys(boysBySquad).sort((a,b) => a.localeCompare(b, undefined, { numeric: true }));
+
+    if (allDates.length === 0 || sortedSquads.length === 0) {
+        return { dates: [], squads: [], matrix: {} };
+    }
+
+    const matrix: Record<string, Record<string, number | undefined>> = {};
+
+    sortedSquads.forEach((squad: string) => {
+        matrix[squad] = {};
+        const squadBoys = boysBySquad[squad];
+        allDates.forEach((date: string) => {
+            // Find all marks for the boys in this squad on this specific date.
+            const marksForDate: Mark[] = squadBoys
+                .map(b => b.marks.find(m => m.date === date))
+                .filter((mark): mark is Mark => !!mark); // Filter out undefined and ensure correct type.
+            
+            const totalForDate = marksForDate.length;
+
+            if (totalForDate === 0) {
+                // If no one in the squad has a mark for this date, there's no data.
+                matrix[squad][date] = undefined;
+            } else {
+                // Of those with a mark, count how many were present.
+                const attended = marksForDate.filter(m => m.score >= 0).length;
+                matrix[squad][date] = Math.round((attended / totalForDate) * 100);
+            }
+        });
+    });
+
+    return {
+        dates: allDates,
+        squads: sortedSquads,
+        matrix: matrix
+    };
+  }, [boys, boysBySquad]);
+
+  const getHeatmapColor = (percentage: number | undefined) => {
+    if (percentage === undefined || isNaN(percentage)) {
+        return { backgroundColor: '#f1f5f9' }; // slate-100 for N/A
+    }
+    const hue = (percentage / 100) * 120; // 0 (red) to 120 (green)
+    return { backgroundColor: `hsl(${hue}, 80%, 88%)` }; // Using HSL for a color scale
+  };
+
   const getMarksForMonth = (boy: Boy, month: string) => {
     const total = boy.marks
       .filter(mark => mark.date.startsWith(month) && mark.score >= 0)
       .reduce((sum, mark) => sum + mark.score, 0);
-      
-    // Check if the boy has any mark entries (even absences) in the month.
     const hasMarksInMonth = boy.marks.some(mark => mark.date.startsWith(month));
-    
-    // Return the total, or a dash if they have no records for that month.
     return hasMarksInMonth ? total.toString() : <span className="text-slate-400">-</span>;
   };
   
-  /** Formats a "YYYY-MM" string into a more readable format, e.g., "Sep 2024". */
   const formatMonth = (monthString: string) => {
     const [year, month] = monthString.split('-');
     const date = new Date(parseInt(year), parseInt(month) - 1, 1);
     return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
   };
   
-  // --- RENDER LOGIC ---
-
   const sortedSquads = Object.keys(boysBySquad).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
       
-      {sortedSquads.map((squad) => (
-        <div key={squad}>
-          <h2 className="text-2xl font-semibold mb-4 text-slate-800">{`Squad ${squad}`}</h2>
-          <div className="shadow-md rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead className="bg-slate-100">
-                  <tr>
-                    {/* Sticky columns ensure Name and Total are always visible on horizontal scroll */}
-                    <th scope="col" className="sticky left-0 bg-slate-100 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6 z-10 w-48 min-w-[12rem]">Name</th>
-                    {allMonths.map(month => (
-                      <th key={month} scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900 w-24">{formatMonth(month)}</th>
-                    ))}
-                    <th scope="col" className="sticky right-0 bg-slate-100 px-3 py-3.5 text-center text-sm font-semibold text-slate-900 w-28 min-w-[7rem]">All Time Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {boysBySquad[squad].map(boy => (
-                    <tr key={boy.id}>
-                      <td className="sticky left-0 bg-white whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 z-10 w-48 min-w-[12rem]">
-                        <div className={`${(SQUAD_COLORS as any)[boy.squad]}`}>
-                          {boy.name}
-                          {squadLeaders[squad] === boy.id && (
-                            <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
-                          )}
-                        </div>
-                      </td>
-                      {allMonths.map(month => (
-                        <td key={`${boy.id}-${month}`} className="whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500">
-                          {getMarksForMonth(boy, month)}
-                        </td>
-                      ))}
-                      <td className="sticky right-0 bg-white whitespace-nowrap px-3 py-4 text-sm text-center font-semibold text-slate-900 w-28 min-w-[7rem]">
-                        {calculateTotalMarks(boy)}
-                      </td>
-                    </tr>
+      {/* Visualizations Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Leaderboard */}
+        <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold text-slate-800 mb-4 flex items-center">
+            <StarIcon className="h-6 w-6 mr-2 text-yellow-500" /> Top 5 Members
+          </h2>
+          {leaderboard.length > 0 ? (
+            <ol className="space-y-3">
+              {leaderboard.map((boy, index) => (
+                <li key={boy.id} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <span className={`w-6 text-center font-bold text-lg ${index < 3 ? 'text-slate-800' : 'text-slate-500'}`}>{index + 1}</span>
+                    <span className={`ml-3 font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>{boy.name}</span>
+                  </div>
+                  <span className="font-bold text-slate-800">{boy.totalMarks}</span>
+                </li>
+              ))}
+            </ol>
+          ) : <p className="text-slate-500 text-center py-4">No marks recorded yet.</p>}
+        </div>
+
+        {/* Squad Marks Chart */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold text-slate-800 mb-4">Squad Performance (Total Marks)</h2>
+          {squadMarksData.some(d => d.value > 0) ? <BarChart data={squadMarksData} /> : <p className="text-slate-500 text-center py-4">No marks recorded yet.</p>}
+        </div>
+      </div>
+
+      {heatmapData.dates.length > 0 && (
+          <div className="bg-white p-6 rounded-lg shadow-md">
+               <h2 className="text-xl font-semibold text-slate-800 mb-4">Squad Attendance Trend</h2>
+               <div className="overflow-x-auto">
+                 <table className="min-w-full border-separate border-spacing-px">
+                    <thead>
+                        <tr>
+                            <th scope="col" className="py-2 px-3 text-left text-sm font-semibold text-slate-900 sticky left-0 bg-white/75 backdrop-blur-sm z-10">Squad</th>
+                             {heatmapData.dates.map(date => (
+                                <th key={date} scope="col" className="p-2 text-sm font-semibold text-slate-600 w-20">
+                                    {new Date(date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {heatmapData.squads.map(squad => (
+                            <tr key={squad}>
+                                <td className="py-2 px-3 font-medium text-slate-800 sticky left-0 bg-white/75 backdrop-blur-sm z-10">Squad {squad}</td>
+                                {heatmapData.dates.map(date => {
+                                    const percentage = heatmapData.matrix[squad]?.[date];
+                                    return (
+                                        <td 
+                                          key={date} 
+                                          className="text-center rounded-md" 
+                                          style={getHeatmapColor(percentage)}
+                                          title={`Squad ${squad} on ${date}: ${percentage !== undefined ? percentage + '%' : 'No data'}`}
+                                        >
+                                            <div className="py-2 px-1 text-sm font-semibold text-slate-700">
+                                                {percentage !== undefined ? `${percentage}%` : <span className="text-slate-400">N/A</span>}
+                                            </div>
+                                        </td>
+                                    );
+                                })}
+                            </tr>
+                        ))}
+                    </tbody>
+                 </table>
+               </div>
+          </div>
+      )}
+
+      {/* Marks Breakdown Table */}
+      <div>
+        <h2 className="text-2xl font-semibold mb-4 text-slate-800">Marks Breakdown by Month</h2>
+        <div className="shadow-md rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white">
+              <thead className="bg-slate-100">
+                <tr>
+                  <th scope="col" className="sticky left-0 bg-slate-100 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6 z-10 w-48 min-w-[12rem]">Name</th>
+                  {allMonths.map(month => (
+                    <th key={month} scope="col" className="px-3 py-3.5 text-center text-sm font-semibold text-slate-900 w-24">{formatMonth(month)}</th>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                  <th scope="col" className="sticky right-0 bg-slate-100 px-3 py-3.5 text-center text-sm font-semibold text-slate-900 w-28 min-w-[7rem]">All Time Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {sortedSquads.flatMap(squad => boysBySquad[squad].map(boy => (
+                  <tr key={boy.id}>
+                    <td className="sticky left-0 bg-white whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 z-10 w-48 min-w-[12rem]">
+                      <div className={`${(SQUAD_COLORS as any)[boy.squad]}`}>{boy.name}</div>
+                    </td>
+                    {allMonths.map(month => (
+                      <td key={`${boy.id}-${month}`} className="whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500">
+                        {getMarksForMonth(boy, month)}
+                      </td>
+                    ))}
+                    <td className="sticky right-0 bg-white whitespace-nowrap px-3 py-4 text-sm text-center font-semibold text-slate-900 w-28 min-w-[7rem]">
+                      {calculateTotalMarks(boy)}
+                    </td>
+                  </tr>
+                )))}
+              </tbody>
+            </table>
           </div>
         </div>
-      ))}
-      {/* Empty state message if there are no boys in the section */}
+      </div>
+      
       {boys.length === 0 && (
           <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
               <h3 className="text-lg font-medium text-slate-900">No members yet!</h3>

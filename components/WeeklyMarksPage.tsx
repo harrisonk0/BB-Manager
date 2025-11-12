@@ -6,10 +6,10 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Boy, Squad, Section, JuniorSquad, SectionSettings } from '../types';
+import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
-import { SaveIcon } from './Icons';
+import { SaveIcon, LockClosedIcon, LockOpenIcon } from './Icons';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -18,6 +18,8 @@ interface WeeklyMarksPageProps {
   setHasUnsavedChanges: (dirty: boolean) => void;
   activeSection: Section;
   settings: SectionSettings | null;
+  /** Function to display a toast notification. */
+  showToast: (message: string, type?: ToastType) => void;
 }
 
 // Section-specific color mappings for squad names.
@@ -53,14 +55,14 @@ const getNearestMeetingDay = (meetingDay: number): string => {
   return today.toISOString().split('T')[0];
 };
 
-const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings }) => {
+const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings, showToast }) => {
   // --- STATE MANAGEMENT ---
   const [selectedDate, setSelectedDate] = useState('');
   const [marks, setMarks] = useState<Record<string, CompanyMarkState | JuniorMarkState>>({});
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
   const [isDirty, setIsDirty] = useState(false); // Tracks if there are unsaved changes.
+  const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
@@ -73,6 +75,15 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       setSelectedDate(getNearestMeetingDay(settings.meetingDay));
     }
   }, [settings, selectedDate]);
+  
+  /**
+   * EFFECT: Automatically locks the page if the selected date is in the past.
+   */
+  useEffect(() => {
+    if (!selectedDate) return;
+    const todayString = new Date().toISOString().split('T')[0];
+    setIsLocked(selectedDate < todayString);
+  }, [selectedDate]);
 
   /**
    * EFFECT: Populates the marks and attendance state based on the selected date and boys data.
@@ -258,18 +269,20 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             }, activeSection);
         }
         await Promise.all(updates);
+        showToast('Marks saved successfully!', 'success');
         refreshData();
         setIsDirty(false);
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000); // Show success state briefly.
     } catch(error) {
         console.error("Failed to save marks", error);
+        showToast('Failed to save marks. Please try again.', 'error');
     } finally {
         setIsSaving(false);
     }
   };
   
   // --- MEMOIZED COMPUTATIONS for rendering ---
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+
   const boysBySquad = useMemo(() => {
     const grouped: Record<string, Boy[]> = {};
     boys.forEach(boy => {
@@ -311,6 +324,26 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     });
     return leaders;
   }, [boysBySquad]);
+  
+  /**
+   * Memoized calculation of real-time attendance stats for each squad.
+   * This provides immediate feedback as the user marks attendance.
+   */
+  const squadAttendanceStats = useMemo(() => {
+    const stats: Record<string, { present: number; total: number; percentage: number }> = {};
+    for (const squad in boysBySquad) {
+      const squadBoys = boysBySquad[squad];
+      const total = squadBoys.length;
+      if (total === 0) {
+        stats[squad] = { present: 0, total: 0, percentage: 0 };
+        continue;
+      }
+      const present = squadBoys.filter(boy => boy.id && attendance[boy.id] === 'present').length;
+      const percentage = Math.round((present / total) * 100);
+      stats[squad] = { present, total, percentage };
+    }
+    return stats;
+  }, [boysBySquad, attendance]);
 
   // --- RENDER LOGIC ---
   const sortedSquads = Object.keys(boysBySquad).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
@@ -320,6 +353,8 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   if (!settings) {
     return <div className="text-center p-8">Loading settings...</div>;
   }
+
+  const isPastDate = selectedDate < today;
 
   return (
     <div className="space-y-6">
@@ -332,13 +367,35 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             onChange={e => setSelectedDate(e.target.value)}
             className={`px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none ${accentRing}`}
           />
+          {isPastDate && (
+            <button
+              onClick={() => setIsLocked(prev => !prev)}
+              className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
+              title={isLocked ? 'Unlock to edit past marks' : 'Lock page'}
+              aria-label={isLocked ? 'Unlock to edit past marks' : 'Lock page'}
+            >
+              {isLocked ? <LockClosedIcon className="h-5 w-5" /> : <LockOpenIcon className="h-5 w-5" />}
+            </button>
+          )}
         </div>
       </div>
       
       <div className="space-y-8 pb-20">
         {sortedSquads.map((squad) => (
           <div key={squad}>
-            <h2 className="text-2xl font-semibold mb-4 text-slate-800">{`Squad ${squad}`}</h2>
+            <div className="flex justify-between items-baseline mb-4">
+              <h2 className="text-2xl font-semibold text-slate-800">{`Squad ${squad}`}</h2>
+              {squadAttendanceStats[squad] && (
+                <div className="text-right">
+                  <p className="font-semibold text-slate-600">
+                    Attendance: {squadAttendanceStats[squad].percentage}%
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    ({squadAttendanceStats[squad].present} / {squadAttendanceStats[squad].total} present)
+                  </p>
+                </div>
+              )}
+            </div>
             <div className="bg-white shadow-md rounded-lg">
               <ul className="divide-y divide-slate-200">
                 {boysBySquad[squad].map((boy) => {
@@ -358,11 +415,12 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                         <div className="flex items-center space-x-2 sm:space-x-4">
                           <button
                             onClick={() => handleAttendanceToggle(boy.id!)}
+                            disabled={isLocked}
                             className={`px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors w-20 text-center ${
                                 isPresent
                                 ? 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
                                 : 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
-                            }`}
+                            } disabled:opacity-70 disabled:cursor-not-allowed`}
                             aria-pressed={!isPresent}
                             aria-label={`Mark ${boy.name} as ${isPresent ? 'absent' : 'present'}`}
                           >
@@ -376,7 +434,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                               // FIX: Use Number() to correctly compare union type with number and fix TS errors. This also fixes a parser error with operator precedence.
                               value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
                               onChange={e => handleCompanyMarkChange(boy.id!, e.target.value)}
-                              disabled={!isPresent}
+                              disabled={!isPresent || isLocked}
                               className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
                               placeholder="0-10"
                             />
@@ -390,7 +448,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                       // FIX: Use Number() to correctly compare union type with number and fix TS errors.
                                       value={Number((marks[boy.id] as JuniorMarkState)?.uniform) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.uniform ?? ''}
                                       onChange={e => handleJuniorMarkChange(boy.id!, 'uniform', e.target.value)}
-                                      disabled={!isPresent}
+                                      disabled={!isPresent || isLocked}
                                       className={`w-16 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
                                       placeholder="/10"
                                     />
@@ -403,7 +461,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                       // FIX: Use Number() to correctly compare union type with number and fix TS errors.
                                       value={Number((marks[boy.id] as JuniorMarkState)?.behaviour) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.behaviour ?? ''}
                                       onChange={e => handleJuniorMarkChange(boy.id!, 'behaviour', e.target.value)}
-                                      disabled={!isPresent}
+                                      disabled={!isPresent || isLocked}
                                       className={`w-16 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
                                       placeholder="/5"
                                     />
@@ -421,11 +479,11 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       </div>
 
        {/* Floating Action Button for saving */}
-       {(isDirty || saveSuccess) && (
+       {isDirty && (
           <button
             onClick={handleSaveMarks}
-            disabled={isSaving || saveSuccess}
-            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${saveSuccess ? 'bg-green-500' : accentBg}`}
+            disabled={isSaving}
+            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
             aria-label="Save Marks"
           >
             {isSaving ? (
@@ -433,8 +491,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-            ) : saveSuccess ? (
-                <SaveIcon className="h-7 w-7" />
             ) : <SaveIcon className="h-7 w-7" />}
           </button>
        )}

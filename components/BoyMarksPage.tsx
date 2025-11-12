@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchBoyById, updateBoy, createAuditLog } from '../services/db';
-import { Boy, Mark, Squad, Section, JuniorSquad } from '../types';
+import { Boy, Mark, Squad, Section, JuniorSquad, ToastType } from '../types';
 import { TrashIcon, SaveIcon } from './Icons';
 import { getAuthInstance } from '../services/firebase';
 import { BoyMarksPageSkeleton } from './SkeletonLoaders';
@@ -17,6 +17,7 @@ interface BoyMarksPageProps {
   refreshData: () => void;
   setHasUnsavedChanges: (dirty: boolean) => void;
   activeSection: Section;
+  showToast: (message: string, type?: ToastType) => void;
 }
 
 // Section-specific color mappings.
@@ -46,13 +47,12 @@ type EditableMark = {
   behaviourScore?: number | '';
 };
 
-const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges, activeSection }) => {
+const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges, activeSection, showToast }) => {
   // --- STATE MANAGEMENT ---
   const [boy, setBoy] = useState<Boy | null>(null);
   const [editedMarks, setEditedMarks] = useState<EditableMark[]>([]);
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -239,11 +239,11 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
       updatedBoyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setBoy(updatedBoyData);
       setEditedMarks(JSON.parse(JSON.stringify(updatedBoyData.marks)));
+      showToast('Changes saved successfully!', 'success');
       refreshData(); // Refresh data in the main App component.
       setIsDirty(false);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000);
     } catch (err) {
+      showToast('Failed to save changes.', 'error');
       setError('Failed to save changes. Please try again.');
       console.error(err);
     } finally {
@@ -395,11 +395,11 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
       </div>
       
        {/* Floating Action Button for saving changes */}
-       {(isDirty || saveSuccess) && (
+       {isDirty && (
           <button
             onClick={handleSaveChanges}
-            disabled={isSaving || saveSuccess}
-            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${saveSuccess ? 'bg-green-500' : accentBg}`}
+            disabled={isSaving}
+            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
             aria-label="Save Changes"
           >
             {isSaving ? (
@@ -407,8 +407,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-            ) : saveSuccess ? (
-                <SaveIcon className="h-7 w-7" />
             ) : <SaveIcon className="h-7 w-7" />}
           </button>
        )}

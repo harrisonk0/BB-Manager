@@ -106,3 +106,22 @@ export interface SectionSettings {
   /** The day of the week the section meets (0 = Sunday, 1 = Monday, ..., 6 = Saturday). */
   meetingDay: number;
 }
+
+/**
+ * Defines the types of toast notifications.
+ */
+export type ToastType = 'success' | 'error' | 'info';
+
+/**
+ * Represents a single toast notification message.
+ */
+export interface ToastMessage {
+  id: string;
+  message: string;
+  type: ToastType;
+}
+
+/**
+ * Defines the available sorting options for the member roster.
+ */
+export type SortByType = 'name' | 'marks' | 'attendance';

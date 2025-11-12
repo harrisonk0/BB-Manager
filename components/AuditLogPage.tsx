@@ -9,13 +9,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { fetchAuditLogs, createAuditLog, updateAuditLog, deleteBoyById, recreateBoy, updateBoy } from '../services/db';
 import { saveSettings } from '../services/settings';
 import { getAuthInstance } from '../services/firebase';
-import { AuditLog, Boy, Section, SectionSettings } from '../types';
+import { AuditLog, Boy, Section, SectionSettings, ToastType } from '../types';
 import { ClockIcon, PlusIcon, PencilIcon, TrashIcon, UndoIcon, CogIcon } from './Icons';
 import Modal from './Modal';
 
 interface AuditLogPageProps {
   refreshData: () => void;
   activeSection: Section;
+  showToast: (message: string, type?: ToastType) => void;
 }
 
 // A mapping of action types to their corresponding icons for visual representation.
@@ -27,7 +28,7 @@ const ACTION_ICONS: Record<string, React.FC<{className?: string}>> = {
   UPDATE_SETTINGS: CogIcon,
 };
 
-const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection }) => {
+const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection, showToast }) => {
   // --- STATE MANAGEMENT ---
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +68,26 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
   useEffect(() => {
     loadLogs();
   }, [loadLogs]);
+
+  /**
+   * EFFECT: Listens for the custom 'logsrefreshed' event.
+   * This is triggered by the background sync in services/db.ts. When the local
+   * audit logs are updated, this effect triggers a refresh of the page.
+   */
+  useEffect(() => {
+    const handleLogsRefresh = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        if (customEvent.detail.section === activeSection) {
+            console.log('Audit log cache updated in background, refreshing UI...');
+            loadLogs();
+        }
+    };
+
+    window.addEventListener('logsrefreshed', handleLogsRefresh);
+    return () => {
+      window.removeEventListener('logsrefreshed', handleLogsRefresh);
+    };
+  }, [activeSection, loadLogs]);
   
   // --- EVENT HANDLERS ---
   const handleOpenRevertModal = (log: AuditLog) => {
@@ -132,13 +153,15 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection 
         description: `Reverted action: "${logToRevert.description}"`,
         revertData: {}, // Revert actions cannot be reverted.
       }, activeSection);
-
+      
+      showToast('Action reverted successfully.', 'success');
       // 3. Refresh the main application data and the audit log list.
       refreshData();
       loadLogs();
 
     } catch (err: any) {
       console.error('Failed to revert action:', err);
+      showToast(`Failed to revert: ${err.message}`, 'error');
       setError(`Failed to revert: ${err.message}`);
     } finally {
       setIsReverting(false);

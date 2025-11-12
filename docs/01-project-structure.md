@@ -42,14 +42,5 @@ This directory contains all UI elements of the application.
 -   **Page Components**: `HomePage.tsx`, `WeeklyMarksPage.tsx`, `DashboardPage.tsx`, etc. These are top-level components that represent a full view or "page" within the app.
 -   **UI Components**: `Header.tsx`, `Modal.tsx`, `Icons.tsx`. These are smaller, reusable components used across multiple pages.
 -   **Form Components**: `BoyForm.tsx`. These components are specifically for handling user input.
--   **Feedback Components**: `SkeletonLoaders.tsx`. These are used to improve the user experience during data loading states.
-
-### `/services` Directory
-
-This directory is the "brain" of the application, handling all logic that isn't directly related to rendering UI.
-
--   `db.ts`: The primary data layer abstraction. It provides a simple API for the rest of the app to interact with data, without needing to know whether that data is coming from Firestore or IndexedDB. It also contains the core `syncPendingWrites` logic.
--   `offlineDb.ts`: A low-level wrapper around the browser's IndexedDB API. It manages the database schema, versioning, and provides Promise-based methods for all CRUD operations on the local database.
--   `firebase.ts`: Handles the one-time initialization of the Firebase SDK and provides simple getter functions (`getDb()`, `getAuthInstance()`) to access Firebase services throughout the app.
--   `config.ts`: Stores the Firebase project configuration keys.
--   `settings.ts`: Manages fetching and saving section-specific settings from Firestore.
+-   **Feedback Components**: `SkeletonLoaders.tsx`, `Toast.tsx`. These are used to improve the user experience during data loading states and for action feedback.
+-   **Visualization Components**: `BarChart.tsx`. Custom components for displaying data graphically.

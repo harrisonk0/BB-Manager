@@ -131,6 +131,36 @@ type AuditLogActionType =
 
 ---
 
+### UI & Interaction Types
+
+These types support UI features like notifications and sorting.
+
+#### `ToastMessage` & `ToastType`
+
+Defines the structure for a toast notification.
+
+```typescript
+type ToastType = 'success' | 'error' | 'info';
+
+interface ToastMessage {
+  id: string;
+  message: string;
+  type: ToastType;
+}
+```
+
+---
+
+#### `SortByType`
+
+Defines the available options for sorting the member roster on the Home page.
+
+```typescript
+type SortByType = 'name' | 'marks' | 'attendance';
+```
+
+---
+
 ### View & Navigation Types
 
 These types are used by the root `App.tsx` component to manage the current page being displayed.

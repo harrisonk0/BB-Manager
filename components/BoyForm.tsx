@@ -13,7 +13,7 @@ interface BoyFormProps {
   /** If provided, the form will be in 'edit' mode, pre-filled with this boy's data. If null/undefined, it's in 'add' mode. */
   boyToEdit?: Boy | null;
   /** Callback function to be executed after a successful save. */
-  onSave: () => void;
+  onSave: (isNew: boolean, name: string) => void;
   /** Callback function to close the form/modal. */
   onClose: () => void;
   /** The currently active section, which determines the available options (e.g., squads, years). */
@@ -90,6 +90,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
             }, activeSection);
         }
         await updateBoy({ ...boyToEdit, name, squad, year, isSquadLeader }, activeSection);
+        onSave(false, name);
       } else {
         // --- CREATE LOGIC ---
         const newBoy = await createBoy({ name, squad, year, marks: [], isSquadLeader }, activeSection);
@@ -99,8 +100,8 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
             description: `Added new boy: ${name}`,
             revertData: { boyId: newBoy.id }, // Save the new ID for potential revert.
         }, activeSection);
+        onSave(true, name);
       }
-      onSave();
     } catch (err) {
       console.error('Failed to save boy:', err);
       setError('Failed to save boy. Please try again.');

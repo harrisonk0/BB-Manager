@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Section, SectionSettings } from '../types';
+import { Section, SectionSettings, ToastType } from '../types';
 import { saveSettings } from '../services/settings';
 import { createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
@@ -16,17 +16,17 @@ interface SettingsPageProps {
   currentSettings: SectionSettings | null;
   /** Callback to update the settings state in the parent App component. */
   onSettingsSaved: (newSettings: SectionSettings) => void;
+  showToast: (message: string, type?: ToastType) => void;
 }
 
 const WEEKDAYS = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast }) => {
   // Local state for the form inputs.
   const [meetingDay, setMeetingDay] = useState<number>(5); // Default to Friday
   const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   /**
@@ -45,13 +45,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const handleSave = async () => {
     // Prevent saving if no changes have been made.
     if (!currentSettings || currentSettings.meetingDay === meetingDay) {
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
+        showToast('No changes to save.', 'info');
         return;
     }
 
     setIsSaving(true);
-    setSaveSuccess(false);
     setError(null);
     try {
       const newSettings: SectionSettings = { meetingDay };
@@ -71,10 +69,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
 
       await saveSettings(activeSection, newSettings);
       onSettingsSaved(newSettings); // Update the parent component's state.
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000); // Show success feedback.
+      showToast('Settings saved successfully!', 'success');
     } catch (err) {
       console.error("Failed to save settings:", err);
+      showToast('Failed to save settings.', 'error');
       setError("An error occurred while saving. Please try again.");
     } finally {
       setIsSaving(false);
@@ -125,10 +123,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
             <div className="flex justify-end pt-4 border-t border-slate-200">
               <button
                 onClick={handleSave}
-                disabled={isSaving || saveSuccess}
+                disabled={isSaving}
                 className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white w-28 ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {isSaving ? 'Saving...' : saveSuccess ? 'Saved!' : 'Save'}
+                {isSaving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>
