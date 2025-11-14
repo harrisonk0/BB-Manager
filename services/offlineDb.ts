@@ -21,8 +21,7 @@ export type PendingWrite = {
 };
 
 const DB_NAME = 'BBManagerDB';
-const DB_VERSION = 2; // Increment this to trigger the 'onupgradeneeded' event for schema changes.
-const PENDING_WRITES_STORE = 'pending_writes';
+const DB_VERSION = 2; // The current database version.
 
 /**
  * Generates a consistent object store name based on the section and resource type.
@@ -66,52 +65,25 @@ export const openDB = (): Promise<IDBDatabase> => {
      */
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      const transaction = (event.target as IDBOpenDBRequest).transaction;
-
-      // Migration from v1 to v2: introduces section-specific stores.
-      if (event.oldVersion < 2) {
-          console.log("Upgrading IndexedDB to v2: creating section-specific stores.");
-          // Create new stores for both sections.
+      
+      // Create new stores for both sections if they don't exist.
+      // This ensures they are present for new installations or if a previous migration failed partially.
+      if (!db.objectStoreNames.contains(getStoreName('company', 'boys'))) {
           db.createObjectStore(getStoreName('company', 'boys'), { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(getStoreName('company', 'audit_logs'))) {
           db.createObjectStore(getStoreName('company', 'audit_logs'), { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(getStoreName('junior', 'boys'))) {
           db.createObjectStore(getStoreName('junior', 'boys'), { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(getStoreName('junior', 'audit_logs'))) {
           db.createObjectStore(getStoreName('junior', 'audit_logs'), { keyPath: 'id' });
-          
-          if (!db.objectStoreNames.contains(PENDING_WRITES_STORE)) {
-              db.createObjectStore(PENDING_WRITES_STORE, { autoIncrement: true, keyPath: 'id' });
-          }
-
-          // If old v1 stores exist, migrate their data to the new 'company' stores by default.
-          if (db.objectStoreNames.contains('boys')) {
-              console.log("Migrating old 'boys' data to 'company_boys'...");
-              const oldStore = transaction!.objectStore('boys');
-              const newStore = transaction!.objectStore(getStoreName('company', 'boys'));
-              oldStore.openCursor().onsuccess = (e) => {
-                  const cursor = (e.target as IDBRequest<IDBCursorWithValue>).result;
-                  if (cursor) {
-                      newStore.put(cursor.value);
-                      cursor.continue();
-                  } else {
-                      db.deleteObjectStore('boys');
-                      console.log("Old 'boys' store migrated and deleted.");
-                  }
-              };
-          }
-          if (db.objectStoreNames.contains('audit_logs')) {
-             console.log("Migrating old 'audit_logs' data to 'company_audit_logs'...");
-             const oldStore = transaction!.objectStore('audit_logs');
-             const newStore = transaction!.objectStore(getStoreName('company', 'audit_logs'));
-             oldStore.openCursor().onsuccess = (e) => {
-                 const cursor = (e.target as IDBRequest<IDBCursorWithValue>).result;
-                 if (cursor) {
-                     newStore.put(cursor.value);
-                     cursor.continue();
-                 } else {
-                     db.deleteObjectStore('audit_logs');
-                     console.log("Old 'audit_logs' store migrated and deleted.");
-                 }
-             };
-          }
+      }
+      
+      // Create the pending_writes store if it doesn't exist.
+      if (!db.objectStoreNames.contains(PENDING_WRITES_STORE)) {
+          db.createObjectStore(PENDING_WRITES_STORE, { autoIncrement: true, keyPath: 'id' });
       }
     };
   });
