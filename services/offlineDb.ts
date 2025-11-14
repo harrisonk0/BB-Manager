@@ -22,6 +22,7 @@ export type PendingWrite = {
 
 const DB_NAME = 'BBManagerDB';
 const DB_VERSION = 2; // The current database version.
+const PENDING_WRITES_STORE = 'pending_writes'; // Define the constant here
 
 /**
  * Generates a consistent object store name based on the section and resource type.
