@@ -8,6 +8,7 @@ This document provides a detailed breakdown of the file and folder structure for
 ├── docs/               # All project documentation files
 ├── services/           # Business logic, API calls, and data management
 ├── App.tsx             # Root React component
+├── firestore.rules     # Security rules for the Firestore database
 ├── index.html          # Main HTML entry point
 ├── index.tsx           # React DOM renderer
 ├── manifest.json       # PWA manifest
@@ -27,6 +28,7 @@ This document provides a detailed breakdown of the file and folder structure for
 | `docs/`           | Contains all markdown documentation files for the project, including this one.                                                                                                                            |
 | `services/`       | This directory holds the application's business logic. It handles all data fetching, manipulation, and interaction with external services like Firebase and the local IndexedDB. See the Data & Services documentation for details. |
 | `App.tsx`         | The main entry point for the React application. It manages global state (like the current user and active section), handles routing between pages, and orchestrates the initial data loading and offline synchronization. |
+| `firestore.rules` | The security rules for the Firestore database. These are deployed to Firebase to protect your data from unauthorized access.                                                                               |
 | `index.html`      | The single HTML file for the application. It sets up the root DOM element for React, includes the Tailwind CSS CDN, defines the **Import Map** for buildless dependency management, and registers the Service Worker. |
 | `index.tsx`       | This file takes the root `App` component and renders it into the DOM.                                                                                                                                       |
 | `manifest.json`   | The Web App Manifest file. It provides the browser with metadata about the PWA, such as its name, icons, and theme colors, which is essential for the "Add to Home Screen" functionality.                 |

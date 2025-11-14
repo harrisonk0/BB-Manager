@@ -7,7 +7,7 @@
 
 import React, { useMemo } from 'react';
 import { Boy, Squad, Section, JuniorSquad, Mark } from '../types';
-import { StarIcon } from './Icons';
+import { StarIcon, ChartBarIcon } from './Icons';
 import BarChart from './BarChart';
 
 
@@ -40,6 +40,25 @@ const SQUAD_CHART_COLORS: Record<string, string> = {
 const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) => {
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
+
+  if (boys.length === 0) {
+    const accentTextColor = isCompany ? 'text-company-blue' : 'text-junior-blue';
+    return (
+        <div className="space-y-8">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+            <div className="text-center py-16 px-6 bg-white rounded-lg shadow-md mt-8">
+                <ChartBarIcon className="mx-auto h-16 w-16 text-slate-400" />
+                <h3 className="mt-4 text-xl font-semibold text-slate-900">No Data to Display</h3>
+                <p className="mt-2 text-md text-slate-500">
+                The dashboard will show member leaderboards, squad performance, and attendance trends once you've added members and recorded some marks.
+                </p>
+                <p className="mt-4 text-md text-slate-500">
+                    Go to the <strong className={accentTextColor}>Home</strong> page to add your first member.
+                </p>
+            </div>
+        </div>
+    );
+  }
 
   // --- UTILITY FUNCTIONS ---
   const calculateTotalMarks = (boy: Boy) => {
@@ -255,13 +274,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
           </div>
         </div>
       </div>
-      
-      {boys.length === 0 && (
-          <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
-              <h3 className="text-lg font-medium text-slate-900">No members yet!</h3>
-              <p className="mt-1 text-sm text-slate-500">Add some boys on the Home page to see the dashboard.</p>
-          </div>
-      )}
     </div>
   );
 };

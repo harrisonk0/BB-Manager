@@ -9,7 +9,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
-import { SaveIcon, LockClosedIcon, LockOpenIcon } from './Icons';
+import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon } from './Icons';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -352,6 +352,26 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   
   if (!settings) {
     return <div className="text-center p-8">Loading settings...</div>;
+  }
+  
+  const accentTextColor = isCompany ? 'text-company-blue' : 'text-junior-blue';
+
+  if (boys.length === 0) {
+      return (
+          <div className="space-y-6">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Weekly Marks</h1>
+              <div className="text-center py-16 px-6 bg-white rounded-lg shadow-md mt-8">
+                  <ClipboardDocumentListIcon className="mx-auto h-16 w-16 text-slate-400" />
+                  <h3 className="mt-4 text-xl font-semibold text-slate-900">No Members to Mark</h3>
+                  <p className="mt-2 text-md text-slate-500">
+                      You can't record marks until you've added members to your section.
+                  </p>
+                  <p className="mt-4 text-md text-slate-500">
+                      Go to the <strong className={accentTextColor}>Home</strong> page to build your roster.
+                  </p>
+              </div>
+          </div>
+      );
   }
 
   const isPastDate = selectedDate < today;

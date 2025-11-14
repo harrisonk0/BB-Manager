@@ -20,7 +20,7 @@ import SettingsPage from './components/SettingsPage';
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { fetchBoys, syncPendingWrites, deleteOldAuditLogs } from './services/db';
+import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, updateUserActivity, fetchRecentActivity } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
 import { getSettings } from './services/settings';
 import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings, ToastMessage, ToastType } from './types';
@@ -146,6 +146,19 @@ const App: React.FC = () => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         setCurrentUser(user);
         if (user) {
+          // Fire-and-forget activity update and toast notification.
+          if (user.email) {
+            (async () => {
+              await updateUserActivity(user.email!);
+              const recentUsers = await fetchRecentActivity(user.email!);
+              if (recentUsers.length > 0) {
+                  const usersToShow = recentUsers.slice(0, 3);
+                  const usersString = usersToShow.join(', ');
+                  const message = `Last active: ${usersString}`;
+                  showToast(message, 'info');
+              }
+            })();
+          }
           // If user is logged in, run cleanup tasks.
           if(activeSection) {
             deleteOldAuditLogs(activeSection).then(() => {
@@ -169,7 +182,7 @@ const App: React.FC = () => {
       setError(`Failed to initialize Firebase. Error: ${err.message}`);
       setIsLoading(false);
     }
-  }, [loadDataAndSettings, activeSection]);
+  }, [loadDataAndSettings, activeSection, showToast]);
 
   /**
    * EFFECT: Listens for custom 'datarefreshed' event.

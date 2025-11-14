@@ -35,31 +35,34 @@ firebase login
 
 This will open a browser window for you to authenticate.
 
-#### Step 2: Initialize Firebase Hosting
+#### Step 2: Initialize Firebase for Deployment
 
 1.  Navigate to the root directory of your project in the terminal.
 2.  Run the initialization command:
     ```bash
-    firebase init hosting
+    firebase init
     ```
-3.  The CLI will ask you a series of questions:
-    -   **Please select an option: Use an existing project** (Select the Firebase project you created during setup).
-    -   **What do you want to use as your public directory?** Type `.` and press Enter. This tells Firebase that the root of your project folder contains the files to be deployed (`index.html`, etc.).
-    -   **Configure as a single-page app (rewrite all urls to /index.html)?** Type `y` and press Enter. This is crucial for React routing to work correctly.
-    -   **Set up automatic builds and deploys with GitHub?** Type `n` and press Enter (for a simple manual deployment).
-    -   **File ./index.html already exists. Overwrite?** Type `n` and press Enter. You want to keep your existing `index.html` file.
+3.  The CLI will ask which features you want to set up. Use the arrow keys and spacebar to select **Firestore** and **Hosting**. Press Enter.
+4.  Follow the prompts:
+    -   **Project Setup**: Select "Use an existing project" and choose your Firebase project.
+    -   **Firestore Setup**:
+        -   **What file should be used for Firestore Rules?** Press Enter to accept the default `firestore.rules`.
+    -   **Hosting Setup**:
+        -   **What do you want to use as your public directory?** Type `.` and press Enter.
+        -   **Configure as a single-page app (rewrite all urls to /index.html)?** Type `y` and press Enter.
+        -   **Set up automatic builds and deploys with GitHub?** Type `n` and press Enter.
 
-This process will create two new files in your project: `.firebaserc` and `firebase.json`. These files configure the deployment settings.
+This process will create the necessary configuration files, including `firebase.json`, which will now be set up to deploy both your app and your security rules.
 
 #### Step 3: Deploy
 
-Once initialization is complete, you can deploy your application with a single command:
+Once initialization is complete, you can deploy your application *and* your security rules with a single command:
 
 ```bash
 firebase deploy
 ```
 
-The CLI will upload your project files to Firebase Hosting. When it's finished, it will provide you with a **Hosting URL** (e.g., `https://your-project-id.web.app`).
+The CLI will upload your project files to Firebase Hosting and your rules to Firestore. When it's finished, it will provide you with a **Hosting URL** (e.g., `https://your-project-id.web.app`).
 
 You can visit this URL to see your live application.
 

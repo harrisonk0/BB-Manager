@@ -8,7 +8,7 @@ import React, { useState, useMemo } from 'react';
 import { Boy, Squad, View, Section, JuniorSquad, ToastType, SortByType, SchoolYear, JuniorYear } from '../types';
 import Modal from './Modal';
 import BoyForm from './BoyForm';
-import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon } from './Icons';
+import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
 import { deleteBoyById, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
 
@@ -288,10 +288,22 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
       {/* Conditional rendering for empty or no-result states */}
       {boys.length === 0 && (
-          <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
-              <h3 className="text-lg font-medium text-slate-900">No members yet!</h3>
-              <p className="mt-1 text-sm text-slate-500">Click "Add Boy" to get started.</p>
-          </div>
+        <div className="text-center py-16 px-6 bg-white rounded-lg shadow-md mt-8">
+            <ClipboardDocumentListIcon className="mx-auto h-16 w-16 text-slate-400" />
+            <h3 className="mt-4 text-xl font-semibold text-slate-900">Your Roster is Empty</h3>
+            <p className="mt-2 text-md text-slate-500">
+                Get started by adding your first member. You can assign them to a squad and start tracking their marks.
+            </p>
+            <div className="mt-6">
+                <button
+                    onClick={handleAddBoy}
+                    className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+                >
+                    <PlusIcon className="h-5 w-5 mr-3 -ml-1"/>
+                    Add your first member
+                </button>
+            </div>
+        </div>
       )}
 
       {boys.length > 0 && filteredBoys.length === 0 && (
