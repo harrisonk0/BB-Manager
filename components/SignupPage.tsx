@@ -1,8 +1,4 @@
-/**
- * @file SignupPage.tsx
- * @description This component allows new users to sign up for the application
- * using an invite code provided by an existing administrator.
- */
+"use client";
 
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -18,9 +14,11 @@ interface SignupPageProps {
   showToast: (message: string, type?: ToastType) => void;
   /** Callback to set the active section after successful signup. */
   onSignupSuccess: (section: Section) => void;
+  /** Callback to navigate back to the login page. */
+  onNavigateBack: () => void;
 }
 
-const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, onSignupSuccess }) => {
+const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, onSignupSuccess, onNavigateBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -67,28 +65,18 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
         usedBy: newUser.email || 'Unknown',
         usedAt: Date.now(),
       };
-      // FIX: Pass the ID and the updates object separately.
-      // When a new user signs up, they don't have a role yet.
-      // The Firestore rules for invite_codes allow read/write for 'admin' and 'captain'.
-      // This operation will be performed by the new user, so it needs to pass the Firestore rules.
-      // The rules are designed to allow this specific update (marking as used) without requiring a role.
-      // However, the `updateInviteCode` function in `db.ts` now has a client-side role check.
-      // For signup, we need to bypass this client-side check or ensure the rule allows it.
-      // For now, we'll pass `null` for userRole, assuming the Firestore rules handle the permission.
-      // If the client-side check in `db.ts` prevents this, we'd need to adjust `db.ts` to allow this specific update without a role.
-      await updateInviteCode(updatedCode.id, updatedCode, null); // Pass null for userRole as new user has no role yet
+      await updateInviteCode(updatedCode.id, updatedCode, null);
 
       // 4. Create Audit Log Entry
       await createAuditLog({
         userEmail: newUser.email || 'Unknown',
         actionType: 'USE_INVITE_CODE',
         description: `New user '${newUser.email}' signed up using invite code '${inviteCode}'.`,
-        revertData: { userId: newUser.uid, inviteCodeId: inviteCode }, // Store data for potential admin action
-      }, fetchedCode.section || null); // Associate with section if code has one
+        revertData: { userId: newUser.uid, inviteCodeId: inviteCode },
+      }, fetchedCode.section || null);
 
       showToast('Account created successfully! Please select your section.', 'success');
-      // Redirect to section select page, passing the section from the invite code if available
-      onSignupSuccess(fetchedCode.section || 'company'); // Default to company if not specified
+      onSignupSuccess(fetchedCode.section || 'company');
     } catch (err: any) {
       console.error("Sign up error:", err);
       switch (err.code) {
@@ -114,6 +102,15 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
   return (
     <div className="flex items-center justify-center min-h-screen bg-slate-200">
       <div className="relative w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+        <button 
+            onClick={onNavigateBack} 
+            className="absolute top-4 left-4 text-slate-400 hover:text-junior-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue rounded-full p-2"
+            aria-label="Back to Login"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </button>
         <button 
             onClick={onNavigateToHelp} 
             className="absolute top-4 right-4 text-slate-400 hover:text-junior-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue rounded-full"

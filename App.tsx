@@ -1,19 +1,13 @@
-/**
- * @file App.tsx
- * @description The root component of the application.
- * It manages global state such as the current user, active section, and current view.
- * It also handles routing, data fetching, authentication, and offline synchronization.
- */
+"use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-// FIX: Use named imports for Firebase v9 compatibility.
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import HomePage from './components/HomePage';
 import WeeklyMarksPage from './components/WeeklyMarksPage';
 import BoyMarksPage from './components/BoyMarksPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
-import SignupPage from './components/SignupPage'; // Import the new SignupPage
+import SignupPage from './components/SignupPage';
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
 import SectionSelectPage from './components/SectionSelectPage';
@@ -21,64 +15,40 @@ import SettingsPage from './components/SettingsPage';
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, fetchUserRole } from './services/db'; // Import fetchUserRole
+import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, fetchUserRole } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
 import { getSettings } from './services/settings';
-import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings, ToastMessage, ToastType, UserRole } from './types'; // Import UserRole
+import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings, ToastMessage, ToastType, UserRole } from './types';
 import Modal from './components/Modal';
 
-// Defines the possible reasons for showing the confirmation modal.
 type ConfirmationModalType = 'navigate' | 'switchSection' | 'signOut' | null;
 
 const App: React.FC = () => {
-  // --- STATE MANAGEMENT ---
-  // `undefined` represents the initial state before auth status is checked.
-  // `null` means the user is logged out.
-  // `User` object means the user is logged in.
   const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined);
-  // The role of the currently logged-in user.
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  // The currently active section ('company' or 'junior'), persisted in localStorage.
   const [activeSection, setActiveSection] = useState<Section | null>(() => localStorage.getItem('activeSection') as Section | null);
-  // The current view/page being displayed to the user.
   const [view, setView] = useState<View>({ page: 'home' });
-  // The list of all boys for the active section.
   const [boys, setBoys] = useState<Boy[]>([]);
-  // The settings for the active section (e.g., meeting day).
   const [settings, setSettings] = useState<SectionSettings | null>(null);
-  // Global loading state, primarily used on initial data load.
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  // Global error state to display critical errors to the user.
   const [error, setError] = useState<string | null>(null);
-  // New state for handling users without an assigned role.
   const [noRoleError, setNoRoleError] = useState<string | null>(null);
   
-  // State for handling unsaved changes warning.
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [confirmModalType, setConfirmModalType] = useState<ConfirmationModalType>(null);
   const [nextView, setNextView] = useState<View | null>(null);
 
-  // State for toast notifications.
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  /**
-   * Displays a toast notification.
-   */
   const showToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = crypto.randomUUID();
     setToasts(prev => [...prev, { id, message, type }]);
   }, []);
   
-  /**
-   * Removes a toast notification by its ID.
-   */
   const removeToast = useCallback((id: string) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  /**
-   * Fetches all necessary data for the active section (boys, settings) and updates the state.
-   */
   const refreshData = useCallback(async () => {
     if (!activeSection) return;
     try {
@@ -94,9 +64,6 @@ const App: React.FC = () => {
     }
   }, [activeSection]);
 
-  /**
-   * A wrapper around refreshData that also manages the global loading state.
-   */
   const loadDataAndSettings = useCallback(async () => {
     if (!activeSection) return;
     setIsLoading(true);
@@ -111,60 +78,43 @@ const App: React.FC = () => {
     }
   }, [activeSection, refreshData]);
   
-  /**
-   * EFFECT 1: Firebase Initialization and Auth State Listener (runs once on mount)
-   * This effect is responsible for setting up the Firebase app and listening to auth state changes.
-   * It should run only once to avoid re-subscribing the auth listener.
-   */
   useEffect(() => {
     try {
       initializeFirebase();
       const auth = getAuthInstance();
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
-          // User logged in, fetch their role
           const role = await fetchUserRole(user.uid);
           if (role === null) {
-            // User has no role, sign them out and show error
             setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
-            await signOut(auth); // Sign out the user immediately
-            setCurrentUser(null); // Manually set to null to trigger re-render faster
+            await signOut(auth);
+            setCurrentUser(null);
             setIsLoading(false);
-            return; // Stop further processing for this user
+            return;
           }
           setUserRole(role);
-          setNoRoleError(null); // Clear any previous no-role error
+          setNoRoleError(null);
         } else {
-          // If user is logged out, clear all user-related state.
           setIsLoading(false); 
           setActiveSection(null);
           setSettings(null);
-          setUserRole(null); // Clear user role on logout
+          setUserRole(null);
           localStorage.removeItem('activeSection');
-          setNoRoleError(null); // Clear no-role error on logout
+          setNoRoleError(null);
         }
-        setCurrentUser(user); // Set currentUser after role check
-        // Other actions related to user login (like data loading or toast)
-        // will be handled in a separate useEffect that depends on `currentUser` and `activeSection`.
+        setCurrentUser(user);
       });
-      return () => unsubscribe(); // Cleanup the auth listener on component unmount.
+      return () => unsubscribe();
     } catch (err: any) {
       setError(`Failed to initialize Firebase. Error: ${err.message}`);
       setIsLoading(false);
     }
-  }, []); // Empty dependency array ensures this runs only once on mount.
+  }, []);
 
-  /**
-   * EFFECT 2: Handle actions *after* user logs in or section changes (data loading)
-   * This effect reacts to `currentUser` and `activeSection` changes to perform subsequent actions.
-   */
   useEffect(() => {
     if (currentUser === undefined) {
-      // Still checking auth status, show skeleton.
       setIsLoading(true);
-    } else if (currentUser) { // User is logged in
-      // If user is logged in AND activeSection is set, load data and clean up audit logs.
-      // Otherwise, if logged in but no section, stop loading to show SectionSelectPage.
+    } else if (currentUser) {
       if (activeSection) {
         deleteOldAuditLogs(activeSection).then(() => {
           loadDataAndSettings();
@@ -173,13 +123,8 @@ const App: React.FC = () => {
         setIsLoading(false);
       }
     }
-  }, [currentUser, activeSection, loadDataAndSettings]); // Dependencies for this effect.
+  }, [currentUser, activeSection, loadDataAndSettings]);
 
-  /**
-   * EFFECT: Handles online/offline status changes.
-   * When the app comes online, it attempts to sync any pending offline writes.
-   * If the sync is successful, it refreshes the local data.
-   */
   useEffect(() => {
     const handleOnline = () => {
         console.log('App is online, attempting to sync...');
@@ -193,7 +138,6 @@ const App: React.FC = () => {
     };
     
     window.addEventListener('online', handleOnline);
-    // Also attempt a sync on initial app load.
     syncPendingWrites().then(synced => {
         if(synced) refreshData();
     });
@@ -203,15 +147,9 @@ const App: React.FC = () => {
     };
   }, [refreshData, showToast]);
   
-  /**
-   * EFFECT: Listens for custom 'datarefreshed' event.
-   * This is triggered by the background sync in services/db.ts. When the local cache
-   * is updated with fresh data from the server, this effect will trigger a UI refresh.
-   */
   useEffect(() => {
     const handleDataRefresh = (event: Event) => {
         const customEvent = event as CustomEvent;
-        // Only refresh if the update was for the currently active section
         if (activeSection && customEvent.detail.section === activeSection) {
             console.log('Cache updated in background, refreshing UI data...');
             refreshData();
@@ -224,8 +162,6 @@ const App: React.FC = () => {
         window.removeEventListener('datarefreshed', handleDataRefresh);
     };
   }, [activeSection, refreshData]);
-  
-  // --- EVENT HANDLERS ---
   
   const handleSelectSection = (section: Section) => {
     localStorage.setItem('activeSection', section);
@@ -254,10 +190,9 @@ const App: React.FC = () => {
     try {
       const auth = getAuthInstance();
       await signOut(auth);
-      // Clear all user-related state after sign out.
       setBoys([]);
       setSettings(null);
-      setUserRole(null); // Clear user role on sign out
+      setUserRole(null);
       setView({ page: 'home' });
       setActiveSection(null);
       localStorage.removeItem('activeSection');
@@ -276,10 +211,6 @@ const App: React.FC = () => {
     }
   };
 
-  /**
-   * Handles navigation requests. If there are unsaved changes, it shows a confirmation modal.
-   * Otherwise, it navigates directly.
-   */
   const handleNavigation = (newView: View) => {
     if (hasUnsavedChanges && newView.page !== view.page) {
       setNextView(newView);
@@ -289,10 +220,6 @@ const App: React.FC = () => {
     }
   };
 
-  /**
-   * Logic for the confirmation modal's "Leave" button.
-   * Performs the action that was originally blocked.
-   */
   const confirmAction = () => {
     switch (confirmModalType) {
       case 'navigate':
@@ -316,11 +243,6 @@ const App: React.FC = () => {
     setNextView(null);
   };
 
-  // --- RENDER LOGIC ---
-
-  /**
-   * Renders the main content based on the current view state.
-   */
   const renderMainContent = () => {
     if (!activeSection) return null;
 
@@ -340,7 +262,7 @@ const App: React.FC = () => {
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
         return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} showToast={showToast} />;
-      case 'signup': // Should not be reached if activeSection is set
+      case 'signup':
         return null;
       default:
         return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
@@ -351,13 +273,7 @@ const App: React.FC = () => {
     setView({ page: 'home' });
   };
   
-  /**
-   * The main render function that decides what to show based on the app's state
-   * (e.g., loading, logged out, no section selected, error).
-   */
   const renderApp = () => {
-    // Special case for the Help page to ensure it has a proper header/back button
-    // even when the user is not fully logged in.
     if (view.page === 'help') {
       return (
         <>
@@ -388,12 +304,10 @@ const App: React.FC = () => {
       );
     }
     
-    // 1. Show skeleton loader while checking auth or loading initial data.
     if (currentUser === undefined || (currentUser && isLoading && activeSection && view.page !== 'signup')) {
         return <HomePageSkeleton />;
     }
 
-    // 2. If user has no role, display the specific error message.
     if (noRoleError) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-slate-200 p-4">
@@ -403,7 +317,7 @@ const App: React.FC = () => {
                     <p className="text-slate-700">{noRoleError}</p>
                     <p className="text-slate-500">Please ensure your email address is registered with an administrator.</p>
                     <button
-                        onClick={() => setNoRoleError(null)} // Allow user to dismiss and try logging in again
+                        onClick={() => setNoRoleError(null)}
                         className="mt-6 group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-junior-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue"
                     >
                         Return to Login
@@ -413,25 +327,21 @@ const App: React.FC = () => {
         );
     }
     
-    // 3. If user is not logged in, show the login page or signup page.
     if (!currentUser) {
         if (view.page === 'signup') {
-            return <SignupPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} />;
+            return <SignupPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => setView({ page: 'home' })} />;
         }
         return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onNavigateToSignup={handleNavigation} />;
     }
     
-    // 4. If logged in but no section is selected, show the section select page.
     if (!activeSection) {
         return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => setView({ page: 'help' })} />;
     }
     
-    // 5. If there's a critical error, display it.
     if (error) {
         return <div className="text-center p-8 text-red-500">{error}</div>;
     }
 
-    // 6. If fully loaded and authenticated, render the main app layout.
     return (
         <>
             <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} userRole={userRole} />
@@ -444,7 +354,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-200 text-slate-800">
-      {/* Toast Notification Container */}
       <div
         aria-live="assertive"
         className="fixed bottom-0 w-full max-w-sm mx-auto flex flex-col-reverse items-center p-4 space-y-2 space-y-reverse pointer-events-none z-[100]"

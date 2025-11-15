@@ -1,15 +1,10 @@
-/**
- * @file LoginPage.tsx
- * @description The component responsible for handling user authentication.
- * It provides a simple form for email and password sign-in.
- */
+"use client";
 
 import React, { useState } from 'react';
-// FIX: Use named imports for Firebase v9 compatibility.
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { getAuthInstance } from '../services/firebase';
 import { QuestionMarkCircleIcon } from './Icons';
-import { ToastType, View } from '../types'; // Import View type
+import { ToastType, View } from '../types';
 
 interface LoginPageProps {
   /** Callback to navigate to the help page. */
@@ -169,7 +164,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, showToast, onNa
                 onClick={() => onNavigateToSignup({ page: 'signup' })}
                 className="font-medium text-junior-blue hover:text-junior-blue/80"
               >
-                Request access
+                Sign up with an invite code
               </button>
             </div>
           </div>
