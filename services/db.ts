@@ -24,7 +24,7 @@ import {
     Timestamp,
     limit,
 } from 'firebase/firestore';
-import { Boy, AuditLog, Section, InviteCode, UserRole } from '../types'; // Import UserRole
+import { Boy, AuditLog, Section, InviteCode, UserRole } from '../types';
 import { getDb, getAuthInstance } from './firebase';
 import { 
     openDB, 
@@ -46,10 +46,10 @@ import {
     getAllInviteCodesFromDB, 
     deleteInviteCodeFromDB, 
     deleteInviteCodesFromDB,
-    clearStore, // New: Import clearStore
-    clearAllSectionDataFromDB, // New: Import clearAllSectionDataFromDB
-    clearUsedRevokedInviteCodesFromDB, // New: Import clearUsedRevokedInviteCodesFromDB
-    clearAllInviteCodesFromDB // New: Import clearAllInviteCodesFromDB
+    clearStore,
+    clearAllSectionDataFromDB,
+    clearUsedRevokedInviteCodesFromDB,
+    clearAllInviteCodesFromDB
 } from './offlineDb';
 
 /**
@@ -218,7 +218,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 break;
             }
             case 'CREATE_AUDIT_LOG': {
-                const logData = { ...write.payload, timestamp: serverTimestamp() }; // FIX: Use write.payload
+                const logData = { ...write.payload, timestamp: serverTimestamp() };
                 const docRef = doc(collection(db, logsCollection));
                 batch.set(docRef, logData);
                 // If this was an offline creation of an audit log, we need to update its ID in IndexedDB.
@@ -752,7 +752,7 @@ export const clearAllAuditLogs = async (section: Section, userEmail: string, use
     // Create an audit log for this action
     await createAuditLog({
         userEmail,
-        actionType: 'DELETE_BOY', // Reusing DELETE_BOY for now, could add CLEAR_AUDIT_LOGS
+        actionType: 'CLEAR_AUDIT_LOGS', // Changed action type
         description: `Cleared all audit logs for section ${section}.`,
         revertData: {}, // Cannot revert clearing all logs
     }, section);
@@ -900,7 +900,7 @@ export const clearAllUsedRevokedInviteCodes = async (userEmail: string, userRole
     // Create an audit log for this action
     await createAuditLog({
         userEmail,
-        actionType: 'REVOKE_INVITE_CODE', // Reusing REVOKE_INVITE_CODE for now, could add CLEAR_INVITE_CODES
+        actionType: 'CLEAR_USED_REVOKED_INVITE_CODES', // Changed action type
         description: `Cleared all used/revoked invite codes.`,
         revertData: {}, // Cannot revert clearing codes
     }, null); // Global log
@@ -926,7 +926,7 @@ export const clearAllLocalData = async (section: Section, userEmail: string, use
     if (navigator.onLine) {
         await createAuditLog({
             userEmail,
-            actionType: 'DELETE_BOY', // Reusing DELETE_BOY for now, could add CLEAR_LOCAL_DATA
+            actionType: 'CLEAR_LOCAL_DATA', // Changed action type
             description: `Cleared all local data for section ${section} and all invite codes.`,
             revertData: {}, // Cannot revert clearing local data
         }, section);

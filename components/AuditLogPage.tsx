@@ -6,10 +6,10 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy, revokeInviteCode } from '../services/db';
+import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy, revokeInviteCode, updateUserRole } from '../services/db';
 import { saveSettings } from '../services/settings';
 import { getAuthInstance } from '../services/firebase';
-import { AuditLog, Boy, Section, SectionSettings, ToastType, UserRole } from '../types'; // Import UserRole
+import { AuditLog, Boy, Section, SectionSettings, ToastType, UserRole, AuditLogActionType } from '../types';
 import { ClockIcon, PlusIcon, PencilIcon, TrashIcon, UndoIcon, CogIcon } from './Icons';
 import Modal from './Modal';
 
@@ -22,14 +22,19 @@ interface AuditLogPageProps {
 }
 
 // A mapping of action types to their corresponding icons for visual representation.
-const ACTION_ICONS: Record<string, React.FC<{className?: string}>> = {
+const ACTION_ICONS: Record<AuditLogActionType, React.FC<{className?: string}>> = {
   CREATE_BOY: PlusIcon,
   UPDATE_BOY: PencilIcon,
   DELETE_BOY: TrashIcon,
   REVERT_ACTION: UndoIcon,
   UPDATE_SETTINGS: CogIcon,
-  GENERATE_INVITE_CODE: PlusIcon, // Using PlusIcon for generation
-  REVOKE_INVITE_CODE: TrashIcon, // Using TrashIcon for revocation
+  GENERATE_INVITE_CODE: PlusIcon,
+  USE_INVITE_CODE: PlusIcon, // Using PlusIcon for new user signup
+  REVOKE_INVITE_CODE: TrashIcon,
+  UPDATE_USER_ROLE: CogIcon, // Using CogIcon for role changes
+  CLEAR_AUDIT_LOGS: TrashIcon, // Using TrashIcon for clearing logs
+  CLEAR_USED_REVOKED_INVITE_CODES: TrashIcon, // Using TrashIcon for clearing invite codes
+  CLEAR_LOCAL_DATA: TrashIcon, // Using TrashIcon for clearing local data
 };
 
 const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection, showToast, userRole }) => {
@@ -43,14 +48,19 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
   const isCompany = activeSection === 'company';
   
   // A mapping of action types to color styles for visual distinction.
-  const ACTION_COLORS: Record<string, string> = {
+  const ACTION_COLORS: Record<AuditLogActionType, string> = {
     CREATE_BOY: 'bg-green-100 text-green-700',
     UPDATE_BOY: isCompany ? 'bg-company-blue/10 text-company-blue' : 'bg-junior-blue/10 text-junior-blue',
     UPDATE_SETTINGS: isCompany ? 'bg-company-blue/10 text-company-blue' : 'bg-junior-blue/10 text-junior-blue',
     DELETE_BOY: 'bg-red-100 text-red-700',
     REVERT_ACTION: 'bg-yellow-100 text-yellow-700',
     GENERATE_INVITE_CODE: 'bg-blue-100 text-blue-700',
+    USE_INVITE_CODE: 'bg-green-100 text-green-700',
     REVOKE_INVITE_CODE: 'bg-red-100 text-red-700',
+    UPDATE_USER_ROLE: 'bg-purple-100 text-purple-700', // New color for role changes
+    CLEAR_AUDIT_LOGS: 'bg-red-100 text-red-700', // Red for destructive dev actions
+    CLEAR_USED_REVOKED_INVITE_CODES: 'bg-red-100 text-red-700', // Red for destructive dev actions
+    CLEAR_LOCAL_DATA: 'bg-red-100 text-red-700', // Red for destructive dev actions
   };
 
   /**
@@ -144,12 +154,16 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
           break;
         case 'UPDATE_SETTINGS':
             // To revert a settings change, we save the old settings object.
-            await saveSettings(activeSection, revertData.settings as SectionSettings, userRole); // Pass userRole
+            await saveSettings(activeSection, revertData.settings as SectionSettings, userRole);
             break;
         case 'GENERATE_INVITE_CODE':
             // To revert invite code generation, we revoke the invite code.
             // Pass `false` for createLogEntry to prevent duplicate audit log.
-            await revokeInviteCode(revertData.inviteCodeId, activeSection, false, userRole); // Pass userRole
+            await revokeInviteCode(revertData.inviteCodeId, activeSection, false, userRole);
+            break;
+        case 'UPDATE_USER_ROLE':
+            // To revert a user role update, we update the user's role back to the old role.
+            await updateUserRole(revertData.uid, revertData.oldRole as UserRole, userRole);
             break;
         default:
           throw new Error('This action cannot be reverted.');
@@ -192,6 +206,16 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     });
   };
 
+  // Define explicitly revertible action types
+  const revertibleActionTypes: AuditLogActionType[] = [
+    'CREATE_BOY',
+    'DELETE_BOY',
+    'UPDATE_BOY',
+    'UPDATE_SETTINGS',
+    'GENERATE_INVITE_CODE',
+    'UPDATE_USER_ROLE',
+  ];
+
   // --- RENDER LOGIC ---
   if (loading) return <div className="text-center p-8">Loading audit trail...</div>;
   if (error) return <div className="text-center p-8 text-red-500">{error}</div>;
@@ -216,7 +240,8 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
             
             // Determine if this log has been reverted by checking the `revertedLogIds` set.
             const hasBeenReverted = revertedLogIds.has(log.id);
-            const canRevert = log.actionType !== 'REVERT_ACTION' && !hasBeenReverted;
+            // Only allow revert if the action type is in our list of revertible types AND it hasn't been reverted yet.
+            const canRevert = revertibleActionTypes.includes(log.actionType) && !hasBeenReverted;
 
             return (
               <li key={log.id} className="bg-white shadow-md rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
