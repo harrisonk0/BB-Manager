@@ -55,9 +55,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
 
   /**
    * Fetches all invite codes for display.
+   * @param showSpinner If true, sets the loading state to true before fetching. Defaults to true.
    */
-  const loadInviteCodes = useCallback(async () => {
-    setLoadingInviteCodes(true);
+  const loadInviteCodes = useCallback(async (showSpinner: boolean = true) => {
+    if (showSpinner) {
+      setLoadingInviteCodes(true);
+    }
     try {
       const codes = await fetchAllInviteCodes();
       setInviteCodes(codes);
@@ -65,10 +68,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       console.error("Failed to load invite codes:", err);
       showToast("Failed to load invite codes.", "error");
     } finally {
-      setLoadingInviteCodes(false);
+      if (showSpinner) {
+        setLoadingInviteCodes(false);
+      }
     }
   }, [showToast]);
 
+  // Initial load of invite codes on component mount
   useEffect(() => {
     loadInviteCodes();
   }, [loadInviteCodes]);
@@ -80,7 +86,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   useEffect(() => {
     const handleInviteCodesRefresh = () => {
       console.log('Invite codes cache updated in background, refreshing UI...');
-      loadInviteCodes();
+      // Call loadInviteCodes without showing the spinner, as data is updating in background
+      loadInviteCodes(false); 
     };
 
     window.addEventListener('inviteCodesRefreshed', handleInviteCodesRefresh);
@@ -226,7 +233,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
 
       setGeneratedCode(createdCode.id);
       showToast('Invite code generated successfully!', 'success');
-      loadInviteCodes(); // Refresh the list of codes
+      loadInviteCodes(); // Refresh the list of codes, showing spinner for this explicit action
     } catch (err) {
       console.error("Failed to generate invite code:", err);
       showToast('Failed to generate invite code. Please try again.', 'error');
