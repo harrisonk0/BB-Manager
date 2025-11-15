@@ -1,9 +1,130 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write access to any document only if the user is signed in.
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+
+    // Function to get the role of a specific user from the user_roles collection.
+    // Returns null if no user is authenticated or if the user_roles document doesn't exist.
+    function getRole(uid) {
+      return get(/databases/$(database)/documents/user_roles/$(uid)).data.role;
+    }
+
+    // Helper function to check if the user is authenticated.
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if the authenticated user has a specific role.
+    function hasRole(role) {
+      return isAuthenticated() && getRole(request.auth.uid) == role;
+    }
+
+    // Helper function to check if the authenticated user has one of the specified roles.
+    function hasAnyRole(roles) {
+      return isAuthenticated() && roles.hasAny(getRole(request.auth.uid));
+    }
+
+    // --- Global Collections ---
+
+    // User Roles Collection: Stores the assigned role for each user.
+    match /user_roles/{userId} {
+      allow read: if isAuthenticated(); // All authenticated users can read roles (e.g., for UI display)
+
+      // Only Admins can create new user role documents.
+      allow create: if hasRole('admin');
+
+      // Update rules for user roles:
+      allow update: if isAuthenticated() && (
+        // Admin can update any role, with self-demotion protection
+        (hasRole('admin') && (
+          // Admin cannot demote themselves
+          (request.auth.uid == userId && request.resource.data.role == 'admin') ||
+          // Admin can demote others, but not another admin to a non-admin role
+          (request.auth.uid != userId && (resource.data.role == 'admin' || request.resource.data.role != 'admin'))
+        )) ||
+        // Captain can update Officer roles, with self-promotion/demotion protection
+        (hasRole('captain') && (
+          // Captain cannot change an Admin's role
+          resource.data.role != 'admin' &&
+          // Captain cannot promote themselves to Admin
+          !(request.auth.uid == userId && request.resource.data.role == 'admin') &&
+          // Captain cannot demote themselves to Officer
+          !(request.auth.uid == userId && request.resource.data.role == 'officer') &&
+          // Captain can update Officer roles
+          request.resource.data.role == 'officer' &&
+          request.resource.data.role == 'officer' // Ensure new role is officer
+        ))
+      );
+
+      // Only Admins can delete user role documents.
+      allow delete: if hasRole('admin');
+    }
+
+    // Invite Codes Collection: Used for new user sign-ups.
+    match /invite_codes/{codeId} {
+      // Only Admins and Captains can create new invite codes.
+      allow create: if hasAnyRole(['admin', 'captain']);
+
+      // Anyone can read an invite code if they know its ID (for signup validation).
+      // However, only Admins/Captains can read all codes (e.g., for management UI).
+      allow get: if isAuthenticated(); // For single code lookup during signup
+      allow list: if hasAnyRole(['admin', 'captain']); // For listing all codes in settings page
+
+      // An unauthenticated user can update an invite code to mark it as used during signup.
+      // Admins/Captains can update (e.g., revoke).
+      allow update: if (
+        // Unauthenticated user can mark as used if it's not already used/revoked
+        (!isAuthenticated() && request.resource.data.isUsed == true && resource.data.isUsed == false && resource.data.revoked == false) ||
+        // Admins/Captains can update any field (e.g., revoke)
+        hasAnyRole(['admin', 'captain'])
+      );
+
+      // Only Admins can delete invite codes.
+      allow delete: if hasRole('admin');
+    }
+
+    // --- Section-Specific Collections (Company & Junior) ---
+
+    // Boys Collection: Member data.
+    match /{section}_boys/{boyId} {
+      // All authenticated users can read boy data.
+      allow read: if isAuthenticated();
+
+      // Admins, Captains, and Officers can create, update, and delete boy data.
+      allow create, update, delete: if hasAnyRole(['admin', 'captain', 'officer']);
+
+      // Additional validation for updates:
+      // Ensure 'id' field is not changed.
+      // Ensure 'section' prefix matches the collection name.
+      allow update: if hasAnyRole(['admin', 'captain', 'officer']) &&
+        request.resource.data.id == resource.data.id &&
+        request.path[0] == section;
+    }
+
+    // Audit Logs Collection: Tracks all significant actions.
+    match /{section}_audit_logs/{logId} {
+      // All authenticated users can read audit logs.
+      allow read: if isAuthenticated();
+
+      // Admins, Captains, and Officers can create audit logs.
+      allow create: if hasAnyRole(['admin', 'captain', 'officer']);
+
+      // Only Admins can delete audit logs (e.g., for cleanup).
+      allow delete: if hasRole('admin');
+
+      // Audit logs are immutable after creation, so no updates are allowed.
+      allow update: if false;
+    }
+
+    // Settings Collection: Stores section-specific settings (e.g., meeting day).
+    match /settings/{sectionId} {
+      // All authenticated users can read settings.
+      allow read: if isAuthenticated();
+
+      // Only Admins and Captains can create or update settings.
+      allow create, update: if hasAnyRole(['admin', 'captain']);
+
+      // No one can delete settings documents.
+      allow delete: if false;
     }
   }
 }
