@@ -122,6 +122,8 @@ const App: React.FC = () => {
           loadDataAndSettings();
         });
       } else {
+        // If no active section, but user is logged in, still need to set isLoading to false
+        // to allow SectionSelectPage to render.
         setIsLoading(false);
       }
     }
@@ -246,7 +248,7 @@ const App: React.FC = () => {
   };
 
   const renderMainContent = () => {
-    if (!activeSection) return null;
+    if (!activeSection) return null; // Should not happen if logic below is correct
 
     switch (view.page) {
       case 'home':
@@ -276,50 +278,29 @@ const App: React.FC = () => {
   };
   
   const handleGoBackFromHelp = () => {
-    setView({ page: 'home' });
+    // If coming from login/signup, go to login. If from app, go to home.
+    if (!currentUser) {
+      setView({ page: 'home' }); // This will render LoginPage
+    } else if (!activeSection) {
+      setView({ page: 'home' }); // This will render SectionSelectPage
+    } else {
+      setView({ page: 'home' });
+    }
   };
   
   const renderApp = () => {
-    if (view.page === 'help') {
-      return (
-        <>
-          {currentUser && activeSection ? (
-            <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} userRole={userRole} />
-          ) : (
-            <header className="bg-slate-700 text-white shadow-md sticky top-0 z-20">
-              <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-20">
-                  <div className="flex items-center space-x-4">
-                     <img 
-                        src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 
-                        alt="The Boys' Brigade Logo" 
-                        className="h-14 rounded-md"
-                      />
-                  </div>
-                  <button onClick={handleGoBackFromHelp} className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-slate-700">
-                    Back to App
-                  </button>
-                </div>
-              </nav>
-            </header>
-          )}
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <HelpPage />
-          </main>
-        </>
-      );
-    }
-    
-    if (currentUser === undefined || (currentUser && isLoading && activeSection && view.page !== 'signup')) {
+    // Handle loading state first
+    if (currentUser === undefined || (currentUser && isLoading && view.page !== 'signup')) {
         return <HomePageSkeleton />;
     }
 
+    // Handle no role error
     if (noRoleError) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-slate-200 p-4">
                 <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md text-center">
                     <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="The Boys' Brigade Logo" className="w-48 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-red-600">Access Denied</h2>
+                    <h2 className="2xl font-bold text-red-600">Access Denied</h2>
                     <p className="text-slate-700">{noRoleError}</p>
                     <p className="text-slate-500">Please ensure your email address is registered with an administrator.</p>
                     <button
@@ -333,6 +314,7 @@ const App: React.FC = () => {
         );
     }
     
+    // Handle unauthenticated user
     if (!currentUser) {
         if (view.page === 'signup') {
             return <SignupPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => setView({ page: 'home' })} />;
@@ -340,14 +322,50 @@ const App: React.FC = () => {
         return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onNavigateToSignup={handleNavigation} />;
     }
     
+    // Handle authenticated user, but no active section selected yet
     if (!activeSection) {
-        return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => setView({ page: 'help' })} onNavigateToGlobalSettings={() => handleNavigation({ page: 'globalSettings' })} userRole={userRole} />;
+        // Allow access to global settings, account settings, or help page even without an active section
+        switch (view.page) {
+            case 'globalSettings':
+                return <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} />; // Pass a dummy activeSection, as it's not truly relevant here
+            case 'accountSettings':
+                return <AccountSettingsPage showToast={showToast} />;
+            case 'help':
+                return (
+                    <>
+                        <header className="bg-slate-700 text-white shadow-md sticky top-0 z-20">
+                            <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
+                                <div className="flex justify-between items-center h-20">
+                                    <div className="flex items-center space-x-4">
+                                        <img 
+                                            src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 
+                                            alt="The Boys' Brigade Logo" 
+                                            className="h-14 rounded-md"
+                                        />
+                                    </div>
+                                    <button onClick={handleGoBackFromHelp} className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-slate-700">
+                                        Back to App
+                                    </button>
+                                </div>
+                            </nav>
+                        </header>
+                        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                            <HelpPage />
+                        </main>
+                    </>
+                );
+            default:
+                // If no specific page is requested, show the section selection
+                return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => handleNavigation({ page: 'help' })} onNavigateToGlobalSettings={() => handleNavigation({ page: 'globalSettings' })} userRole={userRole} />;
+        }
     }
     
+    // Handle general errors
     if (error) {
         return <div className="text-center p-8 text-red-500">{error}</div>;
     }
 
+    // Render main app content with header
     return (
         <>
             <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} userRole={userRole} />
