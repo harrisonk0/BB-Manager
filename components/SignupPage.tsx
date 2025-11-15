@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { getAuthInstance } from '../services/firebase';
-import { fetchInviteCode, updateInviteCode, createAuditLog, assignInitialUserRole } from '../services/db'; // Import assignInitialUserRole
+import { fetchInviteCode, updateInviteCode, createAuditLog, assignInitialUserRole } from '../services/db';
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, Section } from '../types';
 
@@ -18,9 +18,11 @@ interface SignupPageProps {
   showToast: (message: string, type?: ToastType) => void;
   /** Callback to set the active section after successful signup. */
   onSignupSuccess: (section: Section) => void;
+  /** Callback to navigate back to the login page. */
+  onNavigateBack: () => void;
 }
 
-const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, onSignupSuccess }) => {
+const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, onSignupSuccess, onNavigateBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -199,6 +201,15 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
             </button>
           </div>
         </form>
+        <div className="text-center text-sm">
+            <button
+                type="button"
+                onClick={onNavigateBack}
+                className="font-medium text-junior-blue hover:text-junior-blue/80"
+            >
+                Back to Login
+            </button>
+        </div>
       </div>
     </div>
   );
