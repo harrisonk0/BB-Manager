@@ -603,9 +603,14 @@ export const deleteBoyById = async (id: string, section: Section): Promise<void>
  * Creates a new audit log entry. Handles online/offline logic.
  * @param log The log data to create.
  * @param section The section the log pertains to.
- * @returns The new AuditLog object.
+ * @param shouldLogAudit If false, the audit log will not be created. Defaults to true.
+ * @returns The new AuditLog object, or null if logging was skipped.
  */
-export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, section: Section | null): Promise<AuditLog> => {
+export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, section: Section | null, shouldLogAudit: boolean = true): Promise<AuditLog | null> => {
+  if (!shouldLogAudit) {
+    return null;
+  }
+
   const auth = getAuthInstance();
   if (!auth.currentUser) throw new Error("User not authenticated for logging");
   const timestamp = Date.now();
@@ -752,10 +757,10 @@ export const clearAllAuditLogs = async (section: Section, userEmail: string, use
     // Create an audit log for this action
     await createAuditLog({
         userEmail,
-        actionType: 'CLEAR_AUDIT_LOGS', // Changed action type
+        actionType: 'CLEAR_AUDIT_LOGS',
         description: `Cleared all audit logs for section ${section}.`,
         revertData: {}, // Cannot revert clearing all logs
-    }, section);
+    }, section, false); // Do NOT create an audit log for this action
 };
 
 
@@ -900,10 +905,10 @@ export const clearAllUsedRevokedInviteCodes = async (userEmail: string, userRole
     // Create an audit log for this action
     await createAuditLog({
         userEmail,
-        actionType: 'CLEAR_USED_REVOKED_INVITE_CODES', // Changed action type
+        actionType: 'CLEAR_USED_REVOKED_INVITE_CODES',
         description: `Cleared all used/revoked invite codes.`,
         revertData: {}, // Cannot revert clearing codes
-    }, null); // Global log
+    }, null, false); // Do NOT create an audit log for this action
 };
 
 /**
@@ -926,10 +931,10 @@ export const clearAllLocalData = async (section: Section, userEmail: string, use
     if (navigator.onLine) {
         await createAuditLog({
             userEmail,
-            actionType: 'CLEAR_LOCAL_DATA', // Changed action type
+            actionType: 'CLEAR_LOCAL_DATA',
             description: `Cleared all local data for section ${section} and all invite codes.`,
             revertData: {}, // Cannot revert clearing local data
-        }, section);
+        }, section, false); // Do NOT create an audit log for this action
     }
 };
 
@@ -1129,7 +1134,7 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
 
                 // Sort both arrays by ID to ensure consistent order for comparison.
                 const sortedFresh = [...freshCodes].sort((a, b) => a.id.localeCompare(b.id));
-                const sortedCached = [...cachedCodes].sort((a, b) => a.id.localeCompare(b.id));
+                const sortedCached = [...cachedCodes].sort((a, b) => (a.id ?? '').localeCompare(b.id ?? ''));
 
                 if (JSON.stringify(sortedFresh.map(comparableInviteCode)) !== JSON.stringify(sortedCached.map(comparableInviteCode))) {
                     console.log(`Background fetch for invite codes found updates. Refreshing cache.`);
