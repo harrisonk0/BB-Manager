@@ -8,7 +8,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 // FIX: Use named imports for Firebase v9 compatibility.
 import { type User } from 'firebase/auth';
-import { MenuIcon, XIcon, CogIcon, QuestionMarkCircleIcon, UserCircleIcon } from './Icons'; // Added UserCircleIcon, removed SwitchHorizontalIcon
+import { MenuIcon, XIcon, CogIcon, QuestionMarkCircleIcon, UserCircleIcon, SwitchHorizontalIcon, LogOutIcon } from './Icons'; // Added LogOutIcon and SwitchHorizontalIcon
 import { Page, Section, UserRole } from '../types'; // Import UserRole
 
 interface HeaderProps {
@@ -70,7 +70,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
     const navLinkClasses = `px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`;
     const iconButtonClasses = `p-2 rounded-full text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`;
     const mobileNavLinkClasses = `block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-white/10 hover:text-white`;
-    const dropdownItemClasses = `block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 w-full text-left`;
+    const dropdownItemClasses = `flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 w-full text-left`;
 
 
     // Permission checks
@@ -141,12 +141,15 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                             <div className="py-1">
                                                 <p className="block px-4 py-2 text-sm text-slate-500 truncate border-b border-slate-100">{user.email}</p>
                                                 <button onClick={() => handleNavClick('accountSettings')} className={dropdownItemClasses} role="menuitem">
+                                                    <CogIcon className="h-5 w-5 mr-2 text-slate-500" />
                                                     Account Settings
                                                 </button>
                                                 <button onClick={() => { onSwitchSection(); setIsProfileMenuOpen(false); }} className={dropdownItemClasses} role="menuitem">
+                                                    <SwitchHorizontalIcon className="h-5 w-5 mr-2 text-slate-500" />
                                                     Switch Section
                                                 </button>
                                                 <button onClick={() => { onSignOut(); setIsProfileMenuOpen(false); }} className={dropdownItemClasses} role="menuitem">
+                                                    <LogOutIcon className="h-5 w-5 mr-2 text-slate-500" />
                                                     Log Out
                                                 </button>
                                             </div>
@@ -191,13 +194,13 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                         <div className="pt-2 mt-2 border-t border-white/20">
                             <p className="block px-3 py-2 text-base font-medium text-gray-200">{user.email}</p>
                             <button onClick={() => handleNavClick('accountSettings')} className={mobileNavLinkClasses}>
-                                Account Settings
+                                <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Account Settings</span></div>
                             </button>
                             <button onClick={() => { onSwitchSection(); setIsMenuOpen(false); }} className={mobileNavLinkClasses}>
-                                Switch Section
+                                <div className="flex items-center"><SwitchHorizontalIcon className="h-5 w-5 mr-3"/><span>Switch Section</span></div>
                             </button>
                             <button onClick={() => { onSignOut(); setIsMenuOpen(false); }} className={mobileNavLinkClasses}>
-                                Log Out
+                                <div className="flex items-center"><LogOutIcon className="h-5 w-5 mr-3"/><span>Log Out</span></div>
                             </button>
                         </div>
                     </div>
