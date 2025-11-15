@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Section, SectionSettings, ToastType, InviteCode } from '../types';
+import { Section, SectionSettings, ToastType, InviteCode, UserRole } from '../types'; // Import UserRole
 import { saveSettings } from '../services/settings';
 import { createAuditLog, createInviteCode, fetchAllInviteCodes } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
@@ -19,13 +19,15 @@ interface SettingsPageProps {
   /** Callback to update the settings state in the parent App component. */
   onSettingsSaved: (newSettings: SectionSettings) => void;
   showToast: (message: string, type?: ToastType) => void;
+  /** The role of the currently logged-in user. */
+  userRole: UserRole | null;
 }
 
 const WEEKDAYS = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole }) => {
   // Local state for the form inputs.
   const [meetingDay, setMeetingDay] = useState<number>(5); // Default to Friday
   const [isSaving, setIsSaving] = useState(false);
@@ -44,6 +46,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [loadingInviteCodes, setLoadingInviteCodes] = useState(true);
 
+  // Permission checks
+  const canEditSettings = userRole && ['admin', 'captain'].includes(userRole);
+  const canManageInviteCodes = userRole && ['admin', 'captain'].includes(userRole);
+
   /**
    * EFFECT: Populates the local state with the current settings when they are loaded.
    */
@@ -58,11 +64,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
    * @param showSpinner If true, sets the loading state to true before fetching. Defaults to true.
    */
   const loadInviteCodes = useCallback(async (showSpinner: boolean = true) => {
+    if (!canManageInviteCodes) {
+        setInviteCodes([]); // Clear codes if user doesn't have permission
+        setLoadingInviteCodes(false);
+        return;
+    }
     if (showSpinner) {
       setLoadingInviteCodes(true);
     }
     try {
-      const codes = await fetchAllInviteCodes();
+      const codes = await fetchAllInviteCodes(userRole); // Pass userRole
       setInviteCodes(codes);
     } catch (err) {
       console.error("Failed to load invite codes:", err);
@@ -72,12 +83,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
         setLoadingInviteCodes(false);
       }
     }
-  }, [showToast]);
+  }, [showToast, canManageInviteCodes, userRole]); // Add userRole to dependencies
 
-  // Initial load of invite codes on component mount
+  // Initial load of invite codes on component mount or when userRole changes
   useEffect(() => {
     loadInviteCodes();
-  }, [loadInviteCodes]);
+  }, [loadInviteCodes, userRole]); // Add userRole to dependencies
 
   /**
    * EFFECT: Listens for the custom 'inviteCodesRefreshed' event.
@@ -106,6 +117,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
         showToast('No changes to save.', 'info');
         return;
     }
+    if (!canEditSettings) {
+        showToast('Permission denied: You do not have permission to save settings.', 'error');
+        return;
+    }
 
     setIsSaving(true);
     setError(null);
@@ -125,12 +140,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
         revertData: { settings: currentSettings }, // Save old settings for potential revert.
       }, activeSection);
 
-      await saveSettings(activeSection, newSettings);
+      await saveSettings(activeSection, newSettings, userRole); // Pass userRole
       onSettingsSaved(newSettings); // Update the parent component's state.
       showToast('Settings saved successfully!', 'success');
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to save settings:", err);
-      showToast('Failed to save settings.', 'error');
+      showToast(`Failed to save settings: ${err.message}`, 'error');
       setError("An error occurred while saving. Please try again.");
     } finally {
       setIsSaving(false);
@@ -209,21 +224,25 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
    * Handles the generation of a new invite code.
    */
   const handleGenerateCode = async () => {
+    if (!canManageInviteCodes) {
+        showToast('Permission denied: You do not have permission to generate invite codes.', 'error');
+        return;
+    }
     setIsGeneratingCode(true);
     setGeneratedCode(null);
     try {
       const auth = getAuthInstance();
       const userEmail = auth.currentUser?.email || 'Unknown User';
-      const newCodeId = crypto.randomUUID(); // Generate a unique ID for the code
+      // The actual code generation logic is in db.ts, which also performs the role check.
 
       const newInviteCode: Omit<InviteCode, 'generatedAt'> = {
-        id: newCodeId,
+        id: '', // ID will be generated in db.ts
         generatedBy: userEmail,
         isUsed: false,
         section: activeSection, // Associate code with the current active section
       };
 
-      const createdCode = await createInviteCode(newInviteCode, activeSection);
+      const createdCode = await createInviteCode(newInviteCode, activeSection, userRole); // Pass userRole
       await createAuditLog({
         userEmail,
         actionType: 'GENERATE_INVITE_CODE',
@@ -234,9 +253,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       setGeneratedCode(createdCode.id);
       showToast('Invite code generated successfully!', 'success');
       loadInviteCodes(); // Refresh the list of codes, showing spinner for this explicit action
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to generate invite code:", err);
-      showToast('Failed to generate invite code. Please try again.', 'error');
+      showToast(`Failed to generate invite code: ${err.message}`, 'error');
     } finally {
       setIsGeneratingCode(false);
     }
@@ -283,6 +302,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
                   value={meetingDay}
                   onChange={(e) => setMeetingDay(parseInt(e.target.value, 10))}
                   className={`w-full sm:w-auto mt-1 sm:mt-0 block px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+                  disabled={!canEditSettings} // Disable if not admin/captain
                 >
                   {WEEKDAYS.map((day, index) => (
                     <option key={index} value={index}>{day}</option>
@@ -299,7 +319,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
             <div className="flex justify-end pt-4 border-t border-slate-200">
               <button
                 onClick={handleSaveSettings}
-                disabled={isSaving}
+                disabled={isSaving || !canEditSettings} // Disable if not admin/captain
                 className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white w-28 ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {isSaving ? 'Saving...' : 'Save'}
@@ -309,61 +329,63 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
         </div>
 
         {/* Invite Code Generation Section */}
-        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
-          <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Invite New Users</h2>
-          <p className="text-slate-600 mb-4">Generate a one-time-use code to invite new users to the app. Share this code with them so they can sign up.</p>
-          
-          <button
-            onClick={handleGenerateCode}
-            disabled={isGeneratingCode}
-            className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
-          >
-            {isGeneratingCode ? 'Generating...' : 'Generate New Invite Code'}
-          </button>
+        {canManageInviteCodes && ( // Only render if admin/captain
+            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+            <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Invite New Users</h2>
+            <p className="text-slate-600 mb-4">Generate a one-time-use code to invite new users to the app. Share this code with them so they can sign up.</p>
+            
+            <button
+                onClick={handleGenerateCode}
+                disabled={isGeneratingCode}
+                className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+                {isGeneratingCode ? 'Generating...' : 'Generate New Invite Code'}
+            </button>
 
-          {generatedCode && (
-            <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between flex-wrap gap-2">
-              <span className="font-mono text-slate-800 text-sm break-all">{generatedCode}</span>
-              <button
-                onClick={() => copyCodeToClipboard(generatedCode)}
-                className="p-2 text-slate-500 hover:text-slate-700 rounded-md hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
-                aria-label="Copy invite code to clipboard"
-              >
-                <ClipboardIcon className="h-5 w-5" />
-              </button>
-            </div>
-          )}
+            {generatedCode && (
+                <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between flex-wrap gap-2">
+                <span className="font-mono text-slate-800 text-sm break-all">{generatedCode}</span>
+                <button
+                    onClick={() => copyCodeToClipboard(generatedCode)}
+                    className="p-2 text-slate-500 hover:text-slate-700 rounded-md hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+                    aria-label="Copy invite code to clipboard"
+                >
+                    <ClipboardIcon className="h-5 w-5" />
+                </button>
+                </div>
+            )}
 
-          <h3 className="text-lg font-semibold text-slate-700 mt-8 mb-3">Existing Invite Codes</h3>
-          {loadingInviteCodes ? (
-            <p className="text-slate-500">Loading codes...</p>
-          ) : inviteCodes.length === 0 ? (
-            <p className="text-slate-500">No invite codes generated yet.</p>
-          ) : (
-            <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
-              {inviteCodes.map(code => (
-                <li key={code.id} className="p-3 flex items-center justify-between text-sm">
-                  <div className="flex-1">
-                    <span className={`font-mono text-slate-800 ${code.isUsed ? 'line-through text-slate-500' : ''}`}>{code.id}</span>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Generated by {code.generatedBy} on {code.generatedAt && !isNaN(code.generatedAt) ? new Date(code.generatedAt).toLocaleDateString() : 'N/A'}
-                      {code.isUsed && code.usedAt && !isNaN(code.usedAt) && ` (${code.revoked ? 'Revoked' : 'Used'} by ${code.usedBy || 'Unknown'} on ${new Date(code.usedAt).toLocaleDateString()})`}
-                    </p>
-                  </div>
-                  {code.isUsed ? (
-                    code.revoked ? (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">Revoked</span>
+            <h3 className="text-lg font-semibold text-slate-700 mt-8 mb-3">Existing Invite Codes</h3>
+            {loadingInviteCodes ? (
+                <p className="text-slate-500">Loading codes...</p>
+            ) : inviteCodes.length === 0 ? (
+                <p className="text-slate-500">No invite codes generated yet.</p>
+            ) : (
+                <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
+                {inviteCodes.map(code => (
+                    <li key={code.id} className="p-3 flex items-center justify-between text-sm">
+                    <div className="flex-1">
+                        <span className={`font-mono text-slate-800 ${code.isUsed ? 'line-through text-slate-500' : ''}`}>{code.id}</span>
+                        <p className="text-xs text-slate-500 mt-1">
+                        Generated by {code.generatedBy} on {code.generatedAt && !isNaN(code.generatedAt) ? new Date(code.generatedAt).toLocaleDateString() : 'N/A'}
+                        {code.isUsed && code.usedAt && !isNaN(code.usedAt) && ` (${code.revoked ? 'Revoked' : 'Used'} by ${code.usedBy || 'Unknown'} on ${new Date(code.usedAt).toLocaleDateString()})`}
+                        </p>
+                    </div>
+                    {code.isUsed ? (
+                        code.revoked ? (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">Revoked</span>
+                        ) : (
+                            <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">Used</span>
+                        )
                     ) : (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">Used</span>
-                    )
-                  ) : (
-                    <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                        <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
+                    )}
+                    </li>
+                ))}
+                </ul>
+            )}
+            </div>
+        )}
 
         {/* Change Password Section */}
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">

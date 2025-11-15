@@ -7,7 +7,7 @@
 
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getDb } from './firebase';
-import { Section, SectionSettings } from '../types';
+import { Section, SectionSettings, UserRole } from '../types'; // Import UserRole
 
 const SETTINGS_COLLECTION = 'settings';
 const DEFAULT_MEETING_DAY = 5; // Friday
@@ -42,9 +42,13 @@ export const getSettings = async (section: Section): Promise<SectionSettings> =>
  * Saves the settings for a given section to Firestore.
  * @param section The section ('company' or 'junior') to save settings for.
  * @param settings The settings object to save.
+ * @param userRole The role of the user attempting to save settings.
  * @returns A promise that resolves when the settings are saved.
  */
-export const saveSettings = async (section: Section, settings: SectionSettings): Promise<void> => {
+export const saveSettings = async (section: Section, settings: SectionSettings, userRole: UserRole | null): Promise<void> => {
+  if (!userRole || !['admin', 'captain'].includes(userRole)) {
+      throw new Error("Permission denied: Only Admins and Captains can save settings.");
+  }
   const docRef = doc(getDb(), SETTINGS_COLLECTION, section);
   // `setDoc` with `merge: true` is used to create the document if it doesn't exist,
   // or update it if it does, without overwriting other fields.

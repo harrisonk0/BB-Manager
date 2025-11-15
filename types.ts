@@ -147,3 +147,18 @@ export interface ToastMessage {
  * Defines the available sorting options for the member roster.
  */
 export type SortByType = 'name' | 'marks' | 'attendance';
+
+/**
+ * Defines the possible roles a user can have in the application.
+ */
+export type UserRole = 'admin' | 'captain' | 'officer';
+
+// Import the User type from firebase/auth to extend it correctly
+import { User } from 'firebase/auth';
+
+/**
+ * Extends the Firebase User type to include the custom role.
+ */
+export interface UserWithRole extends User {
+  role: UserRole | null;
+}

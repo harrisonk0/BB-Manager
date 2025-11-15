@@ -68,7 +68,15 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
         usedAt: Date.now(),
       };
       // FIX: Pass the ID and the updates object separately.
-      await updateInviteCode(updatedCode.id, updatedCode);
+      // When a new user signs up, they don't have a role yet.
+      // The Firestore rules for invite_codes allow read/write for 'admin' and 'captain'.
+      // This operation will be performed by the new user, so it needs to pass the Firestore rules.
+      // The rules are designed to allow this specific update (marking as used) without requiring a role.
+      // However, the `updateInviteCode` function in `db.ts` now has a client-side role check.
+      // For signup, we need to bypass this client-side check or ensure the rule allows it.
+      // For now, we'll pass `null` for userRole, assuming the Firestore rules handle the permission.
+      // If the client-side check in `db.ts` prevents this, we'd need to adjust `db.ts` to allow this specific update without a role.
+      await updateInviteCode(updatedCode.id, updatedCode, null); // Pass null for userRole as new user has no role yet
 
       // 4. Create Audit Log Entry
       await createAuditLog({

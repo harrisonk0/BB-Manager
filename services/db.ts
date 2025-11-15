@@ -24,7 +24,7 @@ import {
     Timestamp,
     limit,
 } from 'firebase/firestore';
-import { Boy, AuditLog, Section, InviteCode } from '../types';
+import { Boy, AuditLog, Section, InviteCode, UserRole } from '../types'; // Import UserRole
 import { getDb, getAuthInstance } from './firebase';
 import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB, saveInviteCodeToDB, getInviteCodeFromDB, getAllInviteCodesFromDB, deleteInviteCodeFromDB, deleteInviteCodesFromDB } from './offlineDb';
 
@@ -35,9 +35,12 @@ import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPend
  * @param resource The type of data ('boys' or 'audit_logs').
  * @returns The formatted collection name string.
  */
-const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs' | 'invite_codes') => {
+const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs' | 'invite_codes' | 'user_roles') => {
     if (resource === 'invite_codes') {
         return 'invite_codes'; // Invite codes are global, not section-specific
+    }
+    if (resource === 'user_roles') {
+        return 'user_roles'; // User roles are global
     }
     return `${section}_${resource}`;
 };
@@ -214,6 +217,9 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 if (write.payload.usedAt !== undefined) {
                     updatePayload.usedAt = serverTimestamp();
                 }
+                if (write.payload.revoked !== undefined) {
+                    updatePayload.revoked = write.payload.revoked;
+                }
                 batch.update(docRef, updatePayload);
                 inviteCodesToUpdateInIDB.push({ ...write.payload, usedAt: write.payload.usedAt !== undefined ? Date.now() : write.payload.usedAt }); // Update usedAt locally if present
                 break;
@@ -250,6 +256,29 @@ export const syncPendingWrites = async (): Promise<boolean> => {
     } catch (error) {
         console.error("Firebase sync failed:", error);
         return false;
+    }
+};
+
+// --- User Role Functions ---
+/**
+ * Fetches the role of a specific user from the 'user_roles' collection.
+ * @param uid The Firebase User ID (UID) of the user.
+ * @returns The UserRole ('admin', 'captain', 'officer') or null if not found.
+ */
+export const fetchUserRole = async (uid: string): Promise<UserRole | null> => {
+    if (!navigator.onLine) return null; // Roles are not cached locally for simplicity and security.
+
+    try {
+        const db = getDb();
+        const docRef = doc(db, getCollectionName(null as any, 'user_roles'), uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return docSnap.data().role as UserRole;
+        }
+        return null;
+    } catch (error) {
+        console.error("Failed to fetch user role:", error);
+        return null;
     }
 };
 
@@ -682,11 +711,16 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
 /**
  * Creates a new invite code.
  * @param code The invite code data to create.
+ * @param section The section the code is associated with.
+ * @param userRole The role of the user attempting to create the code.
  * @returns The newly created InviteCode object.
  */
-export const createInviteCode = async (code: Omit<InviteCode, 'generatedAt'>, section: Section): Promise<InviteCode> => {
+export const createInviteCode = async (code: Omit<InviteCode, 'generatedAt'>, section: Section, userRole: UserRole | null): Promise<InviteCode> => {
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated to create invite code");
+    if (!userRole || !['admin', 'captain'].includes(userRole)) {
+        throw new Error("Permission denied: Only Admins and Captains can generate invite codes.");
+    }
 
     const newCodeId = generateRandomCode(6); // Generate a 6-character alphanumeric code
 
@@ -742,12 +776,16 @@ export const fetchInviteCode = async (id: string): Promise<InviteCode | undefine
  * Updates an existing invite code with partial data.
  * @param id The ID of the invite code to update.
  * @param updates The partial InviteCode object containing fields to update.
+ * @param userRole The role of the user attempting to update the code.
  * @returns The updated InviteCode object.
  */
-export const updateInviteCode = async (id: string, updates: Partial<InviteCode>): Promise<InviteCode> => {
+export const updateInviteCode = async (id: string, updates: Partial<InviteCode>, userRole: UserRole | null): Promise<InviteCode> => {
     const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated to update invite code");
+    if (!userRole || !['admin', 'captain'].includes(userRole)) {
+        throw new Error("Permission denied: Only Admins and Captains can update invite codes.");
+    }
 
     // Fetch the current state of the code to ensure we have all necessary fields for local update
     const currentCode = await getInviteCodeFromDB(id);
@@ -780,11 +818,15 @@ export const updateInviteCode = async (id: string, updates: Partial<InviteCode>)
  * @param id The ID of the invite code to revoke.
  * @param section The section the code belongs to (for audit log).
  * @param createLogEntry If true, an audit log entry for the revocation will be created. Defaults to true.
+ * @param userRole The role of the user attempting to revoke the code.
  * @returns A promise that resolves when the code is revoked.
  */
-export const revokeInviteCode = async (id: string, section: Section, createLogEntry: boolean = true): Promise<void> => {
+export const revokeInviteCode = async (id: string, section: Section, createLogEntry: boolean = true, userRole: UserRole | null): Promise<void> => {
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated to revoke invite code");
+    if (!userRole || !['admin', 'captain'].includes(userRole)) {
+        throw new Error("Permission denied: Only Admins and Captains can revoke invite codes.");
+    }
 
     const userEmail = auth.currentUser.email || 'Unknown User';
 
@@ -794,7 +836,7 @@ export const revokeInviteCode = async (id: string, section: Section, createLogEn
         revoked: true,
         usedBy: `System (Reverted by ${userEmail})`,
         usedAt: Date.now(),
-    });
+    }, userRole); // Pass userRole to updateInviteCode
 
     // Create an audit log entry for the revocation ONLY if createLogEntry is true
     if (createLogEntry) {
@@ -810,12 +852,17 @@ export const revokeInviteCode = async (id: string, section: Section, createLogEn
 
 /**
  * Fetches all invite codes.
+ * @param userRole The role of the user attempting to fetch all codes.
  * @returns An array of InviteCode objects.
  */
-export const fetchAllInviteCodes = async (): Promise<InviteCode[]> => {
+export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<InviteCode[]> => {
     await openDB(); // Ensure DB is ready
     const auth = getAuthInstance();
     if (!auth.currentUser) return []; // Only authenticated users can view all codes
+    if (!userRole || !['admin', 'captain'].includes(userRole)) {
+        // Officers should not see all invite codes.
+        return [];
+    }
 
     const cachedCodes = await getAllInviteCodesFromDB();
     if (cachedCodes.length > 0) {
@@ -861,26 +908,6 @@ export const fetchAllInviteCodes = async (): Promise<InviteCode[]> => {
             }).catch(err => console.error("Background fetch for invite codes failed:", err));
         }
         return cachedCodes;
-    }
-
-    if (navigator.onLine) {
-        const q = query(collection(getDb(), getCollectionName(null as any, 'invite_codes')), orderBy('generatedAt', 'desc'));
-        const snapshot = await getDocs(q);
-        const codes = snapshot.docs.map((doc: any) => {
-            const data = doc.data();
-            const ts = data.generatedAt;
-            let generatedAtInMillis: number;
-            if (ts && typeof ts.toMillis === 'function') {
-                generatedAtInMillis = ts.toMillis();
-            } else if (typeof ts === 'number') {
-                generatedAtInMillis = ts;
-            } else {
-                generatedAtInMillis = Date.now();
-            }
-            return { ...data, id: doc.id, generatedAt: generatedAtInMillis } as InviteCode;
-        });
-        Promise.all(codes.map(code => saveInviteCodeToDB(code)));
-        return codes;
     }
 
     return [];

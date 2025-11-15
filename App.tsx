@@ -21,10 +21,10 @@ import SettingsPage from './components/SettingsPage';
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, updateUserActivity, fetchRecentActivity } from './services/db';
+import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, updateUserActivity, fetchRecentActivity, fetchUserRole } from './services/db'; // Import fetchUserRole
 import { initializeFirebase, getAuthInstance } from './services/firebase';
 import { getSettings } from './services/settings';
-import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings, ToastMessage, ToastType } from './types';
+import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings, ToastMessage, ToastType, UserRole } from './types'; // Import UserRole
 import Modal from './components/Modal';
 
 // Defines the possible reasons for showing the confirmation modal.
@@ -36,6 +36,8 @@ const App: React.FC = () => {
   // `null` means the user is logged out.
   // `User` object means the user is logged in.
   const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined);
+  // The role of the currently logged-in user.
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   // The currently active section ('company' or 'junior'), persisted in localStorage.
   const [activeSection, setActiveSection] = useState<Section | null>(() => localStorage.getItem('activeSection') as Section | null);
   // The current view/page being displayed to the user.
@@ -119,13 +121,18 @@ const App: React.FC = () => {
     try {
       initializeFirebase();
       const auth = getAuthInstance();
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
         setCurrentUser(user);
-        if (!user) {
+        if (user) {
+          // User logged in, fetch their role
+          const role = await fetchUserRole(user.uid);
+          setUserRole(role);
+        } else {
           // If user is logged out, clear all user-related state.
           setIsLoading(false); 
           setActiveSection(null);
           setSettings(null);
+          setUserRole(null); // Clear user role on logout
           localStorage.removeItem('activeSection');
           setHasShownLoginToast(false); // Reset the toast flag on logout
         }
@@ -257,6 +264,7 @@ const App: React.FC = () => {
       // Clear all user-related state after sign out.
       setBoys([]);
       setSettings(null);
+      setUserRole(null); // Clear user role on sign out
       setView({ page: 'home' });
       setActiveSection(null);
       localStorage.removeItem('activeSection');
@@ -332,9 +340,9 @@ const App: React.FC = () => {
       case 'dashboard':
         return <DashboardPage boys={boys} activeSection={activeSection!} />;
       case 'auditLog':
-        return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
+        return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
       case 'settings':
-        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} />;
+        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} />;
       case 'help':
         return <HelpPage />;
       case 'boyMarks':
@@ -362,7 +370,7 @@ const App: React.FC = () => {
       return (
         <>
           {currentUser && activeSection ? (
-            <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} />
+            <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} userRole={userRole} />
           ) : (
             <header className="bg-slate-700 text-white shadow-md sticky top-0 z-20">
               <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -414,7 +422,7 @@ const App: React.FC = () => {
     // 5. If fully loaded and authenticated, render the main app layout.
     return (
         <>
-            <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} />
+            <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} userRole={userRole} />
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {renderMainContent()}
             </main>

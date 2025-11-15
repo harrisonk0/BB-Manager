@@ -9,7 +9,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy, revokeInviteCode } from '../services/db';
 import { saveSettings } from '../services/settings';
 import { getAuthInstance } from '../services/firebase';
-import { AuditLog, Boy, Section, SectionSettings, ToastType } from '../types';
+import { AuditLog, Boy, Section, SectionSettings, ToastType, UserRole } from '../types'; // Import UserRole
 import { ClockIcon, PlusIcon, PencilIcon, TrashIcon, UndoIcon, CogIcon } from './Icons';
 import Modal from './Modal';
 
@@ -17,6 +17,8 @@ interface AuditLogPageProps {
   refreshData: () => void;
   activeSection: Section;
   showToast: (message: string, type?: ToastType) => void;
+  /** The role of the currently logged-in user. */
+  userRole: UserRole | null;
 }
 
 // A mapping of action types to their corresponding icons for visual representation.
@@ -30,7 +32,7 @@ const ACTION_ICONS: Record<string, React.FC<{className?: string}>> = {
   REVOKE_INVITE_CODE: TrashIcon, // Using TrashIcon for revocation
 };
 
-const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection, showToast }) => {
+const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection, showToast, userRole }) => {
   // --- STATE MANAGEMENT ---
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -142,12 +144,12 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
           break;
         case 'UPDATE_SETTINGS':
             // To revert a settings change, we save the old settings object.
-            await saveSettings(activeSection, revertData.settings as SectionSettings);
+            await saveSettings(activeSection, revertData.settings as SectionSettings, userRole); // Pass userRole
             break;
         case 'GENERATE_INVITE_CODE':
             // To revert invite code generation, we revoke the invite code.
             // Pass `false` for createLogEntry to prevent duplicate audit log.
-            await revokeInviteCode(revertData.inviteCodeId, activeSection, false); 
+            await revokeInviteCode(revertData.inviteCodeId, activeSection, false, userRole); // Pass userRole
             break;
         default:
           throw new Error('This action cannot be reverted.');

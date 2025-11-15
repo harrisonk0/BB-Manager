@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 // FIX: Use named imports for Firebase v9 compatibility.
 import { type User } from 'firebase/auth';
 import { MenuIcon, XIcon, CogIcon, SwitchHorizontalIcon, QuestionMarkCircleIcon } from './Icons';
-import { Page, Section } from '../types';
+import { Page, Section, UserRole } from '../types'; // Import UserRole
 
 interface HeaderProps {
     /** Function to change the current view/page. */
@@ -23,9 +23,11 @@ interface HeaderProps {
     activeSection: Section;
     /** Callback function to handle switching between sections. */
     onSwitchSection: () => void;
+    /** The role of the currently logged-in user. */
+    userRole: UserRole | null;
 }
 
-const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection, onSwitchSection }) => {
+const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection, onSwitchSection, userRole }) => {
     // State to manage the visibility of the mobile menu.
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     
@@ -49,6 +51,10 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
     const navLinkClasses = `px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`;
     const iconButtonClasses = `p-2 rounded-full text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`;
     const mobileNavLinkClasses = `block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-white/10 hover:text-white`;
+
+    // Permission checks
+    const canAccessSettings = userRole && ['admin', 'captain', 'officer'].includes(userRole);
+    const canAccessAuditLog = userRole && ['admin', 'captain', 'officer'].includes(userRole);
 
     return (
         <header className={`${bgColor} text-white shadow-md sticky top-0 z-20`}>
@@ -84,15 +90,19 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                 <button onClick={() => handleNavClick('home')} className={navLinkClasses}>Home</button>
                                 <button onClick={() => handleNavClick('dashboard')} className={navLinkClasses}>Dashboard</button>
                                 <button onClick={() => handleNavClick('weeklyMarks')} className={navLinkClasses}>Weekly Marks</button>
-                                <button onClick={() => handleNavClick('auditLog')} className={navLinkClasses}>Audit Log</button>
+                                {canAccessAuditLog && (
+                                    <button onClick={() => handleNavClick('auditLog')} className={navLinkClasses}>Audit Log</button>
+                                )}
                                 
                                 {/* Icon-based buttons for less frequent actions */}
                                 <button onClick={() => handleNavClick('help')} title="Help" aria-label="Help" className={iconButtonClasses}>
                                     <QuestionMarkCircleIcon className="h-6 w-6"/>
                                 </button>
-                                <button onClick={() => handleNavClick('settings')} title="Settings" aria-label="Settings" className={iconButtonClasses}>
-                                    <CogIcon className="h-6 w-6"/>
-                                </button>
+                                {canAccessSettings && (
+                                    <button onClick={() => handleNavClick('settings')} title="Settings" aria-label="Settings" className={iconButtonClasses}>
+                                        <CogIcon className="h-6 w-6"/>
+                                    </button>
+                                )}
                                 <button onClick={onSwitchSection} title="Switch Section" aria-label="Switch Section" className={iconButtonClasses}>
                                     <SwitchHorizontalIcon className="h-6 w-6"/>
                                 </button>
@@ -125,13 +135,17 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                         <button onClick={() => handleNavClick('home')} className={mobileNavLinkClasses}>Home</button>
                         <button onClick={() => handleNavClick('dashboard')} className={mobileNavLinkClasses}>Dashboard</button>
                         <button onClick={() => handleNavClick('weeklyMarks')} className={mobileNavLinkClasses}>Weekly Marks</button>
-                        <button onClick={() => handleNavClick('auditLog')} className={mobileNavLinkClasses}>Audit Log</button>
+                        {canAccessAuditLog && (
+                            <button onClick={() => handleNavClick('auditLog')} className={mobileNavLinkClasses}>Audit Log</button>
+                        )}
                         <button onClick={() => handleNavClick('help')} className={mobileNavLinkClasses}>
                             <div className="flex items-center"><QuestionMarkCircleIcon className="h-5 w-5 mr-3"/><span>Help</span></div>
                         </button>
-                        <button onClick={() => handleNavClick('settings')} className={mobileNavLinkClasses}>
-                            <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Settings</span></div>
-                        </button>
+                        {canAccessSettings && (
+                            <button onClick={() => handleNavClick('settings')} className={mobileNavLinkClasses}>
+                                <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Settings</span></div>
+                            </button>
+                        )}
                         <button onClick={onSwitchSection} className={mobileNavLinkClasses}>
                             <div className="flex items-center"><SwitchHorizontalIcon className="h-5 w-5 mr-3"/><span>Switch Section</span></div>
                         </button>
