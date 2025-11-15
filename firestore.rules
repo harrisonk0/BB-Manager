@@ -1,48 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper function to retrieve the requesting user's role
-    function getUserRole(userId) {
-      return get(/databases/$(database)/documents/user_roles/$(userId)).data.role;
-    }
-
-    // Rules for the user_roles collection
-    match /user_roles/{userId} {
-      // Users can read their own role
-      allow read: if request.auth.uid == userId;
-      // Only admins can create or update roles
-      allow create, update: if getUserRole(request.auth.uid) == 'admin';
-      // No one can delete role documents directly
-      allow delete: if false;
-    }
-
-    // Rules for the settings collection
-    match /settings/{sectionId} {
-      // Admins, Captains, and Officers can read settings
-      allow read: if getUserRole(request.auth.uid) in ['admin', 'captain', 'officer'];
-      // Only Admins and Captains can create or update settings
-      allow create, update: if getUserRole(request.auth.uid) in ['admin', 'captain'];
-      // No one can delete settings documents directly
-      allow delete: if false;
-    }
-
-    // Rules for the invite_codes collection
-    match /invite_codes/{codeId} {
-      // Only Admins and Captains can read, create, update, or delete invite codes
-      allow read, write: if getUserRole(request.auth.uid) in ['admin', 'captain'];
-    }
-
-    // Rules for user_activity collection
-    match /user_activity/{userId} {
-      // Users can read and write their own activity status
-      allow read, write: if request.auth.uid == userId;
-    }
-
-    // Consolidated rules for section-specific data (boys and audit_logs)
-    // This uses a regex to match collections like 'company_boys', 'junior_boys', 'company_audit_logs', 'junior_audit_logs'
-    match /{collectionId}/{documentId} {
-      allow read, write: if collectionId.matches('^(company|junior)_(boys|audit_logs)$') && getUserRole(request.auth.uid) in ['admin', 'captain', 'officer'];
+    // Allow read/write access to any document only if the user is signed in.
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
