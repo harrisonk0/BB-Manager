@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
         <header className={`${bgColor} text-white shadow-md sticky top-0 z-20`}>
             <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-20">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 md:space-x-4"> {/* Adjusted spacing */}
                         {/* Main BB Logo - acts as a "Home" button */}
                         <button 
                             onClick={() => handleNavClick('home')} 
@@ -64,15 +64,15 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                             <img 
                                 src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 
                                 alt="The Boys' Brigade Logo" 
-                                className="h-14 rounded-md"
+                                className="h-14 sm:h-12 rounded-md" // Main logo smaller on sm
                             />
                         </button>
-                        {/* Section-specific logo, hidden on small screens */}
-                        <div className="hidden sm:flex items-center border-l border-white/20 pl-4">
+                        {/* Section-specific logo, hidden on small screens, shown on md and up */}
+                        <div className="hidden md:flex items-center border-l border-white/20 pl-4"> {/* Changed sm:flex to md:flex */}
                           <img
                             src={isCompany ? "https://i.postimg.cc/0j44DjdY/company-boxed-colour.png" : "https://i.postimg.cc/W1qvWLdp/juniors-boxed-colour.png"}
                             alt={`${sectionName} Logo`}
-                            className="h-12 rounded-md"
+                            className="h-10 rounded-md" // Section logo smaller
                           />
                         </div>
                     </div>
