@@ -56,6 +56,9 @@ const App: React.FC = () => {
   // State for toast notifications.
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
+  // New state to track if the initial login toast has been shown for the current session
+  const [hasShownLoginToast, setHasShownLoginToast] = useState(false);
+
   /**
    * Displays a toast notification.
    */
@@ -90,6 +93,88 @@ const App: React.FC = () => {
   }, [activeSection]);
 
   /**
+   * A wrapper around refreshData that also manages the global loading state.
+   */
+  const loadDataAndSettings = useCallback(async () => {
+    if (!activeSection) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await refreshData();
+    } catch (err: any) {
+      console.error("Failed to fetch data:", err);
+      setError(`Failed to connect to the database. You may not have permission. Error: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [activeSection, refreshData]);
+  
+  /**
+   * EFFECT 1: Firebase Initialization and Auth State Listener (runs once on mount)
+   * This effect is responsible for setting up the Firebase app and listening to auth state changes.
+   * It should run only once to avoid re-subscribing the auth listener.
+   */
+  useEffect(() => {
+    try {
+      initializeFirebase();
+      const auth = getAuthInstance();
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setCurrentUser(user);
+        if (!user) {
+          // If user is logged out, clear all user-related state.
+          setIsLoading(false); 
+          setActiveSection(null);
+          setSettings(null);
+          localStorage.removeItem('activeSection');
+          setHasShownLoginToast(false); // Reset the toast flag on logout
+        }
+        // Other actions related to user login (like data loading or toast)
+        // will be handled in a separate useEffect that depends on `currentUser` and `activeSection`.
+      });
+      return () => unsubscribe(); // Cleanup the auth listener on component unmount.
+    } catch (err: any) {
+      setError(`Failed to initialize Firebase. Error: ${err.message}`);
+      setIsLoading(false);
+    }
+  }, []); // Empty dependency array ensures this runs only once on mount.
+
+  /**
+   * EFFECT 2: Handle actions *after* user logs in or section changes (data loading, toast)
+   * This effect reacts to `currentUser` and `activeSection` changes to perform subsequent actions.
+   */
+  useEffect(() => {
+    if (currentUser === undefined) {
+      // Still checking auth status, show skeleton.
+      setIsLoading(true);
+    } else if (currentUser) { // User is logged in
+      // Show "last active" toast only once per login session
+      if (!hasShownLoginToast && currentUser.email) {
+        (async () => {
+          await updateUserActivity(currentUser.email!);
+          const recentUsers = await fetchRecentActivity(currentUser.email!);
+          if (recentUsers.length > 0) {
+              const usersToShow = recentUsers.slice(0, 3);
+              const usersString = usersToShow.join(', ');
+              const message = `Last active: ${usersString}`;
+              showToast(message, 'info');
+          }
+          setHasShownLoginToast(true); // Mark toast as shown for this session
+        })();
+      }
+
+      // If user is logged in AND activeSection is set, load data and clean up audit logs.
+      // Otherwise, if logged in but no section, stop loading to show SectionSelectPage.
+      if (activeSection) {
+        deleteOldAuditLogs(activeSection).then(() => {
+          loadDataAndSettings();
+        });
+      } else {
+        setIsLoading(false);
+      }
+    }
+  }, [currentUser, activeSection, loadDataAndSettings, showToast, hasShownLoginToast]); // Dependencies for this effect.
+
+  /**
    * EFFECT: Handles online/offline status changes.
    * When the app comes online, it attempts to sync any pending offline writes.
    * If the sync is successful, it refreshes the local data.
@@ -117,73 +202,6 @@ const App: React.FC = () => {
     };
   }, [refreshData, showToast]);
   
-  /**
-   * A wrapper around refreshData that also manages the global loading state.
-   */
-  const loadDataAndSettings = useCallback(async () => {
-    if (!activeSection) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      await refreshData();
-    } catch (err: any) {
-      console.error("Failed to fetch data:", err);
-      setError(`Failed to connect to the database. You may not have permission. Error: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeSection, refreshData]);
-  
-  /**
-   * EFFECT: Handles Firebase initialization and authentication state.
-   * This is the main effect that drives the application's lifecycle.
-   */
-  useEffect(() => {
-    try {
-      initializeFirebase();
-      const auth = getAuthInstance();
-      // Listen for changes in the user's authentication state.
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-        setCurrentUser(user);
-        if (user) {
-          // Fire-and-forget activity update and toast notification.
-          if (user.email) {
-            (async () => {
-              await updateUserActivity(user.email!);
-              const recentUsers = await fetchRecentActivity(user.email!);
-              if (recentUsers.length > 0) {
-                  const usersToShow = recentUsers.slice(0, 3);
-                  const usersString = usersToShow.join(', ');
-                  const message = `Last active: ${usersString}`;
-                  showToast(message, 'info');
-              }
-            })();
-          }
-          // If user is logged in, run cleanup tasks.
-          if(activeSection) {
-            deleteOldAuditLogs(activeSection).then(() => {
-              loadDataAndSettings();
-            });
-          } else {
-            // If logged in but no section selected, stop loading and show section select page.
-            setIsLoading(false); 
-          }
-        } else {
-          // If user is logged out, clear all state and stop loading.
-          setIsLoading(false); 
-          setActiveSection(null);
-          setSettings(null);
-          localStorage.removeItem('activeSection');
-        }
-      });
-      // Cleanup subscription on component unmount.
-      return () => unsubscribe();
-    } catch (err: any) {
-      setError(`Failed to initialize Firebase. Error: ${err.message}`);
-      setIsLoading(false);
-    }
-  }, [loadDataAndSettings, activeSection, showToast]);
-
   /**
    * EFFECT: Listens for custom 'datarefreshed' event.
    * This is triggered by the background sync in services/db.ts. When the local cache
@@ -242,6 +260,7 @@ const App: React.FC = () => {
       setActiveSection(null);
       localStorage.removeItem('activeSection');
       setHasUnsavedChanges(false);
+      setHasShownLoginToast(false); // Reset toast flag on sign out
     } catch (error) {
       console.error('Sign out failed', error);
       setError('Failed to sign out. Please try again.');
