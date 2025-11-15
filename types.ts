@@ -75,8 +75,8 @@ export interface AuditLog {
   description: string;
   /** Data needed to revert the action (e.g., the state of an object before a change). */
   revertData: any;
-  /** A flag indicating if this action has been reverted. */
-  reverted?: boolean;
+  /** The ID of the original audit log that this REVERT_ACTION log is reverting. */
+  revertedLogId?: string;
 }
 
 /**

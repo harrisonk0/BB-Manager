@@ -57,6 +57,8 @@ export const syncPendingWrites = async (): Promise<boolean> => {
     // Keep track of local IDB changes needed after a successful sync.
     const boysToUpdateInIDB: { boy: Boy, section: Section }[] = [];
     const boysToDeleteFromIDB: { tempId: string, section: Section }[] = [];
+    const logsToUpdateInIDB: { log: AuditLog, section: Section }[] = [];
+    const logsToDeleteFromIDB: { tempId: string, section: Section }[] = [];
     
     for (const write of pendingWrites) {
         const boysCollection = getCollectionName(write.section, 'boys');
@@ -98,14 +100,17 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 const logData = { ...write.payload, timestamp: serverTimestamp() };
                 const docRef = doc(collection(db, logsCollection));
                 batch.set(docRef, logData);
+                // If this was an offline creation of an audit log, we need to update its ID in IndexedDB.
+                if (write.tempId) {
+                    // The timestamp from serverTimestamp() is not immediately available client-side.
+                    // For local consistency, we'll use Date.now() for the IDB update.
+                    const newLog = { ...write.payload, id: docRef.id, timestamp: Date.now() };
+                    logsToUpdateInIDB.push({ log: newLog, section: write.section });
+                    logsToDeleteFromIDB.push({ tempId: write.tempId, section: write.section });
+                }
                 break;
             }
-            case 'UPDATE_AUDIT_LOG': {
-                 const { id, ...logData } = write.payload;
-                 const docRef = doc(db, logsCollection, id);
-                 batch.update(docRef, logData);
-                 break;
-            }
+            // Removed UPDATE_AUDIT_LOG case as audit logs are now immutable.
         }
     }
     
@@ -119,6 +124,13 @@ export const syncPendingWrites = async (): Promise<boolean> => {
         }
         for (const { boy, section } of boysToUpdateInIDB) {
             await saveBoyToDB(boy, section);
+        }
+        // New: Handle audit log ID updates
+        for(const { tempId, section } of logsToDeleteFromIDB) {
+            await deleteLogFromDB(tempId, section);
+        }
+        for (const { log, section } of logsToUpdateInIDB) {
+            await saveLogToDB(log, section);
         }
 
         console.log('Sync successful.');
@@ -327,16 +339,25 @@ export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, se
   if (!auth.currentUser) throw new Error("User not authenticated for logging");
   const timestamp = Date.now();
   
+  // Construct the log payload, including revertedLogId if present.
+  const logPayload = {
+      userEmail: log.userEmail,
+      actionType: log.actionType,
+      description: log.description,
+      revertData: log.revertData,
+      ...(log.revertedLogId && { revertedLogId: log.revertedLogId }) // Conditionally add revertedLogId
+  };
+
   if (navigator.onLine) {
-    const logData = { ...log, timestamp: serverTimestamp() };
+    const logData = { ...logPayload, timestamp: serverTimestamp() };
     const docRef = await addDoc(collection(getDb(), getCollectionName(section, 'audit_logs')), logData);
-    const newLog = { ...log, id: docRef.id, timestamp };
+    const newLog = { ...logPayload, id: docRef.id, timestamp };
     await saveLogToDB(newLog, section);
     return newLog;
   } else {
     const tempId = `offline_${crypto.randomUUID()}`;
-    const newLog = { ...log, id: tempId, timestamp };
-    await addPendingWrite({ type: 'CREATE_AUDIT_LOG', payload: log, tempId, section });
+    const newLog = { ...logPayload, id: tempId, timestamp };
+    await addPendingWrite({ type: 'CREATE_AUDIT_LOG', payload: logPayload, tempId, section });
     await saveLogToDB(newLog, section);
     return newLog;
   }
@@ -348,6 +369,7 @@ export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, se
  * @returns An array of AuditLog objects, sorted descending by timestamp.
  */
 export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
+    await openDB(); // Ensure DB is ready
     const auth = getAuthInstance();
     if (!auth.currentUser) return [];
 
@@ -373,8 +395,14 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
 
                 // More robust deep comparison logic
                 const comparableLog = (log: AuditLog) => ({
-                    ...log,
-                    reverted: !!log.reverted, // Coerce undefined to false
+                    id: log.id,
+                    timestamp: log.timestamp,
+                    userEmail: log.userEmail,
+                    actionType: log.actionType,
+                    description: log.description,
+                    // revertData is dynamic, so we stringify it for comparison
+                    revertData: JSON.stringify(log.revertData),
+                    revertedLogId: log.revertedLogId ?? null, // Coerce undefined to null
                 });
 
                 // Both fresh and cached logs are already sorted by timestamp.
@@ -413,27 +441,7 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
     return [];
 };
 
-/**
- * Updates an existing audit log (e.g., to mark it as 'reverted'). Handles online/offline logic.
- * @param log The complete AuditLog object with updated data.
- * @param section The section the log belongs to.
- * @returns The updated AuditLog object.
- */
-export const updateAuditLog = async (log: AuditLog, section: Section): Promise<AuditLog> => {
-  if (!log.id) throw new Error("Log must have an ID to be updated");
-  const auth = getAuthInstance();
-  if (!auth.currentUser) throw new Error("User not authenticated");
-
-  if (navigator.onLine) {
-    const { id, ...logData } = log;
-    await updateDoc(doc(getDb(), getCollectionName(section, 'audit_logs'), id), logData as any);
-    await saveLogToDB(log, section);
-  } else {
-    await addPendingWrite({ type: 'UPDATE_AUDIT_LOG', payload: log, section });
-    await saveLogToDB(log, section);
-  }
-  return log;
-};
+// Removed updateAuditLog as audit logs are now immutable.
 
 /**
  * Deletes audit logs older than 14 days from both IndexedDB and Firestore to manage storage.

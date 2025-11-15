@@ -15,8 +15,8 @@ import { Boy, AuditLog, Section } from '../types';
 export type PendingWrite = {
   id?: number;
   section: Section;
-  type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG' | 'UPDATE_AUDIT_LOG';
-  payload: any;
+  type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG';
+  payload: any; // This payload will now contain the full AuditLog data (without ID/timestamp)
   tempId?: string; // Used to track temporarily created boys before they get a real Firestore ID.
 };
 

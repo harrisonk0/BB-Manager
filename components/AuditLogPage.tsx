@@ -5,8 +5,8 @@
  * to revert most actions, such as accidental deletions or incorrect mark updates.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { fetchAuditLogs, createAuditLog, updateAuditLog, deleteBoyById, recreateBoy, updateBoy } from '../services/db';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy } from '../services/db';
 import { saveSettings } from '../services/settings';
 import { getAuthInstance } from '../services/firebase';
 import { AuditLog, Boy, Section, SectionSettings, ToastType } from '../types';
@@ -89,6 +89,11 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     };
   }, [activeSection, loadLogs]);
   
+  // Memoized set of log IDs that have been reverted by a REVERT_ACTION log.
+  const revertedLogIds = useMemo(() => {
+    return new Set(logs.filter(log => log.actionType === 'REVERT_ACTION' && log.revertedLogId).map(log => log.revertedLogId));
+  }, [logs]);
+
   // --- EVENT HANDLERS ---
   const handleOpenRevertModal = (log: AuditLog) => {
     setLogToRevert(log);
@@ -141,10 +146,8 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
       
       // After successfully reverting, perform cleanup and logging.
       
-      // 1. Mark the original log entry as 'reverted' so it can't be reverted again.
-      await updateAuditLog({ ...logToRevert, reverted: true }, activeSection);
-
-      // 2. Create a new log entry for the revert action itself.
+      // Audit logs are now immutable. Instead of marking the original log as 'reverted',
+      // we create a new log entry for the revert action itself, linking it to the original.
       const auth = getAuthInstance();
       const userEmail = auth.currentUser?.email || 'Unknown User';
       await createAuditLog({
@@ -152,6 +155,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
         actionType: 'REVERT_ACTION',
         description: `Reverted action: "${logToRevert.description}"`,
         revertData: {}, // Revert actions cannot be reverted.
+        revertedLogId: logToRevert.id, // Link this revert action to the original log
       }, activeSection);
       
       showToast('Action reverted successfully.', 'success');
@@ -198,7 +202,10 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
           {logs.map((log) => {
             const Icon = ACTION_ICONS[log.actionType] || PencilIcon;
             const colorClass = ACTION_COLORS[log.actionType] || 'bg-slate-100 text-slate-600';
-            const canRevert = log.actionType !== 'REVERT_ACTION' && !log.reverted;
+            
+            // Determine if this log has been reverted by checking the `revertedLogIds` set.
+            const hasBeenReverted = revertedLogIds.has(log.id);
+            const canRevert = log.actionType !== 'REVERT_ACTION' && !hasBeenReverted;
 
             return (
               <li key={log.id} className="bg-white shadow-md rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -223,7 +230,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
                     Revert
                   </button>
                 )}
-                {log.reverted && (
+                {hasBeenReverted && (
                     <span className="px-3 py-1.5 text-sm font-medium text-slate-500 bg-slate-100 rounded-md">Reverted</span>
                 )}
               </li>
