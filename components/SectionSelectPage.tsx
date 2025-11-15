@@ -27,7 +27,7 @@ const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, 
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-200 p-4">
        <button 
         onClick={onNavigateToHelp} 
-        className="absolute bottom-6 right-20 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full"
+        className={`absolute bottom-6 ${canAccessGlobalSettings ? 'right-20' : 'right-6'} text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full`}
         aria-label="Help"
       >
         <QuestionMarkCircleIcon className="h-8 w-8" />
