@@ -164,7 +164,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   };
 
   const handleAttendanceToggle = (boyId: string) => {
-    const newStatus = attendance[boyId] === 'present' ? 'absent' : 'present'; // FIX: Changed 'boy.id' to 'boyId'
+    const newStatus = attendance[boyId] === 'present' ? 'absent' : 'present';
     setAttendance(prev => ({ ...prev, [boyId]: newStatus }));
 
     if (newStatus === 'absent') {
@@ -231,8 +231,8 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                 }
             } else { // Junior Section
                 const newScores = marks[boy.id] as JuniorMarkState;
-                const uniformScore = newScores.uniform === '' ? 0 : parseFloat(newScores.uniform as string); // FIX: Removed 'as string'
-                const behaviourScore = newScores.behaviour === '' ? 0 : parseFloat(newScores.behaviour as string); // FIX: Removed 'as string'
+                const uniformScore = newScores.uniform === '' ? 0 : parseFloat(String(newScores.uniform));
+                const behaviourScore = newScores.behaviour === '' ? 0 : parseFloat(String(newScores.behaviour));
                 const finalScore = uniformScore + behaviourScore;
                 
                 if (markIndex > -1) {
@@ -336,7 +336,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       const total = squadBoys.length;
       if (total === 0) {
         stats[squad] = { present: 0, total: 0, percentage: 0 };
-        continue;
+        continue;;
       }
       const present = squadBoys.filter(boy => boy.id && attendance[boy.id] === 'present').length;
       const percentage = Math.round((present / total) * 100);
