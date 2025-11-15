@@ -154,7 +154,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
     
     for (const write of pendingWrites) {
         const boysCollection = write.section ? getCollectionName(write.section, 'boys') : '';
-        const logsCollection = write.section ? getCollectionName(write.section, 'audit_logs') : '';
+        const logsCollection = write.section ? getCollectionName(write.section, 'audit_logs') : 'global_audit_logs'; // Use global for non-section logs
         const inviteCodesCollection = getCollectionName(null as any, 'invite_codes'); // Invite codes are global
 
         switch (write.type) {
@@ -755,43 +755,37 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
             console.error("Failed to delete old logs from Firestore:", error);
         }
 
-        // --- Clean up Firestore invite codes ---
+        // --- Clean up Firestore invite codes (client-side filtering) ---
         try {
             const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
-            const oldUsedCodesQuery = query(
-                collection(db, inviteCodesCollection),
-                where('isUsed', '==', true),
-                where('usedAt', '<', cutoffFirestoreTimestamp)
-            );
-            const oldRevokedCodesQuery = query(
-                collection(db, inviteCodesCollection),
-                where('revoked', '==', true),
-                where('usedAt', '<', cutoffFirestoreTimestamp) // Use usedAt for revoked codes too, if available
-            );
-            // Also consider codes that were generated but never used/revoked, if they are very old
-            const oldUnusedCodesQuery = query(
-                collection(db, inviteCodesCollection),
-                where('isUsed', '==', false),
-                where('revoked', '==', false),
-                where('generatedAt', '<', cutoffFirestoreTimestamp)
-            );
+            // Fetch all invite codes and filter client-side to avoid complex indexes
+            const snapshot = await getDocs(collection(db, inviteCodesCollection));
+            const allCodes: InviteCode[] = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const ts = data.generatedAt;
+                let generatedAtInMillis: number;
+                if (ts && typeof ts.toMillis === 'function') {
+                    generatedAtInMillis = ts.toMillis();
+                } else if (typeof ts === 'number') {
+                    generatedAtInMillis = ts;
+                } else {
+                    generatedAtInMillis = Date.now();
+                }
+                return { ...data, id: doc.id, generatedAt: generatedAtInMillis } as InviteCode;
+            });
 
-            const [usedSnapshot, revokedSnapshot, unusedSnapshot] = await Promise.all([
-                getDocs(oldUsedCodesQuery),
-                getDocs(oldRevokedCodesQuery),
-                getDocs(oldUnusedCodesQuery)
-            ]);
+            const codesToDelete = allCodes.filter(code => {
+                const effectiveTimestamp = code.usedAt || code.generatedAt || 0;
+                return (code.isUsed || code.revoked || (!code.isUsed && !code.revoked)) && effectiveTimestamp < cutoffTimestamp;
+            });
 
-            const batch = writeBatch(db);
-            let deletedCount = 0;
-
-            usedSnapshot.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
-            revokedSnapshot.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
-            unusedSnapshot.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
-
-            if (deletedCount > 0) {
+            if (codesToDelete.length > 0) {
+                const batch = writeBatch(db);
+                codesToDelete.forEach(code => {
+                    batch.delete(doc(db, inviteCodesCollection, code.id));
+                });
                 await batch.commit();
-                console.log(`Deleted ${deletedCount} old invite codes from Firestore.`);
+                console.log(`Deleted ${codesToDelete.length} old invite codes from Firestore.`);
             }
         } catch (error) {
             console.error("Failed to delete old invite codes from Firestore:", error);
@@ -876,7 +870,8 @@ export const updateInviteCode = async (id: string, updates: Partial<InviteCode>,
     const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated to update invite code");
-    if (!userRole || !['admin', 'captain'].includes(userRole)) {
+    // Allow update if userRole is null (for signup page) or if admin/captain
+    if (userRole !== null && !['admin', 'captain'].includes(userRole)) {
         throw new Error("Permission denied: Only Admins and Captains can update invite codes.");
     }
 
@@ -960,7 +955,7 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
     const cachedCodes = await getAllInviteCodesFromDB();
     if (cachedCodes.length > 0) {
         if (navigator.onLine) {
-            const q = query(collection(getDb(), getCollectionName(null as any, 'invite_codes')), orderBy('generatedAt', 'desc'));
+            const q = collection(getDb(), getCollectionName(null as any, 'invite_codes')); // Removed orderBy
             getDocs(q).then(snapshot => {
                 const freshCodes = snapshot.docs.map(doc => {
                     const data = doc.data();
@@ -975,6 +970,9 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
                     }
                     return { ...data, id: doc.id, generatedAt: generatedAtInMillis } as InviteCode;
                 });
+
+                // Sort client-side after fetching
+                freshCodes.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0));
 
                 // Robust deep comparison logic for InviteCode objects
                 const comparableInviteCode = (code: InviteCode) => ({
@@ -1000,7 +998,31 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
                 }
             }).catch(err => console.error("Background fetch for invite codes failed:", err));
         }
+        // Sort cached codes client-side before returning
+        cachedCodes.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0));
         return cachedCodes;
+    }
+
+    if (navigator.onLine) {
+        const q = collection(getDb(), getCollectionName(null as any, 'invite_codes')); // Removed orderBy
+        const snapshot = await getDocs(q);
+        const codes = snapshot.docs.map((doc: any) => {
+            const data = doc.data();
+            const ts = data.generatedAt;
+            let generatedAtInMillis: number;
+            if (ts && typeof ts.toMillis === 'function') {
+                generatedAtInMillis = ts.toMillis();
+            } else if (typeof ts === 'number') {
+                generatedAtInMillis = ts;
+            } else {
+                generatedAtInMillis = Date.now();
+            }
+            return { ...data, id: doc.id, generatedAt: generatedAtInMillis } as InviteCode;
+        });
+        // Sort client-side before saving and returning
+        codes.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0));
+        await Promise.all(codes.map(code => saveInviteCodeToDB(code)));
+        return codes;
     }
 
     return [];
