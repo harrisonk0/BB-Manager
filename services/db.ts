@@ -1119,7 +1119,7 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
     if (!auth.currentUser) return []; // Only authenticated users can view all codes
     if (!userRole || !['admin', 'captain'].includes(userRole)) {
         // Officers should not see all invite codes.
-        return [];
+        return []; // Return empty array immediately for unauthorized roles
     }
 
     const cachedCodes = await getAllInviteCodesFromDB();
