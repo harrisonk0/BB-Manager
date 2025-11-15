@@ -166,15 +166,14 @@ const App: React.FC = () => {
       // If user is logged in AND activeSection is set, load data and clean up audit logs.
       // Otherwise, if logged in but no section, stop loading to show SectionSelectPage.
       if (activeSection) {
-        // Pass userRole to deleteOldAuditLogs
-        deleteOldAuditLogs(activeSection, userRole).then(() => {
+        deleteOldAuditLogs(activeSection).then(() => {
           loadDataAndSettings();
         });
       } else {
         setIsLoading(false);
       }
     }
-  }, [currentUser, activeSection, loadDataAndSettings, userRole]); // Added userRole to dependencies.
+  }, [currentUser, activeSection, loadDataAndSettings]); // Dependencies for this effect.
 
   /**
    * EFFECT: Handles online/offline status changes.
@@ -417,7 +416,7 @@ const App: React.FC = () => {
     // 3. If user is not logged in, show the login page or signup page.
     if (!currentUser) {
         if (view.page === 'signup') {
-            return <SignupPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => setView({ page: 'home' })} />;
+            return <SignupPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} />;
         }
         return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onNavigateToSignup={handleNavigation} />;
     }

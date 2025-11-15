@@ -244,8 +244,8 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 if (write.payload.usedAt !== undefined) {
                     updatePayload.usedAt = serverTimestamp();
                 }
-                if (write.payload.generatedAt !== undefined) { // Should not happen for updates, but for consistency
-                    updatePayload.generatedAt = serverTimestamp();
+                if (write.payload.revoked !== undefined) {
+                    updatePayload.revoked = write.payload.revoked;
                 }
                 batch.update(docRef, updatePayload);
                 inviteCodesToUpdateInIDB.push({ ...write.payload, usedAt: write.payload.usedAt !== undefined ? Date.now() : write.payload.usedAt }); // Update usedAt locally if present
@@ -399,30 +399,6 @@ export const updateUserRole = async (uid: string, newRole: UserRole, actingUserR
     } catch (error: any) {
         console.error("Failed to update user role:", error);
         throw new Error(error.message || "Failed to update role. Please try again.");
-    }
-};
-
-/**
- * Assigns an initial role to a newly created user.
- * This function is intended to be called during the signup process by the new user themselves.
- * It relies on Firestore Security Rules to enforce that a user can only create their own role
- * and only assign themselves 'officer' or 'captain' roles.
- * @param uid The Firebase User ID (UID) of the new user.
- * @param email The email of the new user.
- * @param role The initial role to assign.
- * @returns A promise that resolves when the role is assigned.
- * @throws Error if the operation fails (e.g., due to Firestore rules).
- */
-export const assignInitialUserRole = async (uid: string, email: string, role: UserRole): Promise<void> => {
-    if (!navigator.onLine) throw new Error("Role assignment is only available online.");
-    try {
-        const db = getDb();
-        const docRef = doc(db, getCollectionName(null, 'user_roles'), uid);
-        await setDoc(docRef, { email, role });
-        console.log(`Assigned initial role '${role}' to user ${email} (${uid}).`);
-    } catch (error: any) {
-        console.error("Failed to assign initial user role:", error);
-        throw new Error(error.message || "Failed to assign initial role. Please contact an administrator.");
     }
 };
 
@@ -791,9 +767,8 @@ export const clearAllAuditLogs = async (section: Section, userEmail: string, use
  * Deletes audit logs and invite codes older than 14 days from both IndexedDB and Firestore to manage storage.
  * This is typically run on app startup.
  * @param section The section to clean up logs and invite codes for.
- * @param userRole The role of the user performing the cleanup.
  */
-export const deleteOldAuditLogs = async (section: Section, userRole: UserRole | null): Promise<void> => {
+export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
     const fourteenDaysInMillis = 14 * 24 * 60 * 60 * 1000;
     const cutoffTimestamp = Date.now() - fourteenDaysInMillis;
 
@@ -827,8 +802,8 @@ export const deleteOldAuditLogs = async (section: Section, userRole: UserRole | 
         console.error("Failed to delete old invite codes from IndexedDB:", error);
     }
 
-    // If online and user is admin, clean up Firestore logs and invite codes.
-    if (navigator.onLine && userRole === 'admin') {
+    // If online, clean up Firestore logs and invite codes.
+    if (navigator.onLine) {
         const db = getDb();
         const cutoffFirestoreTimestamp = Timestamp.fromMillis(cutoffTimestamp);
 
@@ -967,12 +942,12 @@ export const clearAllLocalData = async (section: Section, userEmail: string, use
 
 /**
  * Creates a new invite code.
- * @param code The invite code data to create (without 'id' or 'generatedAt').
+ * @param code The invite code data to create.
  * @param section The section the code is associated with.
  * @param userRole The role of the user attempting to create the code.
  * @returns The newly created InviteCode object.
  */
-export const createInviteCode = async (code: Omit<InviteCode, 'generatedAt' | 'id'>, section: Section, userRole: UserRole | null): Promise<InviteCode> => {
+export const createInviteCode = async (code: Omit<InviteCode, 'generatedAt'>, section: Section, userRole: UserRole | null): Promise<InviteCode> => {
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated to create invite code");
     if (!userRole || !['admin', 'captain'].includes(userRole)) {
@@ -1119,7 +1094,7 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
     if (!auth.currentUser) return []; // Only authenticated users can view all codes
     if (!userRole || !['admin', 'captain'].includes(userRole)) {
         // Officers should not see all invite codes.
-        return []; // Return empty array immediately for unauthorized roles
+        return [];
     }
 
     const cachedCodes = await getAllInviteCodesFromDB();
@@ -1154,7 +1129,6 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
                     usedBy: code.usedBy ?? null,
                     usedAt: code.usedAt ?? null,
                     revoked: code.revoked ?? null, // Include revoked status in comparison
-                    initialRole: code.initialRole ?? null, // Include initialRole in comparison
                 });
 
                 // Sort both arrays by ID to ensure consistent order for comparison.
