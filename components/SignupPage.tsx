@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { getAuthInstance } from '../services/firebase';
-import { fetchInviteCode, updateInviteCode, createAuditLog } from '../services/db';
+import { fetchInviteCode, updateInviteCode, createAuditLog, setUserRole } from '../services/db';
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, Section } from '../types';
 
@@ -58,7 +58,10 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const newUser = userCredential.user;
 
-      // 3. Mark Invite Code as Used
+      // 3. Assign Default Role to New User
+      await setUserRole(newUser.uid, newUser.email || email, fetchedCode.defaultUserRole);
+
+      // 4. Mark Invite Code as Used
       const updatedCode = {
         ...fetchedCode,
         isUsed: true,
@@ -67,12 +70,12 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       };
       await updateInviteCode(updatedCode.id, updatedCode, null);
 
-      // 4. Create Audit Log Entry
+      // 5. Create Audit Log Entry
       await createAuditLog({
         userEmail: newUser.email || 'Unknown',
         actionType: 'USE_INVITE_CODE',
-        description: `New user '${newUser.email}' signed up using invite code '${inviteCode}'.`,
-        revertData: { userId: newUser.uid, inviteCodeId: inviteCode },
+        description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${fetchedCode.defaultUserRole}'.`,
+        revertData: { userId: newUser.uid, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
       }, fetchedCode.section || null);
 
       showToast('Account created successfully! Please select your section.', 'success');

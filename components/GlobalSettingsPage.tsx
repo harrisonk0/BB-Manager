@@ -15,7 +15,7 @@ import {
 } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
 import { ClipboardIcon } from './Icons';
-import Modal from './Modal';
+import Modal from './Modal'; // Corrected import path
 
 interface GlobalSettingsPageProps {
   activeSection: Section; // Still needed for audit logging and clear local data
@@ -144,6 +144,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
         generatedBy: userEmail,
         isUsed: false,
         section: activeSection,
+        defaultUserRole: 'officer', 
       };
 
       const createdCode = await createInviteCode(newInviteCode, activeSection, userRole);

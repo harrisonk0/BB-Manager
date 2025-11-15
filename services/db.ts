@@ -183,6 +183,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
         const boysCollection = write.section ? getCollectionName(write.section, 'boys') : '';
         const logsCollection = write.section ? getCollectionName(write.section, 'audit_logs') : getCollectionName(null, 'audit_logs'); // Use global for non-section logs
         const inviteCodesCollection = getCollectionName(null, 'invite_codes'); // Invite codes are global
+        const userRolesCollection = getCollectionName(null, 'user_roles'); // User roles are global
 
         switch (write.type) {
             case 'CREATE_BOY': {
@@ -333,6 +334,25 @@ export const fetchAllUserRoles = async (actingUserRole: UserRole | null): Promis
     } catch (error) {
         console.error("Failed to fetch all user roles:", error);
         throw new Error("Failed to fetch user roles.");
+    }
+};
+
+/**
+ * Sets a user's role in the 'user_roles' collection.
+ * This is used for initial role assignment during signup.
+ * @param uid The Firebase User ID (UID) of the user.
+ * @param email The email of the user.
+ * @param role The role to assign.
+ */
+export const setUserRole = async (uid: string, email: string, role: UserRole): Promise<void> => {
+    if (!navigator.onLine) throw new Error("Role assignment is only available online.");
+    try {
+        const db = getDb();
+        const docRef = doc(db, getCollectionName(null, 'user_roles'), uid);
+        await setDoc(docRef, { email, role }, { merge: true });
+    } catch (error) {
+        console.error("Failed to set user role:", error);
+        throw new Error("Failed to set user role.");
     }
 };
 
@@ -947,7 +967,7 @@ export const clearAllLocalData = async (section: Section, userEmail: string, use
  * @param userRole The role of the user attempting to create the code.
  * @returns The newly created InviteCode object.
  */
-export const createInviteCode = async (code: Omit<InviteCode, 'generatedAt'>, section: Section, userRole: UserRole | null): Promise<InviteCode> => {
+export const createInviteCode = async (code: Omit<InviteCode, 'id' | 'generatedAt' | 'defaultUserRole'>, section: Section, userRole: UserRole | null): Promise<InviteCode> => {
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated to create invite code");
     if (!userRole || !['admin', 'captain'].includes(userRole)) {
@@ -956,7 +976,7 @@ export const createInviteCode = async (code: Omit<InviteCode, 'generatedAt'>, se
 
     const newCodeId = generateRandomCode(6); // Generate a 6-character alphanumeric code
 
-    const newInviteCode: InviteCode = { ...code, id: newCodeId, generatedAt: Date.now() };
+    const newInviteCode: InviteCode = { ...code, id: newCodeId, generatedAt: Date.now(), defaultUserRole: 'officer' }; // Default to 'officer'
     const inviteCodesCollection = getCollectionName(null, 'invite_codes');
 
     if (navigator.onLine) {
@@ -1129,6 +1149,7 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
                     usedBy: code.usedBy ?? null,
                     usedAt: code.usedAt ?? null,
                     revoked: code.revoked ?? null, // Include revoked status in comparison
+                    defaultUserRole: code.defaultUserRole, // Include defaultUserRole in comparison
                 });
 
                 // Sort both arrays by ID to ensure consistent order for comparison.
