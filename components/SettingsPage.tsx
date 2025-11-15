@@ -42,6 +42,9 @@ const USER_ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
   'officer': 'Officer',
 };
 
+// Define the desired sort order for roles
+const ROLE_SORT_ORDER: UserRole[] = ['admin', 'captain', 'officer'];
+
 const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole }) => {
   // Local state for the form inputs.
   const [meetingDay, setMeetingDay] = useState<number>(5); // Default to Friday
@@ -143,6 +146,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     setLoadingUsers(true);
     try {
       const fetchedUsers = await fetchAllUserRoles(userRole);
+      // Sort users by role based on the predefined order
+      fetchedUsers.sort((a, b) => {
+        const roleAIndex = ROLE_SORT_ORDER.indexOf(a.role);
+        const roleBIndex = ROLE_SORT_ORDER.indexOf(b.role);
+        return roleAIndex - roleBIndex;
+      });
       setUsersWithRoles(fetchedUsers);
     } catch (err: any) {
       console.error("Failed to load users with roles:", err);
