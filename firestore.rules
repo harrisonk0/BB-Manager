@@ -29,8 +29,12 @@ service cloud.firestore {
     match /user_roles/{userId} {
       allow read: if isAuthenticated(); // All authenticated users can read roles (e.g., for UI display)
 
-      // Only Admins can create new user role documents.
-      allow create: if hasRole('admin');
+      // A new user can create their own role document, but only for 'officer' or 'captain' roles.
+      // This prevents self-promotion to admin during signup.
+      allow create: if isAuthenticated() &&
+        request.auth.uid == userId &&
+        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.role in ['officer', 'captain'];
 
       // Update rules for user roles:
       allow update: if isAuthenticated() && (
@@ -62,7 +66,9 @@ service cloud.firestore {
     // Invite Codes Collection: Used for new user sign-ups.
     match /invite_codes/{codeId} {
       // Only Admins and Captains can create new invite codes.
-      allow create: if hasAnyRole(['admin', 'captain']);
+      // They can also specify an initialRole for the user.
+      allow create: if hasAnyRole(['admin', 'captain']) &&
+        request.resource.data.keys().hasAll(['id', 'generatedBy', 'generatedAt', 'isUsed', 'section', 'initialRole']);
 
       // Anyone can read an invite code if they know its ID (for signup validation).
       // However, only Admins/Captains can read all codes (e.g., for management UI).

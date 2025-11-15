@@ -111,6 +111,8 @@ export interface InviteCode {
   usedAt?: number;
   /** True if the code has been explicitly revoked, false otherwise. */
   revoked?: boolean;
+  /** The initial role to assign to the user who uses this invite code. */
+  initialRole?: UserRole;
 }
 
 /**

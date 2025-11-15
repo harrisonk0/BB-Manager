@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { getAuthInstance } from '../services/firebase';
-import { fetchInviteCode, updateInviteCode, createAuditLog } from '../services/db';
+import { fetchInviteCode, updateInviteCode, createAuditLog, assignInitialUserRole } from '../services/db'; // Import assignInitialUserRole
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, Section } from '../types';
 
@@ -49,7 +49,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
     try {
       // 1. Validate Invite Code
       const fetchedCode = await fetchInviteCode(inviteCode);
-      if (!fetchedCode || fetchedCode.isUsed) {
+      if (!fetchedCode || fetchedCode.isUsed || fetchedCode.revoked) { // Check for revoked codes too
         setError('Invalid or already used invite code.');
         setIsLoading(false);
         return;
@@ -60,29 +60,24 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const newUser = userCredential.user;
 
-      // 3. Mark Invite Code as Used
+      // 3. Assign Initial Role from Invite Code
+      const initialRole = fetchedCode.initialRole || 'officer'; // Default to 'officer' if not specified
+      await assignInitialUserRole(newUser.uid, newUser.email || 'Unknown', initialRole);
+
+      // 4. Mark Invite Code as Used
       const updatedCode = {
         ...fetchedCode,
         isUsed: true,
         usedBy: newUser.email || 'Unknown',
         usedAt: Date.now(),
       };
-      // FIX: Pass the ID and the updates object separately.
-      // When a new user signs up, they don't have a role yet.
-      // The Firestore rules for invite_codes allow read/write for 'admin' and 'captain'.
-      // This operation will be performed by the new user, so it needs to pass the Firestore rules.
-      // The rules are designed to allow this specific update (marking as used) without requiring a role.
-      // However, the `updateInviteCode` function in `db.ts` now has a client-side role check.
-      // For signup, we need to bypass this client-side check or ensure the rule allows it.
-      // For now, we'll pass `null` for userRole, assuming the Firestore rules handle the permission.
-      // If the client-side check in `db.ts` prevents this, we'd need to adjust `db.ts` to allow this specific update without a role.
       await updateInviteCode(updatedCode.id, updatedCode, null); // Pass null for userRole as new user has no role yet
 
-      // 4. Create Audit Log Entry
+      // 5. Create Audit Log Entry
       await createAuditLog({
         userEmail: newUser.email || 'Unknown',
         actionType: 'USE_INVITE_CODE',
-        description: `New user '${newUser.email}' signed up using invite code '${inviteCode}'.`,
+        description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${initialRole}'.`,
         revertData: { userId: newUser.uid, inviteCodeId: inviteCode }, // Store data for potential admin action
       }, fetchedCode.section || null); // Associate with section if code has one
 
