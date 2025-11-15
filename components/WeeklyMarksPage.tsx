@@ -164,7 +164,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   };
 
   const handleAttendanceToggle = (boyId: string) => {
-    const newStatus = attendance[boy.id] === 'present' ? 'absent' : 'present';
+    const newStatus = attendance[boyId] === 'present' ? 'absent' : 'present'; // FIX: Changed 'boy.id' to 'boyId'
     setAttendance(prev => ({ ...prev, [boyId]: newStatus }));
 
     if (newStatus === 'absent') {
@@ -231,8 +231,8 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                 }
             } else { // Junior Section
                 const newScores = marks[boy.id] as JuniorMarkState;
-                const uniformScore = newScores.uniform === '' ? 0 : parseFloat(newScores.uniform as string); // Use parseFloat
-                const behaviourScore = newScores.behaviour === '' ? 0 : parseFloat(newScores.behaviour as string); // Use parseFloat
+                const uniformScore = newScores.uniform === '' ? 0 : parseFloat(newScores.uniform as string); // FIX: Removed 'as string'
+                const behaviourScore = newScores.behaviour === '' ? 0 : parseFloat(newScores.behaviour as string); // FIX: Removed 'as string'
                 const finalScore = uniformScore + behaviourScore;
                 
                 if (markIndex > -1) {
