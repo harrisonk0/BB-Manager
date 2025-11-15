@@ -1,28 +1,36 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read access to any document only if the user is signed in.
-    match /{document=**} {
+    // Rules for Company Section Boys
+    match /company_boys/{boyId} {
+      allow read, create, update, delete: if request.auth != null;
+    }
+
+    // Rules for Junior Section Boys
+    match /junior_boys/{boyId} {
+      allow read, create, update, delete: if request.auth != null;
+    }
+
+    // Rules for Company Section Audit Logs
+    match /company_audit_logs/{logId} {
       allow read: if request.auth != null;
-    }
-
-    // Specific rules for boys collections
-    match /{section}_boys/{boyId} {
-      allow create, update, delete: if request.auth != null;
-    }
-
-    // Specific rules for audit_logs collections
-    match /{section}_audit_logs/{logId} {
-      allow create: if request.auth != null; // Allow creation
+      allow create: if request.auth != null;
       allow update, delete: if false; // Explicitly deny updates and deletes
     }
 
-    // Specific rules for settings collection
+    // Rules for Junior Section Audit Logs
+    match /junior_audit_logs/{logId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if false; // Explicitly deny updates and deletes
+    }
+
+    // Rules for Settings
     match /settings/{sectionId} {
       allow read, write: if request.auth != null;
     }
 
-    // Specific rules for user_activity collection
+    // Rules for User Activity
     match /user_activity/{userId} {
       allow read, write: if request.auth != null;
     }
