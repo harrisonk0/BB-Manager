@@ -57,7 +57,7 @@ export interface Boy {
 /**
  * Defines the types of actions that can be recorded in the audit log.
  */
-export type AuditLogActionType = 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'REVERT_ACTION' | 'UPDATE_SETTINGS' | 'GENERATE_INVITE_CODE' | 'USE_INVITE_CODE';
+export type AuditLogActionType = 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'REVERT_ACTION' | 'UPDATE_SETTINGS' | 'GENERATE_INVITE_CODE' | 'USE_INVITE_CODE' | 'REVOKE_INVITE_CODE';
 
 /**
  * Represents a single entry in the audit log, tracking changes made in the application.
@@ -97,6 +97,8 @@ export interface InviteCode {
   usedBy?: string;
   /** The timestamp when the code was used (if used). */
   usedAt?: number;
+  /** True if the code has been explicitly revoked, false otherwise. */
+  revoked?: boolean;
 }
 
 /**

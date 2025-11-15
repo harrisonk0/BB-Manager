@@ -67,7 +67,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
         usedBy: newUser.email || 'Unknown',
         usedAt: Date.now(),
       };
-      await updateInviteCode(updatedCode);
+      // FIX: Pass the ID and the updates object separately.
+      await updateInviteCode(updatedCode.id, updatedCode);
 
       // 4. Create Audit Log Entry
       await createAuditLog({

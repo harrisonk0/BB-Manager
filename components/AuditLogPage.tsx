@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy } from '../services/db';
+import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy, revokeInviteCode } from '../services/db';
 import { saveSettings } from '../services/settings';
 import { getAuthInstance } from '../services/firebase';
 import { AuditLog, Boy, Section, SectionSettings, ToastType } from '../types';
@@ -26,6 +26,8 @@ const ACTION_ICONS: Record<string, React.FC<{className?: string}>> = {
   DELETE_BOY: TrashIcon,
   REVERT_ACTION: UndoIcon,
   UPDATE_SETTINGS: CogIcon,
+  GENERATE_INVITE_CODE: PlusIcon, // Using PlusIcon for generation
+  REVOKE_INVITE_CODE: TrashIcon, // Using TrashIcon for revocation
 };
 
 const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection, showToast }) => {
@@ -45,6 +47,8 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     UPDATE_SETTINGS: isCompany ? 'bg-company-blue/10 text-company-blue' : 'bg-junior-blue/10 text-junior-blue',
     DELETE_BOY: 'bg-red-100 text-red-700',
     REVERT_ACTION: 'bg-yellow-100 text-yellow-700',
+    GENERATE_INVITE_CODE: 'bg-blue-100 text-blue-700',
+    REVOKE_INVITE_CODE: 'bg-red-100 text-red-700',
   };
 
   /**
@@ -139,6 +143,10 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
         case 'UPDATE_SETTINGS':
             // To revert a settings change, we save the old settings object.
             await saveSettings(activeSection, revertData.settings as SectionSettings);
+            break;
+        case 'GENERATE_INVITE_CODE':
+            // To revert invite code generation, we revoke the invite code.
+            await revokeInviteCode(revertData.inviteCodeId, activeSection);
             break;
         default:
           throw new Error('This action cannot be reverted.');

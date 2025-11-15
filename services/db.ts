@@ -209,8 +209,13 @@ export const syncPendingWrites = async (): Promise<boolean> => {
             }
             case 'UPDATE_INVITE_CODE': {
                 const docRef = doc(db, inviteCodesCollection, write.payload.id);
-                batch.update(docRef, { ...write.payload, usedAt: serverTimestamp() }); // Update usedAt on server
-                inviteCodesToUpdateInIDB.push({ ...write.payload, usedAt: Date.now() }); // Update usedAt locally
+                // Only update fields that are present in the payload
+                const updatePayload: { [key: string]: any } = { ...write.payload };
+                if (write.payload.usedAt !== undefined) {
+                    updatePayload.usedAt = serverTimestamp();
+                }
+                batch.update(docRef, updatePayload);
+                inviteCodesToUpdateInIDB.push({ ...write.payload, usedAt: write.payload.usedAt !== undefined ? Date.now() : write.payload.usedAt }); // Update usedAt locally if present
                 break;
             }
             // Removed UPDATE_AUDIT_LOG case as audit logs are now immutable.
@@ -675,24 +680,71 @@ export const fetchInviteCode = async (id: string): Promise<InviteCode | undefine
 };
 
 /**
- * Updates an existing invite code.
- * @param code The InviteCode object with updated data.
+ * Updates an existing invite code with partial data.
+ * @param id The ID of the invite code to update.
+ * @param updates The partial InviteCode object containing fields to update.
  * @returns The updated InviteCode object.
  */
-export const updateInviteCode = async (code: InviteCode): Promise<InviteCode> => {
+export const updateInviteCode = async (id: string, updates: Partial<InviteCode>): Promise<InviteCode> => {
     const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
+    const auth = getAuthInstance();
+    if (!auth.currentUser) throw new Error("User not authenticated to update invite code");
+
+    // Fetch the current state of the code to ensure we have all necessary fields for local update
+    const currentCode = await getInviteCodeFromDB(id);
+    if (!currentCode) throw new Error(`Invite code with ID ${id} not found.`);
+
+    const updatedCode: InviteCode = { ...currentCode, ...updates };
 
     if (navigator.onLine) {
-        const docRef = doc(getDb(), inviteCodesCollection, code.id);
-        await updateDoc(docRef, { ...code, usedAt: serverTimestamp() }); // Update usedAt on server
-        await saveInviteCodeToDB({ ...code, usedAt: Date.now() }); // Update usedAt locally
-        return { ...code, usedAt: Date.now() };
+        const docRef = doc(getDb(), inviteCodesCollection, id);
+        const firestoreUpdates: { [key: string]: any } = { ...updates };
+        if (updates.usedAt !== undefined) {
+            firestoreUpdates.usedAt = serverTimestamp();
+        }
+        if (updates.generatedAt !== undefined) { // Should not happen for updates, but for consistency
+            firestoreUpdates.generatedAt = serverTimestamp();
+        }
+        await updateDoc(docRef, firestoreUpdates);
+        await saveInviteCodeToDB(updatedCode); // Save the fully updated object locally
+        return updatedCode;
     } else {
-        await addPendingWrite({ type: 'UPDATE_INVITE_CODE', payload: code });
-        await saveInviteCodeToDB(code);
-        return code;
+        // For offline, add a pending write with the partial updates
+        await addPendingWrite({ type: 'UPDATE_INVITE_CODE', payload: { id, ...updates }, section: updatedCode.section || undefined });
+        await saveInviteCodeToDB(updatedCode); // Update local IndexedDB immediately
+        return updatedCode;
     }
 };
+
+/**
+ * Revokes an invite code, marking it as used and revoked.
+ * @param id The ID of the invite code to revoke.
+ * @param section The section the code belongs to (for audit log).
+ * @returns A promise that resolves when the code is revoked.
+ */
+export const revokeInviteCode = async (id: string, section: Section): Promise<void> => {
+    const auth = getAuthInstance();
+    if (!auth.currentUser) throw new Error("User not authenticated to revoke invite code");
+
+    const userEmail = auth.currentUser.email || 'Unknown User';
+
+    // Update the invite code status
+    await updateInviteCode(id, {
+        isUsed: true,
+        revoked: true,
+        usedBy: `System (Reverted by ${userEmail})`,
+        usedAt: Date.now(),
+    });
+
+    // Create an audit log entry for the revocation
+    await createAuditLog({
+        userEmail,
+        actionType: 'REVOKE_INVITE_CODE',
+        description: `Revoked invite code: ${id}`,
+        revertData: { inviteCodeId: id }, // Store ID for reference
+    }, section);
+};
+
 
 /**
  * Fetches all invite codes.
@@ -731,6 +783,7 @@ export const fetchAllInviteCodes = async (): Promise<InviteCode[]> => {
                     isUsed: code.isUsed,
                     usedBy: code.usedBy ?? null,
                     usedAt: code.usedAt ?? null,
+                    revoked: code.revoked ?? null, // Include revoked status in comparison
                 });
 
                 // Sort both arrays by ID to ensure consistent order for comparison.
