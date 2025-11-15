@@ -223,7 +223,9 @@ const HelpPage: React.FC = () => {
             { id: 'audit-log', title: 'The Audit Log' },
             { id: 'reverting-actions', title: 'How to Revert an Action' },
             { id: 'settings-page', title: 'Changing Settings' },
-            { id: 'invite-codes', title: 'Managing Invite Codes' }, // New subsection
+            { id: 'invite-codes', title: 'Managing Invite Codes' },
+            { id: 'user-roles', title: 'Managing User Roles' }, // New subsection
+            { id: 'dev-controls', title: 'Development Controls (Admin Only)' }, // New subsection
             { id: 'sign-out', title: 'Signing Out' },
         ]},
         { id: 'offline-use', title: '7. Offline Use' },
@@ -242,7 +244,6 @@ const HelpPage: React.FC = () => {
                                     <a href={`#${section.id}`} className={`font-semibold ${accentTextColor} hover:underline`}>{section.title}</a>
                                     {section.subSections && (
                                         <ul className="pl-4 mt-1 space-y-1">
-                                            {/* FIX: Changed `sub` to `section` to correctly reference the variable from the parent map function. */}
                                             {section.subSections.map(sub => (
                                                 <li key={sub.id}>
                                                     <a href={`#${sub.id}`} className="text-slate-600 hover:text-slate-900 hover:underline text-sm">{sub.title}</a>
@@ -437,12 +438,29 @@ const HelpPage: React.FC = () => {
                         
                         <div id="settings-page" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Changing Settings</h3>
-                            <p>On the Settings page (<CogIcon className="inline h-4 w-4 align-text-bottom"/>), you can customize the app's behavior. Currently, you can set your section's official meeting day. This will make the Weekly Marks page automatically select the correct date for you.</p>
+                            <p>On the Settings page (<CogIcon className="inline h-4 w-4 align-text-bottom"/>), you can customize the app's behavior, change your password, and for administrators/captains, manage invite codes and user roles. For example, you can set your section's official meeting day, which will make the Weekly Marks page automatically select the correct date for you.</p>
                         </div>
 
                         <div id="invite-codes" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Managing Invite Codes</h3>
                             <p>From the Settings page, you can generate new invite codes for other officers to sign up for the app. Each code is a unique 6-character alphanumeric string. Once a code is used or if its generation is reverted from the Audit Log, it will be marked as 'Used' or 'Revoked' respectively. To keep the database tidy, all used or revoked invite codes, as well as audit logs, are automatically deleted after 14 days.</p>
+                        </div>
+
+                        <div id="user-roles" className="space-y-4 scroll-mt-24">
+                            <h3 className="text-2xl font-semibold text-slate-700">Managing User Roles</h3>
+                            <p>Administrators and Captains can manage user roles from the Settings page. This allows you to view all registered users and assign them a role (Admin, Captain, or Officer). User roles determine what features and data a user can access. For example, only Admins and Captains can generate invite codes or modify settings.</p>
+                            <Callout>Be cautious when changing roles, especially for administrators. An Admin cannot demote themselves or another Admin. Captains cannot promote themselves to Admin or demote themselves to Officer.</Callout>
+                        </div>
+
+                        <div id="dev-controls" className="space-y-4 scroll-mt-24">
+                            <h3 className="text-2xl font-semibold text-slate-700">Development Controls (Admin Only)</h3>
+                            <p>At the bottom of the Settings page, there is a section with "Development Controls" visible only to users with the 'Admin' role. These are powerful, destructive tools intended for development, testing, or emergency cleanup. They allow you to:</p>
+                            <ul className="list-disc list-inside space-y-1 pl-4">
+                                <li><strong>Clear All Audit Logs (Current Section):</strong> Permanently deletes all audit logs for the active section from both Firestore and your local browser storage.</li>
+                                <li><strong>Clear All Used/Revoked Invite Codes:</strong> Permanently deletes all invite codes that have been used or explicitly revoked from both Firestore and your local browser storage.</li>
+                                <li><strong>Clear All Local Data (Current Section & Global Invite Codes):</strong> Permanently deletes all local data (members, audit logs, pending writes, and all invite codes) for the current section from your browser's IndexedDB. This does NOT affect data in Firestore and requires a page refresh to reload data.</li>
+                            </ul>
+                            <Callout>These actions are irreversible. Use them with extreme caution and only if you understand their implications.</Callout>
                         </div>
                         
                         <div id="sign-out" className="space-y-4 scroll-mt-24">
