@@ -53,7 +53,8 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
     const mobileNavLinkClasses = `block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-white/10 hover:text-white`;
 
     // Permission checks
-    const canAccessSettings = userRole && ['admin', 'captain', 'officer'].includes(userRole);
+    const canAccessSectionSettings = userRole && ['admin', 'captain'].includes(userRole);
+    const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
     const canAccessAuditLog = userRole && ['admin', 'captain', 'officer'].includes(userRole);
 
     return (
@@ -98,9 +99,14 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                 <button onClick={() => handleNavClick('help')} title="Help" aria-label="Help" className={iconButtonClasses}>
                                     <QuestionMarkCircleIcon className="h-6 w-6"/>
                                 </button>
-                                {canAccessSettings && (
-                                    <button onClick={() => handleNavClick('settings')} title="Settings" aria-label="Settings" className={iconButtonClasses}>
+                                {canAccessSectionSettings && (
+                                    <button onClick={() => handleNavClick('settings')} title="Section Settings" aria-label="Section Settings" className={iconButtonClasses}>
                                         <CogIcon className="h-6 w-6"/>
+                                    </button>
+                                )}
+                                {canAccessGlobalSettings && (
+                                    <button onClick={() => handleNavClick('globalSettings')} title="Global Settings" aria-label="Global Settings" className={iconButtonClasses}>
+                                        <CogIcon className="h-6 w-6"/> {/* Reusing CogIcon for now */}
                                     </button>
                                 )}
                                 <button onClick={onSwitchSection} title="Switch Section" aria-label="Switch Section" className={iconButtonClasses}>
@@ -109,7 +115,9 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                 
                                 {/* User info and Sign Out button */}
                                 <div className="flex items-center space-x-2 border-l border-white/20 pl-4 ml-2">
-                                    <span className="text-sm text-gray-300 truncate max-w-[120px]">{user.email}</span>
+                                    <button onClick={() => handleNavClick('accountSettings')} className="text-sm text-gray-300 truncate max-w-[120px] hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-transparent rounded-md">
+                                        {user.email}
+                                    </button>
                                     <button onClick={onSignOut} className={`px-3 py-2 rounded-md text-sm font-medium text-white bg-white/10 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`}>Sign Out</button>
                                 </div>
                             </>
@@ -141,9 +149,14 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                         <button onClick={() => handleNavClick('help')} className={mobileNavLinkClasses}>
                             <div className="flex items-center"><QuestionMarkCircleIcon className="h-5 w-5 mr-3"/><span>Help</span></div>
                         </button>
-                        {canAccessSettings && (
+                        {canAccessSectionSettings && (
                             <button onClick={() => handleNavClick('settings')} className={mobileNavLinkClasses}>
-                                <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Settings</span></div>
+                                <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Section Settings</span></div>
+                            </button>
+                        )}
+                        {canAccessGlobalSettings && (
+                            <button onClick={() => handleNavClick('globalSettings')} className={mobileNavLinkClasses}>
+                                <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Global Settings</span></div>
                             </button>
                         )}
                         <button onClick={onSwitchSection} className={mobileNavLinkClasses}>
@@ -153,7 +166,9 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                     <div className="pt-4 pb-3 border-t border-white/20">
                         <div className="flex items-center px-5">
                             <div className="ml-3">
-                                <div className="text-base font-medium leading-none text-white">{user.email}</div>
+                                <button onClick={() => handleNavClick('accountSettings')} className="text-base font-medium leading-none text-white hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-transparent rounded-md">
+                                    {user.email}
+                                </button>
                             </div>
                         </div>
                         <div className="mt-3 px-2 space-y-1">

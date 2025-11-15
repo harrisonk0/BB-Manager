@@ -11,7 +11,9 @@ import SignupPage from './components/SignupPage';
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
 import SectionSelectPage from './components/SectionSelectPage';
-import SettingsPage from './components/SettingsPage';
+import SettingsPage from './components/SettingsPage'; // This is now Section-Specific Settings
+import GlobalSettingsPage from './components/GlobalSettingsPage'; // New: Global Settings
+import AccountSettingsPage from './components/AccountSettingsPage'; // New: Account Settings
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
@@ -255,8 +257,12 @@ const App: React.FC = () => {
         return <DashboardPage boys={boys} activeSection={activeSection!} />;
       case 'auditLog':
         return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
-      case 'settings':
+      case 'settings': // Section-specific settings
         return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} />;
+      case 'globalSettings': // New: Global settings
+        return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} />;
+      case 'accountSettings': // New: Account settings
+        return <AccountSettingsPage showToast={showToast} />;
       case 'help':
         return <HelpPage />;
       case 'boyMarks':
