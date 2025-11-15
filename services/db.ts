@@ -791,8 +791,9 @@ export const clearAllAuditLogs = async (section: Section, userEmail: string, use
  * Deletes audit logs and invite codes older than 14 days from both IndexedDB and Firestore to manage storage.
  * This is typically run on app startup.
  * @param section The section to clean up logs and invite codes for.
+ * @param userRole The role of the user performing the cleanup.
  */
-export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
+export const deleteOldAuditLogs = async (section: Section, userRole: UserRole | null): Promise<void> => {
     const fourteenDaysInMillis = 14 * 24 * 60 * 60 * 1000;
     const cutoffTimestamp = Date.now() - fourteenDaysInMillis;
 
@@ -826,8 +827,8 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
         console.error("Failed to delete old invite codes from IndexedDB:", error);
     }
 
-    // If online, clean up Firestore logs and invite codes.
-    if (navigator.onLine) {
+    // If online and user is admin, clean up Firestore logs and invite codes.
+    if (navigator.onLine && userRole === 'admin') {
         const db = getDb();
         const cutoffFirestoreTimestamp = Timestamp.fromMillis(cutoffTimestamp);
 

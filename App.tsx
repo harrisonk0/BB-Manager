@@ -166,14 +166,15 @@ const App: React.FC = () => {
       // If user is logged in AND activeSection is set, load data and clean up audit logs.
       // Otherwise, if logged in but no section, stop loading to show SectionSelectPage.
       if (activeSection) {
-        deleteOldAuditLogs(activeSection).then(() => {
+        // Pass userRole to deleteOldAuditLogs
+        deleteOldAuditLogs(activeSection, userRole).then(() => {
           loadDataAndSettings();
         });
       } else {
         setIsLoading(false);
       }
     }
-  }, [currentUser, activeSection, loadDataAndSettings]); // Dependencies for this effect.
+  }, [currentUser, activeSection, loadDataAndSettings, userRole]); // Added userRole to dependencies.
 
   /**
    * EFFECT: Handles online/offline status changes.

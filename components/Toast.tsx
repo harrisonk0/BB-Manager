@@ -64,7 +64,7 @@ const Toast: React.FC<ToastProps> = ({ toast, removeToast }) => {
       </div>
       {/* Progress Bar */}
       <div className={`absolute bottom-0 left-0 h-1 ${progressBarColor}`} style={{ animation: 'progressBar 5s linear forwards' }}></div>
-      <style jsx>{`
+      <style>{`
         @keyframes progressBar {
           from { width: 100%; }
           to { width: 0%; }
