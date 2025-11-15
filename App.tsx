@@ -10,7 +10,7 @@ import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
-import SettingsPage from './components/SettingsPage'; // Added import for SettingsPage
+import SettingsPage from './components/SettingsPage';
 import SectionSelectPage from './components/SectionSelectPage';
 import GlobalSettingsPage from './components/GlobalSettingsPage';
 import AccountSettingsPage from './components/AccountSettingsPage';
@@ -339,6 +339,10 @@ const App: React.FC = () => {
         if (view.page === 'signup') {
             return <SignupPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => setView({ page: 'home' })} />;
         }
+        // NEW: Allow HelpPage to be rendered for unauthenticated users
+        if (view.page === 'help') {
+            return renderPageWithGenericHeader(HelpPage, 'home'); // 'home' will navigate back to LoginPage when !currentUser
+        }
         return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onNavigateToSignup={handleNavigation} />;
     }
     
@@ -349,8 +353,7 @@ const App: React.FC = () => {
                 return renderPageWithGenericHeader(GlobalSettingsPage, 'home'); // 'home' will render SectionSelectPage when !activeSection
             case 'accountSettings':
                 return renderPageWithGenericHeader(AccountSettingsPage, 'home'); // 'home' will render SectionSelectPage when !activeSection
-            case 'help':
-                return renderPageWithGenericHeader(HelpPage, 'home'); // 'home' will render SectionSelectPage when !activeSection
+            // The 'help' case is now handled in the !currentUser block above
             default:
                 // If no specific page is requested, show the section selection
                 return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => handleNavigation({ page: 'help' })} onNavigateToGlobalSettings={() => handleNavigation({ page: 'globalSettings' })} userRole={userRole} onSignOut={handleSignOut} />;
