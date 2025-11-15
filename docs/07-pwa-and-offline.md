@@ -49,9 +49,9 @@ The combination of these technologies creates a seamless experience:
 1.  User makes changes offline. All changes are saved to IndexedDB.
 2.  User comes back online. The `online` event triggers `syncPendingWrites()`.
 3.  `syncPendingWrites()` sends all queued changes to Firestore.
-4.  Simultaneously, `fetchBoys()` runs a background fetch. It detects that the server data may be newer than the local cache.
+4.  Simultaneously, `fetchBoys()` (and `fetchAuditLogs`, `fetchAllInviteCodes`) runs a background fetch. It detects that the server data may be newer than the local cache.
 5.  After fetching, it compares the new data with the old. If changes are found, it updates the local IndexedDB cache.
-6.  This update dispatches a `datarefreshed` event, which the main `App` component is listening for.
+6.  This update dispatches a `datarefreshed` (or `logsrefreshed`, `inviteCodesRefreshed`) event, which the main `App` component is listening for.
 7.  The `App` component re-fetches data from the (now updated) IndexedDB and re-renders the UI, showing the user the latest information from all sources without requiring a manual page refresh.
 
 **Schema Migration**:

@@ -41,8 +41,17 @@ This document provides a detailed breakdown of the file and folder structure for
 
 This directory contains all UI elements of the application.
 
--   **Page Components**: `HomePage.tsx`, `WeeklyMarksPage.tsx`, `DashboardPage.tsx`, etc. These are top-level components that represent a full view or "page" within the app.
+-   **Page Components**: `HomePage.tsx`, `WeeklyMarksPage.tsx`, `DashboardPage.tsx`, `AuditLogPage.tsx`, `SettingsPage.tsx`, `HelpPage.tsx`, `LoginPage.tsx`, `SectionSelectPage.tsx`, `SignupPage.tsx`. These are top-level components that represent a full view or "page" within the app.
 -   **UI Components**: `Header.tsx`, `Modal.tsx`, `Icons.tsx`. These are smaller, reusable components used across multiple pages.
 -   **Form Components**: `BoyForm.tsx`. These components are specifically for handling user input.
 -   **Feedback Components**: `SkeletonLoaders.tsx`, `Toast.tsx`. These are used to improve the user experience during data loading states and for action feedback.
 -   **Visualization Components**: `BarChart.tsx`. Custom components for displaying data graphically.
+
+### `/services` Directory
+
+This directory contains the application's business logic and data interaction layers.
+
+-   **`db.ts`**: The main data abstraction layer, unifying interactions with Firestore and IndexedDB.
+-   **`offlineDb.ts`**: A low-level wrapper for IndexedDB operations.
+-   **`firebase.ts`**: Handles Firebase SDK initialization and provides instances of Firestore and Auth.
+-   **`settings.ts`**: Manages section-specific application settings.

@@ -156,7 +156,21 @@ type AuditLogActionType =
   | 'UPDATE_SETTINGS'
   | 'GENERATE_INVITE_CODE'
   | 'USE_INVITE_CODE'
-  | 'REVOKE_INVITE_CODE';
+  | 'REVOKE_INVITE_CODE'
+  | 'UPDATE_USER_ROLE' // New: For changes to user roles
+  | 'CLEAR_AUDIT_LOGS' // New: For clearing all audit logs
+  | 'CLEAR_USED_REVOKED_INVITE_CODES' // New: For clearing used/revoked invite codes
+  | 'CLEAR_LOCAL_DATA'; // New: For clearing all local data
+```
+
+---
+
+#### `UserRole`
+
+Defines the possible roles a user can have in the application, influencing their permissions.
+
+```typescript
+type UserRole = 'admin' | 'captain' | 'officer';
 ```
 
 ---
@@ -224,3 +238,17 @@ A union type representing the current view of the application.
 
 ```typescript
 type View = { page: Page } | BoyMarksPageView;
+```
+
+---
+
+#### `UserWithRole`
+
+Extends the Firebase `User` type to include the custom `UserRole`. This is used internally when a user's role has been fetched.
+
+```typescript
+import { User } from 'firebase/auth';
+
+export interface UserWithRole extends User {
+  role: UserRole | null;
+}

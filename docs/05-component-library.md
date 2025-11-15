@@ -11,8 +11,8 @@ This document serves as a reference for all the React components used in the BB 
 The root component of the entire application. It doesn't render much UI directly but is responsible for orchestrating the entire application flow.
 
 -   **Responsibilities**:
-    -   Manages global state: `currentUser`, `activeSection`, `boys`, `settings`, `isLoading`, `error`, `hasUnsavedChanges`.
-    -   Initializes Firebase and listens for authentication state changes (`onAuthStateChanged`).
+    -   Manages global state: `currentUser`, `userRole`, `activeSection`, `boys`, `settings`, `isLoading`, `error`, `noRoleError`, `hasUnsavedChanges`.
+    -   Initializes Firebase and listens for authentication state changes (`onAuthStateChanged`), including fetching the user's role.
     -   Handles the main "routing" logic by deciding which page component to render based on the `view` state.
     -   Orchestrates data fetching (`refreshData`) and offline synchronization (`syncPendingWrites`).
     -   Manages the "unsaved changes" confirmation modal.
@@ -84,17 +84,22 @@ Displays a chronological history of all actions taken in the app.
     -   Provides the UI for reverting actions.
     -   Manages the state for the revert confirmation modal.
     -   Handles the `handleRevert` logic, which calls the appropriate inverse data service functions.
--   **Key Props**: `refreshData`, `activeSection`, `showToast`.
+    -   Displays action-specific icons and colors for better readability.
+-   **Key Props**: `refreshData`, `activeSection`, `showToast`, `userRole`.
 
 #### `SettingsPage.tsx`
 
-Allows users to configure application settings.
+Allows users to configure application settings, manage invite codes, and user roles.
 
 -   **Responsibilities**:
     -   Displays form inputs for available settings (e.g., meeting day).
     -   Handles saving the settings to Firestore.
-    -   Creates an audit log entry when settings are changed.
--   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`.
+    -   Allows users to change their password.
+    -   Provides functionality for administrators and captains to generate, view, and revoke invite codes.
+    -   Allows administrators and captains to view and update user roles.
+    -   Includes admin-only development controls for clearing audit logs, invite codes, and local data.
+    -   Creates audit log entries for all significant changes.
+-   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`.
 
 #### `HelpPage.tsx`
 
@@ -105,12 +110,35 @@ A static user guide for the application.
     -   Uses small, non-interactive "preview" components to visually demonstrate UI elements.
 -   **Key Props**: None.
 
-#### `LoginPage.tsx` & `SectionSelectPage.tsx`
+#### `LoginPage.tsx`
 
-These components manage the initial user flow before the main application is accessible.
+Handles user authentication with Firebase.
 
--   `LoginPage.tsx`: Handles user authentication with Firebase.
--   `SectionSelectPage.tsx`: Allows the authenticated user to choose which section (Company or Junior) to manage.
+-   **Responsibilities**:
+    -   Provides a form for email and password sign-in.
+    -   Handles password reset requests.
+    -   Navigates to the `SignupPage` for new user registration.
+-   **Key Props**: `onNavigateToHelp`, `showToast`, `onNavigateToSignup`.
+
+#### `SignupPage.tsx`
+
+Allows new users to sign up using an invite code.
+
+-   **Responsibilities**:
+    -   Provides a form for email, password, and invite code entry.
+    -   Validates the invite code and creates a new Firebase user.
+    -   Marks the invite code as used upon successful signup.
+    -   Creates an audit log entry for the signup.
+-   **Key Props**: `onNavigateToHelp`, `showToast`, `onSignupSuccess`.
+
+#### `SectionSelectPage.tsx`
+
+Allows the authenticated user to choose which section (Company or Junior) to manage.
+
+-   **Responsibilities**:
+    -   Displays buttons for selecting Company or Junior sections.
+    -   Persists the selected section in `localStorage`.
+-   **Key Props**: `onSelectSection`, `onNavigateToHelp`.
 
 ---
 
@@ -125,8 +153,9 @@ The main navigation bar at the top of the application.
     -   Displays the currently logged-in user's email.
     -   Handles sign-out and switch-section actions.
     -   Dynamically changes its color scheme based on the `activeSection`.
+    -   Conditionally renders navigation items based on `userRole`.
     -   Manages its own state for the mobile menu (`isMenuOpen`).
--   **Key Props**: `setView`, `user`, `onSignOut`, `activeSection`, `onSwitchSection`.
+-   **Key Props**: `setView`, `user`, `onSignOut`, `activeSection`, `onSwitchSection`, `userRole`.
 
 #### `BoyForm.tsx`
 

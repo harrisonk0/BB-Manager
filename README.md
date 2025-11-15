@@ -24,7 +24,9 @@ This documentation provides a complete guide to the application's architecture, 
 -   **100% Offline Functionality**: All changes are saved locally and synced automatically when the user goes online.
 -   **Audit Logging & Reversion**: Every significant action is logged and can be easily reverted. Old audit logs and invite codes are automatically cleaned up after 14 days.
 -   **Secure Authentication**: User access is managed through Firebase Authentication.
+-   **User Role Management**: Assign and manage roles (Admin, Captain, Officer) for users, controlling access to sensitive features.
 -   **Invite Code System**: Administrators can generate one-time-use codes for new user sign-ups.
+-   **Development Controls**: Admin-only tools for clearing audit logs, invite codes, and local data for testing and development.
 
 ## Tech Stack
 
