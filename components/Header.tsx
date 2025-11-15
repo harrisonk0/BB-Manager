@@ -5,10 +5,10 @@
  * and section switching. The header's appearance dynamically changes based on the active section.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 // FIX: Use named imports for Firebase v9 compatibility.
 import { type User } from 'firebase/auth';
-import { MenuIcon, XIcon, CogIcon, SwitchHorizontalIcon, QuestionMarkCircleIcon } from './Icons';
+import { MenuIcon, XIcon, CogIcon, QuestionMarkCircleIcon, UserCircleIcon } from './Icons'; // Added UserCircleIcon, removed SwitchHorizontalIcon
 import { Page, Section, UserRole } from '../types'; // Import UserRole
 
 interface HeaderProps {
@@ -30,7 +30,10 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection, onSwitchSection, userRole }) => {
     // State to manage the visibility of the mobile menu.
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    
+    // State to manage the visibility of the desktop profile dropdown.
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const profileMenuRef = useRef<HTMLDivElement>(null); // Ref for the profile dropdown
+
     /**
      * Handles navigation clicks from both desktop and mobile menus.
      * @param page The page to navigate to.
@@ -38,7 +41,23 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
     const handleNavClick = (page: Page) => {
         setView({ page });
         setIsMenuOpen(false); // Close mobile menu after navigation
+        setIsProfileMenuOpen(false); // Close profile menu after navigation
     };
+
+    /**
+     * Closes the profile dropdown if a click occurs outside of it.
+     */
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+                setIsProfileMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [profileMenuRef]);
 
     // Determine section-specific assets and styles.
     const isCompany = activeSection === 'company';
@@ -51,11 +70,11 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
     const navLinkClasses = `px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`;
     const iconButtonClasses = `p-2 rounded-full text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`;
     const mobileNavLinkClasses = `block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-white/10 hover:text-white`;
+    const dropdownItemClasses = `block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 w-full text-left`;
+
 
     // Permission checks
     const canAccessSectionSettings = userRole && ['admin', 'captain'].includes(userRole);
-    // Global settings are now accessed from SectionSelectPage or Section Settings page
-    // const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
     const canAccessAuditLog = userRole && ['admin', 'captain', 'officer'].includes(userRole);
 
     return (
@@ -105,17 +124,34 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                         <CogIcon className="h-6 w-6"/>
                                     </button>
                                 )}
-                                {/* Removed Global Settings from header */}
-                                <button onClick={onSwitchSection} title="Switch Section" aria-label="Switch Section" className={iconButtonClasses}>
-                                    <SwitchHorizontalIcon className="h-6 w-6"/>
-                                </button>
                                 
-                                {/* User info and Sign Out button */}
-                                <div className="flex items-center space-x-2 border-l border-white/20 pl-4 ml-2">
-                                    <button onClick={() => handleNavClick('accountSettings')} className="text-sm text-gray-300 truncate max-w-[120px] hover:text-white hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-transparent rounded-md">
-                                        {user.email}
+                                {/* User Profile Dropdown */}
+                                <div className="relative ml-2" ref={profileMenuRef}>
+                                    <button 
+                                        onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} 
+                                        className={iconButtonClasses}
+                                        aria-label="User menu"
+                                        aria-haspopup="true"
+                                        aria-expanded={isProfileMenuOpen ? 'true' : 'false'}
+                                    >
+                                        <UserCircleIcon className="h-7 w-7" />
                                     </button>
-                                    <button onClick={onSignOut} className={`px-3 py-2 rounded-md text-sm font-medium text-white bg-white/10 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`}>Sign Out</button>
+                                    {isProfileMenuOpen && (
+                                        <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
+                                            <div className="py-1">
+                                                <p className="block px-4 py-2 text-sm text-slate-500 truncate border-b border-slate-100">{user.email}</p>
+                                                <button onClick={() => handleNavClick('accountSettings')} className={dropdownItemClasses} role="menuitem">
+                                                    Account Settings
+                                                </button>
+                                                <button onClick={() => { onSwitchSection(); setIsProfileMenuOpen(false); }} className={dropdownItemClasses} role="menuitem">
+                                                    Switch Section
+                                                </button>
+                                                <button onClick={() => { onSignOut(); setIsProfileMenuOpen(false); }} className={dropdownItemClasses} role="menuitem">
+                                                    Log Out
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </>
                         )}
@@ -151,21 +187,18 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                 <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Section Settings</span></div>
                             </button>
                         )}
-                        {/* Removed Global Settings from mobile menu */}
-                        <button onClick={onSwitchSection} className={mobileNavLinkClasses}>
-                            <div className="flex items-center"><SwitchHorizontalIcon className="h-5 w-5 mr-3"/><span>Switch Section</span></div>
-                        </button>
-                    </div>
-                    <div className="pt-4 pb-3 border-t border-white/20">
-                        <div className="flex items-center px-5">
-                            <div className="ml-3">
-                                <button onClick={() => handleNavClick('accountSettings')} className="text-base font-medium leading-none text-white hover:underline focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-transparent rounded-md">
-                                    {user.email}
-                                </button>
-                            </div>
-                        </div>
-                        <div className="mt-3 px-2 space-y-1">
-                            <button onClick={onSignOut} className={mobileNavLinkClasses}>Sign out</button>
+                        {/* Profile-related options in mobile menu */}
+                        <div className="pt-2 mt-2 border-t border-white/20">
+                            <p className="block px-3 py-2 text-base font-medium text-gray-200">{user.email}</p>
+                            <button onClick={() => handleNavClick('accountSettings')} className={mobileNavLinkClasses}>
+                                Account Settings
+                            </button>
+                            <button onClick={() => { onSwitchSection(); setIsMenuOpen(false); }} className={mobileNavLinkClasses}>
+                                Switch Section
+                            </button>
+                            <button onClick={() => { onSignOut(); setIsMenuOpen(false); }} className={mobileNavLinkClasses}>
+                                Log Out
+                            </button>
                         </div>
                     </div>
                 </div>
