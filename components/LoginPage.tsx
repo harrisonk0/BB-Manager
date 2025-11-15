@@ -94,7 +94,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, showToast, onNa
     <div className="flex items-center justify-center min-h-screen bg-slate-200">
       <div className="relative w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
         <button 
-            onClick={onNavigateToHelp} 
+            onClick={() => {
+              console.log('Help button clicked on LoginPage!'); // Added console.log
+              onNavigateToHelp();
+            }}
             className="absolute top-4 right-4 text-slate-400 hover:text-junior-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue rounded-full"
             aria-label="Help"
         >
