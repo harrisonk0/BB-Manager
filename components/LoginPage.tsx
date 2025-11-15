@@ -169,7 +169,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, showToast, onNa
                 onClick={() => onNavigateToSignup({ page: 'signup' })}
                 className="font-medium text-junior-blue hover:text-junior-blue/80"
               >
-                Request access
+                Got an invite code?
               </button>
             </div>
           </div>
