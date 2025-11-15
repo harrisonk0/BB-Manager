@@ -6,21 +6,25 @@
 
 import React, { useState } from 'react';
 // FIX: Use named imports for Firebase v9 compatibility.
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { getAuthInstance } from '../services/firebase';
 import { QuestionMarkCircleIcon } from './Icons';
+import { ToastType } from '../types'; // Import ToastType
 
 interface LoginPageProps {
   /** Callback to navigate to the help page. */
   onNavigateToHelp: () => void;
+  /** Function to display a toast notification. */
+  showToast: (message: string, type?: ToastType) => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, showToast }) => {
   // State for form inputs, error messages, and loading status.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
 
   /**
    * Handles the sign-in form submission.
@@ -55,6 +59,37 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp }) => {
       console.error(err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  /**
+   * Handles the "Forgot Password" request.
+   * Sends a password reset email to the provided email address.
+   */
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      setError('Please enter your email address to reset your password.');
+      return;
+    }
+    setIsSendingResetEmail(true);
+    setError(null);
+    try {
+      const auth = getAuthInstance();
+      await sendPasswordResetEmail(auth, email);
+      showToast('Password reset email sent! Check your inbox.', 'success');
+    } catch (err: any) {
+      console.error("Forgot password error:", err);
+      switch (err.code) {
+        case 'auth/user-not-found':
+        case 'auth/invalid-email':
+          showToast('No user found with that email address.', 'error');
+          break;
+        default:
+          showToast('Failed to send password reset email. Please try again.', 'error');
+          break;
+      }
+    } finally {
+      setIsSendingResetEmail(false);
     }
   };
 
@@ -112,6 +147,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp }) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end">
+            <div className="text-sm">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={isSendingResetEmail}
+                className="font-medium text-junior-blue hover:text-junior-blue/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSendingResetEmail ? 'Sending...' : 'Forgot your password?'}
+              </button>
             </div>
           </div>
 

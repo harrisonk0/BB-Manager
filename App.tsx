@@ -392,7 +392,7 @@ const App: React.FC = () => {
     
     // 2. If user is not logged in, show the login page.
     if (!currentUser) {
-        return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} />;
+        return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} />;
     }
     
     // 3. If logged in but no section is selected, show the section select page.
