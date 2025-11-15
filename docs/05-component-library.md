@@ -36,8 +36,7 @@ The main landing page after login, displaying the member roster.
     -   Features a modern UI with toggleable icon buttons for accessing page controls.
     -   Handles user interactions for adding, editing, and deleting members.
     -   Navigates to the `BoyMarksPage` when a member's chart icon is clicked.
-    -   Renders `HomePageContentSkeleton` when `isLoading` is true and no boys are present, providing a smoother loading experience.
--   **Key Props**: `boys`, `setView`, `refreshData`, `activeSection`, `showToast`, `isLoading`.
+-   **Key Props**: `boys`, `setView`, `refreshData`, `activeSection`, `showToast`.
 
 #### `WeeklyMarksPage.tsx`
 
@@ -167,18 +166,8 @@ A collection of simple, stateless SVG icon components.
 Components used to provide a better loading experience.
 
 -   **Responsibilities**:
-    -   `AppInitialLoadingSkeleton` renders a placeholder UI for the entire app during initial authentication checks.
-    -   `BoyMarksPageSkeleton` renders a placeholder UI that mimics the layout of the `BoyMarksPage`.
+    -   `HomePageSkeleton` and `BoyMarksPageSkeleton` render placeholder UIs that mimic the layout of their respective pages.
     -   This reduces layout shift and perceived wait time while data is being fetched.
--   **Key Props**: None.
-
-#### `HomePageContentSkeleton.tsx`
-
-A skeleton component specifically for the content area of the `HomePage`.
-
--   **Responsibilities**:
-    -   Renders a placeholder UI that mimics the layout of the `HomePage`'s member roster and controls.
-    -   Used when `HomePage` is loading data for a specific section.
 -   **Key Props**: None.
 
 #### `Toast.tsx`

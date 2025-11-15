@@ -19,7 +19,7 @@ import SectionSelectPage from './components/SectionSelectPage';
 import SettingsPage from './components/SettingsPage';
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
-import { AppInitialLoadingSkeleton } from './components/SkeletonLoaders'; // Updated import
+import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, updateUserActivity, fetchRecentActivity } from './services/db';
 import { initializeFirebase, getAuthInstance } from './services/firebase';
 import { getSettings } from './services/settings';
@@ -325,8 +325,7 @@ const App: React.FC = () => {
 
     switch (view.page) {
       case 'home':
-        // Pass isLoading to HomePage
-        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} isLoading={isLoading} />;
+        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
       case 'weeklyMarks':
         return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} settings={settings} showToast={showToast} />;
       case 'dashboard':
@@ -341,7 +340,7 @@ const App: React.FC = () => {
         const boyMarksView = view as BoyMarksPageView;
         return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} showToast={showToast} />;
       default:
-        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} isLoading={isLoading} />;
+        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
     }
   };
   
@@ -386,9 +385,9 @@ const App: React.FC = () => {
       );
     }
     
-    // 1. Show skeleton loader while checking auth.
-    if (currentUser === undefined) {
-        return <AppInitialLoadingSkeleton />; // Use AppInitialLoadingSkeleton here
+    // 1. Show skeleton loader while checking auth or loading initial data.
+    if (currentUser === undefined || (currentUser && isLoading && activeSection)) {
+        return <HomePageSkeleton />;
     }
     
     // 2. If user is not logged in, show the login page.

@@ -11,8 +11,6 @@ import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
 import { deleteBoyById, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
-import { HomePageContentSkeleton } from './HomePageContentSkeleton'; // Import the new skeleton
-
 
 interface HomePageProps {
   /** The list of all boys for the active section. */
@@ -25,8 +23,6 @@ interface HomePageProps {
   activeSection: Section;
   /** Function to display a toast notification. */
   showToast: (message: string, type?: ToastType) => void;
-  /** Indicates if data is currently being loaded for the active section. */
-  isLoading: boolean;
 }
 
 // Color mappings for squad names, specific to each section.
@@ -43,7 +39,7 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   4: 'text-yellow-600',
 };
 
-const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection, showToast, isLoading }) => {
+const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection, showToast }) => {
   // --- STATE MANAGEMENT ---
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -245,11 +241,6 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   const accentTextHover = isCompany ? 'hover:text-company-blue' : 'hover:text-junior-blue';
   const hasActiveFilters = filterSquad !== 'all' || filterYear !== 'all' || searchQuery !== '';
 
-  // Render skeleton if loading and no boys are present yet
-  if (isLoading && boys.length === 0) {
-    return <HomePageContentSkeleton />;
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -296,7 +287,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       )}
 
       {/* Conditional rendering for empty or no-result states */}
-      {boys.length === 0 && ( // This will now only trigger if isLoading is false
+      {boys.length === 0 && (
         <div className="text-center py-16 px-6 bg-white rounded-lg shadow-md mt-8">
             <ClipboardDocumentListIcon className="mx-auto h-16 w-16 text-slate-400" />
             <h3 className="mt-4 text-xl font-semibold text-slate-900">Your Roster is Empty</h3>
@@ -323,77 +314,75 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       )}
 
       {/* Main content: list of squads and their members */}
-      {boys.length > 0 && filteredBoys.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {sortedSquads.map((squad) => {
-              // Only render the squad if it has members after filtering
-              if (!boysBySquad[squad] || boysBySquad[squad].length === 0) {
-                  return null;
-              }
-              return (
-                <div key={squad}>
-                  <div className="flex justify-between items-baseline mb-4">
-                    <h2 className="text-2xl font-semibold text-slate-800">{`Squad ${squad}`}</h2>
-                    <div className="text-right">
-                      <p className="font-semibold text-slate-600">
-                        Total Marks: {squadStats[squad]?.totalMarks ?? 0}
-                      </p>
-                      <p className="text-sm text-slate-500">
-                        Avg Attendance: {squadStats[squad]?.avgAttendance ?? 0}%
-                      </p>
-                    </div>
-                  </div>
-                  <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                    <ul className="divide-y divide-slate-200">
-                      {boysBySquad[squad].map((boy) => (
-                        <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-                          <div className="flex-1">
-                            <p className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
-                                {boy.name}
-                                {squadLeaders[boy.squad] === boy.id && (
-                                    <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
-                                )}
-                            </p>
-                            <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate-500">
-                              <span>{isCompany ? `Year ${boy.year}` : boy.year}</span>
-                              <span className="text-slate-300">&bull;</span>
-                              <span>Total Marks: {calculateTotalMarks(boy)}</span>
-                              <span className="text-slate-300">&bull;</span>
-                              <span>Attendance: {calculateAttendancePercentage(boy)}%</span>
-                            </div>
-                          </div>
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => setView({ page: 'boyMarks', boyId: boy.id! })}
-                              className={`p-3 text-slate-500 rounded-full hover:bg-slate-100 ${accentTextHover}`}
-                              aria-label={`View marks for ${boy.name}`}
-                            >
-                              <ChartBarIcon />
-                            </button>
-                            <button
-                              onClick={() => handleEditBoy(boy)}
-                              className={`p-3 text-slate-500 rounded-full hover:bg-slate-100 ${accentTextHover}`}
-                              aria-label={`Edit ${boy.name}`}
-                            >
-                              <PencilIcon />
-                            </button>
-                             <button
-                              onClick={() => handleOpenDeleteModal(boy)}
-                              className="p-3 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100"
-                              aria-label={`Delete ${boy.name}`}
-                            >
-                              <TrashIcon />
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        {sortedSquads.map((squad) => {
+            // Only render the squad if it has members after filtering
+            if (!boysBySquad[squad] || boysBySquad[squad].length === 0) {
+                return null;
+            }
+            return (
+              <div key={squad}>
+                <div className="flex justify-between items-baseline mb-4">
+                  <h2 className="text-2xl font-semibold text-slate-800">{`Squad ${squad}`}</h2>
+                  <div className="text-right">
+                    <p className="font-semibold text-slate-600">
+                      Total Marks: {squadStats[squad]?.totalMarks ?? 0}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      Avg Attendance: {squadStats[squad]?.avgAttendance ?? 0}%
+                    </p>
                   </div>
                 </div>
-              )
-          })}
-        </div>
-      )}
+                <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                  <ul className="divide-y divide-slate-200">
+                    {boysBySquad[squad].map((boy) => (
+                      <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+                        <div className="flex-1">
+                          <p className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
+                              {boy.name}
+                              {squadLeaders[boy.squad] === boy.id && (
+                                  <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
+                              )}
+                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate-500">
+                            <span>{isCompany ? `Year ${boy.year}` : boy.year}</span>
+                            <span className="text-slate-300">&bull;</span>
+                            <span>Total Marks: {calculateTotalMarks(boy)}</span>
+                            <span className="text-slate-300">&bull;</span>
+                            <span>Attendance: {calculateAttendancePercentage(boy)}%</span>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => setView({ page: 'boyMarks', boyId: boy.id! })}
+                            className={`p-3 text-slate-500 rounded-full hover:bg-slate-100 ${accentTextHover}`}
+                            aria-label={`View marks for ${boy.name}`}
+                          >
+                            <ChartBarIcon />
+                          </button>
+                          <button
+                            onClick={() => handleEditBoy(boy)}
+                            className={`p-3 text-slate-500 rounded-full hover:bg-slate-100 ${accentTextHover}`}
+                            aria-label={`Edit ${boy.name}`}
+                          >
+                            <PencilIcon />
+                          </button>
+                           <button
+                            onClick={() => handleOpenDeleteModal(boy)}
+                            className="p-3 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100"
+                            aria-label={`Delete ${boy.name}`}
+                          >
+                            <TrashIcon />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )
+        })}
+      </div>
 
       {/* Modals for Add/Edit Form and Delete Confirmation */}
       <Modal isOpen={isFormModalOpen} onClose={handleCloseFormModal} title={boyToEdit ? 'Edit Boy' : 'Add New Boy'}>
