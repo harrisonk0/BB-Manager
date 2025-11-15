@@ -387,7 +387,7 @@ export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
  * Recreates a boy document in Firestore. This is used specifically for reverting a deletion.
  * It uses `setDoc` instead of `updateDoc` to create the document if it doesn't exist.
  * @param boy The complete Boy object to restore.
- * @param section The section the boy belongs to.
+ * @param section The boy belongs to.
  * @returns The recreated Boy object.
  */
 export const recreateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
@@ -487,8 +487,7 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
                 const freshLogs = snapshot.docs.map(doc => {
                     const data = doc.data();
                     const ts = data.timestamp;
-                    // Timestamps from Firestore are objects, but from IndexedDB might be numbers. This handles both.
-                    let timestampInMillis: number;
+                    let timestampInMillis: number; // Declare here
                     if (ts && typeof ts.toMillis === 'function') {
                         timestampInMillis = ts.toMillis();
                     } else if (typeof ts === 'number') {
@@ -515,7 +514,7 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
                 if (JSON.stringify(freshLogs.map(comparableLog)) !== JSON.stringify(cachedLogs.map(comparableLog))) {
                     console.log(`Background fetch for ${section} logs found updates. Refreshing cache.`);
                     saveLogsToDB(freshLogs, section).then(() => {
-                        // Notify the app that logs have been updated in the background
+                        // Notify the app that data has been updated in the background
                         window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section } }));
                     });
                 }
@@ -530,7 +529,7 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
         const logs = snapshot.docs.map((doc: any) => {
             const data = doc.data();
             const ts = data.timestamp;
-            let timestampInMillis: number;
+            let timestampInMillis: number; // Declare here
             if (ts && typeof ts.toMillis === 'function') {
                 timestampInMillis = ts.toMillis();
             } else if (typeof ts === 'number') {
@@ -694,7 +693,7 @@ export const fetchAllInviteCodes = async (): Promise<InviteCode[]> => {
                 const freshCodes = snapshot.docs.map(doc => {
                     const data = doc.data();
                     const ts = data.generatedAt;
-                    let generatedAtInMillis: number;
+                    let generatedAtInMillis: number; // Declare here
                     if (ts && typeof ts.toMillis === 'function') {
                         generatedAtInMillis = ts.toMillis();
                     } else if (typeof ts === 'number') {
@@ -705,8 +704,22 @@ export const fetchAllInviteCodes = async (): Promise<InviteCode[]> => {
                     return { ...data, id: doc.id, generatedAt: generatedAtInMillis } as InviteCode;
                 });
 
-                // Simple stringify comparison for now, can be made more robust if needed
-                if (JSON.stringify(freshCodes) !== JSON.stringify(cachedCodes)) {
+                // Robust deep comparison logic for InviteCode objects
+                const comparableInviteCode = (code: InviteCode) => ({
+                    id: code.id,
+                    generatedBy: code.generatedBy,
+                    generatedAt: code.generatedAt,
+                    section: code.section ?? null, // Coerce undefined to null for consistent comparison
+                    isUsed: code.isUsed,
+                    usedBy: code.usedBy ?? null,
+                    usedAt: code.usedAt ?? null,
+                });
+
+                // Sort both arrays by ID to ensure consistent order for comparison.
+                const sortedFresh = [...freshCodes].sort((a, b) => a.id.localeCompare(b.id));
+                const sortedCached = [...cachedCodes].sort((a, b) => a.id.localeCompare(b.id));
+
+                if (JSON.stringify(sortedFresh.map(comparableInviteCode)) !== JSON.stringify(sortedCached.map(comparableInviteCode))) {
                     console.log(`Background fetch for invite codes found updates. Refreshing cache.`);
                     Promise.all(freshCodes.map(code => saveInviteCodeToDB(code))).then(() => {
                         window.dispatchEvent(new CustomEvent('inviteCodesRefreshed'));
@@ -723,7 +736,7 @@ export const fetchAllInviteCodes = async (): Promise<InviteCode[]> => {
         const codes = snapshot.docs.map((doc: any) => {
             const data = doc.data();
             const ts = data.generatedAt;
-            let generatedAtInMillis: number;
+            let generatedAtInMillis: number; // Declare here
             if (ts && typeof ts.toMillis === 'function') {
                 generatedAtInMillis = ts.toMillis();
             } else if (typeof ts === 'number') {
