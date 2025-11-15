@@ -16,9 +16,10 @@ const Skeleton: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 /**
- * A skeleton loader specifically designed to look like the HomePage component.
+ * A skeleton loader specifically designed to look like the initial app load,
+ * including a placeholder for the header.
  */
-export const HomePageSkeleton: React.FC = () => (
+export const AppInitialLoadingSkeleton: React.FC = () => (
   <>
     {/* Fake Header */}
     <header className="bg-slate-400">
