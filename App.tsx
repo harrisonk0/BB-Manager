@@ -50,6 +50,8 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   // Global error state to display critical errors to the user.
   const [error, setError] = useState<string | null>(null);
+  // New state for handling users without an assigned role.
+  const [noRoleError, setNoRoleError] = useState<string | null>(null);
   
   // State for handling unsaved changes warning.
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -122,11 +124,19 @@ const App: React.FC = () => {
       initializeFirebase();
       const auth = getAuthInstance();
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        setCurrentUser(user);
         if (user) {
           // User logged in, fetch their role
           const role = await fetchUserRole(user.uid);
+          if (role === null) {
+            // User has no role, sign them out and show error
+            setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
+            await signOut(auth); // Sign out the user immediately
+            setCurrentUser(null); // Manually set to null to trigger re-render faster
+            setIsLoading(false);
+            return; // Stop further processing for this user
+          }
           setUserRole(role);
+          setNoRoleError(null); // Clear any previous no-role error
         } else {
           // If user is logged out, clear all user-related state.
           setIsLoading(false); 
@@ -135,7 +145,9 @@ const App: React.FC = () => {
           setUserRole(null); // Clear user role on logout
           localStorage.removeItem('activeSection');
           setHasShownLoginToast(false); // Reset the toast flag on logout
+          setNoRoleError(null); // Clear no-role error on logout
         }
+        setCurrentUser(user); // Set currentUser after role check
         // Other actions related to user login (like data loading or toast)
         // will be handled in a separate useEffect that depends on `currentUser` and `activeSection`.
       });
@@ -400,8 +412,28 @@ const App: React.FC = () => {
     if (currentUser === undefined || (currentUser && isLoading && activeSection && view.page !== 'signup')) {
         return <HomePageSkeleton />;
     }
+
+    // 2. If user has no role, display the specific error message.
+    if (noRoleError) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-slate-200 p-4">
+                <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md text-center">
+                    <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="The Boys' Brigade Logo" className="w-48 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-red-600">Access Denied</h2>
+                    <p className="text-slate-700">{noRoleError}</p>
+                    <p className="text-slate-500">Please ensure your email address is registered with an administrator.</p>
+                    <button
+                        onClick={() => setNoRoleError(null)} // Allow user to dismiss and try logging in again
+                        className="mt-6 group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-junior-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue"
+                    >
+                        Return to Login
+                    </button>
+                </div>
+            </div>
+        );
+    }
     
-    // 2. If user is not logged in, show the login page or signup page.
+    // 3. If user is not logged in, show the login page or signup page.
     if (!currentUser) {
         if (view.page === 'signup') {
             return <SignupPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} />;
@@ -409,17 +441,17 @@ const App: React.FC = () => {
         return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onNavigateToSignup={handleNavigation} />;
     }
     
-    // 3. If logged in but no section is selected, show the section select page.
+    // 4. If logged in but no section is selected, show the section select page.
     if (!activeSection) {
         return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => setView({ page: 'help' })} />;
     }
     
-    // 4. If there's a critical error, display it.
+    // 5. If there's a critical error, display it.
     if (error) {
         return <div className="text-center p-8 text-red-500">{error}</div>;
     }
 
-    // 5. If fully loaded and authenticated, render the main app layout.
+    // 6. If fully loaded and authenticated, render the main app layout.
     return (
         <>
             <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} userRole={userRole} />
