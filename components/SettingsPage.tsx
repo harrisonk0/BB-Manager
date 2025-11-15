@@ -35,6 +35,13 @@ interface UserWithEmailAndRole {
   role: UserRole;
 }
 
+// Mapping for UserRole to display names
+const USER_ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
+  'admin': 'Administrator',
+  'captain': 'Company Captain',
+  'officer': 'Officer',
+};
+
 const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole }) => {
   // Local state for the form inputs.
   const [meetingDay, setMeetingDay] = useState<number>(5); // Default to Friday
@@ -337,7 +344,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
 
     try {
       await updateUserRole(userToEditRole.uid, selectedNewRole, userRole);
-      showToast(`Role for ${userToEditRole.email} updated to ${selectedNewRole}.`, 'success');
+      showToast(`Role for ${userToEditRole.email} updated to ${USER_ROLE_DISPLAY_NAMES[selectedNewRole]}.`, 'success');
       loadUsersWithRoles(); // Refresh the list
       setIsRoleModalOpen(false);
     } catch (err: any) {
@@ -479,7 +486,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
                   <li key={user.uid} className="p-3 flex items-center justify-between text-sm">
                     <div className="flex-1">
                       <span className="font-medium text-slate-800">{user.email}</span>
-                      <p className="text-xs text-slate-500 mt-1">Role: <span className="font-semibold">{user.role}</span></p>
+                      <p className="text-xs text-slate-500 mt-1">Role: <span className="font-semibold">{USER_ROLE_DISPLAY_NAMES[user.role]}</span></p>
                     </div>
                     <button
                       onClick={() => handleEditRoleClick(user)}
@@ -567,9 +574,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
                 onChange={(e) => setSelectedNewRole(e.target.value as UserRole)}
                 className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
               >
-                <option value="admin">Admin</option>
-                <option value="captain">Captain</option>
-                <option value="officer">Officer</option>
+                {Object.entries(USER_ROLE_DISPLAY_NAMES).map(([roleValue, displayName]) => (
+                  <option key={roleValue} value={roleValue}>{displayName}</option>
+                ))}
               </select>
             </div>
             <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
