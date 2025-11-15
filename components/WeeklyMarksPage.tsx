@@ -141,7 +141,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   
   // --- EVENT HANDLERS ---
   const handleCompanyMarkChange = (boyId: string, score: string) => {
-    const numericScore = parseInt(score, 10);
+    const numericScore = parseFloat(score); // Use parseFloat
     // Basic validation for Company section marks.
     if (score === '' || (!isNaN(numericScore) && numericScore >= 0 && numericScore <= 10)) {
       setMarks(prev => ({ ...prev, [boyId]: score }));
@@ -151,7 +151,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
 
   const handleJuniorMarkChange = (boyId: string, type: 'uniform' | 'behaviour', score: string) => {
     const maxScore = type === 'uniform' ? 10 : 5;
-    const numericScore = parseInt(score, 10);
+    const numericScore = parseFloat(score); // Use parseFloat
     // Basic validation for Junior section marks.
     if (score === '' || (!isNaN(numericScore) && numericScore >= 0 && numericScore <= maxScore)) {
       // FIX: Ensure the object created always has both uniform and behaviour properties to match JuniorMarkState type.
@@ -216,7 +216,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         } else { // 'present'
             if (isCompany) {
                 const newScoreRaw = marks[boy.id] as CompanyMarkState;
-                const newScore = typeof newScoreRaw === 'string' ? parseInt(newScoreRaw, 10) : newScoreRaw;
+                const newScore = typeof newScoreRaw === 'string' ? parseFloat(newScoreRaw) : newScoreRaw; // Use parseFloat
                 // Default empty strings to 0.
                 const finalScore = (newScoreRaw !== '' && !isNaN(newScore as number)) ? newScore : 0;
 
@@ -231,8 +231,8 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                 }
             } else { // Junior Section
                 const newScores = marks[boy.id] as JuniorMarkState;
-                const uniformScore = newScores.uniform === '' ? 0 : Number(newScores.uniform);
-                const behaviourScore = newScores.behaviour === '' ? 0 : Number(newScores.behaviour);
+                const uniformScore = newScores.uniform === '' ? 0 : parseFloat(newScores.uniform as string); // Use parseFloat
+                const behaviourScore = newScores.behaviour === '' ? 0 : parseFloat(newScores.behaviour as string); // Use parseFloat
                 const finalScore = uniformScore + behaviourScore;
                 
                 if (markIndex > -1) {
@@ -451,6 +451,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                               type="number"
                               min="0"
                               max="10"
+                              step="0.01" {/* Added step for decimals */}
                               // FIX: Use Number() to correctly compare union type with number and fix TS errors. This also fixes a parser error with operator precedence.
                               value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
                               onChange={e => handleCompanyMarkChange(boy.id!, e.target.value)}
@@ -465,6 +466,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                     <input
                                       id={`uniform-${boy.id}`}
                                       type="number" min="0" max="10"
+                                      step="0.01" {/* Added step for decimals */}
                                       // FIX: Use Number() to correctly compare union type with number and fix TS errors.
                                       value={Number((marks[boy.id] as JuniorMarkState)?.uniform) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.uniform ?? ''}
                                       onChange={e => handleJuniorMarkChange(boy.id!, 'uniform', e.target.value)}
@@ -478,6 +480,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                     <input
                                       id={`behaviour-${boy.id}`}
                                       type="number" min="0" max="5"
+                                      step="0.01" {/* Added step for decimals */}
                                       // FIX: Use Number() to correctly compare union type with number and fix TS errors.
                                       value={Number((marks[boy.id] as JuniorMarkState)?.behaviour) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.behaviour ?? ''}
                                       onChange={e => handleJuniorMarkChange(boy.id!, 'behaviour', e.target.value)}

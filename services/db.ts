@@ -48,6 +48,16 @@ const validateBoyMarks = (boy: Boy, section: Section) => {
         throw new Error("Marks must be an array.");
     }
 
+    const validateDecimalPlaces = (value: number, fieldName: string, date: string) => {
+        // -1 is allowed for absent, other negative values are caught by range checks.
+        if (value < 0) return; 
+        const valueString = value.toString();
+        const decimalPart = valueString.split('.')[1];
+        if (decimalPart && decimalPart.length > 2) {
+            throw new Error(`${fieldName} for ${boy.name} on ${date} has more than 2 decimal places.`);
+        }
+    };
+
     for (const mark of boy.marks) {
         if (typeof mark.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(mark.date)) {
             throw new Error(`Invalid date format for mark: ${mark.date}`);
@@ -61,6 +71,9 @@ const validateBoyMarks = (boy: Boy, section: Section) => {
         if (mark.score === -1) {
             continue;
         }
+
+        // Validate decimal places for the total score
+        validateDecimalPlaces(mark.score, 'Total score', mark.date);
 
         if (section === 'company') {
             if (mark.score < 0 || mark.score > 10) {
@@ -77,8 +90,14 @@ const validateBoyMarks = (boy: Boy, section: Section) => {
             if (typeof mark.behaviourScore !== 'number' || mark.behaviourScore < 0 || mark.behaviourScore > 5) {
                 throw new Error(`Junior section behaviour score for ${boy.name} on ${mark.date} is invalid or out of range (0-5).`);
             }
+            // Validate decimal places for uniform and behaviour scores
+            validateDecimalPlaces(mark.uniformScore, 'Uniform score', mark.date);
+            validateDecimalPlaces(mark.behaviourScore, 'Behaviour score', mark.date);
+
             // Validate total score matches sum of uniform and behaviour scores
-            if (mark.score !== (mark.uniformScore + mark.behaviourScore)) {
+            // Use a small epsilon for floating point comparison
+            const calculatedTotal = mark.uniformScore + mark.behaviourScore;
+            if (Math.abs(mark.score - calculatedTotal) > 0.001) { // Allow for minor floating point inaccuracies
                 throw new Error(`Junior section total score for ${boy.name} on ${mark.date} does not match sum of uniform and behaviour scores.`);
             }
         }
