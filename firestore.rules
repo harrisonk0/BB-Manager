@@ -1,24 +1,57 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read/write access to any document only if the user is signed in.
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+
+    // Helper function to retrieve the requesting user's role
+    function getUserRole(userId) {
+      return get(/databases/$(database)/documents/user_roles/$(userId)).data.role;
     }
 
-    // Specific rules for invite_codes collection
-    match /invite_codes/{codeId} {
-      // Allow authenticated users to create invite codes
-      allow create: if request.auth != null;
+    // All requests must be authenticated
+    allow read, write: if request.auth != null;
 
-      // Allow unauthenticated users to read an invite code (to validate it)
-      // and update it (to mark as used) only if they are simultaneously creating a new user.
-      // This rule is more permissive for unauthenticated writes than typical,
-      // but necessary for the invite code signup flow.
-      allow get, update: if true; // This allows anyone to read/update. We'll rely on client-side logic for security.
-                                  // For a truly robust solution, this would require a Cloud Function to verify
-                                  // the invite code and create the user, then mark the code as used.
-                                  // Given the constraint of no Cloud Functions, this is the simplest approach.
+    // Rules for the user_roles collection
+    match /user_roles/{userId} {
+      // Users can read their own role
+      allow read: if request.auth.uid == userId;
+      // Only admins can create or update roles
+      allow create, update: if getUserRole(request.auth.uid) == 'admin';
+      // No one can delete role documents directly
+      allow delete: if false;
+    }
+
+    // Rules for the settings collection
+    match /settings/{sectionId} {
+      // Admins, Captains, and Officers can read settings
+      allow read: if getUserRole(request.auth.uid) in ['admin', 'captain', 'officer'];
+      // Only Admins and Captains can create or update settings
+      allow create, update: if getUserRole(request.auth.uid) in ['admin', 'captain'];
+      // No one can delete settings documents directly
+      allow delete: if false;
+    }
+
+    // Rules for the invite_codes collection
+    match /invite_codes/{codeId} {
+      // Only Admins and Captains can read, create, update, or delete invite codes
+      allow read, write: if getUserRole(request.auth.uid) in ['admin', 'captain'];
+    }
+
+    // Rules for section-specific data (boys and audit_logs)
+    // This covers collections like 'company_boys', 'junior_boys', 'company_audit_logs', 'junior_audit_logs'
+    match /{section}_boys/{boyId} {
+      // Admins, Captains, and Officers can read, create, update, or delete boy data
+      allow read, write: if getUserRole(request.auth.uid) in ['admin', 'captain', 'officer'];
+    }
+
+    match /{section}_audit_logs/{logId} {
+      // Admins, Captains, and Officers can read, create, update, or delete audit logs
+      allow read, write: if getUserRole(request.auth.uid) in ['admin', 'captain', 'officer'];
+    }
+
+    // Rules for user_activity collection
+    match /user_activity/{userId} {
+      // Users can read and write their own activity status
+      allow read, write: if request.auth.uid == userId;
     }
   }
 }
