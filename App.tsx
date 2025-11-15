@@ -421,7 +421,7 @@ const App: React.FC = () => {
       {/* Toast Notification Container */}
       <div
         aria-live="assertive"
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 flex flex-col-reverse items-center p-4 space-y-2 space-y-reverse pointer-events-none z-[100]"
+        className="fixed bottom-0 w-full max-w-sm mx-auto flex flex-col-reverse items-center p-4 space-y-2 space-y-reverse pointer-events-none z-[100]"
       >
         {toasts.map((toast) => (
           <Toast key={toast.id} toast={toast} removeToast={removeToast} />

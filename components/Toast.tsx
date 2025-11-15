@@ -48,7 +48,7 @@ const Toast: React.FC<ToastProps> = ({ toast, removeToast }) => {
           <div className="flex-shrink-0">
             {ICONS[toast.type]}
           </div>
-          <div className="ml-3 w-0 flex-1 pt-0.5">
+          <div className="ml-3 flex-1 pt-0.5"> {/* Removed w-0 */}
             <p className="text-sm font-medium text-slate-900">{toast.message}</p>
           </div>
           <div className="ml-4 flex-shrink-0 flex">
