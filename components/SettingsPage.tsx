@@ -6,13 +6,13 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Section, SectionSettings, ToastType, InviteCode, UserRole } from '../types'; // Import UserRole
+import { Section, SectionSettings, ToastType, InviteCode, UserRole } from '../types';
 import { saveSettings } from '../services/settings';
-import { createAuditLog, createInviteCode, fetchAllInviteCodes, fetchAllUserRoles, updateUserRole } from '../services/db'; // Import new role management functions
+import { createAuditLog, createInviteCode, fetchAllInviteCodes, fetchAllUserRoles, updateUserRole, revokeInviteCode } from '../services/db'; // Import revokeInviteCode
 import { getAuthInstance } from '../services/firebase';
-import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth'; // Import necessary Firebase Auth functions
-import { ClipboardIcon } from './Icons'; // Import ClipboardIcon
-import Modal from './Modal'; // Ensure Modal is imported
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import { ClipboardIcon } from './Icons';
+import Modal from './Modal';
 
 interface SettingsPageProps {
   activeSection: Section;
@@ -28,43 +28,37 @@ const WEEKDAYS = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
 
-// Define a type for users with email and role for local state management
 interface UserWithEmailAndRole {
   uid: string;
   email: string;
   role: UserRole;
 }
 
-// Mapping for UserRole to display names
 const USER_ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
   'admin': 'Administrator',
   'captain': 'Company Captain',
   'officer': 'Officer',
 };
 
-// Define the desired sort order for roles
 const ROLE_SORT_ORDER: UserRole[] = ['admin', 'captain', 'officer'];
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole }) => {
-  // Local state for the form inputs.
-  const [meetingDay, setMeetingDay] = useState<number>(5); // Default to Friday
+  const [meetingDay, setMeetingDay] = useState<number>(5);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // State for password change functionality
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordError, setPasswordErrorState] = useState<string | null>(null);
 
-  // State for invite code generation
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [loadingInviteCodes, setLoadingInviteCodes] = useState(true);
+  const [codeToRevoke, setCodeToRevoke] = useState<InviteCode | null>(null); // New state for revocation
 
-  // State for user role management
   const [usersWithRoles, setUsersWithRoles] = useState<UserWithEmailAndRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -72,27 +66,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const [selectedNewRole, setSelectedNewRole] = useState<UserRole | ''>('');
   const [roleEditError, setRoleEditError] = useState<string | null>(null);
 
-  // Permission checks
   const canEditSettings = userRole && ['admin', 'captain'].includes(userRole);
   const canManageInviteCodes = userRole && ['admin', 'captain'].includes(userRole);
-  const canManageUserRoles = userRole && ['admin', 'captain'].includes(userRole); // Same permission for now
+  const canManageUserRoles = userRole && ['admin', 'captain'].includes(userRole);
 
-  /**
-   * EFFECT: Populates the local state with the current settings when they are loaded.
-   */
   useEffect(() => {
     if (currentSettings) {
       setMeetingDay(currentSettings.meetingDay);
     }
   }, [currentSettings]);
 
-  /**
-   * Fetches all invite codes for display.
-   * @param showSpinner If true, sets the loading state to true before fetching. Defaults to true.
-   */
   const loadInviteCodes = useCallback(async (showSpinner: boolean = true) => {
     if (!canManageInviteCodes) {
-        setInviteCodes([]); // Clear codes if user doesn't have permission
+        setInviteCodes([]);
         setLoadingInviteCodes(false);
         return;
     }
@@ -100,7 +86,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       setLoadingInviteCodes(true);
     }
     try {
-      const codes = await fetchAllInviteCodes(userRole); // Pass userRole
+      const codes = await fetchAllInviteCodes(userRole);
       setInviteCodes(codes);
     } catch (err) {
       console.error("Failed to load invite codes:", err);
@@ -110,22 +96,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
         setLoadingInviteCodes(false);
       }
     }
-  }, [showToast, canManageInviteCodes, userRole]); // Add userRole to dependencies
+  }, [showToast, canManageInviteCodes, userRole]);
 
-  // Initial load of invite codes on component mount or when userRole changes
   useEffect(() => {
     loadInviteCodes();
-  }, [loadInviteCodes, userRole]); // Add userRole to dependencies
+  }, [loadInviteCodes, userRole]);
 
-  /**
-   * EFFECT: Listens for the custom 'inviteCodesRefreshed' event.
-   * This is triggered by the background sync in services/db.ts.
-   */
   useEffect(() => {
     const handleInviteCodesRefresh = () => {
       console.log('Invite codes cache updated in background, refreshing UI...');
-      // Call loadInviteCodes without showing the spinner, as data is updating in background
-      loadInviteCodes(false); 
+      loadInviteCodes(false);
     };
 
     window.addEventListener('inviteCodesRefreshed', handleInviteCodesRefresh);
@@ -134,9 +114,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     };
   }, [loadInviteCodes]);
 
-  /**
-   * Fetches all users with their roles for display in the role management section.
-   */
   const loadUsersWithRoles = useCallback(async () => {
     if (!canManageUserRoles) {
       setUsersWithRoles([]);
@@ -146,7 +123,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     setLoadingUsers(true);
     try {
       const fetchedUsers = await fetchAllUserRoles(userRole);
-      // Sort users by role based on the predefined order
       fetchedUsers.sort((a, b) => {
         const roleAIndex = ROLE_SORT_ORDER.indexOf(a.role);
         const roleBIndex = ROLE_SORT_ORDER.indexOf(b.role);
@@ -161,17 +137,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     }
   }, [canManageUserRoles, userRole, showToast]);
 
-  // Initial load of users with roles on component mount or when userRole changes
   useEffect(() => {
     loadUsersWithRoles();
   }, [loadUsersWithRoles, userRole]);
 
-  /**
-   * Handles the save button click for general settings.
-   * It persists the new settings to the database and creates an audit log entry.
-   */
   const handleSaveSettings = async () => {
-    // Prevent saving if no changes have been made.
     if (!currentSettings || currentSettings.meetingDay === meetingDay) {
         showToast('No changes to save.', 'info');
         return;
@@ -191,16 +161,15 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       const oldDay = WEEKDAYS[currentSettings.meetingDay];
       const newDay = WEEKDAYS[meetingDay];
 
-      // Create an audit log entry describing the change.
       await createAuditLog({
         userEmail,
         actionType: 'UPDATE_SETTINGS',
         description: `Updated meeting day from ${oldDay} to ${newDay}.`,
-        revertData: { settings: currentSettings }, // Save old settings for potential revert.
+        revertData: { settings: currentSettings },
       }, activeSection);
 
-      await saveSettings(activeSection, newSettings, userRole); // Pass userRole
-      onSettingsSaved(newSettings); // Update the parent component's state.
+      await saveSettings(activeSection, newSettings, userRole);
+      onSettingsSaved(newSettings);
       showToast('Settings saved successfully!', 'success');
     } catch (err: any) {
       console.error("Failed to save settings:", err);
@@ -211,10 +180,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     }
   };
 
-  /**
-   * Handles the password change submission.
-   * Re-authenticates the user and then updates their password.
-   */
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordErrorState(null);
@@ -241,21 +206,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
         throw new Error("No authenticated user found or user email is missing.");
       }
 
-      // Re-authenticate user for sensitive operation
       const credential = EmailAuthProvider.credential(user.email, oldPassword);
       await reauthenticateWithCredential(user, credential);
 
-      // Update password
       await updatePassword(user, newPassword);
 
       showToast('Password changed successfully!', 'success');
-      // Clear password fields on success
       setOldPassword('');
       setNewPassword('');
       setNewPasswordConfirm('');
     } catch (err: any) {
       console.error("Failed to change password:", err);
-      // Provide user-friendly error messages for common Firebase Auth errors
       switch (err.code) {
         case 'auth/wrong-password':
           setPasswordErrorState('Your current password is incorrect.');
@@ -279,9 +240,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     }
   };
 
-  /**
-   * Handles the generation of a new invite code.
-   */
   const handleGenerateCode = async () => {
     if (!canManageInviteCodes) {
         showToast('Permission denied: You do not have permission to generate invite codes.', 'error');
@@ -292,26 +250,25 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     try {
       const auth = getAuthInstance();
       const userEmail = auth.currentUser?.email || 'Unknown User';
-      // The actual code generation logic is in db.ts, which also performs the role check.
 
       const newInviteCode: Omit<InviteCode, 'generatedAt'> = {
-        id: '', // ID will be generated in db.ts
+        id: '',
         generatedBy: userEmail,
         isUsed: false,
-        section: activeSection, // Associate code with the current active section
+        section: activeSection,
       };
 
-      const createdCode = await createInviteCode(newInviteCode, activeSection, userRole); // Pass userRole
+      const createdCode = await createInviteCode(newInviteCode, activeSection, userRole);
       await createAuditLog({
         userEmail,
         actionType: 'GENERATE_INVITE_CODE',
         description: `Generated new invite code: ${createdCode.id}`,
-        revertData: { inviteCodeId: createdCode.id }, // Store ID for potential future deletion (though not implemented)
+        revertData: { inviteCodeId: createdCode.id },
       }, activeSection);
 
       setGeneratedCode(createdCode.id);
       showToast('Invite code generated successfully!', 'success');
-      loadInviteCodes(); // Refresh the list of codes, showing spinner for this explicit action
+      loadInviteCodes();
     } catch (err: any) {
       console.error("Failed to generate invite code:", err);
       showToast(`Failed to generate invite code: ${err.message}`, 'error');
@@ -320,9 +277,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     }
   };
 
-  /**
-   * Copies the generated invite code to the clipboard.
-   */
   const copyCodeToClipboard = (code: string) => {
     navigator.clipboard.writeText(code).then(() => {
       showToast('Invite code copied to clipboard!', 'info');
@@ -332,9 +286,29 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     });
   };
 
-  /**
-   * Handles opening the role edit modal.
-   */
+  // New: Handle revoke invite code click
+  const handleRevokeClick = (code: InviteCode) => {
+    setCodeToRevoke(code);
+  };
+
+  // New: Confirm and perform invite code revocation
+  const confirmRevokeCode = async () => {
+    if (!codeToRevoke) return;
+
+    setIsSaving(true); // Reuse isSaving for this operation
+    try {
+      await revokeInviteCode(codeToRevoke.id, activeSection, true, userRole); // createLogEntry is true by default
+      showToast(`Invite code '${codeToRevoke.id}' revoked successfully.`, 'success');
+      loadInviteCodes(); // Refresh the list
+      setCodeToRevoke(null); // Close modal
+    } catch (err: any) {
+      console.error("Failed to revoke invite code:", err);
+      showToast(`Failed to revoke invite code: ${err.message}`, 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleEditRoleClick = (user: UserWithEmailAndRole) => {
     setUserToEditRole(user);
     setSelectedNewRole(user.role);
@@ -342,19 +316,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     setIsRoleModalOpen(true);
   };
 
-  /**
-   * Handles saving the updated role for a user.
-   */
   const handleSaveRole = async () => {
     if (!userToEditRole || !selectedNewRole) return;
 
     setRoleEditError(null);
-    setIsSaving(true); // Reuse isSaving for this operation
+    setIsSaving(true);
 
     try {
       await updateUserRole(userToEditRole.uid, selectedNewRole, userRole);
       showToast(`Role for ${userToEditRole.email} updated to ${USER_ROLE_DISPLAY_NAMES[selectedNewRole]}.`, 'success');
-      loadUsersWithRoles(); // Refresh the list
+      loadUsersWithRoles();
       setIsRoleModalOpen(false);
     } catch (err: any) {
       console.error("Failed to update user role:", err);
@@ -369,7 +340,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     return <div className="text-center p-8">Loading settings...</div>;
   }
   
-  // --- Dynamic styles based on active section ---
   const isCompany = activeSection === 'company';
   const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
   const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
@@ -394,7 +364,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
                   value={meetingDay}
                   onChange={(e) => setMeetingDay(parseInt(e.target.value, 10))}
                   className={`w-full sm:w-auto mt-1 sm:mt-0 block px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
-                  disabled={!canEditSettings} // Disable if not admin/captain
+                  disabled={!canEditSettings}
                 >
                   {WEEKDAYS.map((day, index) => (
                     <option key={index} value={index}>{day}</option>
@@ -411,7 +381,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
             <div className="flex justify-end pt-4 border-t border-slate-200">
               <button
                 onClick={handleSaveSettings}
-                disabled={isSaving || !canEditSettings} // Disable if not admin/captain
+                disabled={isSaving || !canEditSettings}
                 className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white w-28 ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {isSaving ? 'Saving...' : 'Save'}
@@ -421,7 +391,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
         </div>
 
         {/* Invite Code Generation Section */}
-        {canManageInviteCodes && ( // Only render if admin/captain
+        {canManageInviteCodes && (
             <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
             <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Invite New Users</h2>
             <p className="text-slate-600 mb-4">Generate a one-time-use code to invite new users to the app. Share this code with them so they can sign up.</p>
@@ -463,15 +433,26 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
                         {code.isUsed && code.usedAt && !isNaN(code.usedAt) && ` (${code.revoked ? 'Revoked' : 'Used'} by ${code.usedBy || 'Unknown'} on ${new Date(code.usedAt).toLocaleDateString()})`}
                         </p>
                     </div>
-                    {code.isUsed ? (
-                        code.revoked ? (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">Revoked</span>
+                    <div className="flex items-center space-x-2">
+                        {code.isUsed ? (
+                            code.revoked ? (
+                                <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">Revoked</span>
+                            ) : (
+                                <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">Used</span>
+                            )
                         ) : (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">Used</span>
-                        )
-                    ) : (
-                        <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
-                    )}
+                            <>
+                                <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
+                                <button
+                                    onClick={() => handleRevokeClick(code)}
+                                    className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                    disabled={isSaving}
+                                >
+                                    Revoke
+                                </button>
+                            </>
+                        )}
+                    </div>
                     </li>
                 ))}
                 </ul>
@@ -570,7 +551,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       </div>
 
       {/* Role Edit Modal */}
-      <Modal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} title="Edit User Role">
+      <Modal isOpen={!!isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} title="Edit User Role">
         {userToEditRole && (
           <div className="space-y-4">
             <p className="text-slate-600">Editing role for: <strong className="font-semibold text-slate-800">{userToEditRole.email}</strong></p>
@@ -602,6 +583,33 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
                 className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${accentBg} ${accentRing}`}
               >
                 {isSaving ? 'Saving...' : 'Save Role'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Revoke Invite Code Confirmation Modal */}
+      <Modal isOpen={!!codeToRevoke} onClose={() => setCodeToRevoke(null)} title="Confirm Revocation">
+        {codeToRevoke && (
+          <div className="space-y-4">
+            <p className="text-slate-600">Are you sure you want to revoke the invite code <strong className="font-semibold text-slate-800">{codeToRevoke.id}</strong>?</p>
+            <p className="text-sm text-slate-500">This action cannot be undone. The code will be marked as 'Revoked' and can no longer be used for sign-ups.</p>
+            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setCodeToRevoke(null)}
+                disabled={isSaving}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRevokeCode}
+                disabled={isSaving}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? 'Revoking...' : 'Revoke Code'}
               </button>
             </div>
           </div>
