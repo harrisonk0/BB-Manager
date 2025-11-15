@@ -51,3 +51,4 @@ This project is documented across several files to provide a comprehensive under
 | **[6. Data & Services](./docs/06-data-and-services.md)**   | An explanation of the business logic and data layer, including Firestore and IndexedDB interaction. |
 | **[7. PWA & Offline](./docs/07-pwa-and-offline.md)**       | A deep dive into the Service Worker and offline storage implementation.                                 |
 | **[8. Data Types](./docs/08-types.md)**                    | A dictionary of all core TypeScript types, defining the application's data model.                   |
+| **[AI Rules](./AI_RULES.md)**                              | Guidelines for AI development within the project.                                                       |

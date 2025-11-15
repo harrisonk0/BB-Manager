@@ -41,11 +41,20 @@ The application requires a Firebase project to handle its backend, database, and
           appId: "1:1234567890:web:abcdef123456"
         };
         ```
-    -   Copy this entire object.
+    -   Copy these values.
 
-4.  **Update `services/config.ts`**
-    -   Open the `services/config.ts` file in the project.
-    -   Replace the existing `firebaseConfig` object with the one you just copied from the Firebase console.
+4.  **Create `.env` file**
+    -   In the root directory of your project, create a new file named `.env`.
+    -   Paste the following content into the `.env` file, replacing the placeholder values with your actual Firebase configuration keys:
+        ```
+        VITE_FIREBASE_API_KEY="AIza..."
+        VITE_FIREBASE_AUTH_DOMAIN="your-project-id.firebaseapp.com"
+        VITE_FIREBASE_PROJECT_ID="your-project-id"
+        VITE_FIREBASE_STORAGE_BUCKET="your-project-id.appspot.com"
+        VITE_FIREBASE_MESSAGING_SENDER_ID="1234567890"
+        VITE_FIREBASE_APP_ID="1:1234567890:web:abcdef123456"
+        ```
+    -   **Important**: Ensure there are no quotes around the values if they are numbers, but for strings like API keys, they should be quoted. Vite handles this, but it's good practice. For Firebase config, all values are strings.
 
 5.  **Enable Firestore**
     -   In the Firebase Console, navigate to the "Build" section in the left-hand menu and click on **Firestore Database**.

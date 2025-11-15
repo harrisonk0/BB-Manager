@@ -10,7 +10,7 @@ import * as fbApp from 'firebase/app';
 import { Firestore, getFirestore } from 'firebase/firestore';
 // FIX: Use named imports for Firebase v9 compatibility.
 import { getAuth, Auth } from 'firebase/auth';
-import { firebaseConfig } from './config';
+// Removed: import { firebaseConfig } from './config'; // This file will be deleted
 
 // Interface for the Firebase configuration object structure.
 export interface FirebaseConfig {
@@ -39,11 +39,19 @@ export const initializeFirebase = () => {
     return;
   }
 
-  const config = firebaseConfig;
+  // Read Firebase configuration from environment variables
+  const config: FirebaseConfig = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET as string,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID as string,
+  };
 
   // Validate that the Firebase configuration is complete.
   if (!config || !config.apiKey || !config.authDomain || !config.projectId || !config.appId) {
-      const errorMessage = `Firebase configuration is missing or invalid. Ensure all FIREBASE_* environment variables are set correctly in the hosting environment.`;
+      const errorMessage = `Firebase configuration is missing or invalid. Ensure all VITE_FIREBASE_* environment variables are set correctly.`;
       console.error(errorMessage);
       throw new Error(errorMessage);
   }
