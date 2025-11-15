@@ -82,10 +82,10 @@ service cloud.firestore {
       allow delete: if hasRole('admin');
     }
 
-    // --- Section-Specific Collections (Company & Junior) ---
+    // --- Section-Specific Collections (Company) ---
 
-    // Boys Collection: Member data.
-    match /{section}_boys/{boyId} {
+    // Company Boys Collection: Member data for Company section.
+    match /company_boys/{boyId} {
       // All authenticated users can read boy data.
       allow read: if isAuthenticated();
 
@@ -94,14 +94,43 @@ service cloud.firestore {
 
       // Additional validation for updates:
       // Ensure 'id' field is not changed.
-      // Ensure 'section' prefix matches the collection name.
       allow update: if hasAnyRole(['admin', 'captain', 'officer']) &&
-        request.resource.data.id == resource.data.id &&
-        request.path[0] == section;
+        request.resource.data.id == resource.data.id;
     }
 
-    // Audit Logs Collection: Tracks all significant actions.
-    match /{section}_audit_logs/{logId} {
+    // Company Audit Logs Collection: Tracks all significant actions for Company section.
+    match /company_audit_logs/{logId} {
+      // All authenticated users can read audit logs.
+      allow read: if isAuthenticated();
+
+      // Admins, Captains, and Officers can create audit logs.
+      allow create: if hasAnyRole(['admin', 'captain', 'officer']);
+
+      // Only Admins can delete audit logs (e.g., for cleanup).
+      allow delete: if hasRole('admin');
+
+      // Audit logs are immutable after creation, so no updates are allowed.
+      allow update: if false;
+    }
+
+    // --- Section-Specific Collections (Junior) ---
+
+    // Junior Boys Collection: Member data for Junior section.
+    match /junior_boys/{boyId} {
+      // All authenticated users can read boy data.
+      allow read: if isAuthenticated();
+
+      // Admins, Captains, and Officers can create, update, and delete boy data.
+      allow create, update, delete: if hasAnyRole(['admin', 'captain', 'officer']);
+
+      // Additional validation for updates:
+      // Ensure 'id' field is not changed.
+      allow update: if hasAnyRole(['admin', 'captain', 'officer']) &&
+        request.resource.data.id == resource.data.id;
+    }
+
+    // Junior Audit Logs Collection: Tracks all significant actions for Junior section.
+    match /junior_audit_logs/{logId} {
       // All authenticated users can read audit logs.
       allow read: if isAuthenticated();
 
