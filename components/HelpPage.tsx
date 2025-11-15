@@ -22,6 +22,8 @@ import {
     FilterIcon,
     LockClosedIcon,
     ClipboardIcon,
+    UserCircleIcon,
+    LogOutIcon,
 } from './Icons';
 
 
@@ -242,6 +244,10 @@ const GlobalSettingsPreview: React.FC = () => {
                     </button>
                 </li>
             </ul>
+            <h3 className="text-lg font-semibold text-red-700 mt-6 mb-3">Development Controls (Admin Only)</h3>
+            <button disabled className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600/80 rounded-md shadow-sm cursor-not-allowed">
+                Clear All Audit Logs
+            </button>
         </div>
     );
 };
@@ -302,9 +308,9 @@ const HelpPage: React.FC = () => {
         { id: 'administration', title: '6. App Administration', subSections: [
             { id: 'audit-log', title: 'The Audit Log' },
             { id: 'reverting-actions', title: 'How to Revert an Action' },
-            { id: 'section-settings', title: 'Section Settings' }, // Updated title
-            { id: 'global-settings', title: 'Global Settings' }, // New subsection
-            { id: 'account-settings', title: 'Account Settings' }, // New subsection
+            { id: 'section-settings', title: 'Section Settings' },
+            { id: 'global-settings', title: 'Global Settings' },
+            { id: 'account-settings', title: 'Account Settings' },
             { id: 'sign-out', title: 'Signing Out' },
         ]},
         { id: 'offline-use', title: '7. Offline Use' },
@@ -370,9 +376,8 @@ const HelpPage: React.FC = () => {
                             <p>The header at the top of the page is your main navigation tool. It allows you to switch between different pages, manage settings, and sign out. Its key areas are:</p>
                             <ul className="list-disc list-inside space-y-1 pl-4">
                                 <li><strong>App & Section Logos:</strong> Click the main BB logo to always return to the Home page.</li>
-                                <li><strong>Navigation Links:</strong> (e.g., Home, Dashboard) Quickly jump to the main pages of the app.</li>
-                                <li><strong>Tools & Actions:</strong> Icons for Help (<QuestionMarkCircleIcon className="inline h-4 w-4 align-text-bottom"/>), Section Settings (<CogIcon className="inline h-4 w-4 align-text-bottom"/>), Global Settings (<CogIcon className="inline h-4 w-4 align-text-bottom"/>), and Switching Sections (<SwitchHorizontalIcon className="inline h-4 w-4 align-text-bottom"/>).</li>
-                                <li><strong>Account Settings & Sign Out:</strong> Click your email address to go to Account Settings, or click the Sign Out button.</li>
+                                <li><strong>Navigation Links:</strong> (e.g., Home, Dashboard, Weekly Marks, Audit Log) Quickly jump to the main pages of the app. The Audit Log is visible to Admins, Captains, and Officers.</li>
+                                <li><strong>Tools & Actions:</strong> Icons for Help (<QuestionMarkCircleIcon className="inline h-4 w-4 align-text-bottom"/>), Section Settings (<CogIcon className="inline h-4 w-4 align-text-bottom"/>), and a User Profile icon (<UserCircleIcon className="inline h-4 w-4 align-text-bottom"/>) which opens a dropdown for Account Settings, Switching Sections, and Logging Out.</li>
                             </ul>
                             <HeaderAnatomy />
                         </div>
@@ -517,26 +522,26 @@ const HelpPage: React.FC = () => {
                         
                         <div id="section-settings" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Section Settings</h3>
-                            <p>On the Section Settings page (<CogIcon className="inline h-4 w-4 align-text-bottom"/>), you can customize settings specific to your active section. For example, you can set your section's official meeting day, which will make the Weekly Marks page automatically select the correct date for you.</p>
+                            <p>On the Section Settings page (accessed via the <CogIcon className="inline h-4 w-4 align-text-bottom"/> icon in the header), you can customize settings specific to your active section. For example, you can set your section's official meeting day, which will make the Weekly Marks page automatically select the correct date for you. Only Admins and Captains can save these settings.</p>
                             <SectionSettingsPreview />
                         </div>
 
                         <div id="global-settings" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Global Settings</h3>
-                            <p>The Global Settings page (<CogIcon className="inline h-4 w-4 align-text-bottom"/>) contains settings that affect the entire application, regardless of the active section. Here, administrators and captains can manage invite codes for new user sign-ups, view and update user roles, and access powerful development controls (admin-only).</p>
+                            <p>The Global Settings page (accessed via the User Profile dropdown in the header, then "Global Settings" from the Section Select page) contains settings that affect the entire application, regardless of the active section. Here, administrators and captains can manage invite codes for new user sign-ups, view and update user roles, and access powerful development controls (admin-only).</p>
                             <GlobalSettingsPreview />
                             <Callout>To keep the database tidy, all used or revoked invite codes, as well as audit logs, are automatically deleted after 14 days.</Callout>
                         </div>
 
                         <div id="account-settings" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Account Settings</h3>
-                            <p>Click your email address in the header to access your personal Account Settings. Here you can change your password.</p>
+                            <p>Click the User Profile icon (<UserCircleIcon className="inline h-4 w-4 align-text-bottom"/>) in the header, then select "Account Settings" from the dropdown. Here you can change your password.</p>
                             <AccountSettingsPreview />
                         </div>
                         
                         <div id="sign-out" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Signing Out</h3>
-                            <p>When you're finished, click the "Sign Out" button in the header to securely log out of your account.</p>
+                            <p>When you're finished, click the User Profile icon (<UserCircleIcon className="inline h-4 w-4 align-text-bottom"/>) in the header, then select "Log Out" (<LogOutIcon className="inline h-4 w-4 align-text-bottom"/>) from the dropdown to securely log out of your account.</p>
                         </div>
                     </section>
 

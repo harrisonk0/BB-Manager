@@ -95,6 +95,8 @@ export interface InviteCode {
   usedAt?: number;
   /** True if the code has been explicitly revoked, false otherwise. */
   revoked?: boolean;
+  /** The default role assigned to the user who uses this invite code. */
+  defaultUserRole: UserRole;
 }
 ```
 
@@ -214,7 +216,7 @@ These types are used by the root `App.tsx` component to manage the current page 
 Represents the main pages available in the application's navigation.
 
 ```typescript
-type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'help' | 'signup';
+type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'globalSettings' | 'accountSettings' | 'help' | 'signup';
 ```
 
 ---

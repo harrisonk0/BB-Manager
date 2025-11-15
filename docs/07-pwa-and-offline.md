@@ -42,7 +42,7 @@ The database schema is defined and migrated in the `openDB` function within `ser
 -   `invite_codes`: Stores all `InviteCode` objects. The `id` property is the key.
 -   `pending_writes`: This is the crucial store for offline operations.
     -   It has an `autoIncrement` key, meaning each new entry gets a unique, sequential ID.
-    -   It stores `PendingWrite` objects, which contain the type of operation (`CREATE_BOY`, `UPDATE_BOY`, etc.), the data payload, and the relevant section.
+    -   It stores `PendingWrite` objects, which contain the type of operation (`CREATE_BOY`, `UPDATE_BOY`, `CREATE_AUDIT_LOG`, `CREATE_INVITE_CODE`, `UPDATE_INVITE_CODE`, `UPDATE_USER_ROLE`, etc.), the data payload, and the relevant section.
 
 **The Offline-to-Online Flow**:
 The combination of these technologies creates a seamless experience:

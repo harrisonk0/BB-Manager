@@ -34,6 +34,7 @@ This is the most important file in the services directory. It provides a simple,
 -   Handling the online/offline logic for write operations.
 -   Containing the `syncPendingWrites()` function, the core of the offline-to-online data synchronization process.
 -   Generating dynamic collection names (e.g., `company_boys`) based on the active section, and managing global collections (`invite_codes`, `user_roles`).
+-   **Data Validation**: Includes `validateBoyMarks` to ensure data integrity before saving.
 -   **Automatic Cleanup**: Includes `deleteOldAuditLogs` which now also cleans up old, used, or revoked invite codes from both Firestore and IndexedDB.
 
 **Exported Functions**:
@@ -41,8 +42,7 @@ This is the most important file in the services directory. It provides a simple,
 -   `createBoy()`, `fetchBoys()`, `fetchBoyById()`, `updateBoy()`, `recreateBoy()`, `deleteBoyById()`: Full CRUD operations for member data.
 -   `createAuditLog()`, `fetchAuditLogs()`, `deleteOldAuditLogs()`, `clearAllAuditLogs()`: Full CRUD and cleanup operations for audit log data, including admin-only clear.
 -   `createInviteCode()`, `fetchInviteCode()`, `updateInviteCode()`, `revokeInviteCode()`, `fetchAllInviteCodes()`, `clearAllUsedRevokedInviteCodes()`: CRUD and management operations for invite codes, including admin-only clear.
--   `fetchUserRole()`, `fetchAllUserRoles()`, `updateUserRole()`: Functions for managing user roles.
--   `updateUserActivity()`, `fetchRecentActivity()`: Functions for tracking and displaying user activity.
+-   `fetchUserRole()`, `fetchAllUserRoles()`, `setUserRole()`, `updateUserRole()`: Functions for managing user roles.
 -   `clearAllLocalData()`: Admin-only function to clear all local IndexedDB data for a section.
 
 #### `offlineDb.ts` - IndexedDB Wrapper

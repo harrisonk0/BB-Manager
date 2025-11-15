@@ -69,27 +69,35 @@ The application requires a Firebase project to handle its backend, database, and
     -   Under the "Sign-in method" tab, select **Email/Password** from the list of providers.
     -   Enable the provider and click "Save".
 
-7.  **Create a User**
+7.  **Create a User and Assign a Role**
     -   While still in the Authentication section, go to the "Users" tab.
     -   Click "Add user".
     -   Enter an email and a password for your first test user. This is what you will use to log into the application.
+    -   **Important: Assign a User Role.** The application requires every user to have an assigned role (`admin`, `captain`, or `officer`) to log in.
+        -   Navigate to **Firestore Database** -> **Data**.
+        -   Create a new collection named `user_roles`.
+        -   Add a new document to this collection. The Document ID **must** be the User ID (UID) of the user you just created in Firebase Authentication. You can find the UID in the Authentication -> Users tab.
+        -   Add two fields to this document:
+            -   `email` (string): The email address of the user (e.g., `test@example.com`).
+            -   `role` (string): The role for this user (e.g., `admin`, `captain`, or `officer`). For your first user, it's recommended to set this to `admin`.
 
 8.  **Set Security Rules (CRITICAL STEP)**
     -   Navigate to the **Firestore Database** -> **Rules** tab.
-    -   By default, the rules disallow all access. You must replace the contents with rules that allow authenticated users to read and write data.
+    -   By default, the rules disallow all access. You must replace the contents with rules that allow authenticated users to read and write data, and specifically manage `user_roles` and `invite_codes`.
     -   Paste the following rules and click **Publish**:
     ```
     rules_version = '2';
     service cloud.firestore {
       match /databases/{database}/documents {
         // Allow read/write access to any document only if the user is signed in.
+        // This is a basic rule. More granular rules are implemented client-side.
         match /{document=**} {
           allow read, write: if request.auth != null;
         }
       }
     }
     ```
-    > **Security Note**: These rules are basic and provide blanket access for any signed-in user. For a production application with multiple roles, you would implement more granular rules.
+    > **Security Note**: These rules are basic and provide blanket access for any signed-in user. For a production application with multiple roles, you would implement more granular rules directly within Firestore to enforce server-side security. The current client-side permission checks are for UI guidance and basic prevention, but server-side rules are the ultimate authority.
 
 ---
 

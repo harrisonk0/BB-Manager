@@ -13,7 +13,7 @@ The root component of the entire application. It doesn't render much UI directly
 -   **Responsibilities**:
     -   Manages global state: `currentUser`, `userRole`, `activeSection`, `boys`, `settings`, `isLoading`, `error`, `noRoleError`, `hasUnsavedChanges`.
     -   Initializes Firebase and listens for authentication state changes (`onAuthStateChanged`), including fetching the user's role.
-    -   Handles the main "routing" logic by deciding which page component to render based on the `view` state.
+    -   Handles the main "routing" logic by deciding which page component to render based on the `view` state, including special handling for unauthenticated users (Login, Signup, Help).
     -   Orchestrates data fetching (`refreshData`) and offline synchronization (`syncPendingWrites`).
     -   Manages the "unsaved changes" confirmation modal.
     -   Manages and renders the global toast notification system.
@@ -89,17 +89,35 @@ Displays a chronological history of all actions taken in the app.
 
 #### `SettingsPage.tsx`
 
-Allows users to configure application settings, manage invite codes, and user roles.
+Allows users to configure application settings specific to the currently active section.
 
 -   **Responsibilities**:
-    -   Displays form inputs for available settings (e.g., meeting day).
-    -   Handles saving the settings to Firestore.
-    -   Allows users to change their password.
-    -   Provides functionality for administrators and captains to generate, view, and revoke invite codes.
-    -   Allows administrators and captains to view and update user roles.
-    -   Includes admin-only development controls for clearing audit logs, invite codes, and local data.
+    -   Displays form inputs for available section settings (e.g., meeting day).
+    -   Handles saving the settings to Firestore, with client-side permission checks based on `userRole`.
+    -   Provides a link to navigate to the `GlobalSettingsPage`.
     -   Creates audit log entries for all significant changes.
--   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`.
+-   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToGlobalSettings`.
+
+#### `GlobalSettingsPage.tsx`
+
+Provides administrative controls for managing invite codes, user roles, and development tools.
+
+-   **Responsibilities**:
+    -   Allows administrators and captains to generate, view, and revoke invite codes.
+    -   Displays a list of all users with their assigned roles and allows administrators/captains to update roles.
+    -   Includes admin-only development controls for clearing audit logs, used/revoked invite codes, and all local IndexedDB data.
+    -   Creates audit log entries for all significant changes.
+-   **Key Props**: `activeSection`, `showToast`, `userRole`, `refreshData`.
+
+#### `AccountSettingsPage.tsx`
+
+Allows the currently logged-in user to manage their personal account settings.
+
+-   **Responsibilities**:
+    -   Provides a form for changing the user's password.
+    -   Handles re-authentication and password update with Firebase Authentication.
+    -   Displays user-friendly error messages for password changes.
+-   **Key Props**: `showToast`.
 
 #### `HelpPage.tsx`
 
@@ -118,6 +136,7 @@ Handles user authentication with Firebase.
     -   Provides a form for email and password sign-in.
     -   Handles password reset requests.
     -   Navigates to the `SignupPage` for new user registration.
+    -   Navigates to the `HelpPage` for unauthenticated users.
 -   **Key Props**: `onNavigateToHelp`, `showToast`, `onNavigateToSignup`.
 
 #### `SignupPage.tsx`
@@ -127,9 +146,10 @@ Allows new users to sign up using an invite code.
 -   **Responsibilities**:
     -   Provides a form for email, password, and invite code entry.
     -   Validates the invite code and creates a new Firebase user.
+    -   Assigns a default user role based on the invite code.
     -   Marks the invite code as used upon successful signup.
     -   Creates an audit log entry for the signup.
--   **Key Props**: `onNavigateToHelp`, `showToast`, `onSignupSuccess`.
+-   **Key Props**: `onNavigateToHelp`, `showToast`, `onSignupSuccess`, `onNavigateBack`.
 
 #### `SectionSelectPage.tsx`
 
@@ -138,7 +158,8 @@ Allows the authenticated user to choose which section (Company or Junior) to man
 -   **Responsibilities**:
     -   Displays buttons for selecting Company or Junior sections.
     -   Persists the selected section in `localStorage`.
--   **Key Props**: `onSelectSection`, `onNavigateToHelp`.
+    -   Provides navigation to `HelpPage`, `GlobalSettingsPage`, and a `Sign Out` button.
+-   **Key Props**: `onSelectSection`, `onNavigateToHelp`, `onNavigateToGlobalSettings`, `userRole`, `onSignOut`.
 
 ---
 
@@ -154,6 +175,7 @@ The main navigation bar at the top of the application.
     -   Handles sign-out and switch-section actions.
     -   Dynamically changes its color scheme based on the `activeSection`.
     -   Conditionally renders navigation items based on `userRole`.
+    -   Includes a profile dropdown menu for `Account Settings`, `Switch Section`, and `Log Out`.
     -   Manages its own state for the mobile menu (`isMenuOpen`).
 -   **Key Props**: `setView`, `user`, `onSignOut`, `activeSection`, `onSwitchSection`, `userRole`.
 
@@ -205,6 +227,7 @@ A component for displaying a single, self-dismissing notification.
 
 -   **Responsibilities**:
     -   Renders a toast message with a corresponding icon (success, error, info).
+    -   Includes a progress bar indicating time until auto-dismissal.
     -   Automatically dismisses itself after a set duration.
     -   Provides a close button for manual dismissal.
 -   **Key Props**: `toast`, `removeToast`.
