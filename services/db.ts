@@ -22,7 +22,6 @@ import {
     orderBy,
     where,
     Timestamp,
-    limit,
 } from 'firebase/firestore';
 import { Boy, AuditLog, Section, InviteCode, UserRole } from '../types';
 import { getDb, getAuthInstance } from './firebase';
@@ -1172,47 +1171,4 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
     }
 
     return [];
-};
-
-
-// --- User Activity Functions ---
-
-/**
- * Updates the last active timestamp for a given user.
- * This is a fire-and-forget operation that runs in the background on login.
- * @param email The email of the user to update.
- */
-export const updateUserActivity = async (email: string): Promise<void> => {
-    if (!navigator.onLine) return;
-    try {
-        const db = getDb();
-        await setDoc(doc(db, 'user_activity', email), { lastActive: serverTimestamp() });
-    } catch (error) {
-        console.error("Failed to update user activity:", error);
-    }
-};
-
-/**
- * Fetches a list of the most recently active users.
- * @param currentUserEmail The email of the current user, to exclude them from the list.
- * @returns A promise that resolves to an array of user emails.
- */
-export const fetchRecentActivity = async (currentUserEmail: string): Promise<string[]> => {
-    if (!navigator.onLine) return [];
-    try {
-        const db = getDb();
-        const collectionRef = collection(db, 'user_activity');
-        // Fetch the 4 most recently active users to show up to 3 others.
-        const q = query(collectionRef, orderBy('lastActive', 'desc'), limit(4));
-        const snapshot = await getDocs(q);
-        
-        const activeUsers = snapshot.docs
-            .map(doc => doc.id) // doc.id is the email
-            .filter(email => email !== currentUserEmail);
-            
-        return activeUsers;
-    } catch (error) {
-        console.error("Failed to fetch recent activity:", error);
-        return [];
-    }
 };

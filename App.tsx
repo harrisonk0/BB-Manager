@@ -21,7 +21,7 @@ import SettingsPage from './components/SettingsPage';
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, updateUserActivity, fetchRecentActivity, fetchUserRole } from './services/db'; // Import fetchUserRole
+import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, fetchUserRole } from './services/db'; // Import fetchUserRole
 import { initializeFirebase, getAuthInstance } from './services/firebase';
 import { getSettings } from './services/settings';
 import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings, ToastMessage, ToastType, UserRole } from './types'; // Import UserRole
@@ -60,9 +60,6 @@ const App: React.FC = () => {
 
   // State for toast notifications.
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-
-  // New state to track if the initial login toast has been shown for the current session
-  const [hasShownLoginToast, setHasShownLoginToast] = useState(false);
 
   /**
    * Displays a toast notification.
@@ -144,7 +141,6 @@ const App: React.FC = () => {
           setSettings(null);
           setUserRole(null); // Clear user role on logout
           localStorage.removeItem('activeSection');
-          setHasShownLoginToast(false); // Reset the toast flag on logout
           setNoRoleError(null); // Clear no-role error on logout
         }
         setCurrentUser(user); // Set currentUser after role check
@@ -159,7 +155,7 @@ const App: React.FC = () => {
   }, []); // Empty dependency array ensures this runs only once on mount.
 
   /**
-   * EFFECT 2: Handle actions *after* user logs in or section changes (data loading, toast)
+   * EFFECT 2: Handle actions *after* user logs in or section changes (data loading)
    * This effect reacts to `currentUser` and `activeSection` changes to perform subsequent actions.
    */
   useEffect(() => {
@@ -167,21 +163,6 @@ const App: React.FC = () => {
       // Still checking auth status, show skeleton.
       setIsLoading(true);
     } else if (currentUser) { // User is logged in
-      // Show "last active" toast only once per login session
-      if (!hasShownLoginToast && currentUser.email) {
-        (async () => {
-          await updateUserActivity(currentUser.email!);
-          const recentUsers = await fetchRecentActivity(currentUser.email!);
-          if (recentUsers.length > 0) {
-              const usersToShow = recentUsers.slice(0, 3);
-              const usersString = usersToShow.join(', ');
-              const message = `Last active: ${usersString}`;
-              showToast(message, 'info');
-          }
-          setHasShownLoginToast(true); // Mark toast as shown for this session
-        })();
-      }
-
       // If user is logged in AND activeSection is set, load data and clean up audit logs.
       // Otherwise, if logged in but no section, stop loading to show SectionSelectPage.
       if (activeSection) {
@@ -192,7 +173,7 @@ const App: React.FC = () => {
         setIsLoading(false);
       }
     }
-  }, [currentUser, activeSection, loadDataAndSettings, showToast, hasShownLoginToast]); // Dependencies for this effect.
+  }, [currentUser, activeSection, loadDataAndSettings]); // Dependencies for this effect.
 
   /**
    * EFFECT: Handles online/offline status changes.
@@ -281,7 +262,6 @@ const App: React.FC = () => {
       setActiveSection(null);
       localStorage.removeItem('activeSection');
       setHasUnsavedChanges(false);
-      setHasShownLoginToast(false); // Reset toast flag on sign out
     } catch (error) {
       console.error('Sign out failed', error);
       setError('Failed to sign out. Please try again.');
