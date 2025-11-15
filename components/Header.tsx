@@ -54,7 +54,8 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
 
     // Permission checks
     const canAccessSectionSettings = userRole && ['admin', 'captain'].includes(userRole);
-    const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
+    // Global settings are now accessed from SectionSelectPage or Section Settings page
+    // const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
     const canAccessAuditLog = userRole && ['admin', 'captain', 'officer'].includes(userRole);
 
     return (
@@ -104,11 +105,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                         <CogIcon className="h-6 w-6"/>
                                     </button>
                                 )}
-                                {canAccessGlobalSettings && (
-                                    <button onClick={() => handleNavClick('globalSettings')} title="Global Settings" aria-label="Global Settings" className={iconButtonClasses}>
-                                        <CogIcon className="h-6 w-6"/> {/* Reusing CogIcon for now */}
-                                    </button>
-                                )}
+                                {/* Removed Global Settings from header */}
                                 <button onClick={onSwitchSection} title="Switch Section" aria-label="Switch Section" className={iconButtonClasses}>
                                     <SwitchHorizontalIcon className="h-6 w-6"/>
                                 </button>
@@ -154,11 +151,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                 <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Section Settings</span></div>
                             </button>
                         )}
-                        {canAccessGlobalSettings && (
-                            <button onClick={() => handleNavClick('globalSettings')} className={mobileNavLinkClasses}>
-                                <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Global Settings</span></div>
-                            </button>
-                        )}
+                        {/* Removed Global Settings from mobile menu */}
                         <button onClick={onSwitchSection} className={mobileNavLinkClasses}>
                             <div className="flex items-center"><SwitchHorizontalIcon className="h-5 w-5 mr-3"/><span>Switch Section</span></div>
                         </button>

@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Section, SectionSettings, ToastType, UserRole } from '../types';
+import { Section, SectionSettings, ToastType, UserRole, Page } from '../types';
 import { saveSettings } from '../services/settings';
 import { createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
@@ -19,18 +19,21 @@ interface SettingsPageProps {
   showToast: (message: string, type?: ToastType) => void;
   /** The role of the currently logged-in user. */
   userRole: UserRole | null;
+  /** Callback to navigate to the global settings page. */
+  onNavigateToGlobalSettings: () => void;
 }
 
 const WEEKDAYS = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole, onNavigateToGlobalSettings }) => {
   const [meetingDay, setMeetingDay] = useState<number>(5);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const canEditSettings = userRole && ['admin', 'captain'].includes(userRole);
+  const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
 
   useEffect(() => {
     if (currentSettings) {
@@ -126,6 +129,21 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
             </div>
           </div>
         </div>
+
+        {canAccessGlobalSettings && (
+          <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+            <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Global Application Settings</h2>
+            <p className="text-slate-600 mb-4">Manage invite codes, user roles, and development controls that affect the entire application.</p>
+            <div className="flex justify-end">
+              <button
+                onClick={onNavigateToGlobalSettings}
+                className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+              >
+                Go to Global Settings
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
