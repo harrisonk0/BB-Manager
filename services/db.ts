@@ -26,7 +26,31 @@ import {
 } from 'firebase/firestore';
 import { Boy, AuditLog, Section, InviteCode, UserRole } from '../types'; // Import UserRole
 import { getDb, getAuthInstance } from './firebase';
-import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB, saveInviteCodeToDB, getInviteCodeFromDB, getAllInviteCodesFromDB, deleteInviteCodeFromDB, deleteInviteCodesFromDB } from './offlineDb';
+import { 
+    openDB, 
+    getBoysFromDB, 
+    saveBoysToDB, 
+    getBoyFromDB, 
+    saveBoyToDB, 
+    addPendingWrite, 
+    getPendingWrites, 
+    clearPendingWrites, 
+    getLogsFromDB, 
+    saveLogsToDB, 
+    deleteBoyFromDB, 
+    deleteLogFromDB, 
+    saveLogToDB, 
+    deleteLogsFromDB, 
+    saveInviteCodeToDB, 
+    getInviteCodeFromDB, 
+    getAllInviteCodesFromDB, 
+    deleteInviteCodeFromDB, 
+    deleteInviteCodesFromDB,
+    clearStore, // New: Import clearStore
+    clearAllSectionDataFromDB, // New: Import clearAllSectionDataFromDB
+    clearUsedRevokedInviteCodesFromDB, // New: Import clearUsedRevokedInviteCodesFromDB
+    clearAllInviteCodesFromDB // New: Import clearAllInviteCodesFromDB
+} from './offlineDb';
 
 /**
  * Generates a consistent collection name for Firestore based on the active section and resource type.
@@ -35,12 +59,16 @@ import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPend
  * @param resource The type of data ('boys' or 'audit_logs').
  * @returns The formatted collection name string.
  */
-const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs' | 'invite_codes' | 'user_roles') => {
+const getCollectionName = (section: Section | null, resource: 'boys' | 'audit_logs' | 'invite_codes' | 'user_roles') => {
     if (resource === 'invite_codes') {
         return 'invite_codes'; // Invite codes are global, not section-specific
     }
     if (resource === 'user_roles') {
         return 'user_roles'; // User roles are global
+    }
+    if (!section) {
+        // Fallback for global logs if section is null, though audit logs should ideally have a section.
+        return 'global_audit_logs'; 
     }
     return `${section}_${resource}`;
 };
@@ -154,8 +182,8 @@ export const syncPendingWrites = async (): Promise<boolean> => {
     
     for (const write of pendingWrites) {
         const boysCollection = write.section ? getCollectionName(write.section, 'boys') : '';
-        const logsCollection = write.section ? getCollectionName(write.section, 'audit_logs') : 'global_audit_logs'; // Use global for non-section logs
-        const inviteCodesCollection = getCollectionName(null as any, 'invite_codes'); // Invite codes are global
+        const logsCollection = write.section ? getCollectionName(write.section, 'audit_logs') : getCollectionName(null, 'audit_logs'); // Use global for non-section logs
+        const inviteCodesCollection = getCollectionName(null, 'invite_codes'); // Invite codes are global
 
         switch (write.type) {
             case 'CREATE_BOY': {
@@ -190,7 +218,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 break;
             }
             case 'CREATE_AUDIT_LOG': {
-                const logData = { ...write.payload, timestamp: serverTimestamp() };
+                const logData = { ...write.payload, timestamp: serverTimestamp() }; // FIX: Use write.payload
                 const docRef = doc(collection(db, logsCollection));
                 batch.set(docRef, logData);
                 // If this was an offline creation of an audit log, we need to update its ID in IndexedDB.
@@ -270,7 +298,7 @@ export const fetchUserRole = async (uid: string): Promise<UserRole | null> => {
 
     try {
         const db = getDb();
-        const docRef = doc(db, getCollectionName(null as any, 'user_roles'), uid);
+        const docRef = doc(db, getCollectionName(null, 'user_roles'), uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             return docSnap.data().role as UserRole;
@@ -296,7 +324,7 @@ export const fetchAllUserRoles = async (actingUserRole: UserRole | null): Promis
     }
     try {
         const db = getDb();
-        const q = query(collection(db, getCollectionName(null as any, 'user_roles')));
+        const q = query(collection(db, getCollectionName(null, 'user_roles')));
         const snapshot = await getDocs(q);
         return snapshot.docs.map(doc => ({
             uid: doc.id,
@@ -359,14 +387,14 @@ export const updateUserRole = async (uid: string, newRole: UserRole, actingUserR
 
     try {
         const db = getDb();
-        const docRef = doc(db, getCollectionName(null as any, 'user_roles'), uid);
+        const docRef = doc(db, getCollectionName(null, 'user_roles'), uid);
         await updateDoc(docRef, { role: newRole });
         
         // Create audit log
         await createAuditLog({
             userEmail: auth.currentUser.email || 'Unknown User',
             actionType: 'UPDATE_USER_ROLE',
-            description: `Updated role for user ${uid} (email: ${targetUserRole}) from ${targetUserRole} to ${newRole}.`,
+            description: `Updated role for user ${uid} from ${targetUserRole} to ${newRole}.`,
             revertData: { uid, oldRole: targetUserRole, newRole }, // Store old and new role for revert
         }, null); // Global log, not section-specific
     } catch (error: any) {
@@ -591,13 +619,13 @@ export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, se
       ...(log.revertedLogId && { revertedLogId: log.revertedLogId }) // Conditionally add revertedLogId
   };
 
-  const logsCollectionName = section ? getCollectionName(section, 'audit_logs') : 'global_audit_logs'; // Use a global collection for non-section specific logs
+  const logsCollectionName = getCollectionName(section, 'audit_logs'); // Use a global collection for non-section specific logs
 
   if (navigator.onLine) {
     const logData = { ...logPayload, timestamp: serverTimestamp() };
     const docRef = await addDoc(collection(getDb(), logsCollectionName), logData);
     const newLog = { ...logPayload, id: docRef.id, timestamp };
-    if (section) {
+    if (section) { // Only save to section-specific IDB if section is provided
         await saveLogToDB(newLog, section);
     }
     return newLog;
@@ -605,7 +633,7 @@ export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, se
     const tempId = `offline_${crypto.randomUUID()}`;
     const newLog = { ...logPayload, id: tempId, timestamp };
     await addPendingWrite({ type: 'CREATE_AUDIT_LOG', payload: logPayload, tempId, section: section || undefined });
-    if (section) {
+    if (section) { // Only save to section-specific IDB if section is provided
         await saveLogToDB(newLog, section);
     }
     return newLog;
@@ -689,7 +717,47 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
     return [];
 };
 
-// Removed updateAuditLog as audit logs are now immutable.
+/**
+ * Deletes all audit logs for a given section from both Firestore and IndexedDB.
+ * This is a destructive operation intended for development/reset purposes.
+ * @param section The section whose audit logs to clear.
+ * @param userEmail The email of the user performing the action.
+ * @param userRole The role of the user performing the action.
+ * @throws Error if the user does not have 'admin' permission.
+ */
+export const clearAllAuditLogs = async (section: Section, userEmail: string, userRole: UserRole | null): Promise<void> => {
+    if (!navigator.onLine) throw new Error("This operation is only available online.");
+    if (!userRole || userRole !== 'admin') {
+        throw new Error("Permission denied: Only Admins can clear all audit logs.");
+    }
+
+    const db = getDb();
+    const logsCollectionName = getCollectionName(section, 'audit_logs');
+    const q = query(collection(db, logsCollectionName));
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+        const batch = writeBatch(db);
+        snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+        console.log(`Deleted ${snapshot.docs.length} audit logs from Firestore for section ${section}.`);
+    }
+
+    // Clear from IndexedDB
+    await clearStore(getCollectionName(section, 'audit_logs'));
+    console.log(`Cleared audit logs from IndexedDB for section ${section}.`);
+
+    // Create an audit log for this action
+    await createAuditLog({
+        userEmail,
+        actionType: 'DELETE_BOY', // Reusing DELETE_BOY for now, could add CLEAR_AUDIT_LOGS
+        description: `Cleared all audit logs for section ${section}.`,
+        revertData: {}, // Cannot revert clearing all logs
+    }, section);
+};
+
 
 /**
  * Deletes audit logs and invite codes older than 14 days from both IndexedDB and Firestore to manage storage.
@@ -757,7 +825,7 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
 
         // --- Clean up Firestore invite codes (client-side filtering) ---
         try {
-            const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
+            const inviteCodesCollection = getCollectionName(null, 'invite_codes');
             // Fetch all invite codes and filter client-side to avoid complex indexes
             const snapshot = await getDocs(collection(db, inviteCodesCollection));
             const allCodes: InviteCode[] = snapshot.docs.map(doc => {
@@ -793,6 +861,79 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
     }
 };
 
+/**
+ * Deletes all used or revoked invite codes from both Firestore and IndexedDB.
+ * This is a destructive operation intended for development/reset purposes.
+ * @param userEmail The email of the user performing the action.
+ * @param userRole The role of the user performing the action.
+ * @throws Error if the user does not have 'admin' permission.
+ */
+export const clearAllUsedRevokedInviteCodes = async (userEmail: string, userRole: UserRole | null): Promise<void> => {
+    if (!navigator.onLine) throw new Error("This operation is only available online.");
+    if (!userRole || userRole !== 'admin') {
+        throw new Error("Permission denied: Only Admins can clear used/revoked invite codes.");
+    }
+
+    const db = getDb();
+    const inviteCodesCollectionName = getCollectionName(null, 'invite_codes');
+    
+    // Fetch all codes and filter client-side to find used/revoked ones
+    const snapshot = await getDocs(collection(db, inviteCodesCollectionName));
+    const codesToDelete = snapshot.docs.filter(doc => {
+        const data = doc.data();
+        return data.isUsed || data.revoked;
+    });
+
+    if (codesToDelete.length > 0) {
+        const batch = writeBatch(db);
+        codesToDelete.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+        console.log(`Deleted ${codesToDelete.length} used/revoked invite codes from Firestore.`);
+    }
+
+    // Clear used/revoked from IndexedDB
+    await clearUsedRevokedInviteCodesFromDB();
+    console.log(`Cleared used/revoked invite codes from IndexedDB.`);
+
+    // Create an audit log for this action
+    await createAuditLog({
+        userEmail,
+        actionType: 'REVOKE_INVITE_CODE', // Reusing REVOKE_INVITE_CODE for now, could add CLEAR_INVITE_CODES
+        description: `Cleared all used/revoked invite codes.`,
+        revertData: {}, // Cannot revert clearing codes
+    }, null); // Global log
+};
+
+/**
+ * Clears all local data for a given section (boys, audit logs) and all invite codes.
+ * This is a destructive operation intended for development/reset purposes.
+ * @param section The section whose data to clear.
+ * @param userEmail The email of the user performing the action.
+ * @param userRole The role of the user performing the action.
+ * @throws Error if the user does not have 'admin' permission.
+ */
+export const clearAllLocalData = async (section: Section, userEmail: string, userRole: UserRole | null): Promise<void> => {
+    if (!userRole || userRole !== 'admin') {
+        throw new Error("Permission denied: Only Admins can clear all local data.");
+    }
+
+    await clearAllSectionDataFromDB(section);
+    console.log(`Cleared all local data for section ${section} and all invite codes from IndexedDB.`);
+
+    // Create an audit log for this action (only if online, as it's a local action)
+    if (navigator.onLine) {
+        await createAuditLog({
+            userEmail,
+            actionType: 'DELETE_BOY', // Reusing DELETE_BOY for now, could add CLEAR_LOCAL_DATA
+            description: `Cleared all local data for section ${section} and all invite codes.`,
+            revertData: {}, // Cannot revert clearing local data
+        }, section);
+    }
+};
+
+
 // --- Invite Code Functions ---
 
 /**
@@ -812,7 +953,7 @@ export const createInviteCode = async (code: Omit<InviteCode, 'generatedAt'>, se
     const newCodeId = generateRandomCode(6); // Generate a 6-character alphanumeric code
 
     const newInviteCode: InviteCode = { ...code, id: newCodeId, generatedAt: Date.now() };
-    const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
+    const inviteCodesCollection = getCollectionName(null, 'invite_codes');
 
     if (navigator.onLine) {
         const docRef = doc(getDb(), inviteCodesCollection, newInviteCode.id);
@@ -838,7 +979,7 @@ export const fetchInviteCode = async (id: string): Promise<InviteCode | undefine
     if (cachedCode) return cachedCode;
 
     if (navigator.onLine) {
-        const docRef = doc(getDb(), getCollectionName(null as any, 'invite_codes'), id);
+        const docRef = doc(getDb(), getCollectionName(null, 'invite_codes'), id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const data = docSnap.data();
@@ -867,7 +1008,7 @@ export const fetchInviteCode = async (id: string): Promise<InviteCode | undefine
  * @returns The updated InviteCode object.
  */
 export const updateInviteCode = async (id: string, updates: Partial<InviteCode>, userRole: UserRole | null): Promise<InviteCode> => {
-    const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
+    const inviteCodesCollection = getCollectionName(null, 'invite_codes');
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated to update invite code");
     // Allow update if userRole is null (for signup page) or if admin/captain
@@ -955,7 +1096,7 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
     const cachedCodes = await getAllInviteCodesFromDB();
     if (cachedCodes.length > 0) {
         if (navigator.onLine) {
-            const q = collection(getDb(), getCollectionName(null as any, 'invite_codes')); // Removed orderBy
+            const q = collection(getDb(), getCollectionName(null, 'invite_codes')); // Removed orderBy
             getDocs(q).then(snapshot => {
                 const freshCodes = snapshot.docs.map(doc => {
                     const data = doc.data();
@@ -1004,7 +1145,7 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
     }
 
     if (navigator.onLine) {
-        const q = collection(getDb(), getCollectionName(null as any, 'invite_codes')); // Removed orderBy
+        const q = collection(getDb(), getCollectionName(null, 'invite_codes')); // Removed orderBy
         const snapshot = await getDocs(q);
         const codes = snapshot.docs.map((doc: any) => {
             const data = doc.data();

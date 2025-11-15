@@ -110,6 +110,20 @@ const getStore = (storeName: string, mode: IDBTransactionMode): IDBObjectStore =
   return tx.objectStore(storeName);
 };
 
+/**
+ * Clears all data from a specific IndexedDB object store.
+ * @param storeName The name of the store to clear.
+ */
+export const clearStore = async (storeName: string): Promise<void> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const store = getStore(storeName, 'readwrite');
+    const request = store.clear();
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
 // --- Boy Functions ---
 /** Saves a single boy to the appropriate IndexedDB store. 'put' is used for both create and update. */
 export const saveBoyToDB = async (boy: Boy, section: Section): Promise<void> => {
@@ -285,6 +299,39 @@ export const deleteInviteCodesFromDB = async (codeIds: string[]): Promise<void> 
   });
 };
 
+/**
+ * Deletes only used or revoked invite codes from the IndexedDB store.
+ */
+export const clearUsedRevokedInviteCodesFromDB = async (): Promise<void> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(INVITE_CODES_STORE, 'readwrite');
+    const store = tx.objectStore(INVITE_CODES_STORE);
+    const request = store.openCursor();
+
+    request.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest).result;
+      if (cursor) {
+        const code = cursor.value as InviteCode;
+        if (code.isUsed || code.revoked) {
+          cursor.delete();
+        }
+        cursor.continue();
+      } else {
+        resolve();
+      }
+    };
+    request.onerror = () => reject(request.error);
+  });
+};
+
+/**
+ * Deletes all invite codes from the IndexedDB store.
+ */
+export const clearAllInviteCodesFromDB = async (): Promise<void> => {
+  return clearStore(INVITE_CODES_STORE);
+};
+
 // --- Pending Writes Functions ---
 /** Adds a new offline operation to the pending writes queue. */
 export const addPendingWrite = async (write: Omit<PendingWrite, 'id'>): Promise<void> => {
@@ -317,4 +364,19 @@ export const clearPendingWrites = async (): Promise<void> => {
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
+};
+
+/**
+ * Clears all local data (boys, audit logs) for a given section and all invite codes.
+ * This is a destructive operation intended for development/reset purposes.
+ * @param section The section whose data to clear.
+ */
+export const clearAllSectionDataFromDB = async (section: Section): Promise<void> => {
+  await openDB();
+  await Promise.all([
+    clearStore(getStoreName(section, 'boys')),
+    clearStore(getStoreName(section, 'audit_logs')),
+    clearStore(PENDING_WRITES_STORE), // Clear pending writes as well
+    clearAllInviteCodesFromDB(), // Clear all invite codes locally
+  ]);
 };

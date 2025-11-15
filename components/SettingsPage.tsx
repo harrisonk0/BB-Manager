@@ -8,7 +8,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Section, SectionSettings, ToastType, InviteCode, UserRole } from '../types';
 import { saveSettings } from '../services/settings';
-import { createAuditLog, createInviteCode, fetchAllInviteCodes, fetchAllUserRoles, updateUserRole, revokeInviteCode } from '../services/db'; // Import revokeInviteCode
+import { 
+  createAuditLog, 
+  createInviteCode, 
+  fetchAllInviteCodes, 
+  fetchAllUserRoles, 
+  updateUserRole, 
+  revokeInviteCode,
+  clearAllAuditLogs, // New: Import clearAllAuditLogs
+  clearAllUsedRevokedInviteCodes, // New: Import clearAllUsedRevokedInviteCodes
+  clearAllLocalData // New: Import clearAllLocalData
+} from '../services/db';
 import { getAuthInstance } from '../services/firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import { ClipboardIcon } from './Icons';
@@ -57,7 +67,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [loadingInviteCodes, setLoadingInviteCodes] = useState(true);
-  const [codeToRevoke, setCodeToRevoke] = useState<InviteCode | null>(null); // New state for revocation
+  const [codeToRevoke, setCodeToRevoke] = useState<InviteCode | null>(null);
 
   const [usersWithRoles, setUsersWithRoles] = useState<UserWithEmailAndRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
@@ -66,9 +76,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const [selectedNewRole, setSelectedNewRole] = useState<UserRole | ''>('');
   const [roleEditError, setRoleEditError] = useState<string | null>(null);
 
+  // New state for development controls confirmation modals
+  const [isClearLogsModalOpen, setIsClearLogsModalOpen] = useState(false);
+  const [isClearInviteCodesModalOpen, setIsClearInviteCodesModalOpen] = useState(false);
+  const [isClearLocalDataModalOpen, setIsClearLocalDataModalOpen] = useState(false);
+  const [isClearingDevData, setIsClearingDevData] = useState(false);
+
+
   const canEditSettings = userRole && ['admin', 'captain'].includes(userRole);
   const canManageInviteCodes = userRole && ['admin', 'captain'].includes(userRole);
   const canManageUserRoles = userRole && ['admin', 'captain'].includes(userRole);
+  const isAdmin = userRole === 'admin'; // New: Check for admin role
 
   useEffect(() => {
     if (currentSettings) {
@@ -286,21 +304,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     });
   };
 
-  // New: Handle revoke invite code click
   const handleRevokeClick = (code: InviteCode) => {
     setCodeToRevoke(code);
   };
 
-  // New: Confirm and perform invite code revocation
   const confirmRevokeCode = async () => {
     if (!codeToRevoke) return;
 
-    setIsSaving(true); // Reuse isSaving for this operation
+    setIsSaving(true);
     try {
-      await revokeInviteCode(codeToRevoke.id, activeSection, true, userRole); // createLogEntry is true by default
+      await revokeInviteCode(codeToRevoke.id, activeSection, true, userRole);
       showToast(`Invite code '${codeToRevoke.id}' revoked successfully.`, 'success');
-      loadInviteCodes(); // Refresh the list
-      setCodeToRevoke(null); // Close modal
+      loadInviteCodes();
+      setCodeToRevoke(null);
     } catch (err: any) {
       console.error("Failed to revoke invite code:", err);
       showToast(`Failed to revoke invite code: ${err.message}`, 'error');
@@ -335,6 +351,61 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       setIsSaving(false);
     }
   };
+
+  // --- Development Controls Handlers ---
+  const handleClearAllAuditLogs = async () => {
+    setIsClearingDevData(true);
+    try {
+      const auth = getAuthInstance();
+      const userEmail = auth.currentUser?.email || 'Unknown User';
+      await clearAllAuditLogs(activeSection, userEmail, userRole);
+      showToast('All audit logs cleared successfully!', 'success');
+      // Trigger a refresh of the audit log page if it's currently viewed
+      window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section: activeSection } }));
+    } catch (err: any) {
+      console.error("Failed to clear audit logs:", err);
+      showToast(`Failed to clear audit logs: ${err.message}`, 'error');
+    } finally {
+      setIsClearingDevData(false);
+      setIsClearLogsModalOpen(false);
+    }
+  };
+
+  const handleClearAllUsedRevokedInviteCodes = async () => {
+    setIsClearingDevData(true);
+    try {
+      const auth = getAuthInstance();
+      const userEmail = auth.currentUser?.email || 'Unknown User';
+      await clearAllUsedRevokedInviteCodes(userEmail, userRole);
+      showToast('All used/revoked invite codes cleared successfully!', 'success');
+      loadInviteCodes(); // Refresh the invite codes list
+    } catch (err: any) {
+      console.error("Failed to clear invite codes:", err);
+      showToast(`Failed to clear invite codes: ${err.message}`, 'error');
+    } finally {
+      setIsClearingDevData(false);
+      setIsClearInviteCodesModalOpen(false);
+    }
+  };
+
+  const handleClearAllLocalData = async () => {
+    setIsClearingDevData(true);
+    try {
+      const auth = getAuthInstance();
+      const userEmail = auth.currentUser?.email || 'Unknown User';
+      await clearAllLocalData(activeSection, userEmail, userRole);
+      showToast('All local data cleared successfully! Please refresh the page.', 'success');
+      // Force a full page refresh to reload all data from scratch
+      window.location.reload();
+    } catch (err: any) {
+      console.error("Failed to clear local data:", err);
+      showToast(`Failed to clear local data: ${err.message}`, 'error');
+    } finally {
+      setIsClearingDevData(false);
+      setIsClearLocalDataModalOpen(false);
+    }
+  };
+
 
   if (!currentSettings) {
     return <div className="text-center p-8">Loading settings...</div>;
@@ -548,6 +619,48 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
             </div>
           </form>
         </div>
+
+        {/* Development Controls Section (Admin Only) */}
+        {isAdmin && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-6 sm:p-8 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold text-red-800 border-b border-red-300 pb-2 mb-4">Development Controls (Admin Only)</h2>
+            <p className="text-red-700 mb-4">
+              <strong className="font-bold">Warning:</strong> These actions are destructive and intended for development or testing purposes only. Use with extreme caution.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <button
+                  onClick={() => setIsClearLogsModalOpen(true)}
+                  disabled={isClearingDevData}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Clear All Audit Logs (Current Section)
+                </button>
+                <p className="mt-1 text-xs text-red-700">Deletes all audit logs for the current section from Firestore and local storage.</p>
+              </div>
+              <div>
+                <button
+                  onClick={() => setIsClearInviteCodesModalOpen(true)}
+                  disabled={isClearingDevData}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Clear All Used/Revoked Invite Codes
+                </button>
+                <p className="mt-1 text-xs text-red-700">Deletes all used or revoked invite codes from Firestore and local storage.</p>
+              </div>
+              <div>
+                <button
+                  onClick={() => setIsClearLocalDataModalOpen(true)}
+                  disabled={isClearingDevData}
+                  className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Clear All Local Data (Current Section & Global Invite Codes)
+                </button>
+                <p className="mt-1 text-xs text-red-700">Deletes all local data (boys, audit logs, pending writes, all invite codes) for the current section from your browser's IndexedDB. Requires page refresh.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Role Edit Modal */}
@@ -614,6 +727,82 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Clear All Audit Logs Confirmation Modal */}
+      <Modal isOpen={isClearLogsModalOpen} onClose={() => setIsClearLogsModalOpen(false)} title="Confirm Clear All Audit Logs">
+        <div className="space-y-4">
+          <p className="text-red-600 font-semibold">This action will permanently delete ALL audit logs for the current section from both Firestore and your local browser storage.</p>
+          <p className="text-slate-600">Are you absolutely sure you want to proceed?</p>
+          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={() => setIsClearLogsModalOpen(false)}
+              disabled={isClearingDevData}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleClearAllAuditLogs}
+              disabled={isClearingDevData}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isClearingDevData ? 'Clearing...' : 'Clear Logs'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Clear All Used/Revoked Invite Codes Confirmation Modal */}
+      <Modal isOpen={isClearInviteCodesModalOpen} onClose={() => setIsClearInviteCodesModalOpen(false)} title="Confirm Clear Used/Revoked Invite Codes">
+        <div className="space-y-4">
+          <p className="text-red-600 font-semibold">This action will permanently delete ALL used or revoked invite codes from both Firestore and your local browser storage.</p>
+          <p className="text-slate-600">Are you absolutely sure you want to proceed?</p>
+          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={() => setIsClearInviteCodesModalOpen(false)}
+              disabled={isClearingDevData}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleClearAllUsedRevokedInviteCodes}
+              disabled={isClearingDevData}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isClearingDevData ? 'Clearing...' : 'Clear Codes'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Clear All Local Data Confirmation Modal */}
+      <Modal isOpen={isClearLocalDataModalOpen} onClose={() => setIsClearLocalDataModalOpen(false)} title="Confirm Clear All Local Data">
+        <div className="space-y-4">
+          <p className="text-red-600 font-semibold">This action will permanently delete ALL local data (members, audit logs, pending writes, and all invite codes) for the current section from your browser's IndexedDB.</p>
+          <p className="text-slate-600">This will NOT affect data in Firestore. You will need to refresh the page after this action.</p>
+          <p className="text-slate-600">Are you absolutely sure you want to proceed?</p>
+          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={() => setIsClearLocalDataModalOpen(false)}
+              disabled={isClearingDevData}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleClearAllLocalData}
+              disabled={isClearingDevData}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isClearingDevData ? 'Clearing...' : 'Clear Local Data'}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
