@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
         <header className={`${bgColor} text-white shadow-md sticky top-0 z-20`}>
             <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-20">
-                    <div className="flex items-center space-x-2 md:space-x-4"> {/* Adjusted spacing */}
+                    <div className="flex items-center space-x-2 lg:space-x-4"> {/* Adjusted spacing for lg */}
                         {/* Main BB Logo - acts as a "Home" button */}
                         <button 
                             onClick={() => handleNavClick('home')} 
@@ -64,21 +64,21 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                             <img 
                                 src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 
                                 alt="The Boys' Brigade Logo" 
-                                className="h-14 sm:h-12 rounded-md" // Main logo smaller on sm
+                                className="h-14 rounded-md" // Consistent size for main logo
                             />
                         </button>
-                        {/* Section-specific logo, hidden on small screens, shown on md and up */}
-                        <div className="hidden md:flex items-center border-l border-white/20 pl-4"> {/* Changed sm:flex to md:flex */}
+                        {/* Section-specific logo, hidden by default, shown on lg and up */}
+                        <div className="hidden lg:flex items-center border-l border-white/20 pl-4">
                           <img
                             src={isCompany ? "https://i.postimg.cc/0j44DjdY/company-boxed-colour.png" : "https://i.postimg.cc/W1qvWLdp/juniors-boxed-colour.png"}
                             alt={`${sectionName} Logo`}
-                            className="h-10 rounded-md" // Section logo smaller
+                            className="h-10 rounded-md"
                           />
                         </div>
                     </div>
                     
                     {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-2">
+                    <div className="hidden lg:flex items-center space-x-2">
                         {user && (
                             <>
                                 <button onClick={() => handleNavClick('home')} className={navLinkClasses}>Home</button>
@@ -107,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                     </div>
                     
                     {/* Mobile Menu Button (Hamburger Icon) */}
-                    <div className="md:hidden flex items-center">
+                    <div className="lg:hidden flex items-center">
                         {user && (
                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset ${ringColor}`}>
                                 <span className="sr-only">Open main menu</span>
@@ -120,7 +120,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
 
             {/* Mobile Menu Panel */}
             {isMenuOpen && user && (
-                <div className={`md:hidden absolute w-full ${bgColor} shadow-lg z-30`} id="mobile-menu">
+                <div className={`lg:hidden absolute w-full ${bgColor} shadow-lg z-30`} id="mobile-menu">
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                         <button onClick={() => handleNavClick('home')} className={mobileNavLinkClasses}>Home</button>
                         <button onClick={() => handleNavClick('dashboard')} className={mobileNavLinkClasses}>Dashboard</button>
