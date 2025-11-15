@@ -277,17 +277,37 @@ const App: React.FC = () => {
     }
   };
   
-  const handleGoBackFromHelp = () => {
-    // If coming from login/signup, go to login. If from app, go to home.
-    if (!currentUser) {
-      setView({ page: 'home' }); // This will render LoginPage
-    } else if (!activeSection) {
-      setView({ page: 'home' }); // This will render SectionSelectPage
-    } else {
-      setView({ page: 'home' });
-    }
-  };
-  
+  // Helper function to render pages with a generic header when no section is active
+  const renderPageWithGenericHeader = (PageContent: React.FC<any>, backToPage: Page) => (
+    <>
+      <header className="bg-slate-700 text-white shadow-md sticky top-0 z-20">
+        <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center space-x-4">
+              <img 
+                src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 
+                alt="The Boys' Brigade Logo" 
+                className="h-14 rounded-md"
+              />
+            </div>
+            <button onClick={() => setView({ page: backToPage })} className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-slate-700">
+              Back to App
+            </button>
+          </div>
+        </nav>
+      </header>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Pass relevant props to the PageContent component */}
+        <PageContent 
+          activeSection={activeSection || 'company'} // Provide a dummy activeSection if null, as it's not truly relevant for these global pages
+          showToast={showToast} 
+          userRole={userRole} 
+          refreshData={refreshData} // Needed for GlobalSettingsPage
+        />
+      </main>
+    </>
+  );
+
   const renderApp = () => {
     // Handle loading state first
     if (currentUser === undefined || (currentUser && isLoading && view.page !== 'signup')) {
@@ -324,36 +344,13 @@ const App: React.FC = () => {
     
     // Handle authenticated user, but no active section selected yet
     if (!activeSection) {
-        // Allow access to global settings, account settings, or help page even without an active section
         switch (view.page) {
             case 'globalSettings':
-                return <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} />; // Pass a dummy activeSection, as it's not truly relevant here
+                return renderPageWithGenericHeader(GlobalSettingsPage, 'home'); // 'home' will render SectionSelectPage when !activeSection
             case 'accountSettings':
-                return <AccountSettingsPage showToast={showToast} />;
+                return renderPageWithGenericHeader(AccountSettingsPage, 'home'); // 'home' will render SectionSelectPage when !activeSection
             case 'help':
-                return (
-                    <>
-                        <header className="bg-slate-700 text-white shadow-md sticky top-0 z-20">
-                            <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-                                <div className="flex justify-between items-center h-20">
-                                    <div className="flex items-center space-x-4">
-                                        <img 
-                                            src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 
-                                            alt="The Boys' Brigade Logo" 
-                                            className="h-14 rounded-md"
-                                        />
-                                    </div>
-                                    <button onClick={handleGoBackFromHelp} className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-slate-700">
-                                        Back to App
-                                    </button>
-                                </div>
-                            </nav>
-                        </header>
-                        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            <HelpPage />
-                        </main>
-                    </>
-                );
+                return renderPageWithGenericHeader(HelpPage, 'home'); // 'home' will render SectionSelectPage when !activeSection
             default:
                 // If no specific page is requested, show the section selection
                 return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => handleNavigation({ page: 'help' })} onNavigateToGlobalSettings={() => handleNavigation({ page: 'globalSettings' })} userRole={userRole} />;
