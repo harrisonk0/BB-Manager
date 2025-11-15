@@ -495,7 +495,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
                   <li key={user.uid} className="p-3 flex items-center justify-between text-sm">
                     <div className="flex-1">
                       <span className="font-medium text-slate-800">{user.email}</span>
-                      <p className="text-xs text-slate-500 mt-1">Role: <span className="font-semibold">{USER_ROLE_DISPLAY_NAMES[user.role]}</span></p>
+                      <p className="text-xs text-slate-500 mt-1"><span className="font-semibold">{USER_ROLE_DISPLAY_NAMES[user.role]}</span></p>
                     </div>
                     <button
                       onClick={() => handleEditRoleClick(user)}
