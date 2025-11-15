@@ -10,10 +10,10 @@ import LoginPage from './components/LoginPage';
 import SignupPage from './components/SignupPage';
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
+import SettingsPage from './components/SettingsPage'; // Added import for SettingsPage
 import SectionSelectPage from './components/SectionSelectPage';
-import SettingsPage from './components/SettingsPage'; // This is now Section-Specific Settings
-import GlobalSettingsPage from './components/GlobalSettingsPage'; // New: Global Settings
-import AccountSettingsPage from './components/AccountSettingsPage'; // New: Account Settings
+import GlobalSettingsPage from './components/GlobalSettingsPage';
+import AccountSettingsPage from './components/AccountSettingsPage';
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
@@ -353,7 +353,7 @@ const App: React.FC = () => {
                 return renderPageWithGenericHeader(HelpPage, 'home'); // 'home' will render SectionSelectPage when !activeSection
             default:
                 // If no specific page is requested, show the section selection
-                return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => handleNavigation({ page: 'help' })} onNavigateToGlobalSettings={() => handleNavigation({ page: 'globalSettings' })} userRole={userRole} />;
+                return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => handleNavigation({ page: 'help' })} onNavigateToGlobalSettings={() => handleNavigation({ page: 'globalSettings' })} userRole={userRole} onSignOut={handleSignOut} />;
         }
     }
     

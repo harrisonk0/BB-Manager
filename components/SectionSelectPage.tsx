@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { Section, Page } from '../types';
-import { QuestionMarkCircleIcon, CogIcon } from './Icons';
+import { QuestionMarkCircleIcon, CogIcon, LogOutIcon } from './Icons'; // Import LogOutIcon
 
 interface SectionSelectPageProps {
   /** Callback function to inform the parent App component of the user's selection. */
@@ -18,9 +18,11 @@ interface SectionSelectPageProps {
   onNavigateToGlobalSettings: () => void;
   /** The role of the currently logged-in user. */
   userRole: string | null;
+  /** Callback to handle user sign out. */
+  onSignOut: () => void; // New prop for sign out
 }
 
-const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, onNavigateToHelp, onNavigateToGlobalSettings, userRole }) => {
+const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, onNavigateToHelp, onNavigateToGlobalSettings, userRole, onSignOut }) => {
   const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
 
   return (
@@ -42,6 +44,15 @@ const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, 
           <CogIcon className="h-8 w-8" />
         </button>
       )}
+
+      {/* New Log Out button */}
+      <button 
+        onClick={onSignOut} 
+        className={`absolute bottom-6 ${canAccessGlobalSettings ? 'right-36' : 'right-6'} text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full`}
+        aria-label="Log Out"
+      >
+        <LogOutIcon className="h-8 w-8" />
+      </button>
 
       <div className="w-full max-w-lg text-center">
         <img 
