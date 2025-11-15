@@ -262,6 +262,29 @@ export const getAllInviteCodesFromDB = async (): Promise<InviteCode[]> => {
   });
 };
 
+/** Deletes a single invite code by its ID. */
+export const deleteInviteCodeFromDB = async (id: string): Promise<void> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const store = getStore(INVITE_CODES_STORE, 'readwrite');
+    const request = store.delete(id);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
+/** Deletes an array of invite codes by their IDs in a single transaction. */
+export const deleteInviteCodesFromDB = async (codeIds: string[]): Promise<void> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(INVITE_CODES_STORE, 'readwrite');
+    const store = tx.objectStore(INVITE_CODES_STORE);
+    codeIds.forEach(id => store.delete(id));
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+};
+
 // --- Pending Writes Functions ---
 /** Adds a new offline operation to the pending writes queue. */
 export const addPendingWrite = async (write: Omit<PendingWrite, 'id'>): Promise<void> => {

@@ -39,6 +39,7 @@ The database schema is defined and migrated in the `openDB` function within `ser
 -   `company_audit_logs`: Stores all `AuditLog` objects for the Company Section. The `id` property is the key.
 -   `junior_boys`: Stores all `Boy` objects for the Junior Section.
 -   `junior_audit_logs`: Stores all `AuditLog` objects for the Junior Section.
+-   `invite_codes`: Stores all `InviteCode` objects. The `id` property is the key.
 -   `pending_writes`: This is the crucial store for offline operations.
     -   It has an `autoIncrement` key, meaning each new entry gets a unique, sequential ID.
     -   It stores `PendingWrite` objects, which contain the type of operation (`CREATE_BOY`, `UPDATE_BOY`, etc.), the data payload, and the relevant section.
@@ -59,4 +60,4 @@ The database version is managed by the `DB_VERSION` constant. If a developer nee
 1.  Increment the `DB_VERSION` constant.
 2.  Add the schema modification logic inside the `request.onupgradeneeded` event handler, often within an `if (event.oldVersion < NEW_VERSION)` block.
 
-When a user opens the app after an update, the browser will detect the new version number and automatically trigger the `onupgradeneeded` event, safely migrating their local database to the new schema. The migration from v1 to v2 in the existing code is a practical example of this, where generic `boys` and `audit_logs` stores were replaced with section-specific ones.
+When a user opens the app after an update, the browser will detect the new version number and automatically trigger the `onupgradeneeded` event, safely migrating their local database to the new schema. The migration from v1 to v2 in the existing code is a practical example of this, where generic `boys` and `audit_logs` stores were replaced with section-specific ones, and v2 to v3 added the `invite_codes` store.

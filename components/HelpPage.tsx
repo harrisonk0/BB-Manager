@@ -223,6 +223,7 @@ const HelpPage: React.FC = () => {
             { id: 'audit-log', title: 'The Audit Log' },
             { id: 'reverting-actions', title: 'How to Revert an Action' },
             { id: 'settings-page', title: 'Changing Settings' },
+            { id: 'invite-codes', title: 'Managing Invite Codes' }, // New subsection
             { id: 'sign-out', title: 'Signing Out' },
         ]},
         { id: 'offline-use', title: '7. Offline Use' },
@@ -431,12 +432,17 @@ const HelpPage: React.FC = () => {
                         
                         <div id="reverting-actions" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">How to Revert an Action</h3>
-                            <p>Made a mistake? No problem. In the Audit Log, most actions have a <strong className={`${accentTextColor}`}>Revert</strong> button (<UndoIcon className="inline h-4 w-4 align-text-bottom"/>). Clicking this will undo the action. For example, if you accidentally delete a member, reverting the action will restore them with all their previous marks intact.</p>
+                            <p>Made a mistake? No problem. In the Audit Log, most actions have a <strong className={`${accentTextColor}`}>Revert</strong> button (<UndoIcon className="inline h-4 w-4 align-text-bottom"/>). Clicking this will undo the action. For example, if you accidentally delete a member, reverting the action will restore them with all their previous marks intact. If you revert the generation of an invite code, that code will be marked as revoked.</p>
                         </div>
                         
                         <div id="settings-page" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Changing Settings</h3>
                             <p>On the Settings page (<CogIcon className="inline h-4 w-4 align-text-bottom"/>), you can customize the app's behavior. Currently, you can set your section's official meeting day. This will make the Weekly Marks page automatically select the correct date for you.</p>
+                        </div>
+
+                        <div id="invite-codes" className="space-y-4 scroll-mt-24">
+                            <h3 className="text-2xl font-semibold text-slate-700">Managing Invite Codes</h3>
+                            <p>From the Settings page, you can generate new invite codes for other officers to sign up for the app. Each code is a unique 6-character alphanumeric string. Once a code is used or if its generation is reverted from the Audit Log, it will be marked as 'Used' or 'Revoked' respectively. To keep the database tidy, all used or revoked invite codes, as well as audit logs, are automatically deleted after 14 days.</p>
                         </div>
                         
                         <div id="sign-out" className="space-y-4 scroll-mt-24">

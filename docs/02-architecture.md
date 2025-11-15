@@ -28,7 +28,7 @@ The offline-first approach is the cornerstone of this application's architecture
 ```
 
 1.  **App Shell Caching**: The Service Worker (`sw.js`) pre-caches the main application shell (HTML, JS, manifest). This makes the initial load nearly instantaneous on subsequent visits.
-2.  **Local Database (IndexedDB)**: `services/offlineDb.ts` sets up and manages a local IndexedDB database. This is the primary data source for the entire application. All `Boy` records, `AuditLog` entries, and other data are stored here.
+2.  **Local Database (IndexedDB)**: `services/offlineDb.ts` sets up and manages a local IndexedDB database. This is the primary data source for the entire application. All `Boy` records, `AuditLog` entries, `InviteCode` entries, and other data are stored here.
 3.  **UI Interaction**: When a user views a list of members or edits a mark, the React UI is reading from and writing to IndexedDB. This is why the interface feels incredibly fast—there are no network requests blocking the user's actions.
 4.  **Pending Writes Queue**: When a write operation (create, update, delete) occurs, it is immediately applied to the local IndexedDB. Simultaneously, a record of this operation is added to a special `pending_writes` store. This queue acts as a durable log of all changes that have not yet been saved to the central server.
 5.  **Event-Driven UI Refresh**: When the background sync successfully fetches new data from Firestore, it dispatches a custom browser event (e.g., `datarefreshed`). The root `App` component listens for this event and triggers a data refresh in the UI. This ensures the user sees the latest data without needing to manually reload the page after coming online.
@@ -71,12 +71,14 @@ The app keeps data for the **Company Section** and **Junior Section** completely
 
 This feature provides a robust safety net against user error.
 
--   **Logging**: Every service function that performs a significant write operation (`createBoy`, `deleteBoyById`, `updateBoy`, `saveSettings`) is also responsible for creating a corresponding `AuditLog` entry.
+-   **Logging**: Every service function that performs a significant write operation (`createBoy`, `deleteBoyById`, `updateBoy`, `saveSettings`, `createInviteCode`, `updateInviteCode`) is also responsible for creating a corresponding `AuditLog` entry.
 -   **The `revertData` Payload**: This is the most critical part of the audit log. It contains the necessary information to undo the action.
     -   `DELETE_BOY`: Stores a complete JSON copy of the `Boy` object that was deleted.
     -   `CREATE_BOY`: Stores the `id` of the `Boy` that was just created.
     -   `UPDATE_BOY`: Stores a complete JSON copy of the `Boy` object *before* the update was applied.
+    -   `GENERATE_INVITE_CODE`: Stores the `id` of the `InviteCode` that was generated.
 -   **Reversion Process**: The `handleRevert` function in `AuditLogPage.tsx` is a powerful state-reversal machine.
     -   It reads the `actionType` and `revertData` from the log entry being reverted.
-    -   It calls the appropriate *inverse* data service function. For example, to revert a `DELETE_BOY` action, it calls `recreateBoy()` using the saved `Boy` object from `revertData`.
+    -   It calls the appropriate *inverse* data service function. For example, to revert a `DELETE_BOY` action, it calls `recreateBoy()` using the saved `Boy` object from `revertData`. To revert a `GENERATE_INVITE_CODE`, it calls `revokeInviteCode()`.
     -   After a successful revert, it marks the original log entry as `reverted: true` (preventing it from being reverted again) and creates a *new* `REVERT_ACTION` log to record the fact that a revert occurred.
+-   **Automatic Cleanup**: Audit logs and used/revoked invite codes older than 14 days are automatically deleted from both local IndexedDB and remote Firestore to manage storage space. This cleanup runs on app startup.

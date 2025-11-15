@@ -66,8 +66,35 @@ interface AuditLog {
   description: string;
   /** Data needed to revert the action (e.g., the state of an object before a change). */
   revertData: any;
-  /** A flag indicating if this action has been reverted. */
-  reverted?: boolean;
+  /** The ID of the original audit log that this REVERT_ACTION log is reverting. */
+  revertedLogId?: string;
+}
+```
+
+---
+
+#### `InviteCode`
+
+Represents a one-time-use invite code for new user sign-ups.
+
+```typescript
+export interface InviteCode {
+  /** The unique invite code string itself. */
+  id: string;
+  /** The email of the user who generated this code. */
+  generatedBy: string;
+  /** The timestamp when the code was generated (Unix milliseconds). */
+  generatedAt: number;
+  /** The section this code is intended for (optional, could be 'all' or specific). */
+  section?: Section;
+  /** True if the code has been used, false otherwise. */
+  isUsed: boolean;
+  /** The email of the user who used this code (if used). */
+  usedBy?: string;
+  /** The timestamp when the code was used (if used). */
+  usedAt?: number;
+  /** True if the code has been explicitly revoked, false otherwise. */
+  revoked?: boolean;
 }
 ```
 
@@ -126,7 +153,10 @@ type AuditLogActionType =
   | 'UPDATE_BOY' 
   | 'DELETE_BOY' 
   | 'REVERT_ACTION' 
-  | 'UPDATE_SETTINGS';
+  | 'UPDATE_SETTINGS'
+  | 'GENERATE_INVITE_CODE'
+  | 'USE_INVITE_CODE'
+  | 'REVOKE_INVITE_CODE';
 ```
 
 ---
@@ -170,7 +200,7 @@ These types are used by the root `App.tsx` component to manage the current page 
 Represents the main pages available in the application's navigation.
 
 ```typescript
-type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'help';
+type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'help' | 'signup';
 ```
 
 ---
@@ -194,4 +224,3 @@ A union type representing the current view of the application.
 
 ```typescript
 type View = { page: Page } | BoyMarksPageView;
-```

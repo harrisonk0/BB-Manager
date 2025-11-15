@@ -34,11 +34,13 @@ This is the most important file in the services directory. It provides a simple,
 -   Handling the online/offline logic for write operations.
 -   Containing the `syncPendingWrites()` function, the core of the offline-to-online data synchronization process.
 -   Generating dynamic collection names (e.g., `company_boys`) based on the active section.
+-   **Automatic Cleanup**: Includes `deleteOldAuditLogs` which now also cleans up old, used, or revoked invite codes from both Firestore and IndexedDB.
 
 **Exported Functions**:
 -   `syncPendingWrites()`: The core sync logic.
 -   `createBoy()`, `fetchBoys()`, `fetchBoyById()`, `updateBoy()`, `recreateBoy()`, `deleteBoyById()`: Full CRUD operations for member data.
--   `createAuditLog()`, `fetchAuditLogs()`, `updateAuditLog()`, `deleteOldAuditLogs()`: Full CRUD and cleanup operations for audit log data.
+-   `createAuditLog()`, `fetchAuditLogs()`, `deleteOldAuditLogs()`: Full CRUD and cleanup operations for audit log data.
+-   `createInviteCode()`, `fetchInviteCode()`, `updateInviteCode()`, `revokeInviteCode()`, `fetchAllInviteCodes()`: CRUD and management operations for invite codes.
 
 #### `offlineDb.ts` - IndexedDB Wrapper
 
@@ -49,6 +51,7 @@ This file is a low-level service that provides a clean, Promise-based API for in
 -   Managing the database schema and handling version migrations via the `onupgradeneeded` event. This is where object stores (like tables in a traditional DB) are created.
 -   Providing simple, async functions for all basic database operations: `get`, `getAll`, `put` (for create/update), `delete`, and `clear`.
 -   Managing the `pending_writes` object store, which is critical for offline functionality.
+-   **Invite Code Management**: Provides specific functions for `saveInviteCodeToDB`, `getInviteCodeFromDB`, `getAllInviteCodesFromDB`, `deleteInviteCodeFromDB`, and `deleteInviteCodesFromDB`.
 
 #### `firebase.ts` - Firebase Initialization
 

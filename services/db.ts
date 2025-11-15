@@ -26,7 +26,7 @@ import {
 } from 'firebase/firestore';
 import { Boy, AuditLog, Section, InviteCode } from '../types';
 import { getDb, getAuthInstance } from './firebase';
-import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB, saveInviteCodeToDB, getInviteCodeFromDB, getAllInviteCodesFromDB } from './offlineDb';
+import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB, saveInviteCodeToDB, getInviteCodeFromDB, getAllInviteCodesFromDB, deleteInviteCodeFromDB, deleteInviteCodesFromDB } from './offlineDb';
 
 /**
  * Generates a consistent collection name for Firestore based on the active section and resource type.
@@ -570,15 +570,15 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
 // Removed updateAuditLog as audit logs are now immutable.
 
 /**
- * Deletes audit logs older than 14 days from both IndexedDB and Firestore to manage storage.
+ * Deletes audit logs and invite codes older than 14 days from both IndexedDB and Firestore to manage storage.
  * This is typically run on app startup.
- * @param section The section to clean up logs for.
+ * @param section The section to clean up logs and invite codes for.
  */
 export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
     const fourteenDaysInMillis = 14 * 24 * 60 * 60 * 1000;
     const cutoffTimestamp = Date.now() - fourteenDaysInMillis;
 
-    // Clean up local IndexedDB logs first.
+    // --- Clean up local IndexedDB logs ---
     try {
         const localLogs = await getLogsFromDB(section);
         const oldLocalLogIds = localLogs
@@ -593,11 +593,28 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
         console.error("Failed to delete old logs from IndexedDB:", error);
     }
 
-    // If online, clean up Firestore logs.
+    // --- Clean up local IndexedDB invite codes ---
+    try {
+        const localInviteCodes = await getAllInviteCodesFromDB();
+        const oldLocalInviteCodeIds = localInviteCodes
+            .filter(code => (code.isUsed || code.revoked) && (code.usedAt || code.generatedAt || 0) < cutoffTimestamp)
+            .map(code => code.id);
+
+        if (oldLocalInviteCodeIds.length > 0) {
+            await deleteInviteCodesFromDB(oldLocalInviteCodeIds);
+            console.log(`Deleted ${oldLocalInviteCodeIds.length} old invite codes from IndexedDB.`);
+        }
+    } catch (error) {
+        console.error("Failed to delete old invite codes from IndexedDB:", error);
+    }
+
+    // If online, clean up Firestore logs and invite codes.
     if (navigator.onLine) {
+        const db = getDb();
+        const cutoffFirestoreTimestamp = Timestamp.fromMillis(cutoffTimestamp);
+
+        // --- Clean up Firestore audit logs ---
         try {
-            const db = getDb();
-            const cutoffFirestoreTimestamp = Timestamp.fromMillis(cutoffTimestamp);
             const oldLogsQuery = query(
                 collection(db, getCollectionName(section, 'audit_logs')),
                 where('timestamp', '<', cutoffFirestoreTimestamp)
@@ -614,6 +631,48 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
             }
         } catch (error) {
             console.error("Failed to delete old logs from Firestore:", error);
+        }
+
+        // --- Clean up Firestore invite codes ---
+        try {
+            const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
+            const oldUsedCodesQuery = query(
+                collection(db, inviteCodesCollection),
+                where('isUsed', '==', true),
+                where('usedAt', '<', cutoffFirestoreTimestamp)
+            );
+            const oldRevokedCodesQuery = query(
+                collection(db, inviteCodesCollection),
+                where('revoked', '==', true),
+                where('usedAt', '<', cutoffFirestoreTimestamp) // Use usedAt for revoked codes too, if available
+            );
+            // Also consider codes that were generated but never used/revoked, if they are very old
+            const oldUnusedCodesQuery = query(
+                collection(db, inviteCodesCollection),
+                where('isUsed', '==', false),
+                where('revoked', '==', false),
+                where('generatedAt', '<', cutoffFirestoreTimestamp)
+            );
+
+            const [usedSnapshot, revokedSnapshot, unusedSnapshot] = await Promise.all([
+                getDocs(oldUsedCodesQuery),
+                getDocs(oldRevokedCodesQuery),
+                getDocs(oldUnusedCodesQuery)
+            ]);
+
+            const batch = writeBatch(db);
+            let deletedCount = 0;
+
+            usedSnapshot.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
+            revokedSnapshot.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
+            unusedSnapshot.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
+
+            if (deletedCount > 0) {
+                await batch.commit();
+                console.log(`Deleted ${deletedCount} old invite codes from Firestore.`);
+            }
+        } catch (error) {
+            console.error("Failed to delete old invite codes from Firestore:", error);
         }
     }
 };
