@@ -282,6 +282,99 @@ export const fetchUserRole = async (uid: string): Promise<UserRole | null> => {
     }
 };
 
+/**
+ * Fetches all user roles from the 'user_roles' collection.
+ * Assumes user_roles documents contain 'email' and 'role'.
+ * @param actingUserRole The role of the user attempting to fetch all roles.
+ * @returns An array of objects containing uid, email, and role.
+ * @throws Error if the acting user does not have permission.
+ */
+export const fetchAllUserRoles = async (actingUserRole: UserRole | null): Promise<{ uid: string; email: string; role: UserRole }[]> => {
+    if (!navigator.onLine) return [];
+    if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) {
+        throw new Error("Permission denied: Only Admins and Captains can view user roles.");
+    }
+    try {
+        const db = getDb();
+        const q = query(collection(db, getCollectionName(null as any, 'user_roles')));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({
+            uid: doc.id,
+            email: doc.data().email || 'N/A', // Assume email is stored, fallback to N/A
+            role: doc.data().role as UserRole
+        }));
+    } catch (error) {
+        console.error("Failed to fetch all user roles:", error);
+        throw new Error("Failed to fetch user roles.");
+    }
+};
+
+/**
+ * Updates a user's role in the 'user_roles' collection.
+ * Includes client-side permission checks.
+ * @param uid The Firebase User ID (UID) of the user whose role is being updated.
+ * @param newRole The new role to assign.
+ * @param actingUserRole The role of the user performing the update.
+ * @returns A promise that resolves when the role is updated.
+ * @throws Error if permission is denied or specific role change rules are violated.
+ */
+export const updateUserRole = async (uid: string, newRole: UserRole, actingUserRole: UserRole | null): Promise<void> => {
+    const auth = getAuthInstance();
+    if (!auth.currentUser) throw new Error("User not authenticated.");
+    if (!navigator.onLine) throw new Error("Role management is only available online.");
+    if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) {
+        throw new Error("Permission denied: Only Admins and Captains can update user roles.");
+    }
+
+    const currentUserId = auth.currentUser.uid;
+    const targetUserRole = await fetchUserRole(uid); // Fetch current role of target user
+
+    // Admin-specific checks
+    if (actingUserRole === 'admin') {
+        // Prevent admin from demoting themselves
+        if (currentUserId === uid && newRole !== 'admin') {
+            throw new Error("Admins cannot demote themselves.");
+        }
+        // Prevent admin from demoting another admin to a non-admin role
+        if (targetUserRole === 'admin' && newRole !== 'admin') {
+            throw new Error("Admins cannot demote other Admins.");
+        }
+    }
+    
+    // Captain-specific checks
+    if (actingUserRole === 'captain') {
+        // Captains cannot change an Admin's role
+        if (targetUserRole === 'admin') {
+            throw new Error("Captains cannot change an Admin's role.");
+        }
+        // Captains cannot promote themselves to Admin
+        if (currentUserId === uid && newRole === 'admin') {
+            throw new Error("Captains cannot promote themselves to Admin.");
+        }
+        // Captains cannot demote themselves to Officer
+        if (currentUserId === uid && newRole === 'officer') {
+            throw new Error("Captains cannot demote themselves to Officer.");
+        }
+    }
+
+    try {
+        const db = getDb();
+        const docRef = doc(db, getCollectionName(null as any, 'user_roles'), uid);
+        await updateDoc(docRef, { role: newRole });
+        
+        // Create audit log
+        await createAuditLog({
+            userEmail: auth.currentUser.email || 'Unknown User',
+            actionType: 'UPDATE_USER_ROLE',
+            description: `Updated role for user ${uid} (email: ${targetUserRole}) from ${targetUserRole} to ${newRole}.`,
+            revertData: { uid, oldRole: targetUserRole, newRole }, // Store old and new role for revert
+        }, null); // Global log, not section-specific
+    } catch (error: any) {
+        console.error("Failed to update user role:", error);
+        throw new Error(error.message || "Failed to update role. Please try again.");
+    }
+};
+
 // --- Boy Functions ---
 /**
  * Creates a new boy. If online, it adds directly to Firestore and caches in IndexedDB.

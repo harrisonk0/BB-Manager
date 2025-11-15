@@ -8,10 +8,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Section, SectionSettings, ToastType, InviteCode, UserRole } from '../types'; // Import UserRole
 import { saveSettings } from '../services/settings';
-import { createAuditLog, createInviteCode, fetchAllInviteCodes } from '../services/db';
+import { createAuditLog, createInviteCode, fetchAllInviteCodes, fetchAllUserRoles, updateUserRole } from '../services/db'; // Import new role management functions
 import { getAuthInstance } from '../services/firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth'; // Import necessary Firebase Auth functions
 import { ClipboardIcon } from './Icons'; // Import ClipboardIcon
+import Modal from './Modal'; // Ensure Modal is imported
 
 interface SettingsPageProps {
   activeSection: Section;
@@ -26,6 +27,13 @@ interface SettingsPageProps {
 const WEEKDAYS = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
+
+// Define a type for users with email and role for local state management
+interface UserWithEmailAndRole {
+  uid: string;
+  email: string;
+  role: UserRole;
+}
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole }) => {
   // Local state for the form inputs.
@@ -46,9 +54,18 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [loadingInviteCodes, setLoadingInviteCodes] = useState(true);
 
+  // State for user role management
+  const [usersWithRoles, setUsersWithRoles] = useState<UserWithEmailAndRole[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [userToEditRole, setUserToEditRole] = useState<UserWithEmailAndRole | null>(null);
+  const [selectedNewRole, setSelectedNewRole] = useState<UserRole | ''>('');
+  const [roleEditError, setRoleEditError] = useState<string | null>(null);
+
   // Permission checks
   const canEditSettings = userRole && ['admin', 'captain'].includes(userRole);
   const canManageInviteCodes = userRole && ['admin', 'captain'].includes(userRole);
+  const canManageUserRoles = userRole && ['admin', 'captain'].includes(userRole); // Same permission for now
 
   /**
    * EFFECT: Populates the local state with the current settings when they are loaded.
@@ -106,6 +123,32 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       window.removeEventListener('inviteCodesRefreshed', handleInviteCodesRefresh);
     };
   }, [loadInviteCodes]);
+
+  /**
+   * Fetches all users with their roles for display in the role management section.
+   */
+  const loadUsersWithRoles = useCallback(async () => {
+    if (!canManageUserRoles) {
+      setUsersWithRoles([]);
+      setLoadingUsers(false);
+      return;
+    }
+    setLoadingUsers(true);
+    try {
+      const fetchedUsers = await fetchAllUserRoles(userRole);
+      setUsersWithRoles(fetchedUsers);
+    } catch (err: any) {
+      console.error("Failed to load users with roles:", err);
+      showToast(`Failed to load user roles: ${err.message}`, 'error');
+    } finally {
+      setLoadingUsers(false);
+    }
+  }, [canManageUserRoles, userRole, showToast]);
+
+  // Initial load of users with roles on component mount or when userRole changes
+  useEffect(() => {
+    loadUsersWithRoles();
+  }, [loadUsersWithRoles, userRole]);
 
   /**
    * Handles the save button click for general settings.
@@ -273,6 +316,39 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     });
   };
 
+  /**
+   * Handles opening the role edit modal.
+   */
+  const handleEditRoleClick = (user: UserWithEmailAndRole) => {
+    setUserToEditRole(user);
+    setSelectedNewRole(user.role);
+    setRoleEditError(null);
+    setIsRoleModalOpen(true);
+  };
+
+  /**
+   * Handles saving the updated role for a user.
+   */
+  const handleSaveRole = async () => {
+    if (!userToEditRole || !selectedNewRole) return;
+
+    setRoleEditError(null);
+    setIsSaving(true); // Reuse isSaving for this operation
+
+    try {
+      await updateUserRole(userToEditRole.uid, selectedNewRole, userRole);
+      showToast(`Role for ${userToEditRole.email} updated to ${selectedNewRole}.`, 'success');
+      loadUsersWithRoles(); // Refresh the list
+      setIsRoleModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to update user role:", err);
+      setRoleEditError(err.message || "Failed to update role. Please try again.");
+      showToast('Failed to update user role.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (!currentSettings) {
     return <div className="text-center p-8">Loading settings...</div>;
   }
@@ -387,6 +463,37 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
             </div>
         )}
 
+        {/* User Role Management Section */}
+        {canManageUserRoles && (
+          <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+            <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>User Role Management</h2>
+            <p className="text-slate-600 mb-4">View and manage roles for all users in the application. Ensure users have an assigned role to log in.</p>
+
+            {loadingUsers ? (
+              <p className="text-slate-500">Loading users...</p>
+            ) : usersWithRoles.length === 0 ? (
+              <p className="text-slate-500">No users found with assigned roles. Roles must be manually created in Firestore for new users.</p>
+            ) : (
+              <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
+                {usersWithRoles.map(user => (
+                  <li key={user.uid} className="p-3 flex items-center justify-between text-sm">
+                    <div className="flex-1">
+                      <span className="font-medium text-slate-800">{user.email}</span>
+                      <p className="text-xs text-slate-500 mt-1">Role: <span className="font-semibold">{user.role}</span></p>
+                    </div>
+                    <button
+                      onClick={() => handleEditRoleClick(user)}
+                      className={`px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${accentRing}`}
+                    >
+                      Edit Role
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
         {/* Change Password Section */}
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
           <form onSubmit={handleChangePassword} className="space-y-6">
@@ -445,6 +552,45 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
           </form>
         </div>
       </div>
+
+      {/* Role Edit Modal */}
+      <Modal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} title="Edit User Role">
+        {userToEditRole && (
+          <div className="space-y-4">
+            <p className="text-slate-600">Editing role for: <strong className="font-semibold text-slate-800">{userToEditRole.email}</strong></p>
+            {roleEditError && <p className="text-red-500 text-sm">{roleEditError}</p>}
+            <div>
+              <label htmlFor="new-role" className="block text-sm font-medium text-slate-700">New Role</label>
+              <select
+                id="new-role"
+                value={selectedNewRole}
+                onChange={(e) => setSelectedNewRole(e.target.value as UserRole)}
+                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+              >
+                <option value="admin">Admin</option>
+                <option value="captain">Captain</option>
+                <option value="officer">Officer</option>
+              </select>
+            </div>
+            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setIsRoleModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveRole}
+                disabled={isSaving}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${accentBg} ${accentRing}`}
+              >
+                {isSaving ? 'Saving...' : 'Save Role'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
