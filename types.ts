@@ -57,7 +57,7 @@ export interface Boy {
 /**
  * Defines the types of actions that can be recorded in the audit log.
  */
-export type AuditLogActionType = 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'REVERT_ACTION' | 'UPDATE_SETTINGS';
+export type AuditLogActionType = 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'REVERT_ACTION' | 'UPDATE_SETTINGS' | 'GENERATE_INVITE_CODE' | 'USE_INVITE_CODE';
 
 /**
  * Represents a single entry in the audit log, tracking changes made in the application.
@@ -80,9 +80,29 @@ export interface AuditLog {
 }
 
 /**
+ * Represents a one-time-use invite code for new user sign-ups.
+ */
+export interface InviteCode {
+  /** The unique invite code string itself. */
+  id: string;
+  /** The email of the user who generated this code. */
+  generatedBy: string;
+  /** The timestamp when the code was generated (Unix milliseconds). */
+  generatedAt: number;
+  /** The section this code is intended for (optional, could be 'all' or specific). */
+  section?: Section;
+  /** True if the code has been used, false otherwise. */
+  isUsed: boolean;
+  /** The email of the user who used this code (if used). */
+  usedBy?: string;
+  /** The timestamp when the code was used (if used). */
+  usedAt?: number;
+}
+
+/**
  * Represents the main pages available in the application's navigation.
  */
-export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'help';
+export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'help' | 'signup';
 
 /**
  * A specific view type for displaying an individual boy's marks page.

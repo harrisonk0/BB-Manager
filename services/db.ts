@@ -24,9 +24,9 @@ import {
     Timestamp,
     limit,
 } from 'firebase/firestore';
-import { Boy, AuditLog, Section } from '../types';
+import { Boy, AuditLog, Section, InviteCode } from '../types';
 import { getDb, getAuthInstance } from './firebase';
-import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB } from './offlineDb';
+import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, getPendingWrites, clearPendingWrites, getLogsFromDB, saveLogsToDB, deleteBoyFromDB, deleteLogFromDB, saveLogToDB, deleteLogsFromDB, saveInviteCodeToDB, getInviteCodeFromDB, getAllInviteCodesFromDB } from './offlineDb';
 
 /**
  * Generates a consistent collection name for Firestore based on the active section and resource type.
@@ -35,7 +35,12 @@ import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPend
  * @param resource The type of data ('boys' or 'audit_logs').
  * @returns The formatted collection name string.
  */
-const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs') => `${section}_${resource}`;
+const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs' | 'invite_codes') => {
+    if (resource === 'invite_codes') {
+        return 'invite_codes'; // Invite codes are global, not section-specific
+    }
+    return `${section}_${resource}`;
+};
 
 /**
  * Validates the marks array of a boy object.
@@ -126,10 +131,12 @@ export const syncPendingWrites = async (): Promise<boolean> => {
     const boysToDeleteFromIDB: { tempId: string, section: Section }[] = [];
     const logsToUpdateInIDB: { log: AuditLog, section: Section }[] = [];
     const logsToDeleteFromIDB: { tempId: string, section: Section }[] = [];
+    const inviteCodesToUpdateInIDB: InviteCode[] = [];
     
     for (const write of pendingWrites) {
-        const boysCollection = getCollectionName(write.section, 'boys');
-        const logsCollection = getCollectionName(write.section, 'audit_logs');
+        const boysCollection = write.section ? getCollectionName(write.section, 'boys') : '';
+        const logsCollection = write.section ? getCollectionName(write.section, 'audit_logs') : '';
+        const inviteCodesCollection = getCollectionName(null as any, 'invite_codes'); // Invite codes are global
 
         switch (write.type) {
             case 'CREATE_BOY': {
@@ -139,10 +146,10 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 batch.set(docRef, write.payload);
                 const newBoy = { ...write.payload, id: docRef.id };
                 // We'll need to update the boy in IndexedDB with the new Firestore ID.
-                boysToUpdateInIDB.push({boy: newBoy, section: write.section});
+                boysToUpdateInIDB.push({boy: newBoy, section: write.section!});
                 if (write.tempId) {
                     // And delete the old temporary record from IndexedDB.
-                    boysToDeleteFromIDB.push({ tempId: write.tempId, section: write.section });
+                    boysToDeleteFromIDB.push({ tempId: write.tempId, section: write.section! });
                 }
                 break;
             }
@@ -172,9 +179,22 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                     // The timestamp from serverTimestamp() is not immediately available client-side.
                     // For local consistency, we'll use Date.now() for the IDB update.
                     const newLog = { ...write.payload, id: docRef.id, timestamp: Date.now() };
-                    logsToUpdateInIDB.push({ log: newLog, section: write.section });
-                    logsToDeleteFromIDB.push({ tempId: write.tempId, section: write.section });
+                    logsToUpdateInIDB.push({ log: newLog, section: write.section! });
+                    logsToDeleteFromIDB.push({ tempId: write.tempId, section: write.section! });
                 }
+                break;
+            }
+            case 'CREATE_INVITE_CODE': {
+                const docRef = doc(db, inviteCodesCollection, write.payload.id); // Use ID from payload
+                batch.set(docRef, { ...write.payload, generatedAt: serverTimestamp() });
+                const newCode = { ...write.payload, generatedAt: Date.now() }; // Use client timestamp for local consistency
+                inviteCodesToUpdateInIDB.push(newCode);
+                break;
+            }
+            case 'UPDATE_INVITE_CODE': {
+                const docRef = doc(db, inviteCodesCollection, write.payload.id);
+                batch.update(docRef, { ...write.payload, usedAt: serverTimestamp() }); // Update usedAt on server
+                inviteCodesToUpdateInIDB.push({ ...write.payload, usedAt: Date.now() }); // Update usedAt locally
                 break;
             }
             // Removed UPDATE_AUDIT_LOG case as audit logs are now immutable.
@@ -198,6 +218,10 @@ export const syncPendingWrites = async (): Promise<boolean> => {
         }
         for (const { log, section } of logsToUpdateInIDB) {
             await saveLogToDB(log, section);
+        }
+        // New: Handle invite code updates
+        for (const code of inviteCodesToUpdateInIDB) {
+            await saveInviteCodeToDB(code);
         }
 
         console.log('Sync successful.');
@@ -410,7 +434,7 @@ export const deleteBoyById = async (id: string, section: Section): Promise<void>
  * @param section The section the log pertains to.
  * @returns The new AuditLog object.
  */
-export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, section: Section): Promise<AuditLog> => {
+export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, section: Section | null): Promise<AuditLog> => {
   const auth = getAuthInstance();
   if (!auth.currentUser) throw new Error("User not authenticated for logging");
   const timestamp = Date.now();
@@ -424,17 +448,23 @@ export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, se
       ...(log.revertedLogId && { revertedLogId: log.revertedLogId }) // Conditionally add revertedLogId
   };
 
+  const logsCollectionName = section ? getCollectionName(section, 'audit_logs') : 'global_audit_logs'; // Use a global collection for non-section specific logs
+
   if (navigator.onLine) {
     const logData = { ...logPayload, timestamp: serverTimestamp() };
-    const docRef = await addDoc(collection(getDb(), getCollectionName(section, 'audit_logs')), logData);
+    const docRef = await addDoc(collection(getDb(), logsCollectionName), logData);
     const newLog = { ...logPayload, id: docRef.id, timestamp };
-    await saveLogToDB(newLog, section);
+    if (section) {
+        await saveLogToDB(newLog, section);
+    }
     return newLog;
   } else {
     const tempId = `offline_${crypto.randomUUID()}`;
     const newLog = { ...logPayload, id: tempId, timestamp };
-    await addPendingWrite({ type: 'CREATE_AUDIT_LOG', payload: logPayload, tempId, section });
-    await saveLogToDB(newLog, section);
+    await addPendingWrite({ type: 'CREATE_AUDIT_LOG', payload: logPayload, tempId, section: section || undefined });
+    if (section) {
+        await saveLogToDB(newLog, section);
+    }
     return newLog;
   }
 };
@@ -567,6 +597,149 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
         }
     }
 };
+
+// --- Invite Code Functions ---
+
+/**
+ * Creates a new invite code.
+ * @param code The invite code data to create.
+ * @returns The newly created InviteCode object.
+ */
+export const createInviteCode = async (code: Omit<InviteCode, 'generatedAt'>, section: Section): Promise<InviteCode> => {
+    const auth = getAuthInstance();
+    if (!auth.currentUser) throw new Error("User not authenticated to create invite code");
+
+    const newCode: InviteCode = { ...code, generatedAt: Date.now() };
+    const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
+
+    if (navigator.onLine) {
+        const docRef = doc(getDb(), inviteCodesCollection, newCode.id);
+        await setDoc(docRef, { ...newCode, generatedAt: serverTimestamp() });
+        await saveInviteCodeToDB(newCode);
+        return newCode;
+    } else {
+        await addPendingWrite({ type: 'CREATE_INVITE_CODE', payload: newCode, section });
+        await saveInviteCodeToDB(newCode);
+        return newCode;
+    }
+};
+
+/**
+ * Fetches an invite code by its ID.
+ * @param id The ID of the invite code to fetch.
+ * @returns The InviteCode object, or undefined if not found.
+ */
+export const fetchInviteCode = async (id: string): Promise<InviteCode | undefined> => {
+    await openDB(); // Ensure DB is ready
+
+    const cachedCode = await getInviteCodeFromDB(id);
+    if (cachedCode) return cachedCode;
+
+    if (navigator.onLine) {
+        const docRef = doc(getDb(), getCollectionName(null as any, 'invite_codes'), id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const ts = data.generatedAt;
+            let generatedAtInMillis: number;
+            if (ts && typeof ts.toMillis === 'function') {
+                generatedAtInMillis = ts.toMillis();
+            } else if (typeof ts === 'number') {
+                generatedAtInMillis = ts;
+            } else {
+                generatedAtInMillis = Date.now();
+            }
+            const code = { ...data, id: docSnap.id, generatedAt: generatedAtInMillis } as InviteCode;
+            await saveInviteCodeToDB(code);
+            return code;
+        }
+    }
+    return undefined;
+};
+
+/**
+ * Updates an existing invite code.
+ * @param code The InviteCode object with updated data.
+ * @returns The updated InviteCode object.
+ */
+export const updateInviteCode = async (code: InviteCode): Promise<InviteCode> => {
+    const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
+
+    if (navigator.onLine) {
+        const docRef = doc(getDb(), inviteCodesCollection, code.id);
+        await updateDoc(docRef, { ...code, usedAt: serverTimestamp() }); // Update usedAt on server
+        await saveInviteCodeToDB({ ...code, usedAt: Date.now() }); // Update usedAt locally
+        return { ...code, usedAt: Date.now() };
+    } else {
+        await addPendingWrite({ type: 'UPDATE_INVITE_CODE', payload: code });
+        await saveInviteCodeToDB(code);
+        return code;
+    }
+};
+
+/**
+ * Fetches all invite codes.
+ * @returns An array of InviteCode objects.
+ */
+export const fetchAllInviteCodes = async (): Promise<InviteCode[]> => {
+    await openDB(); // Ensure DB is ready
+    const auth = getAuthInstance();
+    if (!auth.currentUser) return []; // Only authenticated users can view all codes
+
+    const cachedCodes = await getAllInviteCodesFromDB();
+    if (cachedCodes.length > 0) {
+        if (navigator.onLine) {
+            const q = query(collection(getDb(), getCollectionName(null as any, 'invite_codes')), orderBy('generatedAt', 'desc'));
+            getDocs(q).then(snapshot => {
+                const freshCodes = snapshot.docs.map(doc => {
+                    const data = doc.data();
+                    const ts = data.generatedAt;
+                    let generatedAtInMillis: number;
+                    if (ts && typeof ts.toMillis === 'function') {
+                        generatedAtInMillis = ts.toMillis();
+                    } else if (typeof ts === 'number') {
+                        generatedAtInMillis = ts;
+                    } else {
+                        generatedAtInMillis = Date.now();
+                    }
+                    return { ...data, id: doc.id, generatedAt: generatedAtInMillis } as InviteCode;
+                });
+
+                // Simple stringify comparison for now, can be made more robust if needed
+                if (JSON.stringify(freshCodes) !== JSON.stringify(cachedCodes)) {
+                    console.log(`Background fetch for invite codes found updates. Refreshing cache.`);
+                    Promise.all(freshCodes.map(code => saveInviteCodeToDB(code))).then(() => {
+                        window.dispatchEvent(new CustomEvent('inviteCodesRefreshed'));
+                    });
+                }
+            }).catch(err => console.error("Background fetch for invite codes failed:", err));
+        }
+        return cachedCodes;
+    }
+
+    if (navigator.onLine) {
+        const q = query(collection(getDb(), getCollectionName(null as any, 'invite_codes')), orderBy('generatedAt', 'desc'));
+        const snapshot = await getDocs(q);
+        const codes = snapshot.docs.map((doc: any) => {
+            const data = doc.data();
+            const ts = data.generatedAt;
+            let generatedAtInMillis: number;
+            if (ts && typeof ts.toMillis === 'function') {
+                generatedAtInMillis = ts.toMillis();
+            } else if (typeof ts === 'number') {
+                generatedAtInMillis = ts;
+            } else {
+                generatedAtInMillis = Date.now();
+            }
+            return { ...data, id: doc.id, generatedAt: generatedAtInMillis } as InviteCode;
+        });
+        Promise.all(codes.map(code => saveInviteCodeToDB(code)));
+        return codes;
+    }
+
+    return [];
+};
+
 
 // --- User Activity Functions ---
 

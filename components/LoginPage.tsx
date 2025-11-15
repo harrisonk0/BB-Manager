@@ -9,16 +9,18 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { getAuthInstance } from '../services/firebase';
 import { QuestionMarkCircleIcon } from './Icons';
-import { ToastType } from '../types'; // Import ToastType
+import { ToastType, View } from '../types'; // Import View type
 
 interface LoginPageProps {
   /** Callback to navigate to the help page. */
   onNavigateToHelp: () => void;
   /** Function to display a toast notification. */
   showToast: (message: string, type?: ToastType) => void;
+  /** Callback to navigate to the signup page. */
+  onNavigateToSignup: (view: View) => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, showToast }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, showToast, onNavigateToSignup }) => {
   // State for form inputs, error messages, and loading status.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -150,7 +152,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, showToast }) =>
             </div>
           </div>
 
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-between">
             <div className="text-sm">
               <button
                 type="button"
@@ -159,6 +161,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, showToast }) =>
                 className="font-medium text-junior-blue hover:text-junior-blue/80 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSendingResetEmail ? 'Sending...' : 'Forgot your password?'}
+              </button>
+            </div>
+            <div className="text-sm">
+              <button
+                type="button"
+                onClick={() => onNavigateToSignup({ page: 'signup' })}
+                className="font-medium text-junior-blue hover:text-junior-blue/80"
+              >
+                Request access
               </button>
             </div>
           </div>

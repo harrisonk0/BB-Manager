@@ -5,12 +5,13 @@
  * recorded in the audit log. It also allows logged-in users to change their password.
  */
 
-import React, { useState, useEffect } from 'react';
-import { Section, SectionSettings, ToastType } from '../types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Section, SectionSettings, ToastType, InviteCode } from '../types';
 import { saveSettings } from '../services/settings';
-import { createAuditLog } from '../services/db';
+import { createAuditLog, createInviteCode, fetchAllInviteCodes } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth'; // Import necessary Firebase Auth functions
+import { ClipboardIcon } from './Icons'; // Import ClipboardIcon
 
 interface SettingsPageProps {
   activeSection: Section;
@@ -31,11 +32,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const [error, setError] = useState<string | null>(null);
 
   // State for password change functionality
-  const [currentPassword, setCurrentPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordError, setPasswordErrorState] = useState<string | null>(null);
+
+  // State for invite code generation
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
+  const [loadingInviteCodes, setLoadingInviteCodes] = useState(true);
 
   /**
    * EFFECT: Populates the local state with the current settings when they are loaded.
@@ -45,6 +52,42 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       setMeetingDay(currentSettings.meetingDay);
     }
   }, [currentSettings]);
+
+  /**
+   * Fetches all invite codes for display.
+   */
+  const loadInviteCodes = useCallback(async () => {
+    setLoadingInviteCodes(true);
+    try {
+      const codes = await fetchAllInviteCodes();
+      setInviteCodes(codes);
+    } catch (err) {
+      console.error("Failed to load invite codes:", err);
+      showToast("Failed to load invite codes.", "error");
+    } finally {
+      setLoadingInviteCodes(false);
+    }
+  }, [showToast]);
+
+  useEffect(() => {
+    loadInviteCodes();
+  }, [loadInviteCodes]);
+
+  /**
+   * EFFECT: Listens for the custom 'inviteCodesRefreshed' event.
+   * This is triggered by the background sync in services/db.ts.
+   */
+  useEffect(() => {
+    const handleInviteCodesRefresh = () => {
+      console.log('Invite codes cache updated in background, refreshing UI...');
+      loadInviteCodes();
+    };
+
+    window.addEventListener('inviteCodesRefreshed', handleInviteCodesRefresh);
+    return () => {
+      window.removeEventListener('inviteCodesRefreshed', handleInviteCodesRefresh);
+    };
+  }, [loadInviteCodes]);
 
   /**
    * Handles the save button click for general settings.
@@ -93,18 +136,18 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
    */
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordError(null);
+    setPasswordErrorState(null);
 
-    if (!newPassword || !confirmNewPassword || !currentPassword) {
-      setPasswordError('All password fields are required.');
+    if (!newPassword || !newPasswordConfirm || !oldPassword) {
+      setPasswordErrorState('All password fields are required.');
       return;
     }
-    if (newPassword !== confirmNewPassword) {
-      setPasswordError('New password and confirmation do not match.');
+    if (newPassword !== newPasswordConfirm) {
+      setPasswordErrorState('New password and confirmation do not match.');
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError('New password must be at least 6 characters long.');
+      setPasswordErrorState('New password must be at least 6 characters long.');
       return;
     }
 
@@ -118,7 +161,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       }
 
       // Re-authenticate user for sensitive operation
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      const credential = EmailAuthProvider.credential(user.email, oldPassword);
       await reauthenticateWithCredential(user, credential);
 
       // Update password
@@ -126,33 +169,82 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
 
       showToast('Password changed successfully!', 'success');
       // Clear password fields on success
-      setCurrentPassword('');
+      setOldPassword('');
       setNewPassword('');
-      setConfirmNewPassword('');
+      setNewPasswordConfirm('');
     } catch (err: any) {
       console.error("Failed to change password:", err);
       // Provide user-friendly error messages for common Firebase Auth errors
       switch (err.code) {
         case 'auth/wrong-password':
-          setPasswordError('Your current password is incorrect.');
+          setPasswordErrorState('Your current password is incorrect.');
           break;
         case 'auth/weak-password':
-          setPasswordError('The new password is too weak. Please choose a stronger one.');
+          setPasswordErrorState('The new password is too weak. Please choose a stronger one.');
           break;
         case 'auth/requires-recent-login':
-          setPasswordError('Please log out and log back in to change your password.');
+          setPasswordErrorState('Please log out and log back in to change your password.');
           break;
         case 'auth/network-request-failed':
-          setPasswordError('Network error. Please check your internet connection.');
+          setPasswordErrorState('Network error. Please check your internet connection.');
           break;
         default:
-          setPasswordError('Failed to change password. Please try again.');
+          setPasswordErrorState('Failed to change password. Please try again.');
           break;
       }
       showToast('Failed to change password.', 'error');
     } finally {
       setIsChangingPassword(false);
     }
+  };
+
+  /**
+   * Handles the generation of a new invite code.
+   */
+  const handleGenerateCode = async () => {
+    setIsGeneratingCode(true);
+    setGeneratedCode(null);
+    try {
+      const auth = getAuthInstance();
+      const userEmail = auth.currentUser?.email || 'Unknown User';
+      const newCodeId = crypto.randomUUID(); // Generate a unique ID for the code
+
+      const newInviteCode: Omit<InviteCode, 'generatedAt'> = {
+        id: newCodeId,
+        generatedBy: userEmail,
+        isUsed: false,
+        section: activeSection, // Associate code with the current active section
+      };
+
+      const createdCode = await createInviteCode(newInviteCode, activeSection);
+      await createAuditLog({
+        userEmail,
+        actionType: 'GENERATE_INVITE_CODE',
+        description: `Generated new invite code: ${createdCode.id}`,
+        revertData: { inviteCodeId: createdCode.id }, // Store ID for potential future deletion (though not implemented)
+      }, activeSection);
+
+      setGeneratedCode(createdCode.id);
+      showToast('Invite code generated successfully!', 'success');
+      loadInviteCodes(); // Refresh the list of codes
+    } catch (err) {
+      console.error("Failed to generate invite code:", err);
+      showToast('Failed to generate invite code. Please try again.', 'error');
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
+
+  /**
+   * Copies the generated invite code to the clipboard.
+   */
+  const copyCodeToClipboard = (code: string) => {
+    navigator.clipboard.writeText(code).then(() => {
+      showToast('Invite code copied to clipboard!', 'info');
+    }).catch(err => {
+      console.error("Failed to copy code:", err);
+      showToast('Failed to copy code.', 'error');
+    });
   };
 
   if (!currentSettings) {
@@ -209,6 +301,59 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
           </div>
         </div>
 
+        {/* Invite Code Generation Section */}
+        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+          <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Invite New Users</h2>
+          <p className="text-slate-600 mb-4">Generate a one-time-use code to invite new users to the app. Share this code with them so they can sign up.</p>
+          
+          <button
+            onClick={handleGenerateCode}
+            disabled={isGeneratingCode}
+            className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {isGeneratingCode ? 'Generating...' : 'Generate New Invite Code'}
+          </button>
+
+          {generatedCode && (
+            <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between flex-wrap gap-2">
+              <span className="font-mono text-slate-800 text-sm break-all">{generatedCode}</span>
+              <button
+                onClick={() => copyCodeToClipboard(generatedCode)}
+                className="p-2 text-slate-500 hover:text-slate-700 rounded-md hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+                aria-label="Copy invite code to clipboard"
+              >
+                <ClipboardIcon className="h-5 w-5" />
+              </button>
+            </div>
+          )}
+
+          <h3 className="text-lg font-semibold text-slate-700 mt-8 mb-3">Existing Invite Codes</h3>
+          {loadingInviteCodes ? (
+            <p className="text-slate-500">Loading codes...</p>
+          ) : inviteCodes.length === 0 ? (
+            <p className="text-slate-500">No invite codes generated yet.</p>
+          ) : (
+            <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
+              {inviteCodes.map(code => (
+                <li key={code.id} className="p-3 flex items-center justify-between text-sm">
+                  <div className="flex-1">
+                    <span className={`font-mono text-slate-800 ${code.isUsed ? 'line-through text-slate-500' : ''}`}>{code.id}</span>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Generated by {code.generatedBy} on {new Date(code.generatedAt).toLocaleDateString()}
+                      {code.isUsed && ` (Used by ${code.usedBy || 'Unknown'} on ${new Date(code.usedAt!).toLocaleDateString()})`}
+                    </p>
+                  </div>
+                  {code.isUsed ? (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">Used</span>
+                  ) : (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">Active</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         {/* Change Password Section */}
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
           <form onSubmit={handleChangePassword} className="space-y-6">
@@ -222,8 +367,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
               <input
                 type="password"
                 id="current-password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
                 className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
                 required
               />
@@ -248,8 +393,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
               <input
                 type="password"
                 id="confirm-new-password"
-                value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                value={newPasswordConfirm}
+                onChange={(e) => setNewPasswordConfirm(e.target.value)}
                 className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
                 required
               />

@@ -13,6 +13,7 @@ import WeeklyMarksPage from './components/WeeklyMarksPage';
 import BoyMarksPage from './components/BoyMarksPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
+import SignupPage from './components/SignupPage'; // Import the new SignupPage
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
 import SectionSelectPage from './components/SectionSelectPage';
@@ -339,6 +340,8 @@ const App: React.FC = () => {
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
         return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} showToast={showToast} />;
+      case 'signup': // Should not be reached if activeSection is set
+        return null;
       default:
         return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
     }
@@ -386,13 +389,16 @@ const App: React.FC = () => {
     }
     
     // 1. Show skeleton loader while checking auth or loading initial data.
-    if (currentUser === undefined || (currentUser && isLoading && activeSection)) {
+    if (currentUser === undefined || (currentUser && isLoading && activeSection && view.page !== 'signup')) {
         return <HomePageSkeleton />;
     }
     
-    // 2. If user is not logged in, show the login page.
+    // 2. If user is not logged in, show the login page or signup page.
     if (!currentUser) {
-        return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} />;
+        if (view.page === 'signup') {
+            return <SignupPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} />;
+        }
+        return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onNavigateToSignup={handleNavigation} />;
     }
     
     // 3. If logged in but no section is selected, show the section select page.

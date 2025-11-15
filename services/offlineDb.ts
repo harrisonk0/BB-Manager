@@ -6,7 +6,7 @@
  * and version migrations.
  */
 
-import { Boy, AuditLog, Section } from '../types';
+import { Boy, AuditLog, Section, InviteCode } from '../types';
 
 /**
  * Defines the structure of an object in the 'pending_writes' store.
@@ -14,15 +14,16 @@ import { Boy, AuditLog, Section } from '../types';
  */
 export type PendingWrite = {
   id?: number;
-  section: Section;
-  type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG';
+  section?: Section; // Section is optional for invite codes
+  type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG' | 'CREATE_INVITE_CODE' | 'UPDATE_INVITE_CODE';
   payload: any; // This payload will now contain the full AuditLog data (without ID/timestamp)
   tempId?: string; // Used to track temporarily created boys before they get a real Firestore ID.
 };
 
 const DB_NAME = 'BBManagerDB';
-const DB_VERSION = 2; // The current database version.
+const DB_VERSION = 3; // Incrementing the database version to trigger onupgradeneeded
 const PENDING_WRITES_STORE = 'pending_writes'; // Define the constant here
+const INVITE_CODES_STORE = 'invite_codes'; // New constant for invite codes store
 
 /**
  * Generates a consistent object store name based on the section and resource type.
@@ -66,7 +67,15 @@ export const openDB = (): Promise<IDBDatabase> => {
      */
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
+      const oldVersion = event.oldVersion;
       
+      // Migration from v2 to v3: Add invite_codes store
+      if (oldVersion < 3) {
+        if (!db.objectStoreNames.contains(INVITE_CODES_STORE)) {
+          db.createObjectStore(INVITE_CODES_STORE, { keyPath: 'id' });
+        }
+      }
+
       // Create new stores for both sections if they don't exist.
       // This ensures they are present for new installations or if a previous migration failed partially.
       if (!db.objectStoreNames.contains(getStoreName('company', 'boys'))) {
@@ -219,6 +228,39 @@ export const deleteLogsFromDB = async (logIds: string[], section: Section): Prom
   });
 };
 
+// --- Invite Code Functions ---
+/** Saves a single invite code to the IndexedDB store. 'put' is used for both create and update. */
+export const saveInviteCodeToDB = async (code: InviteCode): Promise<void> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const store = getStore(INVITE_CODES_STORE, 'readwrite');
+    const request = store.put(code);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
+/** Retrieves a single invite code by its ID. */
+export const getInviteCodeFromDB = async (id: string): Promise<InviteCode | undefined> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const store = getStore(INVITE_CODES_STORE, 'readonly');
+    const request = store.get(id);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
+
+/** Retrieves all invite codes from the IndexedDB store. */
+export const getAllInviteCodesFromDB = async (): Promise<InviteCode[]> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const store = getStore(INVITE_CODES_STORE, 'readonly');
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
 
 // --- Pending Writes Functions ---
 /** Adds a new offline operation to the pending writes queue. */
