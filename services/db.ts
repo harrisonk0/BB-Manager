@@ -720,9 +720,10 @@ export const updateInviteCode = async (id: string, updates: Partial<InviteCode>)
  * Revokes an invite code, marking it as used and revoked.
  * @param id The ID of the invite code to revoke.
  * @param section The section the code belongs to (for audit log).
+ * @param createLogEntry If true, an audit log entry for the revocation will be created. Defaults to true.
  * @returns A promise that resolves when the code is revoked.
  */
-export const revokeInviteCode = async (id: string, section: Section): Promise<void> => {
+export const revokeInviteCode = async (id: string, section: Section, createLogEntry: boolean = true): Promise<void> => {
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated to revoke invite code");
 
@@ -736,13 +737,15 @@ export const revokeInviteCode = async (id: string, section: Section): Promise<vo
         usedAt: Date.now(),
     });
 
-    // Create an audit log entry for the revocation
-    await createAuditLog({
-        userEmail,
-        actionType: 'REVOKE_INVITE_CODE',
-        description: `Revoked invite code: ${id}`,
-        revertData: { inviteCodeId: id }, // Store ID for reference
-    }, section);
+    // Create an audit log entry for the revocation ONLY if createLogEntry is true
+    if (createLogEntry) {
+        await createAuditLog({
+            userEmail,
+            actionType: 'REVOKE_INVITE_CODE',
+            description: `Revoked invite code: ${id}`,
+            revertData: { inviteCodeId: id }, // Store ID for reference
+        }, section);
+    }
 };
 
 

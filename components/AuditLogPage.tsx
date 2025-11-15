@@ -146,7 +146,8 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
             break;
         case 'GENERATE_INVITE_CODE':
             // To revert invite code generation, we revoke the invite code.
-            await revokeInviteCode(revertData.inviteCodeId, activeSection);
+            // Pass `false` for createLogEntry to prevent duplicate audit log.
+            await revokeInviteCode(revertData.inviteCodeId, activeSection, false); 
             break;
         default:
           throw new Error('This action cannot be reverted.');
