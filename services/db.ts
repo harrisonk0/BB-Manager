@@ -37,6 +37,54 @@ import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPend
  */
 const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs') => `${section}_${resource}`;
 
+/**
+ * Validates the marks array of a boy object.
+ * Throws an error if any mark is invalid.
+ * @param boy The boy object to validate.
+ * @param section The active section ('company' or 'junior').
+ */
+const validateBoyMarks = (boy: Boy, section: Section) => {
+    if (!Array.isArray(boy.marks)) {
+        throw new Error("Marks must be an array.");
+    }
+
+    for (const mark of boy.marks) {
+        if (typeof mark.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(mark.date)) {
+            throw new Error(`Invalid date format for mark: ${mark.date}`);
+        }
+
+        if (typeof mark.score !== 'number') {
+            throw new Error(`Invalid score type for mark on ${mark.date}. Score must be a number.`);
+        }
+
+        // If score is -1, it means absent, no further score validation is needed for this mark.
+        if (mark.score === -1) {
+            continue;
+        }
+
+        if (section === 'company') {
+            if (mark.score < 0 || mark.score > 10) {
+                throw new Error(`Company section score for ${boy.name} on ${mark.date} is out of range (0-10).`);
+            }
+            // Ensure no junior-specific scores are present for company section
+            if (mark.uniformScore !== undefined || mark.behaviourScore !== undefined) {
+                throw new Error(`Company section boy ${boy.name} on ${mark.date} has junior-specific scores.`);
+            }
+        } else { // Junior section
+            if (typeof mark.uniformScore !== 'number' || mark.uniformScore < 0 || mark.uniformScore > 10) {
+                throw new Error(`Junior section uniform score for ${boy.name} on ${mark.date} is invalid or out of range (0-10).`);
+            }
+            if (typeof mark.behaviourScore !== 'number' || mark.behaviourScore < 0 || mark.behaviourScore > 5) {
+                throw new Error(`Junior section behaviour score for ${boy.name} on ${mark.date} is invalid or out of range (0-5).`);
+            }
+            // Validate total score matches sum of uniform and behaviour scores
+            if (mark.score !== (mark.uniformScore + mark.behaviourScore)) {
+                throw new Error(`Junior section total score for ${boy.name} on ${mark.date} does not match sum of uniform and behaviour scores.`);
+            }
+        }
+    }
+};
+
 // --- Sync Function ---
 /**
  * The core of the offline functionality. This function reads all pending writes
@@ -153,6 +201,9 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise
   const auth = getAuthInstance();
   if (!auth.currentUser) throw new Error("User not authenticated");
   
+  // Validate marks before proceeding
+  validateBoyMarks(boy as Boy, section);
+
   if (navigator.onLine) {
     const db = getDb();
     const docRef = await addDoc(collection(db, getCollectionName(section, 'boys')), boy);
@@ -262,6 +313,9 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
  * Private helper to handle the logic for updating a boy, reused by updateBoy and recreateBoy.
  */
 const performBoyUpdate = async (boy: Boy, section: Section) => {
+    // Validate marks before proceeding
+    validateBoyMarks(boy, section);
+
     if (navigator.onLine) {
         const { id, ...boyData } = boy;
         await updateDoc(doc(getDb(), getCollectionName(section, 'boys'), id!), boyData as any);
@@ -297,6 +351,9 @@ export const recreateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
     if (!boy.id) throw new Error("Boy must have an ID to be recreated");
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated");
+
+    // Validate marks before proceeding
+    validateBoyMarks(boy, section);
 
     if (navigator.onLine) {
         const { id, ...boyData } = boy;
