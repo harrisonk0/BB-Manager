@@ -30,9 +30,16 @@ const Toast: React.FC<ToastProps> = ({ toast, removeToast }) => {
     };
   }, [toast.id, removeToast]);
 
+  // Determine progress bar color based on toast type
+  const progressBarColor = {
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+    info: 'bg-blue-500',
+  }[toast.type];
+
   return (
     <div
-      className="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden"
+      className="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden relative"
       role="alert"
       aria-live="assertive"
     >
@@ -55,6 +62,14 @@ const Toast: React.FC<ToastProps> = ({ toast, removeToast }) => {
           </div>
         </div>
       </div>
+      {/* Progress Bar */}
+      <div className={`absolute bottom-0 left-0 h-1 ${progressBarColor}`} style={{ animation: 'progressBar 5s linear forwards' }}></div>
+      <style jsx>{`
+        @keyframes progressBar {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
     </div>
   );
 };
