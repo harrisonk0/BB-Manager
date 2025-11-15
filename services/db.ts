@@ -43,6 +43,22 @@ const getCollectionName = (section: Section, resource: 'boys' | 'audit_logs' | '
 };
 
 /**
+ * Generates a random alphanumeric string of a specified length.
+ * Used for creating short, memorable invite codes.
+ * @param length The desired length of the code.
+ * @returns A random string consisting of uppercase letters and numbers.
+ */
+const generateRandomCode = (length: number): string => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+};
+
+/**
  * Validates the marks array of a boy object.
  * Throws an error if any mark is invalid.
  * @param boy The boy object to validate.
@@ -387,7 +403,7 @@ export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
  * Recreates a boy document in Firestore. This is used specifically for reverting a deletion.
  * It uses `setDoc` instead of `updateDoc` to create the document if it doesn't exist.
  * @param boy The complete Boy object to restore.
- * @param section The boy belongs to.
+ * @param section The section the boy belongs to.
  * @returns The recreated Boy object.
  */
 export const recreateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
@@ -487,7 +503,7 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
                 const freshLogs = snapshot.docs.map(doc => {
                     const data = doc.data();
                     const ts = data.timestamp;
-                    let timestampInMillis: number; // Declare here
+                    let timestampInMillis: number;
                     if (ts && typeof ts.toMillis === 'function') {
                         timestampInMillis = ts.toMillis();
                     } else if (typeof ts === 'number') {
@@ -529,7 +545,7 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
         const logs = snapshot.docs.map((doc: any) => {
             const data = doc.data();
             const ts = data.timestamp;
-            let timestampInMillis: number; // Declare here
+            let timestampInMillis: number;
             if (ts && typeof ts.toMillis === 'function') {
                 timestampInMillis = ts.toMillis();
             } else if (typeof ts === 'number') {
@@ -608,18 +624,20 @@ export const createInviteCode = async (code: Omit<InviteCode, 'generatedAt'>, se
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated to create invite code");
 
-    const newCode: InviteCode = { ...code, generatedAt: Date.now() };
+    const newCodeId = generateRandomCode(6); // Generate a 6-character alphanumeric code
+
+    const newInviteCode: InviteCode = { ...code, id: newCodeId, generatedAt: Date.now() };
     const inviteCodesCollection = getCollectionName(null as any, 'invite_codes');
 
     if (navigator.onLine) {
-        const docRef = doc(getDb(), inviteCodesCollection, newCode.id);
-        await setDoc(docRef, { ...newCode, generatedAt: serverTimestamp() });
-        await saveInviteCodeToDB(newCode);
-        return newCode;
+        const docRef = doc(getDb(), inviteCodesCollection, newInviteCode.id);
+        await setDoc(docRef, { ...newInviteCode, generatedAt: serverTimestamp() });
+        await saveInviteCodeToDB(newInviteCode);
+        return newInviteCode;
     } else {
-        await addPendingWrite({ type: 'CREATE_INVITE_CODE', payload: newCode, section });
-        await saveInviteCodeToDB(newCode);
-        return newCode;
+        await addPendingWrite({ type: 'CREATE_INVITE_CODE', payload: newInviteCode, section });
+        await saveInviteCodeToDB(newInviteCode);
+        return newInviteCode;
     }
 };
 
@@ -693,7 +711,7 @@ export const fetchAllInviteCodes = async (): Promise<InviteCode[]> => {
                 const freshCodes = snapshot.docs.map(doc => {
                     const data = doc.data();
                     const ts = data.generatedAt;
-                    let generatedAtInMillis: number; // Declare here
+                    let generatedAtInMillis: number;
                     if (ts && typeof ts.toMillis === 'function') {
                         generatedAtInMillis = ts.toMillis();
                     } else if (typeof ts === 'number') {
@@ -736,7 +754,7 @@ export const fetchAllInviteCodes = async (): Promise<InviteCode[]> => {
         const codes = snapshot.docs.map((doc: any) => {
             const data = doc.data();
             const ts = data.generatedAt;
-            let generatedAtInMillis: number; // Declare here
+            let generatedAtInMillis: number;
             if (ts && typeof ts.toMillis === 'function') {
                 generatedAtInMillis = ts.toMillis();
             } else if (typeof ts === 'number') {
