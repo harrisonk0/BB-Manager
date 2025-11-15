@@ -340,7 +340,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                     <input
                       type="number" min="0" max="10"
                       step="0.01" {/* Added step for decimals */}
-                      // FIX: Use Number() to correctly compare score which could be an empty string.
                       value={Number(mark.score) < 0 ? '' : mark.score ?? ''}
                       onChange={(e) => handleMarkChange(mark.date, 'score', e.target.value)}
                       disabled={!isPresent}
@@ -356,7 +355,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                                 <input
                                   type="number" min="0" max="10"
                                   step="0.01" {/* Added step for decimals */}
-                                  // FIX: Use Number() to correctly compare score which could be an empty string.
                                   value={Number(mark.score) < 0 ? '' : mark.uniformScore ?? ''}
                                   onChange={(e) => handleMarkChange(mark.date, 'uniform', e.target.value)}
                                   disabled={!isPresent}
@@ -367,7 +365,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                                 <input
                                   type="number" min="0" max="5"
                                   step="0.01" {/* Added step for decimals */}
-                                  // FIX: Use Number() to correctly compare score which could be an empty string.
                                   value={Number(mark.score) < 0 ? '' : mark.behaviourScore ?? ''}
                                   onChange={(e) => handleMarkChange(mark.date, 'behaviour', e.target.value)}
                                   disabled={!isPresent}

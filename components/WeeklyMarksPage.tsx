@@ -164,7 +164,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   };
 
   const handleAttendanceToggle = (boyId: string) => {
-    const newStatus = attendance[boyId] === 'present' ? 'absent' : 'present';
+    const newStatus = attendance[boy.id] === 'present' ? 'absent' : 'present';
     setAttendance(prev => ({ ...prev, [boyId]: newStatus }));
 
     if (newStatus === 'absent') {
@@ -451,7 +451,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                               type="number"
                               min="0"
                               max="10"
-                              step="0.01" {/* Added step for decimals */}
+                              step="0.01"
                               // FIX: Use Number() to correctly compare union type with number and fix TS errors. This also fixes a parser error with operator precedence.
                               value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
                               onChange={e => handleCompanyMarkChange(boy.id!, e.target.value)}
@@ -466,7 +466,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                     <input
                                       id={`uniform-${boy.id}`}
                                       type="number" min="0" max="10"
-                                      step="0.01" {/* Added step for decimals */}
+                                      step="0.01"
                                       // FIX: Use Number() to correctly compare union type with number and fix TS errors.
                                       value={Number((marks[boy.id] as JuniorMarkState)?.uniform) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.uniform ?? ''}
                                       onChange={e => handleJuniorMarkChange(boy.id!, 'uniform', e.target.value)}
@@ -480,7 +480,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                     <input
                                       id={`behaviour-${boy.id}`}
                                       type="number" min="0" max="5"
-                                      step="0.01" {/* Added step for decimals */}
+                                      step="0.01"
                                       // FIX: Use Number() to correctly compare union type with number and fix TS errors.
                                       value={Number((marks[boy.id] as JuniorMarkState)?.behaviour) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.behaviour ?? ''}
                                       onChange={e => handleJuniorMarkChange(boy.id!, 'behaviour', e.target.value)}
