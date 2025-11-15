@@ -6,9 +6,11 @@ import dyadComponentTagger from '@dyad-sh/react-vite-component-tagger';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
+      build: { outDir: 'dist' },
       server: {
         port: 3000,
         host: '0.0.0.0',
+        historyApiFallback: true
       },
       plugins: [dyadComponentTagger(), react()],
       define: {
