@@ -1,9 +1,4 @@
-/**
- * @file SettingsPage.tsx
- * @description This page provides a user interface for changing application settings,
- * such as the default meeting day. Changes made here are saved to Firestore and
- * recorded in the audit log.
- */
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { Section, SectionSettings, ToastType, UserRole, Page } from '../types';
@@ -21,13 +16,15 @@ interface SettingsPageProps {
   userRole: UserRole | null;
   /** Callback to navigate to the global settings page. */
   onNavigateToGlobalSettings: () => void;
+  /** Callback to navigate to the account settings page. */
+  onNavigateToAccountSettings: () => void;
 }
 
 const WEEKDAYS = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole, onNavigateToGlobalSettings }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole, onNavigateToGlobalSettings, onNavigateToAccountSettings }) => {
   const [meetingDay, setMeetingDay] = useState<number>(5);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -129,6 +126,20 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
             </div>
           </div>
         </div>
+
+        {/* Account Settings Link */}
+        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+            <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Your Account</h2>
+            <p className="text-slate-600 mb-4">Manage your personal account settings, such as changing your password.</p>
+            <div className="flex justify-end">
+              <button
+                onClick={onNavigateToAccountSettings}
+                className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+              >
+                Go to Account Settings
+              </button>
+            </div>
+          </div>
 
         {canAccessGlobalSettings && (
           <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">

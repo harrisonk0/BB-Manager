@@ -105,7 +105,7 @@ const App: React.FC = () => {
       case 'auditLog':
         return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
       case 'settings': // Section-specific settings
-        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} />;
+        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} />;
       case 'globalSettings': // New: Global settings
         return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} />;
       case 'accountSettings': // New: Account settings
