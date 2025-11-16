@@ -358,17 +358,19 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
 
   if (boys.length === 0) {
       return (
-          <div className="space-y-6">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Weekly Marks</h1>
-              <div className="text-center py-16 px-6 bg-white rounded-lg shadow-md mt-8">
-                  <ClipboardDocumentListIcon className="mx-auto h-16 w-16 text-slate-400" />
-                  <h3 className="mt-4 text-xl font-semibold text-slate-900">No Members to Mark</h3>
-                  <p className="mt-2 text-md text-slate-500">
-                      You can't record marks until you've added members to your section.
-                  </p>
-                  <p className="mt-4 text-md text-slate-500">
-                      Go to the <strong className={accentTextColor}>Home</strong> page to build your roster.
-                  </p>
+          <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 lg:p-10">
+              <div className="space-y-6">
+                  <h1 className="text-3xl font-bold tracking-tight text-slate-900">Weekly Marks</h1>
+                  <div className="text-center py-16 px-6 bg-white rounded-lg shadow-md mt-8">
+                      <ClipboardDocumentListIcon className="mx-auto h-16 w-16 text-slate-400" />
+                      <h3 className="mt-4 text-xl font-semibold text-slate-900">No Members to Mark</h3>
+                      <p className="mt-2 text-md text-slate-500">
+                          You can't record marks until you've added members to your section.
+                      </p>
+                      <p className="mt-4 text-md text-slate-500">
+                          Go to the <strong className={accentTextColor}>Home</strong> page to build your roster.
+                      </p>
+                  </div>
               </div>
           </div>
       );
@@ -377,149 +379,151 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   const isPastDate = selectedDate < today;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Weekly Marks</h1>
-        <div className="flex items-center space-x-4">
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={e => setSelectedDate(e.target.value)}
-            className={`px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none ${accentRing}`}
-          />
-          {isPastDate && (
-            <button
-              onClick={() => setIsLocked(prev => !prev)}
-              className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
-              title={isLocked ? 'Unlock to edit past marks' : 'Lock page'}
-              aria-label={isLocked ? 'Unlock to edit past marks' : 'Lock page'}
-            >
-              {isLocked ? <LockClosedIcon className="h-5 w-5" /> : <LockOpenIcon className="h-5 w-5" />}
-            </button>
-          )}
-        </div>
-      </div>
-      
-      <div className="space-y-8 pb-20">
-        {sortedSquads.map((squad) => (
-          <div key={squad}>
-            <div className="flex justify-between items-baseline mb-4">
-              <h2 className="text-2xl font-semibold text-slate-800">{`Squad ${squad}`}</h2>
-              {squadAttendanceStats[squad] && (
-                <div className="text-right">
-                  <p className="font-semibold text-slate-600">
-                    Attendance: {squadAttendanceStats[squad].percentage}%
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    ({squadAttendanceStats[squad].present} / {squadAttendanceStats[squad].total} present)
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className="bg-white shadow-md rounded-lg">
-              <ul className="divide-y divide-slate-200">
-                {boysBySquad[squad].map((boy) => {
-                    if (!boy.id) return null;
-                    const isPresent = attendance[boy.id] === 'present';
-                    return (
-                      <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-                        <div className="flex-1">
-                          <span className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
-                            {boy.name}
-                            {squadLeaders[squad] === boy.id && (
-                                <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
-                            )}
-                          </span>
-                          <p className="text-sm text-slate-500">{isCompany ? `Year ${boy.year}` : boy.year}</p>
-                        </div>
-                        <div className="flex items-center space-x-2 sm:space-x-4">
-                          <button
-                            onClick={() => handleAttendanceToggle(boy.id!)}
-                            disabled={isLocked}
-                            className={`px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors w-20 text-center ${
-                                isPresent
-                                ? 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
-                                : 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
-                            } disabled:opacity-70 disabled:cursor-not-allowed`}
-                            aria-pressed={!isPresent}
-                            aria-label={`Mark ${boy.name} as ${isPresent ? 'absent' : 'present'}`}
-                          >
-                            {isPresent ? 'Present' : 'Absent'}
-                          </button>
-                          {isCompany ? (
-                            <input
-                              type="number"
-                              min="0"
-                              max="10"
-                              /* Added step for decimals */
-                              step="0.01"
-                              // FIX: Use Number() to correctly compare union type with number and fix TS errors. This also fixes a parser error with operator precedence.
-                              value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
-                              onChange={e => handleCompanyMarkChange(boy.id!, e.target.value)}
-                              disabled={!isPresent || isLocked}
-                              className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
-                              placeholder="0-10"
-                            />
-                          ) : (
-                             <div className="flex items-center space-x-2">
-                                <div>
-                                    <label htmlFor={`uniform-${boy.id}`} className="block text-xs text-center text-slate-500">Uniform</label>
-                                    <input
-                                      id={`uniform-${boy.id}`}
-                                      type="number" min="0" max="10"
-                                      /* Added step for decimals */
-                                      step="0.01"
-                                      // FIX: Use Number() to correctly compare union type with number and fix TS errors.
-                                      value={Number((marks[boy.id] as JuniorMarkState)?.uniform) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.uniform ?? ''}
-                                      onChange={e => handleJuniorMarkChange(boy.id!, 'uniform', e.target.value)}
-                                      disabled={!isPresent || isLocked}
-                                      className={`w-16 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
-                                      placeholder="/10"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor={`behaviour-${boy.id}`} className="block text-xs text-center text-slate-500">Behaviour</label>
-                                    <input
-                                      id={`behaviour-${boy.id}`}
-                                      type="number" min="0" max="5"
-                                      /* Added step for decimals */
-                                      step="0.01"
-                                      // FIX: Use Number() to correctly compare union type with number and fix TS errors.
-                                      value={Number((marks[boy.id] as JuniorMarkState)?.behaviour) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.behaviour ?? ''}
-                                      onChange={e => handleJuniorMarkChange(boy.id!, 'behaviour', e.target.value)}
-                                      disabled={!isPresent || isLocked}
-                                      className={`w-16 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
-                                      placeholder="/5"
-                                    />
-                                </div>
-                             </div>
-                          )}
-                        </div>
-                      </li>
-                    );
-                })}
-              </ul>
-            </div>
+    <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 lg:p-10">
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Weekly Marks</h1>
+          <div className="flex items-center space-x-4">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={e => setSelectedDate(e.target.value)}
+              className={`px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none ${accentRing}`}
+            />
+            {isPastDate && (
+              <button
+                onClick={() => setIsLocked(prev => !prev)}
+                className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
+                title={isLocked ? 'Unlock to edit past marks' : 'Lock page'}
+                aria-label={isLocked ? 'Unlock to edit past marks' : 'Lock page'}
+              >
+                {isLocked ? <LockClosedIcon className="h-5 w-5" /> : <LockOpenIcon className="h-5 w-5" />}
+              </button>
+            )}
           </div>
-        ))}
-      </div>
+        </div>
+        
+        <div className="space-y-8 pb-20">
+          {sortedSquads.map((squad) => (
+            <div key={squad}>
+              <div className="flex justify-between items-baseline mb-4">
+                <h2 className="text-2xl font-semibold text-slate-800">{`Squad ${squad}`}</h2>
+                {squadAttendanceStats[squad] && (
+                  <div className="text-right">
+                    <p className="font-semibold text-slate-600">
+                      Attendance: {squadAttendanceStats[squad].percentage}%
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      ({squadAttendanceStats[squad].present} / {squadAttendanceStats[squad].total} present)
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="bg-white shadow-md rounded-lg">
+                <ul className="divide-y divide-slate-200">
+                  {boysBySquad[squad].map((boy) => {
+                      if (!boy.id) return null;
+                      const isPresent = attendance[boy.id] === 'present';
+                      return (
+                        <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                          <div className="flex-1">
+                            <span className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
+                              {boy.name}
+                              {squadLeaders[squad] === boy.id && (
+                                  <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
+                              )}
+                            </span>
+                            <p className="text-sm text-slate-500">{isCompany ? `Year ${boy.year}` : boy.year}</p>
+                          </div>
+                          <div className="flex items-center space-x-2 sm:space-x-4">
+                            <button
+                              onClick={() => handleAttendanceToggle(boy.id!)}
+                              disabled={isLocked}
+                              className={`px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors w-20 text-center ${
+                                  isPresent
+                                  ? 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
+                                  : 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
+                              } disabled:opacity-70 disabled:cursor-not-allowed`}
+                              aria-pressed={!isPresent}
+                              aria-label={`Mark ${boy.name} as ${isPresent ? 'absent' : 'present'}`}
+                            >
+                              {isPresent ? 'Present' : 'Absent'}
+                            </button>
+                            {isCompany ? (
+                              <input
+                                type="number"
+                                min="0"
+                                max="10"
+                                /* Added step for decimals */
+                                step="0.01"
+                                // FIX: Use Number() to correctly compare union type with number and fix TS errors. This also fixes a parser error with operator precedence.
+                                value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
+                                onChange={e => handleCompanyMarkChange(boy.id!, e.target.value)}
+                                disabled={!isPresent || isLocked}
+                                className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
+                                placeholder="0-10"
+                              />
+                            ) : (
+                               <div className="flex items-center space-x-2">
+                                  <div>
+                                      <label htmlFor={`uniform-${boy.id}`} className="block text-xs text-center text-slate-500">Uniform</label>
+                                      <input
+                                        id={`uniform-${boy.id}`}
+                                        type="number" min="0" max="10"
+                                        /* Added step for decimals */
+                                        step="0.01"
+                                        // FIX: Use Number() to correctly compare union type with number and fix TS errors.
+                                        value={Number((marks[boy.id] as JuniorMarkState)?.uniform) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.uniform ?? ''}
+                                        onChange={e => handleJuniorMarkChange(boy.id!, 'uniform', e.target.value)}
+                                        disabled={!isPresent || isLocked}
+                                        className={`w-16 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
+                                        placeholder="/10"
+                                      />
+                                  </div>
+                                  <div>
+                                      <label htmlFor={`behaviour-${boy.id}`} className="block text-xs text-center text-slate-500">Behaviour</label>
+                                      <input
+                                        id={`behaviour-${boy.id}`}
+                                        type="number" min="0" max="5"
+                                        /* Added step for decimals */
+                                        step="0.01"
+                                        // FIX: Use Number() to correctly compare union type with number and fix TS errors.
+                                        value={Number((marks[boy.id] as JuniorMarkState)?.behaviour) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.behaviour ?? ''}
+                                        onChange={e => handleJuniorMarkChange(boy.id!, 'behaviour', e.target.value)}
+                                        disabled={!isPresent || isLocked}
+                                        className={`w-16 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
+                                        placeholder="/5"
+                                      />
+                                  </div>
+                               </div>
+                            )}
+                          </div>
+                        </li>
+                      );
+                  })}
+                </ul>
+              </div>
+            </div>
+          ))}
+        </div>
 
-       {/* Floating Action Button for saving */}
-       {isDirty && (
-          <button
-            onClick={handleSaveMarks}
-            disabled={isSaving}
-            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
-            aria-label="Save Marks"
-          >
-            {isSaving ? (
-              <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : <SaveIcon className="h-7 w-7" />}
-          </button>
-       )}
+         {/* Floating Action Button for saving */}
+         {isDirty && (
+            <button
+              onClick={handleSaveMarks}
+              disabled={isSaving}
+              className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
+              aria-label="Save Marks"
+            >
+              {isSaving ? (
+                <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : <SaveIcon className="h-7 w-7" />}
+            </button>
+         )}
+      </div>
     </div>
   );
 };

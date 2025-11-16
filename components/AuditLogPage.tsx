@@ -224,82 +224,84 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
   const accentRing = isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue';
   
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-900">Audit Log</h1>
+    <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 lg:p-10">
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Audit Log</h1>
 
-      {logs.length === 0 ? (
-        <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
-          <h3 className="text-lg font-medium text-slate-900">No actions recorded yet.</h3>
-          <p className="mt-1 text-sm text-slate-500">Any changes you make will appear here.</p>
-        </div>
-      ) : (
-        <ul className="space-y-4">
-          {logs.map((log) => {
-            const Icon = ACTION_ICONS[log.actionType] || PencilIcon;
-            const colorClass = ACTION_COLORS[log.actionType] || 'bg-slate-100 text-slate-600';
-            
-            // Determine if this log has been reverted by checking the `revertedLogIds` set.
-            const hasBeenReverted = revertedLogIds.has(log.id);
-            // Only allow revert if the action type is in our list of revertible types AND it hasn't been reverted yet.
-            const canRevert = revertibleActionTypes.includes(log.actionType) && !hasBeenReverted;
-
-            return (
-              <li key={log.id} className="bg-white shadow-md rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-4 flex-1">
-                  <span className={`flex-shrink-0 rounded-full p-2 ${colorClass}`}>
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="text-md font-medium text-slate-800">{log.description}</p>
-                    <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-                      <ClockIcon className="h-4 w-4" />
-                      {formatTimestamp(log.timestamp)} by <strong className="text-slate-600">{log.userEmail}</strong>
-                    </p>
-                  </div>
-                </div>
-                {canRevert && (
-                  <button
-                    onClick={() => handleOpenRevertModal(log)}
-                    className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${accentBg} ${accentRing}`}
-                  >
-                    <UndoIcon className="h-4 w-4" />
-                    Revert
-                  </button>
-                )}
-                {hasBeenReverted && (
-                    <span className="px-3 py-1.5 text-sm font-medium text-slate-500 bg-slate-100 rounded-md">Reverted</span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      <Modal isOpen={!!logToRevert} onClose={handleCloseRevertModal} title="Confirm Revert">
-        {logToRevert && (
-          <div className="space-y-4">
-            <p className="text-slate-600">Are you sure you want to revert this action?</p>
-            <p className="p-3 bg-slate-100 rounded-md text-sm italic">"{logToRevert.description}"</p>
-            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-              <button
-                type="button"
-                onClick={handleCloseRevertModal}
-                disabled={isReverting}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleRevert}
-                disabled={isReverting}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${accentBg} ${accentRing} disabled:bg-opacity-50`}
-              >
-                {isReverting ? 'Reverting...' : 'Confirm Revert'}
-              </button>
-            </div>
+        {logs.length === 0 ? (
+          <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
+            <h3 className="text-lg font-medium text-slate-900">No actions recorded yet.</h3>
+            <p className="mt-1 text-sm text-slate-500">Any changes you make will appear here.</p>
           </div>
+        ) : (
+          <ul className="space-y-4">
+            {logs.map((log) => {
+              const Icon = ACTION_ICONS[log.actionType] || PencilIcon;
+              const colorClass = ACTION_COLORS[log.actionType] || 'bg-slate-100 text-slate-600';
+              
+              // Determine if this log has been reverted by checking the `revertedLogIds` set.
+              const hasBeenReverted = revertedLogIds.has(log.id);
+              // Only allow revert if the action type is in our list of revertible types AND it hasn't been reverted yet.
+              const canRevert = revertibleActionTypes.includes(log.actionType) && !hasBeenReverted;
+
+              return (
+                <li key={log.id} className="bg-white shadow-md rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4 flex-1">
+                    <span className={`flex-shrink-0 rounded-full p-2 ${colorClass}`}>
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="text-md font-medium text-slate-800">{log.description}</p>
+                      <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
+                        <ClockIcon className="h-4 w-4" />
+                        {formatTimestamp(log.timestamp)} by <strong className="text-slate-600">{log.userEmail}</strong>
+                      </p>
+                    </div>
+                  </div>
+                  {canRevert && (
+                    <button
+                      onClick={() => handleOpenRevertModal(log)}
+                      className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${accentBg} ${accentRing}`}
+                    >
+                      <UndoIcon className="h-4 w-4" />
+                      Revert
+                    </button>
+                  )}
+                  {hasBeenReverted && (
+                      <span className="px-3 py-1.5 text-sm font-medium text-slate-500 bg-slate-100 rounded-md">Reverted</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         )}
-      </Modal>
+
+        <Modal isOpen={!!logToRevert} onClose={handleCloseRevertModal} title="Confirm Revert">
+          {logToRevert && (
+            <div className="space-y-4">
+              <p className="text-slate-600">Are you sure you want to revert this action?</p>
+              <p className="p-3 bg-slate-100 rounded-md text-sm italic">"{logToRevert.description}"</p>
+              <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={handleCloseRevertModal}
+                  disabled={isReverting}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleRevert}
+                  disabled={isReverting}
+                  className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${accentBg} ${accentRing} disabled:bg-opacity-50`}
+                >
+                  {isReverting ? 'Reverting...' : 'Confirm Revert'}
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
+      </div>
     </div>
   );
 };

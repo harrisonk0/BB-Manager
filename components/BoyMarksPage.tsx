@@ -285,134 +285,136 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
   const accentBg = isCompany ? 'bg-company-blue focus:ring-company-blue disabled:bg-company-blue' : 'bg-junior-blue focus:ring-junior-blue disabled:bg-junior-blue';
 
   return (
-    <div className="pb-20">
-      <div className="mb-6 pb-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className={`text-3xl font-bold tracking-tight ${(SQUAD_COLORS as any)[boy.squad]}`}>{boy.name}'s Marks</h1>
-          <p className="mt-1 text-lg text-slate-600">
-            {`Squad ${boy.squad}`}
-            <span className="mx-2 text-slate-300">&bull;</span>
-            {isCompany ? `Year ${boy.year}` : boy.year}
-            {boy.isSquadLeader && (
-              <>
-                <span className="mx-2 text-slate-300">&bull;</span>
-                <span className="text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full align-middle">Leader</span>
-              </>
-            )}
-          </p>
-           <p className="mt-2 text-md text-slate-500">
-            Total Marks: <span className="font-semibold text-slate-700">{totalMarks}</span>
-            <span className="mx-2 text-slate-300">&bull;</span>
-            Attendance: <span className="font-semibold text-slate-700">{attendancePercentage}%</span>
-           </p>
+    <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 lg:p-10">
+      <div className="pb-20">
+        <div className="mb-6 pb-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className={`text-3xl font-bold tracking-tight ${(SQUAD_COLORS as any)[boy.squad]}`}>{boy.name}'s Marks</h1>
+            <p className="mt-1 text-lg text-slate-600">
+              {`Squad ${boy.squad}`}
+              <span className="mx-2 text-slate-300">&bull;</span>
+              {isCompany ? `Year ${boy.year}` : boy.year}
+              {boy.isSquadLeader && (
+                <>
+                  <span className="mx-2 text-slate-300">&bull;</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full align-middle">Leader</span>
+                </>
+              )}
+            </p>
+             <p className="mt-2 text-md text-slate-500">
+              Total Marks: <span className="font-semibold text-slate-700">{totalMarks}</span>
+              <span className="mx-2 text-slate-300">&bull;</span>
+              Attendance: <span className="font-semibold text-slate-700">{attendancePercentage}%</span>
+             </p>
+          </div>
         </div>
+
+        <div className="bg-white shadow-md rounded-lg">
+          {editedMarks.length === 0 ? (
+            <p className="p-6 text-center text-slate-500">No marks recorded yet.</p>
+          ) : (
+            <ul className="divide-y divide-slate-200">
+              {editedMarks.map((mark) => {
+                const isPresent = Number(mark.score) >= 0;
+                const formattedDate = new Date(mark.date + 'T00:00:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+
+                return (
+                <li key={mark.date} className="p-4 grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                  <div className="sm:col-span-1">
+                      <span className="font-medium text-slate-800">{formattedDate}</span>
+                  </div>
+                  <div className="sm:col-span-2 flex items-center justify-between sm:justify-end space-x-2 sm:space-x-4">
+                    <button
+                      onClick={() => handleAttendanceToggle(mark.date)}
+                      className={`px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors w-20 text-center ${
+                          isPresent
+                          ? 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
+                          : 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
+                      }`}
+                      aria-pressed={!isPresent}
+                      aria-label={`Mark for ${formattedDate} as ${isPresent ? 'absent' : 'present'}`}
+                    >
+                      {isPresent ? 'Present' : 'Absent'}
+                    </button>
+                    
+                    {isCompany ? (
+                      <input
+                        type="number" min="0" max="10"
+                        /* Added step for decimals */
+                        step="0.01"
+                        value={Number(mark.score) < 0 ? '' : mark.score ?? ''}
+                        onChange={(e) => handleMarkChange(mark.date, 'score', e.target.value)}
+                        disabled={!isPresent}
+                        className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
+                        placeholder="0-10"
+                        aria-label={`Score for ${formattedDate}`}
+                      />
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                          {/* Show separate inputs for Juniors if uniform/behaviour scores exist, otherwise show total. */}
+                          {mark.uniformScore !== undefined ? (
+                              <>
+                                  <input
+                                    type="number" min="0" max="10"
+                                    /* Added step for decimals */
+                                    step="0.01"
+                                    value={Number(mark.score) < 0 ? '' : mark.uniformScore ?? ''}
+                                    onChange={(e) => handleMarkChange(mark.date, 'uniform', e.target.value)}
+                                    disabled={!isPresent}
+                                    className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
+                                    placeholder="Uniform"
+                                    aria-label={`Uniform score for ${formattedDate}`}
+                                  />
+                                  <input
+                                    type="number" min="0" max="5"
+                                    /* Added step for decimals */
+                                    step="0.01"
+                                    value={Number(mark.score) < 0 ? '' : mark.behaviourScore ?? ''}
+                                    onChange={(e) => handleMarkChange(mark.date, 'behaviour', e.target.value)}
+                                    disabled={!isPresent}
+                                    className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
+                                    placeholder="Behaviour"
+                                    aria-label={`Behaviour score for ${formattedDate}`}
+                                  />
+                              </>
+                          ) : (
+                              <span className="w-44 text-center text-sm text-slate-500">Total: {mark.score}</span>
+                          )}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => handleDeleteMark(mark.date)}
+                      className="p-2 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100"
+                      aria-label={`Delete mark for ${formattedDate}`}
+                    >
+                      <TrashIcon className="h-5 w-5"/>
+                    </button>
+                  </div>
+                </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+        
+         {/* Floating Action Button for saving changes */}
+         {isDirty && (
+            <button
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
+              aria-label="Save Changes"
+            >
+              {isSaving ? (
+                <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : <SaveIcon className="h-7 w-7" />}
+            </button>
+         )}
       </div>
-
-      <div className="bg-white shadow-md rounded-lg">
-        {editedMarks.length === 0 ? (
-          <p className="p-6 text-center text-slate-500">No marks recorded yet.</p>
-        ) : (
-          <ul className="divide-y divide-slate-200">
-            {editedMarks.map((mark) => {
-              const isPresent = Number(mark.score) >= 0;
-              const formattedDate = new Date(mark.date + 'T00:00:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
-
-              return (
-              <li key={mark.date} className="p-4 grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
-                <div className="sm:col-span-1">
-                    <span className="font-medium text-slate-800">{formattedDate}</span>
-                </div>
-                <div className="sm:col-span-2 flex items-center justify-between sm:justify-end space-x-2 sm:space-x-4">
-                  <button
-                    onClick={() => handleAttendanceToggle(mark.date)}
-                    className={`px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors w-20 text-center ${
-                        isPresent
-                        ? 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
-                        : 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
-                    }`}
-                    aria-pressed={!isPresent}
-                    aria-label={`Mark for ${formattedDate} as ${isPresent ? 'absent' : 'present'}`}
-                  >
-                    {isPresent ? 'Present' : 'Absent'}
-                  </button>
-                  
-                  {isCompany ? (
-                    <input
-                      type="number" min="0" max="10"
-                      /* Added step for decimals */
-                      step="0.01"
-                      value={Number(mark.score) < 0 ? '' : mark.score ?? ''}
-                      onChange={(e) => handleMarkChange(mark.date, 'score', e.target.value)}
-                      disabled={!isPresent}
-                      className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
-                      placeholder="0-10"
-                      aria-label={`Score for ${formattedDate}`}
-                    />
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                        {/* Show separate inputs for Juniors if uniform/behaviour scores exist, otherwise show total. */}
-                        {mark.uniformScore !== undefined ? (
-                            <>
-                                <input
-                                  type="number" min="0" max="10"
-                                  /* Added step for decimals */
-                                  step="0.01"
-                                  value={Number(mark.score) < 0 ? '' : mark.uniformScore ?? ''}
-                                  onChange={(e) => handleMarkChange(mark.date, 'uniform', e.target.value)}
-                                  disabled={!isPresent}
-                                  className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
-                                  placeholder="Uniform"
-                                  aria-label={`Uniform score for ${formattedDate}`}
-                                />
-                                <input
-                                  type="number" min="0" max="5"
-                                  /* Added step for decimals */
-                                  step="0.01"
-                                  value={Number(mark.score) < 0 ? '' : mark.behaviourScore ?? ''}
-                                  onChange={(e) => handleMarkChange(mark.date, 'behaviour', e.target.value)}
-                                  disabled={!isPresent}
-                                  className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
-                                  placeholder="Behaviour"
-                                  aria-label={`Behaviour score for ${formattedDate}`}
-                                />
-                            </>
-                        ) : (
-                            <span className="w-44 text-center text-sm text-slate-500">Total: {mark.score}</span>
-                        )}
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => handleDeleteMark(mark.date)}
-                    className="p-2 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100"
-                    aria-label={`Delete mark for ${formattedDate}`}
-                  >
-                    <TrashIcon className="h-5 w-5"/>
-                  </button>
-                </div>
-              </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-      
-       {/* Floating Action Button for saving changes */}
-       {isDirty && (
-          <button
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
-            aria-label="Save Changes"
-          >
-            {isSaving ? (
-              <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : <SaveIcon className="h-7 w-7" />}
-          </button>
-       )}
     </div>
   );
 };

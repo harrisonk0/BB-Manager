@@ -82,66 +82,68 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
   const accentText = isCompany ? 'text-company-blue' : 'text-junior-blue';
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-900">Account Settings</h1>
-      
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Change Password Section */}
-        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
-          <form onSubmit={handleChangePassword} className="space-y-6">
-            <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Change Password</h2>
-            {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
-            
-            <div>
-              <label htmlFor="current-password" className="block text-sm font-medium text-slate-700">
-                Current Password
-              </label>
-              <input
-                type="password"
-                id="current-password"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="new-password" className="block text-sm font-medium text-slate-700">
-                New Password
-              </label>
-              <input
-                type="password"
-                id="new-password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="confirm-new-password" className="block text-sm font-medium text-slate-700">
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                id="confirm-new-password"
-                value={newPasswordConfirm}
-                onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
-                required
-              />
-            </div>
-            
-            <div className="flex justify-end pt-4 border-t border-slate-200">
-              <button
-                type="submit"
-                disabled={isChangingPassword}
-                className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white w-40 ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {isChangingPassword ? 'Changing...' : 'Change Password'}
-              </button>
-            </div>
-          </form>
+    <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 lg:p-10">
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Account Settings</h1>
+        
+        <div className="max-w-2xl mx-auto space-y-6">
+          {/* Change Password Section */}
+          <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+            <form onSubmit={handleChangePassword} className="space-y-6">
+              <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Change Password</h2>
+              {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
+              
+              <div>
+                <label htmlFor="current-password" className="block text-sm font-medium text-slate-700">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  id="current-password"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="new-password" className="block text-sm font-medium text-slate-700">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  id="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="confirm-new-password" className="block text-sm font-medium text-slate-700">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  id="confirm-new-password"
+                  value={newPasswordConfirm}
+                  onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                  className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+                  required
+                />
+              </div>
+              
+              <div className="flex justify-end pt-4 border-t border-slate-200">
+                <button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white w-40 ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {isChangingPassword ? 'Changing...' : 'Change Password'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

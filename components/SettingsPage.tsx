@@ -86,64 +86,66 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const accentText = isCompany ? 'text-company-blue' : 'text-junior-blue';
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-900">Section Settings</h1>
-      
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* General Settings Section */}
-        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
-          <div className="space-y-6">
-            <div>
-              <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>General Settings</h2>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                <label htmlFor="meeting-day" className="block text-md font-medium text-slate-700 mb-2 sm:mb-0">
-                  Weekly Meeting Day
-                </label>
-                <select
-                  id="meeting-day"
-                  value={meetingDay}
-                  onChange={(e) => setMeetingDay(parseInt(e.target.value, 10))}
-                  className={`w-full sm:w-auto mt-1 sm:mt-0 block px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
-                  disabled={!canEditSettings}
-                >
-                  {WEEKDAYS.map((day, index) => (
-                    <option key={index} value={index}>{day}</option>
-                  ))}
-                </select>
-              </div>
-              <p className="mt-2 text-sm text-slate-500">
-                Set the default day for the Weekly Marks page.
-              </p>
-            </div>
-            
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-            
-            <div className="flex justify-end pt-4 border-t border-slate-200">
-              <button
-                onClick={handleSaveSettings}
-                disabled={isSaving || !canEditSettings}
-                className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white w-28 ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {isSaving ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {canAccessGlobalSettings && (
+    <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 lg:p-10">
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Section Settings</h1>
+        
+        <div className="max-w-2xl mx-auto space-y-6">
+          {/* General Settings Section */}
           <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
-            <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Global Application Settings</h2>
-            <p className="text-slate-600 mb-4">Manage invite codes, user roles, and development controls that affect the entire application.</p>
-            <div className="flex justify-end">
-              <button
-                onClick={onNavigateToGlobalSettings}
-                className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
-              >
-                Go to Global Settings
-              </button>
+            <div className="space-y-6">
+              <div>
+                <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>General Settings</h2>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                  <label htmlFor="meeting-day" className="block text-md font-medium text-slate-700 mb-2 sm:mb-0">
+                    Weekly Meeting Day
+                  </label>
+                  <select
+                    id="meeting-day"
+                    value={meetingDay}
+                    onChange={(e) => setMeetingDay(parseInt(e.target.value, 10))}
+                    className={`w-full sm:w-auto mt-1 sm:mt-0 block px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+                    disabled={!canEditSettings}
+                  >
+                    {WEEKDAYS.map((day, index) => (
+                      <option key={index} value={index}>{day}</option>
+                    ))}
+                  </select>
+                </div>
+                <p className="mt-2 text-sm text-slate-500">
+                  Set the default day for the Weekly Marks page.
+                </p>
+              </div>
+              
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+              
+              <div className="flex justify-end pt-4 border-t border-slate-200">
+                <button
+                  onClick={handleSaveSettings}
+                  disabled={isSaving || !canEditSettings}
+                  className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white w-28 ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {isSaving ? 'Saving...' : 'Save'}
+                </button>
+              </div>
             </div>
           </div>
-        )}
+
+          {canAccessGlobalSettings && (
+            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+              <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Global Application Settings</h2>
+              <p className="text-slate-600 mb-4">Manage invite codes, user roles, and development controls that affect the entire application.</p>
+              <div className="flex justify-end">
+                <button
+                  onClick={onNavigateToGlobalSettings}
+                  className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+                >
+                  Go to Global Settings
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
