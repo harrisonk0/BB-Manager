@@ -135,7 +135,7 @@ const App: React.FC = () => {
                 className="h-14 rounded-md"
               />
             </div>
-            <button onClick={() => navigateWithProtection({ page: backToPage })} className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-slate-700">
+            <button onClick={() => navigateWithProtection({ page: backToPage })} className="px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-slate-700">
               Back to App
             </button>
           </div>
