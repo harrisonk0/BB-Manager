@@ -339,7 +339,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                   {isCompany ? (
                     <input
                       type="number" min="0" max="10"
-                      /* Added step for decimals */
                       step="0.01"
                       value={Number(mark.score) < 0 ? '' : mark.score ?? ''}
                       onChange={(e) => handleMarkChange(mark.date, 'score', e.target.value)}
@@ -355,7 +354,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                             <>
                                 <input
                                   type="number" min="0" max="10"
-                                  /* Added step for decimals */
                                   step="0.01"
                                   value={Number(mark.score) < 0 ? '' : mark.uniformScore ?? ''}
                                   onChange={(e) => handleMarkChange(mark.date, 'uniform', e.target.value)}
@@ -366,7 +364,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
                                 />
                                 <input
                                   type="number" min="0" max="5"
-                                  /* Added step for decimals */
                                   step="0.01"
                                   value={Number(mark.score) < 0 ? '' : mark.behaviourScore ?? ''}
                                   onChange={(e) => handleMarkChange(mark.date, 'behaviour', e.target.value)}

@@ -451,7 +451,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                               type="number"
                               min="0"
                               max="10"
-                              /* Added step for decimals */
                               step="0.01"
                               // FIX: Use Number() to correctly compare union type with number and fix TS errors. This also fixes a parser error with operator precedence.
                               value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
@@ -467,7 +466,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                     <input
                                       id={`uniform-${boy.id}`}
                                       type="number" min="0" max="10"
-                                      /* Added step for decimals */
                                       step="0.01"
                                       // FIX: Use Number() to correctly compare union type with number and fix TS errors.
                                       value={Number((marks[boy.id] as JuniorMarkState)?.uniform) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.uniform ?? ''}
@@ -482,7 +480,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                     <input
                                       id={`behaviour-${boy.id}`}
                                       type="number" min="0" max="5"
-                                      /* Added step for decimals */
                                       step="0.01"
                                       // FIX: Use Number() to correctly compare union type with number and fix TS errors.
                                       value={Number((marks[boy.id] as JuniorMarkState)?.behaviour) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.behaviour ?? ''}
