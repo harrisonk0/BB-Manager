@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
-import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon } from './Icons';
+import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
 
 interface WeeklyMarksPageProps {
@@ -202,8 +202,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     setIsDirty(true);
   };
 
-  // Removed handleMarkAllPresent as it's redundant.
-
   const handleClearAllMarks = () => {
     if (isLocked) {
       showToast('Unlock the page to edit past marks.', 'info');
@@ -223,6 +221,28 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     setIsDirty(true);
     setMarkErrors({}); // Clear errors
     showToast('All marks cleared for present members.', 'info');
+  };
+
+  const handlePreviousWeek = () => {
+    if (isLocked) {
+      showToast('Unlock the page to navigate past dates.', 'info');
+      return;
+    }
+    const currentDate = new Date(selectedDate + 'T00:00:00');
+    currentDate.setDate(currentDate.getDate() - 7);
+    setSelectedDate(currentDate.toISOString().split('T')[0]);
+    setIsDirty(true); // Mark as dirty to prompt save if date changes
+  };
+
+  const handleNextWeek = () => {
+    if (isLocked) {
+      showToast('Unlock the page to navigate past dates.', 'info');
+      return;
+    }
+    const currentDate = new Date(selectedDate + 'T00:00:00');
+    currentDate.setDate(currentDate.getDate() + 7);
+    setSelectedDate(currentDate.toISOString().split('T')[0]);
+    setIsDirty(true); // Mark as dirty to prompt save if date changes
   };
 
   /**
@@ -432,14 +452,30 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">Weekly Marks</h1>
         <div className="flex items-center space-x-4">
+          <button
+            onClick={handlePreviousWeek}
+            className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
+            aria-label="Previous week"
+            disabled={isLocked}
+          >
+            <ChevronLeftIcon className="h-5 w-5" />
+          </button>
           <DatePicker
             value={selectedDate}
             onChange={setSelectedDate}
             accentRingClass={accentRing}
             ariaLabel="Select weekly marks date"
+            disabled={isLocked}
           />
-          <div className="flex space-x-2">
-            {/* Removed Mark All Present button */}
+          <button
+            onClick={handleNextWeek}
+            className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
+            aria-label="Next week"
+            disabled={isLocked}
+          >
+            <ChevronRightIcon className="h-5 w-5" />
+          </button>
+          <div className="flex space-x-2 ml-4"> {/* Added ml-4 for separation */}
             <button
               onClick={handleClearAllMarks}
               disabled={isLocked}

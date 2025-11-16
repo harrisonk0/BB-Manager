@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy, revokeInviteCode, updateUserRole } from '../services/db';
+import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy, revokeInviteCode, updateUserRole, deleteUserRole } from '../services/db';
 import { saveSettings } from '../services/settings';
 import { getAuthInstance } from '../services/firebase';
 import { AuditLog, Boy, Section, SectionSettings, ToastType, UserRole, AuditLogActionType } from '../types';
@@ -31,7 +31,9 @@ const ACTION_ICONS: Record<AuditLogActionType, React.FC<{className?: string}>> =
   GENERATE_INVITE_CODE: PlusIcon,
   USE_INVITE_CODE: PlusIcon, // Using PlusIcon for new user signup
   REVOKE_INVITE_CODE: TrashIcon,
+  UPDATE_INVITE_CODE: PencilIcon, // Added: Icon for updating invite codes
   UPDATE_USER_ROLE: CogIcon, // Using CogIcon for role changes
+  DELETE_USER_ROLE: TrashIcon, // New: Icon for deleting user roles
   CLEAR_AUDIT_LOGS: TrashIcon, // Using TrashIcon for clearing logs
   CLEAR_USED_REVOKED_INVITE_CODES: TrashIcon, // Using TrashIcon for clearing invite codes
   CLEAR_LOCAL_DATA: TrashIcon, // Using TrashIcon for clearing local data
@@ -57,7 +59,9 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     GENERATE_INVITE_CODE: 'bg-blue-100 text-blue-700',
     USE_INVITE_CODE: 'bg-green-100 text-green-700',
     REVOKE_INVITE_CODE: 'bg-red-100 text-red-700',
-    UPDATE_USER_ROLE: 'bg-purple-100 text-purple-700', // New color for role changes
+    UPDATE_INVITE_CODE: 'bg-purple-100 text-purple-700', // Added: Color for updating invite codes
+    UPDATE_USER_ROLE: 'bg-purple-100 text-purple-700', // Using CogIcon for role changes
+    DELETE_USER_ROLE: 'bg-red-100 text-red-700', // New: Color for deleting user roles
     CLEAR_AUDIT_LOGS: 'bg-red-100 text-red-700', // Red for destructive dev actions
     CLEAR_USED_REVOKED_INVITE_CODES: 'bg-red-100 text-red-700', // Red for destructive dev actions
     CLEAR_LOCAL_DATA: 'bg-red-100 text-red-700', // Red for destructive dev actions
@@ -161,9 +165,18 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
             // Pass `false` for createLogEntry to prevent duplicate audit log.
             await revokeInviteCode(revertData.inviteCodeId, activeSection, false, userRole);
             break;
+        case 'UPDATE_INVITE_CODE':
+            // To revert an invite code update, we update the invite code with the old data.
+            await updateInviteCode(revertData.inviteCodeId, { defaultUserRole: revertData.oldDefaultUserRole, expiresAt: revertData.oldExpiresAt }, userRole);
+            break;
         case 'UPDATE_USER_ROLE':
             // To revert a user role update, we update the user's role back to the old role.
             await updateUserRole(revertData.uid, revertData.oldRole as UserRole, userRole);
+            break;
+        case 'DELETE_USER_ROLE':
+            // To revert a user role deletion, we recreate the user role.
+            // We need the email from the original log's revertData to recreate the role.
+            await updateUserRole(revertData.uid, revertData.role as UserRole, userRole);
             break;
         default:
           throw new Error('This action cannot be reverted.');
@@ -213,7 +226,9 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     'UPDATE_BOY',
     'UPDATE_SETTINGS',
     'GENERATE_INVITE_CODE',
+    'UPDATE_INVITE_CODE', // Added: Allow reverting invite code updates
     'UPDATE_USER_ROLE',
+    'DELETE_USER_ROLE', // New: Allow reverting user role deletions
   ];
 
   // --- RENDER LOGIC ---

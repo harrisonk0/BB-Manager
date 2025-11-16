@@ -66,7 +66,9 @@ export type AuditLogActionType =
   'GENERATE_INVITE_CODE' | 
   'USE_INVITE_CODE' | 
   'REVOKE_INVITE_CODE' | 
+  'UPDATE_INVITE_CODE' | // Added this type
   'UPDATE_USER_ROLE' |
+  'DELETE_USER_ROLE' | // New: For deleting user roles
   'CLEAR_AUDIT_LOGS' | // New: For clearing all audit logs
   'CLEAR_USED_REVOKED_INVITE_CODES' | // New: For clearing used/revoked invite codes
   'CLEAR_LOCAL_DATA'; // New: For clearing all local data

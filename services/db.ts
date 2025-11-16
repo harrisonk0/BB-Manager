@@ -185,6 +185,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
     const logsToDeleteFromIDB: { tempId: string, section: Section }[] = [];
     const inviteCodesToUpdateInIDB: InviteCode[] = [];
     const userRolesToUpdateInIDB: { uid: string, role: UserRole }[] = []; // New: For user roles
+    const userRolesToDeleteFromIDB: string[] = []; // New: For user role deletions
     
     for (const write of pendingWrites) {
         const boysCollection = write.section ? getCollectionName(write.section, 'boys') : '';
@@ -269,6 +270,12 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 userRolesToUpdateInIDB.push({ uid: write.payload.uid, role: write.payload.role });
                 break;
             }
+            case 'DELETE_USER_ROLE': { // New: Handle user role deletions
+                const docRef = doc(db, userRolesCollection, write.payload.uid);
+                batch.delete(docRef);
+                userRolesToDeleteFromIDB.push(write.payload.uid);
+                break;
+            }
             // Removed UPDATE_AUDIT_LOG case as audit logs are now immutable.
         }
     }
@@ -298,6 +305,10 @@ export const syncPendingWrites = async (): Promise<boolean> => {
         // New: Handle user role updates
         for (const { uid, role } of userRolesToUpdateInIDB) {
             await saveUserRoleToDB(uid, role);
+        }
+        // New: Handle user role deletions
+        for (const uid of userRolesToDeleteFromIDB) {
+            await deleteUserRoleFromDB(uid);
         }
 
         console.log('Sync successful.');
@@ -481,6 +492,43 @@ export const updateUserRole = async (uid: string, newRole: UserRole, actingUserR
     } catch (error: any) {
         console.error("Failed to update user role:", error);
         throw new Error(error.message || "Failed to update role. Please try again.");
+    }
+};
+
+/**
+ * Deletes a user's role from the 'user_roles' collection.
+ * Includes client-side permission checks.
+ * @param uid The Firebase User ID (UID) of the user whose role is being deleted.
+ * @param actingUserRole The role of the user performing the deletion.
+ * @returns A promise that resolves when the role is deleted.
+ * @throws Error if permission is denied or specific role deletion rules are violated.
+ */
+export const deleteUserRole = async (uid: string, actingUserRole: UserRole | null): Promise<void> => {
+    const auth = getAuthInstance();
+    if (!auth.currentUser) throw new Error("User not authenticated.");
+    if (!navigator.onLine) throw new Error("User role deletion is only available online.");
+    if (!actingUserRole || actingUserRole !== 'admin') {
+        throw new Error("Permission denied: Only Admins can delete user roles.");
+    }
+
+    const currentUserId = auth.currentUser.uid;
+    if (currentUserId === uid) {
+        throw new Error("Admins cannot delete their own user role.");
+    }
+
+    try {
+        const db = getDb();
+        const docRef = doc(db, getCollectionName(null, 'user_roles'), uid);
+        await deleteDoc(docRef);
+        
+        // Delete from local cache
+        await deleteUserRoleFromDB(uid);
+        window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
+
+        // No audit log here, as it's handled in GlobalSettingsPage.tsx
+    } catch (error: any) {
+        console.error("Failed to delete user role:", error);
+        throw new Error(error.message || "Failed to delete user role. Please try again.");
     }
 };
 

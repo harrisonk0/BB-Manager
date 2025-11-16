@@ -11,7 +11,9 @@ import {
   revokeInviteCode,
   clearAllAuditLogs,
   clearAllUsedRevokedInviteCodes,
-  clearAllLocalData
+  clearAllLocalData,
+  updateInviteCode,
+  deleteUserRole // Imported deleteUserRole
 } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
 import { ClipboardIcon } from './Icons';
@@ -44,6 +46,11 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [loadingInviteCodes, setLoadingInviteCodes] = useState(true);
   const [codeToRevoke, setCodeToRevoke] = useState<InviteCode | null>(null);
+  const [codeToEdit, setCodeToEdit] = useState<InviteCode | null>(null); // New state for editing invite code
+  const [isEditInviteCodeModalOpen, setIsEditInviteCodeModalOpen] = useState(false); // New state for edit modal
+  const [editedDefaultUserRole, setEditedDefaultUserRole] = useState<UserRole>('officer'); // New state for edited role
+  const [editedExpiresAt, setEditedExpiresAt] = useState<string>(''); // New state for edited expiry date
+  const [inviteCodeEditError, setInviteCodeEditError] = useState<string | null>(null); // New state for invite code edit errors
 
   const [usersWithRoles, setUsersWithRoles] = useState<UserWithEmailAndRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
@@ -58,6 +65,12 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const [isClearLocalDataModalOpen, setIsClearLocalDataModalOpen] = useState(false);
   const [isClearingDevData, setIsClearingDevData] = useState(false);
   const [isSaving, setIsSaving] = useState(false); // Used for revoke code and save role
+
+  // State for user deletion
+  const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<UserWithEmailAndRole | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
+
 
   const canManageInviteCodes = userRole && ['admin', 'captain'].includes(userRole);
   const canManageUserRoles = userRole && ['admin', 'captain'].includes(userRole);
@@ -195,6 +208,69 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     }
   };
 
+  const handleEditInviteCodeClick = (code: InviteCode) => {
+    setCodeToEdit(code);
+    setEditedDefaultUserRole(code.defaultUserRole);
+    // Format expiresAt to YYYY-MM-DD for date input
+    const expiryDate = new Date(code.expiresAt);
+    setEditedExpiresAt(expiryDate.toISOString().split('T')[0]);
+    setInviteCodeEditError(null);
+    setIsEditInviteCodeModalOpen(true);
+  };
+
+  const handleSaveInviteCode = async () => {
+    if (!codeToEdit) return;
+
+    setInviteCodeEditError(null);
+    setIsSaving(true);
+
+    try {
+      const newExpiresAt = new Date(editedExpiresAt).getTime();
+      if (isNaN(newExpiresAt)) {
+        throw new Error("Invalid expiry date.");
+      }
+      if (newExpiresAt < Date.now()) {
+        throw new Error("Expiry date cannot be in the past.");
+      }
+
+      const updates: Partial<InviteCode> = {
+        defaultUserRole: editedDefaultUserRole,
+        expiresAt: newExpiresAt,
+      };
+
+      // Only create audit log if changes were actually made
+      const changes: string[] = [];
+      if (codeToEdit.defaultUserRole !== editedDefaultUserRole) {
+        changes.push(`default role from ${codeToEdit.defaultUserRole} to ${editedDefaultUserRole}`);
+      }
+      if (codeToEdit.expiresAt !== newExpiresAt) {
+        changes.push(`expiry date from ${new Date(codeToEdit.expiresAt).toLocaleDateString()} to ${new Date(newExpiresAt).toLocaleDateString()}`);
+      }
+
+      if (changes.length > 0) {
+        const auth = getAuthInstance();
+        const userEmail = auth.currentUser?.email || 'Unknown User';
+        await createAuditLog({
+          userEmail,
+          actionType: 'UPDATE_INVITE_CODE', // Corrected type
+          description: `Updated invite code ${codeToEdit.id}: changed ${changes.join(', ')}.`,
+          revertData: { inviteCodeId: codeToEdit.id, oldDefaultUserRole: codeToEdit.defaultUserRole, oldExpiresAt: codeToEdit.expiresAt },
+        }, activeSection);
+      }
+
+      await updateInviteCode(codeToEdit.id, updates, userRole);
+      showToast(`Invite code '${codeToEdit.id}' updated successfully.`, 'success');
+      loadInviteCodes();
+      setIsEditInviteCodeModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to update invite code:", err);
+      setInviteCodeEditError(err.message || "Failed to update invite code. Please try again.");
+      showToast('Failed to update invite code.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleEditRoleClick = (user: UserWithEmailAndRole) => {
     setUserToEditRole(user);
     setSelectedNewRole(user.role);
@@ -219,6 +295,40 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       showToast('Failed to update user role.', 'error');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteUserClick = (user: UserWithEmailAndRole) => {
+    setUserToDelete(user);
+    setIsDeleteUserModalOpen(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setIsDeletingUser(true);
+    try {
+      const auth = getAuthInstance();
+      const userEmail = auth.currentUser?.email || 'Unknown User';
+
+      // Call the new deleteUserRole function
+      await deleteUserRole(userToDelete.uid, userRole);
+
+      await createAuditLog({
+        userEmail,
+        actionType: 'DELETE_USER_ROLE', // New audit log type
+        description: `Deleted user role for: ${userToDelete.email}`,
+        revertData: { uid: userToDelete.uid, email: userToDelete.email, role: userToDelete.role },
+      }, null); // Global log
+
+      showToast(`User '${userToDelete.email}' role deleted successfully.`, 'success');
+      loadUsersWithRoles();
+      setIsDeleteUserModalOpen(false);
+    } catch (err: any) {
+      console.error("Failed to delete user role:", err);
+      showToast(`Failed to delete user role: ${err.message}`, 'error');
+    } finally {
+      setIsDeletingUser(false);
     }
   };
 
@@ -339,13 +449,22 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                     <div className="flex items-center space-x-2">
                         <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${statusColor}`}>{statusText}</span>
                         {!code.isUsed && !code.revoked && !isExpired && (
-                            <button
-                                onClick={() => handleRevokeClick(code)}
-                                className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                disabled={isSaving}
-                            >
-                                Revoke
-                            </button>
+                            <>
+                                <button
+                                    onClick={() => handleEditInviteCodeClick(code)}
+                                    className={`px-3 py-1.5 text-xs font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${accentRing}`}
+                                    disabled={isSaving}
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => handleRevokeClick(code)}
+                                    className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                    disabled={isSaving}
+                                >
+                                    Revoke
+                                </button>
+                            </>
                         )}
                     </div>
                     </li>
@@ -375,13 +494,22 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                         <span className="font-medium text-slate-800">{user.email}</span>
                         <p className="text-xs text-slate-500 mt-1"><span className="font-semibold">{USER_ROLE_DISPLAY_NAMES[user.role]}</span></p>
                       </div>
-                      <button
-                        onClick={() => handleEditRoleClick(user)}
-                        disabled={isCurrentUser} // Disable if it's the current user
-                        className={`px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${accentRing} ${isCurrentUser ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        Edit Role
-                      </button>
+                      <div className="flex space-x-2">
+                        <button
+                            onClick={() => handleEditRoleClick(user)}
+                            disabled={isCurrentUser} // Disable if it's the current user
+                            className={`px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${accentRing} ${isCurrentUser ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                            Edit Role
+                        </button>
+                        <button
+                            onClick={() => handleDeleteUserClick(user)}
+                            disabled={isCurrentUser || isDeletingUser} // Disable if it's the current user or deleting
+                            className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            Delete User
+                        </button>
+                      </div>
                     </li>
                   );
                 })}
@@ -473,6 +601,56 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
         )}
       </Modal>
 
+      {/* Edit Invite Code Modal */}
+      <Modal isOpen={isEditInviteCodeModalOpen} onClose={() => setIsEditInviteCodeModalOpen(false)} title="Edit Invite Code">
+        {codeToEdit && (
+          <div className="space-y-4">
+            <p className="text-slate-600">Editing invite code: <strong className="font-semibold text-slate-800">{codeToEdit.id}</strong></p>
+            {inviteCodeEditError && <p className="text-red-500 text-sm">{inviteCodeEditError}</p>}
+            <div>
+              <label htmlFor="edit-default-role" className="block text-sm font-medium text-slate-700">Default User Role</label>
+              <select
+                id="edit-default-role"
+                value={editedDefaultUserRole}
+                onChange={(e) => setEditedDefaultUserRole(e.target.value as UserRole)}
+                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+              >
+                {Object.entries(USER_ROLE_DISPLAY_NAMES).map(([roleValue, displayName]) => (
+                  <option key={roleValue} value={roleValue}>{displayName}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="edit-expires-at" className="block text-sm font-medium text-slate-700">Expires At</label>
+              <input
+                id="edit-expires-at"
+                type="date"
+                value={editedExpiresAt}
+                onChange={(e) => setEditedExpiresAt(e.target.value)}
+                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+              />
+            </div>
+            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setIsEditInviteCodeModalOpen(false)}
+                disabled={isSaving}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveInviteCode}
+                disabled={isSaving}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${accentBg} ${accentRing}`}
+              >
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
       {/* Revoke Invite Code Confirmation Modal */}
       <Modal isOpen={!!codeToRevoke} onClose={() => setCodeToRevoke(null)} title="Confirm Revocation">
         {codeToRevoke && (
@@ -491,9 +669,36 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
               <button
                 onClick={confirmRevokeCode}
                 disabled={isSaving}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? 'Revoking...' : 'Revoke Code'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Delete User Confirmation Modal */}
+      <Modal isOpen={isDeleteUserModalOpen} onClose={() => setIsDeleteUserModalOpen(false)} title="Confirm User Deletion">
+        {userToDelete && (
+          <div className="space-y-4">
+            <p className="text-red-600 font-semibold">Are you sure you want to delete the role for user <strong className="text-slate-800">{userToDelete.email}</strong>?</p>
+            <p className="text-slate-600">This will remove their assigned role from the application. They will no longer be able to log in unless a new role is assigned. This action can be reverted from the audit log.</p>
+            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setIsDeleteUserModalOpen(false)}
+                disabled={isDeletingUser}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteUser}
+                disabled={isDeletingUser}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isDeletingUser ? 'Deleting...' : 'Delete User Role'}
               </button>
             </div>
           </div>
@@ -517,7 +722,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
             <button
               onClick={handleClearAllAuditLogs}
               disabled={isClearingDevData}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isClearingDevData ? 'Clearing...' : 'Clear Logs'}
             </button>
@@ -542,7 +747,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
             <button
               onClick={handleClearAllUsedRevokedInviteCodes}
               disabled={isClearingDevData}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isClearingDevData ? 'Clearing...' : 'Clear Codes'}
             </button>

@@ -1,10 +1,6 @@
-/**
- * @file HomePage.tsx
- * @description The main landing page after logging in. It displays a roster of all members,
- * grouped by squad. It allows for searching, adding, editing, and deleting members.
- */
+"use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Boy, Squad, View, Section, JuniorSquad, ToastType, SortByType, SchoolYear, JuniorYear } from '../types';
 import Modal from './Modal';
 import BoyForm from './BoyForm';
@@ -46,16 +42,34 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   const [boyToEdit, setBoyToEdit] = useState<Boy | null>(null);
   const [boyToDelete, setBoyToDelete] = useState<Boy | null>(null);
   
-  // State for filtering and sorting
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  // State for filtering and sorting, initialized from localStorage
+  const [searchQuery, setSearchQuery] = useState(() => localStorage.getItem('homePageSearchQuery') || '');
+  const [isSearchVisible, setIsSearchVisible] = useState(() => !!localStorage.getItem('homePageSearchQuery')); // Show search if there's a query
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<SortByType>('name'); // 'name' is the default which maps to Year -> Name sort
-  const [filterSquad, setFilterSquad] = useState<string>('all');
-  const [filterYear, setFilterYear] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<SortByType>(() => (localStorage.getItem('homePageSortBy') as SortByType) || 'name');
+  const [filterSquad, setFilterSquad] = useState<string>(() => localStorage.getItem('homePageFilterSquad') || 'all');
+  const [filterYear, setFilterYear] = useState<string>(() => localStorage.getItem('homePageFilterYear') || 'all');
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
+
+  // --- EFFECTS for persisting state ---
+  useEffect(() => {
+    localStorage.setItem('homePageSearchQuery', searchQuery);
+    setIsSearchVisible(!!searchQuery); // Keep search visible if query exists
+  }, [searchQuery]);
+
+  useEffect(() => {
+    localStorage.setItem('homePageSortBy', sortBy);
+  }, [sortBy]);
+
+  useEffect(() => {
+    localStorage.setItem('homePageFilterSquad', filterSquad);
+  }, [filterSquad]);
+
+  useEffect(() => {
+    localStorage.setItem('homePageFilterYear', filterYear);
+  }, [filterYear]);
 
   // --- UTILITY FUNCTIONS ---
   const calculateTotalMarks = (boy: Boy) => {

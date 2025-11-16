@@ -15,7 +15,7 @@ import { Boy, AuditLog, Section, InviteCode, UserRole } from '../types';
 export type PendingWrite = {
   id?: number;
   section?: Section; // Section is optional for invite codes
-  type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG' | 'CREATE_INVITE_CODE' | 'UPDATE_INVITE_CODE' | 'UPDATE_USER_ROLE'; // Added UPDATE_USER_ROLE
+  type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG' | 'CREATE_INVITE_CODE' | 'UPDATE_INVITE_CODE' | 'UPDATE_USER_ROLE' | 'DELETE_USER_ROLE'; // Added DELETE_USER_ROLE
   payload: any; // This payload will now contain the full AuditLog data (without ID/timestamp)
   tempId?: string; // Used to track temporarily created boys before they get a real Firestore ID.
 };
