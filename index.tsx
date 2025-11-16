@@ -7,6 +7,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './src/index.css'; // Import the new global CSS file
 
 // Find the root HTML element where the React app will be mounted.
 const rootElement = document.getElementById('root');

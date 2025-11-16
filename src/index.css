@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom font definition - moved here from index.html */
+@font-face {
+  font-family: 'Futura';
+  font-weight: bold;
+  src: local('Futura Book Bold');
+}
