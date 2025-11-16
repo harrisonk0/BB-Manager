@@ -91,6 +91,8 @@ export interface AuditLog {
   revertData: any;
   /** The ID of the original audit log that this REVERT_ACTION log is reverting. */
   revertedLogId?: string;
+  /** The section this log pertains to. Null for global logs. */
+  section?: Section | null;
 }
 
 /**

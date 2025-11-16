@@ -58,8 +58,9 @@ import {
 /**
  * Generates a consistent collection name for Firestore based on the active section and resource type.
  * E.g., ('company', 'boys') => 'company_boys'.
- * @param section The active section ('company' or 'junior').
- * @param resource The type of data ('boys' or 'audit_logs').
+ * If section is null and resource is 'audit_logs', it returns 'global_audit_logs'.
+ * @param section The active section ('company' or 'junior') or null for global resources.
+ * @param resource The type of data ('boys' or 'audit_logs' or 'invite_codes' or 'user_roles').
  * @returns The formatted collection name string.
  */
 const getCollectionName = (section: Section | null, resource: 'boys' | 'audit_logs' | 'invite_codes' | 'user_roles') => {
@@ -69,9 +70,12 @@ const getCollectionName = (section: Section | null, resource: 'boys' | 'audit_lo
     if (resource === 'user_roles') {
         return 'user_roles'; // User roles are global
     }
+    if (resource === 'audit_logs' && section === null) {
+        return 'global_audit_logs'; // Global audit logs
+    }
     if (!section) {
-        // Fallback for global logs if section is null, though audit logs should ideally have a section.
-        return 'global_audit_logs'; 
+        // Fallback for other resources if section is null, though this should ideally not happen
+        return `global_${resource}`; 
     }
     return `${section}_${resource}`;
 };
@@ -181,15 +185,15 @@ export const syncPendingWrites = async (): Promise<boolean> => {
     // Keep track of local IDB changes needed after a successful sync.
     const boysToUpdateInIDB: { boy: Boy, section: Section }[] = [];
     const boysToDeleteFromIDB: { tempId: string, section: Section }[] = [];
-    const logsToUpdateInIDB: { log: AuditLog, section: Section }[] = [];
-    const logsToDeleteFromIDB: { tempId: string, section: Section }[] = [];
+    const logsToUpdateInIDB: { log: AuditLog, section: Section | null }[] = []; // section can be null for global logs
+    const logsToDeleteFromIDB: { tempId: string, section: Section | null }[] = []; // section can be null for global logs
     const inviteCodesToUpdateInIDB: InviteCode[] = [];
     const userRolesToUpdateInIDB: { uid: string, role: UserRole }[] = []; // New: For user roles
     const userRolesToDeleteFromIDB: string[] = []; // New: For user role deletions
     
     for (const write of pendingWrites) {
         const boysCollection = write.section ? getCollectionName(write.section, 'boys') : '';
-        const logsCollection = write.section ? getCollectionName(write.section, 'audit_logs') : getCollectionName(null, 'audit_logs'); // Use global for non-section logs
+        const logsCollection = getCollectionName(write.section || null, 'audit_logs'); // Use global for non-section logs
         const inviteCodesCollection = getCollectionName(null, 'invite_codes'); // Invite codes are global
         const userRolesCollection = getCollectionName(null, 'user_roles'); // User roles are global
 
@@ -234,8 +238,8 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                     // The timestamp from serverTimestamp() is not immediately available client-side.
                     // For local consistency, we'll use Date.now() for the IDB update.
                     const newLog = { ...write.payload, id: docRef.id, timestamp: Date.now() };
-                    logsToUpdateInIDB.push({ log: newLog, section: write.section! });
-                    logsToDeleteFromIDB.push({ tempId: write.tempId, section: write.section! });
+                    logsToUpdateInIDB.push({ log: newLog, section: write.section || null });
+                    logsToDeleteFromIDB.push({ tempId: write.tempId, section: write.section || null });
                 }
                 break;
             }
@@ -731,7 +735,7 @@ export const deleteBoyById = async (id: string, section: Section): Promise<void>
 /**
  * Creates a new audit log entry. Handles online/offline logic.
  * @param log The log data to create.
- * @param section The section the log pertains to.
+ * @param section The section the log pertains to. If null, it's a global log.
  * @param shouldLogAudit If false, the audit log will not be created. Defaults to true.
  * @returns The new AuditLog object, or null if logging was skipped.
  */
@@ -759,37 +763,44 @@ export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, se
     const logData = { ...logPayload, timestamp: serverTimestamp() };
     const docRef = await addDoc(collection(getDb(), logsCollectionName), logData);
     const newLog = { ...logPayload, id: docRef.id, timestamp };
-    if (section) { // Only save to section-specific IDB if section is provided
-        await saveLogToDB(newLog, section);
-    }
+    await saveLogToDB(newLog, section); // Save to appropriate IDB store
     return newLog;
   } else {
     const tempId = `offline_${crypto.randomUUID()}`;
     const newLog = { ...logPayload, id: tempId, timestamp };
     await addPendingWrite({ type: 'CREATE_AUDIT_LOG', payload: logPayload, tempId, section: section || undefined });
-    if (section) { // Only save to section-specific IDB if section is provided
-        await saveLogToDB(newLog, section);
-    }
+    await saveLogToDB(newLog, section); // Save to appropriate IDB store
     return newLog;
   }
 };
 
 /**
- * Fetches all audit logs for a section using the same cache-first strategy as fetchBoys.
- * @param section The section to fetch logs for.
+ * Fetches all audit logs for a section (and global logs) using the same cache-first strategy as fetchBoys.
+ * @param section The section to fetch logs for. If null, only global logs are fetched.
  * @returns An array of AuditLog objects, sorted descending by timestamp.
  */
-export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
+export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[]> => {
     await openDB(); // Ensure DB is ready
     const auth = getAuthInstance();
     if (!auth.currentUser) return [];
 
-    const cachedLogs = await getLogsFromDB(section);
+    let cachedLogs: AuditLog[] = [];
+    let freshLogs: AuditLog[] = [];
+
+    // Fetch from section-specific cache if section is provided
+    if (section) {
+        cachedLogs = await getLogsFromDB(section);
+    }
+    // Always fetch from global audit logs cache
+    const cachedGlobalLogs = await getLogsFromDB(null);
+    cachedLogs = [...cachedLogs, ...cachedGlobalLogs];
+
     if (cachedLogs.length > 0) {
         if (navigator.onLine) {
-            const q = query(collection(getDb(), getCollectionName(section, 'audit_logs')), orderBy('timestamp', 'desc'));
-            getDocs(q).then(snapshot => {
-                const freshLogs = snapshot.docs.map(doc => {
+            const fetchFromFirestore = async (collectionName: string): Promise<AuditLog[]> => {
+                const q = query(collection(getDb(), collectionName), orderBy('timestamp', 'desc'));
+                const snapshot = await getDocs(q);
+                return snapshot.docs.map(doc => {
                     const data = doc.data();
                     const ts = data.timestamp;
                     let timestampInMillis: number;
@@ -802,64 +813,103 @@ export const fetchAuditLogs = async (section: Section): Promise<AuditLog[]> => {
                     }
                     return { ...data, id: doc.id, timestamp: timestampInMillis } as AuditLog;
                 });
+            };
 
-                // More robust deep comparison logic
+            const promises: Promise<AuditLog[]>[] = [];
+            if (section) {
+                promises.push(fetchFromFirestore(getCollectionName(section, 'audit_logs')));
+            }
+            promises.push(fetchFromFirestore(getCollectionName(null, 'audit_logs'))); // Fetch global logs
+
+            try {
+                const results = await Promise.all(promises);
+                freshLogs = results.flat();
+
                 const comparableLog = (log: AuditLog) => ({
                     id: log.id,
                     timestamp: log.timestamp,
                     userEmail: log.userEmail,
                     actionType: log.actionType,
                     description: log.description,
-                    // revertData is dynamic, so we stringify it for comparison
                     revertData: JSON.stringify(log.revertData),
-                    revertedLogId: log.revertedLogId ?? null, // Coerce undefined to null
+                    revertedLogId: log.revertedLogId ?? null,
                 });
 
-                // Both fresh and cached logs are already sorted by timestamp.
-                if (JSON.stringify(freshLogs.map(comparableLog)) !== JSON.stringify(cachedLogs.map(comparableLog))) {
-                    console.log(`Background fetch for ${section} logs found updates. Refreshing cache.`);
-                    saveLogsToDB(freshLogs, section).then(() => {
-                        // Notify the app that data has been updated in the background
-                        window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section } }));
-                    });
+                const sortedFresh = [...freshLogs].sort((a, b) => (a.id ?? '').localeCompare(b.id ?? ''));
+                const sortedCached = [...cachedLogs].sort((a, b) => (a.id ?? '').localeCompare(b.id ?? ''));
+
+                if (JSON.stringify(sortedFresh.map(comparableLog)) !== JSON.stringify(sortedCached.map(comparableLog))) {
+                    console.log(`Background fetch for audit logs found updates. Refreshing cache.`);
+                    // Save fresh logs to their respective stores
+                    const sectionLogsToSave = section ? freshLogs.filter(log => log.section === section) : [];
+                    const globalLogsToSave = freshLogs.filter(log => log.section === undefined || log.section === null);
+
+                    await Promise.all([
+                        section ? saveLogsToDB(sectionLogsToSave, section) : Promise.resolve(),
+                        saveLogsToDB(globalLogsToSave, null)
+                    ]);
+                    window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section } }));
+                    window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section: null } }));
                 }
-            });
+            } catch (err) {
+                console.error("Background fetch for audit logs failed:", err);
+            }
         }
-        return cachedLogs;
+        return cachedLogs.sort((a, b) => b.timestamp - a.timestamp);
     }
     
     if (navigator.onLine) {
-        const q = query(collection(getDb(), getCollectionName(section, 'audit_logs')), orderBy('timestamp', 'desc'));
-        const snapshot = await getDocs(q);
-        const logs = snapshot.docs.map((doc: any) => {
-            const data = doc.data();
-            const ts = data.timestamp;
-            let timestampInMillis: number;
-            if (ts && typeof ts.toMillis === 'function') {
-                timestampInMillis = ts.toMillis();
-            } else if (typeof ts === 'number') {
-                timestampInMillis = ts;
-            } else {
-                timestampInMillis = Date.now();
-            }
-            return { ...data, id: doc.id, timestamp: timestampInMillis } as AuditLog;
-        });
-        await saveLogsToDB(logs, section);
-        return logs;
+        const fetchFromFirestore = async (collectionName: string): Promise<AuditLog[]> => {
+            const q = query(collection(getDb(), collectionName), orderBy('timestamp', 'desc'));
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => {
+                const data = doc.data();
+                const ts = data.timestamp;
+                let timestampInMillis: number;
+                if (ts && typeof ts.toMillis === 'function') {
+                    timestampInMillis = ts.toMillis();
+                } else if (typeof ts === 'number') {
+                    timestampInMillis = ts;
+                } else {
+                    timestampInMillis = Date.now();
+                }
+                return { ...data, id: doc.id, timestamp: timestampInMillis } as AuditLog;
+            });
+        };
+
+        const promises: Promise<AuditLog[]>[] = [];
+        if (section) {
+            promises.push(fetchFromFirestore(getCollectionName(section, 'audit_logs')));
+        }
+        promises.push(fetchFromFirestore(getCollectionName(null, 'audit_logs'))); // Fetch global logs
+
+        const results = await Promise.all(promises);
+        freshLogs = results.flat();
+
+        // Save fresh logs to their respective stores
+        const sectionLogsToSave = section ? freshLogs.filter(log => log.section === section) : [];
+        const globalLogsToSave = freshLogs.filter(log => log.section === undefined || log.section === null);
+
+        await Promise.all([
+            section ? saveLogsToDB(sectionLogsToSave, section) : Promise.resolve(),
+            saveLogsToDB(globalLogsToSave, null)
+        ]);
+        
+        return freshLogs.sort((a, b) => b.timestamp - a.timestamp);
     }
 
     return [];
 };
 
 /**
- * Deletes all audit logs for a given section from both Firestore and IndexedDB.
+ * Deletes all audit logs for a given section (and global logs if section is null) from both Firestore and IndexedDB.
  * This is a destructive operation intended for development/reset purposes.
- * @param section The section whose audit logs to clear.
+ * @param section The section whose audit logs to clear. If null, clears global audit logs.
  * @param userEmail The email of the user performing the action.
  * @param userRole The role of the user performing the action.
  * @throws Error if the user does not have 'admin' permission.
  */
-export const clearAllAuditLogs = async (section: Section, userEmail: string, userRole: UserRole | null): Promise<void> => {
+export const clearAllAuditLogs = async (section: Section | null, userEmail: string, userRole: UserRole | null): Promise<void> => {
     if (!navigator.onLine) throw new Error("This operation is only available online.");
     if (!userRole || userRole !== 'admin') {
         throw new Error("Permission denied: Only Admins can clear all audit logs.");
@@ -876,18 +926,18 @@ export const clearAllAuditLogs = async (section: Section, userEmail: string, use
             batch.delete(doc.ref);
         });
         await batch.commit();
-        console.log(`Deleted ${snapshot.docs.length} audit logs from Firestore for section ${section}.`);
+        console.log(`Deleted ${snapshot.docs.length} audit logs from Firestore for collection ${logsCollectionName}.`);
     }
 
     // Clear from IndexedDB
-    await clearStore(getCollectionName(section, 'audit_logs'));
-    console.log(`Cleared audit logs from IndexedDB for section ${section}.`);
+    await clearStore(logsCollectionName);
+    console.log(`Cleared audit logs from IndexedDB for store ${logsCollectionName}.`);
 
     // Create an audit log for this action
     await createAuditLog({
         userEmail,
         actionType: 'CLEAR_AUDIT_LOGS',
-        description: `Cleared all audit logs for section ${section}.`,
+        description: `Cleared all audit logs for ${section ? `section ${section}` : 'global'}.`,
         revertData: {}, // Cannot revert clearing all logs
     }, section, false); // Do NOT create an audit log for this action
 };
@@ -913,6 +963,18 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
             await deleteLogsFromDB(oldLocalLogIds, section);
             console.log(`Deleted ${oldLocalLogIds.length} old logs from IndexedDB for section ${section}.`);
         }
+
+        // Also clean up global audit logs
+        const localGlobalLogs = await getLogsFromDB(null);
+        const oldLocalGlobalLogIds = localGlobalLogs
+            .filter(log => log.timestamp < cutoffTimestamp)
+            .map(log => log.id!);
+        
+        if (oldLocalGlobalLogIds.length > 0) {
+            await deleteLogsFromDB(oldLocalGlobalLogIds, null);
+            console.log(`Deleted ${oldLocalGlobalLogIds.length} old global logs from IndexedDB.`);
+        }
+
     } catch (error) {
         console.error("Failed to delete old logs from IndexedDB:", error);
     }
@@ -937,7 +999,7 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
         const db = getDb();
         const cutoffFirestoreTimestamp = Timestamp.fromMillis(cutoffTimestamp);
 
-        // --- Clean up Firestore audit logs ---
+        // --- Clean up Firestore audit logs (section-specific) ---
         try {
             const oldLogsQuery = query(
                 collection(db, getCollectionName(section, 'audit_logs')),
@@ -955,6 +1017,26 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
             }
         } catch (error) {
             console.error("Failed to delete old logs from Firestore:", error);
+        }
+
+        // --- Clean up Firestore global audit logs ---
+        try {
+            const oldGlobalLogsQuery = query(
+                collection(db, getCollectionName(null, 'audit_logs')),
+                where('timestamp', '<', cutoffFirestoreTimestamp)
+            );
+            
+            const snapshot = await getDocs(oldGlobalLogsQuery);
+            if (!snapshot.empty) {
+                const batch = writeBatch(db);
+                snapshot.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+                console.log(`Deleted ${snapshot.docs.length} old global logs from Firestore.`);
+            }
+        } catch (error) {
+            console.error("Failed to delete old global logs from Firestore:", error);
         }
 
         // --- Clean up Firestore invite codes (client-side filtering) ---

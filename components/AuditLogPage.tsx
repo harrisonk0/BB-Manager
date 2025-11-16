@@ -68,12 +68,13 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
   };
 
   /**
-   * Fetches the audit logs for the active section from the database.
+   * Fetches the audit logs for the active section (and global logs) from the database.
    */
   const loadLogs = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      // Fetch logs for the active section and global logs, then merge and sort.
       const fetchedLogs = await fetchAuditLogs(activeSection);
       setLogs(fetchedLogs);
     } catch (err) {
@@ -97,7 +98,8 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
   useEffect(() => {
     const handleLogsRefresh = (event: Event) => {
         const customEvent = event as CustomEvent;
-        if (customEvent.detail.section === activeSection) {
+        // Refresh if the event is for the active section or for global logs (section: null)
+        if (customEvent.detail.section === activeSection || customEvent.detail.section === null) {
             console.log('Audit log cache updated in background, refreshing UI...');
             loadLogs();
         }
@@ -194,7 +196,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
         description: `Reverted action: "${logToRevert.description}"`,
         revertData: {}, // Revert actions cannot be reverted.
         revertedLogId: logToRevert.id, // Link this revert action to the original log
-      }, activeSection);
+      }, logToRevert.section || null); // Use the section from the original log, or null for global
       
       showToast('Action reverted successfully.', 'success');
       // 3. Refresh the main application data and the audit log list.

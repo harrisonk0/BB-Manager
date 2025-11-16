@@ -456,7 +456,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             onChange={setSelectedDate}
             accentRingClass={accentRing}
             ariaLabel="Select weekly marks date"
-            // Removed disabled={isLocked}
+            // Removed disabled={isLocked} - DatePicker is now always enabled
           />
           <button
             onClick={handleNextWeek}

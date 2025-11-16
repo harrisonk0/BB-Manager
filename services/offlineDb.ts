@@ -14,25 +14,35 @@ import { Boy, AuditLog, Section, InviteCode, UserRole } from '../types';
  */
 export type PendingWrite = {
   id?: number;
-  section?: Section; // Section is optional for invite codes
+  section?: Section; // Section is optional for invite codes and global audit logs
   type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG' | 'CREATE_INVITE_CODE' | 'UPDATE_INVITE_CODE' | 'UPDATE_USER_ROLE' | 'DELETE_USER_ROLE'; // Added DELETE_USER_ROLE
   payload: any; // This payload will now contain the full AuditLog data (without ID/timestamp)
   tempId?: string; // Used to track temporarily created boys before they get a real Firestore ID.
 };
 
 const DB_NAME = 'BBManagerDB';
-const DB_VERSION = 4; // Incrementing the database version to trigger onupgradeneeded
+const DB_VERSION = 5; // Incrementing the database version to trigger onupgradeneeded
 const PENDING_WRITES_STORE = 'pending_writes'; // Define the constant here
 const INVITE_CODES_STORE = 'invite_codes'; // New constant for invite codes store
 const USER_ROLES_STORE = 'user_roles'; // New constant for user roles store
+const GLOBAL_AUDIT_LOGS_STORE = 'global_audit_logs'; // New constant for global audit logs
 
 /**
  * Generates a consistent object store name based on the section and resource type.
- * @param section The section ('company' or 'junior').
+ * @param section The section ('company' or 'junior'). If null, it refers to global audit logs.
  * @param resource The resource type ('boys' or 'audit_logs').
  * @returns The name of the IndexedDB object store.
  */
-const getStoreName = (section: Section, resource: 'boys' | 'audit_logs') => `${section}_${resource}`;
+const getStoreName = (section: Section | null, resource: 'boys' | 'audit_logs') => {
+    if (resource === 'audit_logs' && section === null) {
+        return GLOBAL_AUDIT_LOGS_STORE;
+    }
+    if (!section) {
+        // Fallback, though this case should ideally be handled by explicit section or global_audit_logs
+        return `unknown_section_${resource}`;
+    }
+    return `${section}_${resource}`;
+};
 
 // A singleton instance of the database connection.
 let db: IDBDatabase;
@@ -70,10 +80,10 @@ export const openDB = (): Promise<IDBDatabase> => {
       const db = (event.target as IDBOpenDBRequest).result;
       const oldVersion = event.oldVersion;
       
-      // Migration from v3 to v4: Add user_roles store
-      if (oldVersion < 4) {
-        if (!db.objectStoreNames.contains(USER_ROLES_STORE)) {
-          db.createObjectStore(USER_ROLES_STORE, { keyPath: 'uid' });
+      // Migration from v4 to v5: Add global_audit_logs store
+      if (oldVersion < 5) {
+        if (!db.objectStoreNames.contains(GLOBAL_AUDIT_LOGS_STORE)) {
+          db.createObjectStore(GLOBAL_AUDIT_LOGS_STORE, { keyPath: 'id' });
         }
       }
 
@@ -99,6 +109,10 @@ export const openDB = (): Promise<IDBDatabase> => {
       // Create the invite_codes store if it doesn't exist (for older versions or new installs)
       if (!db.objectStoreNames.contains(INVITE_CODES_STORE)) {
         db.createObjectStore(INVITE_CODES_STORE, { keyPath: 'id' });
+      }
+      // Create the user_roles store if it doesn't exist (for older versions or new installs)
+      if (!db.objectStoreNames.contains(USER_ROLES_STORE)) {
+        db.createObjectStore(USER_ROLES_STORE, { keyPath: 'uid' });
       }
     };
   });
@@ -187,8 +201,8 @@ export const deleteBoyFromDB = async (id: string, section: Section): Promise<voi
 };
 
 // --- Audit Log Functions ---
-/** Saves a single audit log entry to the appropriate store. */
-export const saveLogToDB = async (log: AuditLog, section: Section): Promise<void> => {
+/** Saves a single audit log entry to the appropriate store (section-specific or global). */
+export const saveLogToDB = async (log: AuditLog, section: Section | null): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const store = getStore(getStoreName(section, 'audit_logs'), 'readwrite');
@@ -198,8 +212,8 @@ export const saveLogToDB = async (log: AuditLog, section: Section): Promise<void
   });
 };
 
-/** Saves an array of logs in a single transaction. */
-export const saveLogsToDB = async (logs: AuditLog[], section: Section): Promise<void> => {
+/** Saves an array of logs in a single transaction to the appropriate store. */
+export const saveLogsToDB = async (logs: AuditLog[], section: Section | null): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(getStoreName(section, 'audit_logs'), 'readwrite');
@@ -211,7 +225,7 @@ export const saveLogsToDB = async (logs: AuditLog[], section: Section): Promise<
 };
 
 /** Retrieves all logs from the appropriate store, sorting them by timestamp descending. */
-export const getLogsFromDB = async (section: Section): Promise<AuditLog[]> => {
+export const getLogsFromDB = async (section: Section | null): Promise<AuditLog[]> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const store = getStore(getStoreName(section, 'audit_logs'), 'readonly');
@@ -224,8 +238,8 @@ export const getLogsFromDB = async (section: Section): Promise<AuditLog[]> => {
   });
 };
 
-/** Deletes a single log by its ID. */
-export const deleteLogFromDB = async (id: string, section: Section): Promise<void> => {
+/** Deletes a single log by its ID from the appropriate store. */
+export const deleteLogFromDB = async (id: string, section: Section | null): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const store = getStore(getStoreName(section, 'audit_logs'), 'readwrite');
@@ -235,8 +249,8 @@ export const deleteLogFromDB = async (id: string, section: Section): Promise<voi
   });
 };
 
-/** Deletes an array of logs by their IDs in a single transaction. */
-export const deleteLogsFromDB = async (logIds: string[], section: Section): Promise<void> => {
+/** Deletes an array of logs by their IDs in a single transaction from the appropriate store. */
+export const deleteLogsFromDB = async (logIds: string[], section: Section | null): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(getStoreName(section, 'audit_logs'), 'readwrite');
@@ -420,6 +434,7 @@ export const clearAllSectionDataFromDB = async (section: Section): Promise<void>
   await Promise.all([
     clearStore(getStoreName(section, 'boys')),
     clearStore(getStoreName(section, 'audit_logs')),
+    clearStore(GLOBAL_AUDIT_LOGS_STORE), // Clear global audit logs as well
     clearStore(PENDING_WRITES_STORE), // Clear pending writes as well
     clearAllInviteCodesFromDB(), // Clear all invite codes locally
     clearAllUserRolesFromDB(), // Clear all user roles locally

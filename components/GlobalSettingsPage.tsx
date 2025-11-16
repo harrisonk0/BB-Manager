@@ -322,7 +322,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
         actionType: 'DELETE_USER_ROLE',
         description: `Deleted user role for: ${userToDelete.email}`,
         revertData: { uid: userToDelete.uid, email: userToDelete.email, role: userToDelete.role },
-      }, null);
+      }, null); // Global log
 
       showToast(`User '${userToDelete.email}' role deleted successfully.`, 'success');
       loadUsersWithRoles();
@@ -340,9 +340,12 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     try {
       const auth = getAuthInstance();
       const userEmail = auth.currentUser?.email || 'Unknown User';
-      await clearAllAuditLogs(activeSection, userEmail, userRole);
+      // Pass null for section to clear global logs as well
+      await clearAllAuditLogs(activeSection, userEmail, userRole); // This will clear section-specific logs
+      await clearAllAuditLogs(null, userEmail, userRole); // Clear global logs
       showToast('All audit logs cleared successfully!', 'success');
       window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section: activeSection } }));
+      window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section: null } })); // Trigger refresh for global logs
     } catch (err: any) {
       console.error("Failed to clear audit logs:", err);
       showToast(`Failed to clear audit logs: ${err.message}`, 'error');
@@ -542,9 +545,9 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                   disabled={isClearingDevData}
                   className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Clear All Audit Logs (Current Section)
+                  Clear All Audit Logs (Current Section & Global)
                 </button>
-                <p className="mt-1 text-xs text-red-700">Deletes all audit logs for the current section from Firestore and local storage.</p>
+                <p className="mt-1 text-xs text-red-700">Deletes all audit logs for the current section AND global audit logs from Firestore and local storage.</p>
               </div>
               <div>
                 <button
@@ -562,7 +565,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                   disabled={isClearingDevData}
                   className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Clear All Local Data (Current Section & Global Invite Codes)
+                  Clear All Local Data (Current Section & Global Invite Codes/Roles)
                 </button>
                 <p className="mt-1 text-xs text-red-700">Deletes all local data (boys, audit logs, pending writes, all invite codes, and all user roles) for the current section from your browser's IndexedDB. Requires page refresh.</p>
               </div>
@@ -586,8 +589,12 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
               >
                 {ROLE_SORT_ORDER.filter(roleOption => 
-                    // Only allow selecting roles strictly lower than the acting user's role
-                    ROLE_SORT_ORDER.indexOf(roleOption) > ROLE_SORT_ORDER.indexOf(userRole)
+                    // Allow selecting roles strictly lower than the acting user's role
+                    // And if the target user is the current user, only allow changing to the same role (effectively disabling change)
+                    // Or if the acting user is admin, allow changing to any role except self-demotion
+                    (userRole === 'admin' && userToEditRole.uid !== currentAuthUserUid) || // Admin can change any role except their own
+                    (userRole === 'captain' && ROLE_SORT_ORDER.indexOf(roleOption) > ROLE_SORT_ORDER.indexOf('captain')) || // Captain can only promote to officer
+                    (userToEditRole.uid === currentAuthUserUid && roleOption === userToEditRole.role) // Current user can't change their own role
                 ).map(roleValue => (
                   <option key={roleValue} value={roleValue}>{USER_ROLE_DISPLAY_NAMES[roleValue]}</option>
                 ))}
@@ -724,7 +731,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       {/* Clear All Audit Logs Confirmation Modal */}
       <Modal isOpen={isClearLogsModalOpen} onClose={() => setIsClearLogsModalOpen(false)} title="Confirm Clear All Audit Logs">
         <div className="space-y-4">
-          <p className="text-red-600 font-semibold">This action will permanently delete ALL audit logs for the current section from both Firestore and your local browser storage.</p>
+          <p className="text-red-600 font-semibold">This action will permanently delete ALL audit logs for the current section AND global audit logs from both Firestore and your local browser storage.</p>
           <p className="text-slate-600">Are you absolutely sure you want to proceed?</p>
           <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
             <button
