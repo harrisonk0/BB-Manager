@@ -16,9 +16,11 @@ interface ModalProps {
   title: string;
   /** The content to be rendered inside the modal body. */
   children: React.ReactNode;
+  /** The size of the modal. Defaults to 'md'. */
+  size?: 'sm' | 'md' | 'lg' | 'full';
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md' }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previouslyFocusedElement = useRef<HTMLElement | null>(null);
 
@@ -75,17 +77,39 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   // If the modal is not open, render nothing.
   if (!isOpen) return null;
 
+  // Determine modal width and height classes based on the 'size' prop
+  let maxWidthClass = 'max-w-md';
+  let maxHeightClass = 'max-h-[90vh]'; // Default max height for all sizes
+  let paddingClass = 'p-4'; // Default padding for the overlay
+
+  switch (size) {
+    case 'sm':
+      maxWidthClass = 'max-w-sm';
+      break;
+    case 'md':
+      maxWidthClass = 'max-w-md';
+      break;
+    case 'lg':
+      maxWidthClass = 'max-w-2xl';
+      break;
+    case 'full':
+      maxWidthClass = 'max-w-full w-11/12'; // Take up most of the width
+      maxHeightClass = 'max-h-full h-11/12'; // Take up most of the height
+      paddingClass = 'p-2'; // Less padding for full-screen effect
+      break;
+  }
+
   return (
     // The overlay covers the entire screen.
     <div 
-      className="fixed inset-0 bg-slate-900 bg-opacity-60 z-50 flex justify-center items-center p-4" 
+      className={`fixed inset-0 bg-slate-900 bg-opacity-60 z-50 flex justify-center items-center ${paddingClass}`} 
       aria-modal="true" 
       role="dialog"
       tabIndex={-1} // Ensure the modal itself can receive focus initially
     >
       {/* The main modal container. */}
-      <div ref={modalRef} className="bg-white rounded-lg shadow-xl w-full max-w-md">
-        <div className="p-5 border-b border-slate-200 flex justify-between items-center">
+      <div ref={modalRef} className={`bg-white rounded-lg shadow-xl w-full ${maxWidthClass} ${maxHeightClass} flex flex-col`}>
+        <div className="p-5 border-b border-slate-200 flex justify-between items-center flex-shrink-0">
           <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
           <button 
             onClick={onClose} 
@@ -95,7 +119,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
             &times;
           </button>
         </div>
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-grow"> {/* Added overflow-y-auto and flex-grow here */}
           {children}
         </div>
       </div>

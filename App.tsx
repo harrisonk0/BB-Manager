@@ -212,10 +212,8 @@ const App: React.FC = () => {
       {renderApp()}
       
       {/* Help Modal */}
-      <Modal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} title="User Guide">
-        <div className="max-h-[80vh] overflow-y-auto"> {/* Added max-h and overflow for scrollable content */}
-          <HelpPage />
-        </div>
+      <Modal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} title="User Guide" size="full">
+        <HelpPage />
       </Modal>
 
       <Modal isOpen={!!confirmModalType} onClose={cancelAction} title="Unsaved Changes">
