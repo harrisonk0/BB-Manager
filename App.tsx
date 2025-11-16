@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import HomePage from './components/HomePage';
 import WeeklyMarksPage from './components/WeeklyMarksPage';
 import BoyMarksPage from './components/BoyMarksPage';
@@ -17,242 +16,88 @@ import AccountSettingsPage from './components/AccountSettingsPage';
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { fetchBoys, syncPendingWrites, deleteOldAuditLogs, fetchUserRole } from './services/db';
-import { initializeFirebase, getAuthInstance } from './services/firebase';
-import { getSettings } from './services/settings';
-import { Boy, View, Page, BoyMarksPageView, Section, SectionSettings, ToastMessage, ToastType, UserRole } from './types';
+import { initializeFirebase } from './services/firebase';
+import { View, Page, BoyMarksPageView, Section, ToastType } from './types';
 import Modal from './components/Modal';
 
-type ConfirmationModalType = 'navigate' | 'switchSection' | 'signOut' | null;
+// Import custom hooks
+import { useToastNotifications } from '@/hooks/useToastNotifications';
+import { useAuthAndRole } from '@/hooks/useAuthAndRole';
+import { useSectionManagement } from '@/hooks/useSectionManagement';
+import { useAppData } from '@/hooks/useAppData';
+import { useUnsavedChangesProtection } from '@/hooks/useUnsavedChangesProtection';
 
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined);
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [activeSection, setActiveSection] = useState<Section | null>(() => localStorage.getItem('activeSection') as Section | null);
-  const [view, setView] = useState<View>({ page: 'home' });
-  const [boys, setBoys] = useState<Boy[]>([]);
-  const [settings, setSettings] = useState<SectionSettings | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [noRoleError, setNoRoleError] = useState<string | null>(null);
-  
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [confirmModalType, setConfirmModalType] = useState<ConfirmationModalType>(null);
-  const [nextView, setNextView] = useState<View | null>(null);
-
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
-
-  const showToast = useCallback((message: string, type: ToastType = 'info') => {
-    const id = crypto.randomUUID();
-    setToasts(prev => [...prev, { id, message, type }]);
-  }, []);
-  
-  const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
-  }, []);
-
-  const refreshData = useCallback(async () => {
-    if (!activeSection) return;
-    try {
-        const [allBoys, sectionSettings] = await Promise.all([
-          fetchBoys(activeSection),
-          getSettings(activeSection)
-        ]);
-        setBoys(allBoys.sort((a, b) => a.name.localeCompare(b.name)));
-        setSettings(sectionSettings);
-    } catch (err) {
-        console.error("Failed to refresh data:", err);
-        setError("Could not refresh data. Please check your connection.");
-    }
-  }, [activeSection]);
-
-  const loadDataAndSettings = useCallback(async () => {
-    if (!activeSection) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      await refreshData();
-    } catch (err: any) {
-      console.error("Failed to fetch data:", err);
-      setError(`Failed to connect to the database. You may not have permission. Error: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeSection, refreshData]);
-  
+  // Initialize Firebase once
   useEffect(() => {
     try {
       initializeFirebase();
-      const auth = getAuthInstance();
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const role = await fetchUserRole(user.uid);
-          if (role === null) {
-            setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
-            await signOut(auth);
-            setCurrentUser(null);
-            setIsLoading(false);
-            return;
-          }
-          setUserRole(role);
-          setNoRoleError(null);
-        } else {
-          setIsLoading(false); 
-          setActiveSection(null);
-          setSettings(null);
-          setUserRole(null);
-          localStorage.removeItem('activeSection');
-          setNoRoleError(null);
-        }
-        setCurrentUser(user);
-      });
-      return () => unsubscribe();
     } catch (err: any) {
-      setError(`Failed to initialize Firebase. Error: ${err.message}`);
-      setIsLoading(false);
+      console.error(`Failed to initialize Firebase: ${err.message}`);
+      // This error should ideally be handled by a global error boundary
     }
   }, []);
 
+  // Use toast notifications hook
+  const { toasts, showToast, removeToast } = useToastNotifications();
+
+  // Use auth and role hook
+  const { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole } = useAuthAndRole();
+
+  // State for unsaved changes protection
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [view, setView] = useState<View>({ page: 'home' }); // Internal view state for useUnsavedChangesProtection
+
+  // Use section management hook
+  const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(
+    setView, // Pass internal setView
+    setHasUnsavedChanges,
+    performSignOut
+  );
+
+  // Use app data hook
+  const { boys, settings, dataLoading, dataError, refreshData, setSettings } = useAppData(
+    activeSection,
+    showToast,
+    currentUser
+  );
+
+  // Use unsaved changes protection hook
+  const {
+    view: protectedView, // Renamed to avoid conflict with internal 'view' state
+    setView: navigateWithProtection,
+    confirmModalType,
+    confirmAction,
+    cancelAction,
+    handleSwitchSection: handleSwitchSectionWithProtection,
+    handleSignOut: handleSignOutWithProtection,
+  } = useUnsavedChangesProtection(
+    setView, // Pass internal setView
+    performSwitchSection,
+    performSignOut
+  );
+
+  // Update internal view state when protectedView changes
   useEffect(() => {
-    if (currentUser === undefined) {
-      setIsLoading(true);
-    } else if (currentUser) {
-      if (activeSection) {
-        deleteOldAuditLogs(activeSection).then(() => {
-          loadDataAndSettings();
-        });
-      } else {
-        // If no active section, but user is logged in, still need to set isLoading to false
-        // to allow SectionSelectPage to render.
-        setIsLoading(false);
-      }
-    }
-  }, [currentUser, activeSection, loadDataAndSettings]);
+    setView(protectedView);
+  }, [protectedView]);
 
+  // Handle no role error: if noRoleError is set, force sign out and clear section
   useEffect(() => {
-    const handleOnline = () => {
-        console.log('App is online, attempting to sync...');
-        syncPendingWrites().then(synced => {
-            if (synced) {
-                console.log('Sync complete, refreshing data.');
-                showToast('Data synced successfully.', 'success');
-                refreshData();
-            }
-        });
-    };
-    
-    window.addEventListener('online', handleOnline);
-    syncPendingWrites().then(synced => {
-        if(synced) refreshData();
-    });
-
-    return () => {
-        window.removeEventListener('online', handleOnline);
-    };
-  }, [refreshData, showToast]);
-  
-  useEffect(() => {
-    const handleDataRefresh = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        if (activeSection && customEvent.detail.section === activeSection) {
-            console.log('Cache updated in background, refreshing UI data...');
-            refreshData();
-        }
-    };
-
-    window.addEventListener('datarefreshed', handleDataRefresh);
-
-    return () => {
-        window.removeEventListener('datarefreshed', handleDataRefresh);
-    };
-  }, [activeSection, refreshData]);
-  
-  const handleSelectSection = (section: Section) => {
-    localStorage.setItem('activeSection', section);
-    setActiveSection(section);
-    setView({ page: 'home' });
-  };
-  
-  const performSwitchSection = () => {
-    localStorage.removeItem('activeSection');
-    setActiveSection(null);
-    setBoys([]);
-    setSettings(null);
-    setView({ page: 'home' });
-    setHasUnsavedChanges(false);
-  };
-
-  const handleSwitchSection = () => {
-    if (hasUnsavedChanges) {
-      setConfirmModalType('switchSection');
-    } else {
-      performSwitchSection();
-    }
-  };
-
-  const performSignOut = async () => {
-    try {
-      const auth = getAuthInstance();
-      await signOut(auth);
-      setBoys([]);
-      setSettings(null);
-      setUserRole(null);
-      setView({ page: 'home' });
+    if (noRoleError) {
+      // Clear any active section and user role if there's a no-role error
       setActiveSection(null);
+      setUserRole(null);
       localStorage.removeItem('activeSection');
-      setHasUnsavedChanges(false);
-    } catch (error) {
-      console.error('Sign out failed', error);
-      setError('Failed to sign out. Please try again.');
     }
-  };
-
-  const handleSignOut = () => {
-    if (hasUnsavedChanges) {
-      setConfirmModalType('signOut');
-    } else {
-      performSignOut();
-    }
-  };
-
-  const handleNavigation = (newView: View) => {
-    if (hasUnsavedChanges && newView.page !== view.page) {
-      setNextView(newView);
-      setConfirmModalType('navigate');
-    } else {
-      setView(newView);
-    }
-  };
-
-  const confirmAction = () => {
-    switch (confirmModalType) {
-      case 'navigate':
-        if (nextView) {
-          setHasUnsavedChanges(false);
-          setView(nextView);
-        }
-        break;
-      case 'switchSection':
-        performSwitchSection();
-        break;
-      case 'signOut':
-        performSignOut();
-        break;
-    }
-    cancelAction();
-  };
-
-  const cancelAction = () => {
-    setConfirmModalType(null);
-    setNextView(null);
-  };
+  }, [noRoleError, setActiveSection, setUserRole]);
 
   const renderMainContent = () => {
     if (!activeSection) return null; // Should not happen if logic below is correct
 
     switch (view.page) {
       case 'home':
-        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
+        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
       case 'weeklyMarks':
         return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} settings={settings} showToast={showToast} />;
       case 'dashboard':
@@ -260,7 +105,7 @@ const App: React.FC = () => {
       case 'auditLog':
         return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
       case 'settings': // Section-specific settings
-        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToGlobalSettings={() => handleNavigation({ page: 'globalSettings' })} />;
+        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} />;
       case 'globalSettings': // New: Global settings
         return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} />;
       case 'accountSettings': // New: Account settings
@@ -273,7 +118,7 @@ const App: React.FC = () => {
       case 'signup':
         return null;
       default:
-        return <HomePage boys={boys} setView={handleNavigation} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
+        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
     }
   };
   
@@ -290,7 +135,7 @@ const App: React.FC = () => {
                 className="h-14 rounded-md"
               />
             </div>
-            <button onClick={() => setView({ page: backToPage })} className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-slate-700">
+            <button onClick={() => navigateWithProtection({ page: backToPage })} className="px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-slate-700">
               Back to App
             </button>
           </div>
@@ -310,7 +155,7 @@ const App: React.FC = () => {
 
   const renderApp = () => {
     // Handle loading state first
-    if (currentUser === undefined || (currentUser && isLoading && view.page !== 'signup')) {
+    if (authLoading || (currentUser && dataLoading && view.page !== 'signup')) {
         return <HomePageSkeleton />;
     }
 
@@ -324,7 +169,7 @@ const App: React.FC = () => {
                     <p className="text-slate-700">{noRoleError}</p>
                     <p className="text-slate-500">Please ensure your email address is registered with an administrator.</p>
                     <button
-                        onClick={() => setNoRoleError(null)}
+                        onClick={() => setCurrentUser(null)} // Reset currentUser to trigger login page
                         className="mt-6 group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-junior-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue"
                     >
                         Return to Login
@@ -337,13 +182,13 @@ const App: React.FC = () => {
     // Handle unauthenticated user
     if (!currentUser) {
         if (view.page === 'signup') {
-            return <SignupPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => setView({ page: 'home' })} />;
+            return <SignupPage onNavigateToHelp={() => navigateWithProtection({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => navigateWithProtection({ page: 'home' })} />;
         }
         // NEW: Allow HelpPage to be rendered for unauthenticated users
         if (view.page === 'help') {
             return renderPageWithGenericHeader(HelpPage, 'home'); // 'home' will navigate back to LoginPage when !currentUser
         }
-        return <LoginPage onNavigateToHelp={() => setView({ page: 'help' })} showToast={showToast} onNavigateToSignup={handleNavigation} />;
+        return <LoginPage onNavigateToHelp={() => navigateWithProtection({ page: 'help' })} showToast={showToast} onNavigateToSignup={navigateWithProtection} />;
     }
     
     // Handle authenticated user, but no active section selected yet
@@ -356,19 +201,19 @@ const App: React.FC = () => {
             // The 'help' case is now handled in the !currentUser block above
             default:
                 // If no specific page is requested, show the section selection
-                return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => handleNavigation({ page: 'help' })} onNavigateToGlobalSettings={() => handleNavigation({ page: 'globalSettings' })} userRole={userRole} onSignOut={handleSignOut} />;
+                return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => navigateWithProtection({ page: 'help' })} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} userRole={userRole} onSignOut={handleSignOutWithProtection} />;
         }
     }
     
     // Handle general errors
-    if (error) {
-        return <div className="text-center p-8 text-red-500">{error}</div>;
+    if (dataError) {
+        return <div className="text-center p-8 text-red-500">{dataError}</div>;
     }
 
     // Render main app content with header
     return (
         <>
-            <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} userRole={userRole} />
+            <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} />
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {renderMainContent()}
             </main>
