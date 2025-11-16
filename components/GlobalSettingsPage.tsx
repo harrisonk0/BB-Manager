@@ -62,6 +62,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const canManageInviteCodes = userRole && ['admin', 'captain'].includes(userRole);
   const canManageUserRoles = userRole && ['admin', 'captain'].includes(userRole);
   const isAdmin = userRole === 'admin';
+  const currentAuthUserUid = getAuthInstance().currentUser?.uid; // Get current user's UID
 
   const loadInviteCodes = useCallback(async (showSpinner: boolean = true) => {
     if (!canManageInviteCodes) {
@@ -366,20 +367,24 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
               <p className="text-slate-500">No users found with assigned roles. Roles must be manually created in Firestore for new users.</p>
             ) : (
               <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
-                {usersWithRoles.map(user => (
-                  <li key={user.uid} className="p-3 flex items-center justify-between text-sm">
-                    <div className="flex-1">
-                      <span className="font-medium text-slate-800">{user.email}</span>
-                      <p className="text-xs text-slate-500 mt-1"><span className="font-semibold">{USER_ROLE_DISPLAY_NAMES[user.role]}</span></p>
-                    </div>
-                    <button
-                      onClick={() => handleEditRoleClick(user)}
-                      className={`px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${accentRing}`}
-                    >
-                      Edit Role
-                    </button>
-                  </li>
-                ))}
+                {usersWithRoles.map(user => {
+                  const isCurrentUser = user.uid === currentAuthUserUid;
+                  return (
+                    <li key={user.uid} className="p-3 flex items-center justify-between text-sm">
+                      <div className="flex-1">
+                        <span className="font-medium text-slate-800">{user.email}</span>
+                        <p className="text-xs text-slate-500 mt-1"><span className="font-semibold">{USER_ROLE_DISPLAY_NAMES[user.role]}</span></p>
+                      </div>
+                      <button
+                        onClick={() => handleEditRoleClick(user)}
+                        disabled={isCurrentUser} // Disable if it's the current user
+                        className={`px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${accentRing} ${isCurrentUser ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        Edit Role
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
