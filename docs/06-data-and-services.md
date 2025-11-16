@@ -12,7 +12,7 @@ The general data flow for read and write operations is designed to be robust and
     3.  The cached data is returned to the UI immediately for a fast response.
     4.  If the device is online, `db.ts` *also* makes a background request to Firestore to get the latest data.
     5.  When the fresh data arrives, it is **deeply compared** with the existing cached data.
-    6.  **Only if the data has actually changed**, the local IndexedDB cache is updated, and a `datarefreshed` (or `logsrefreshed`, `inviteCodesRefreshed`) event is dispatched to notify the UI to refresh itself. This intelligent check prevents unnecessary updates and performance issues.
+    6.  **Only if the data has actually changed**, the local IndexedDB cache is updated, and a `datarefreshed` (or `logsrefreshed`, `inviteCodesRefreshed`, `userrolerefresh`) event is dispatched to notify the UI to refresh itself. This intelligent check prevents unnecessary updates and performance issues.
 
 -   **Write Operations (e.g., `createBoy`)**:
     1.  The UI component calls a function in `services/db.ts`.
@@ -38,12 +38,12 @@ This is the most important file in the services directory. It provides a simple,
 -   **Automatic Cleanup**: Includes `deleteOldAuditLogs` which now also cleans up old, used, or revoked invite codes from both Firestore and IndexedDB.
 
 **Exported Functions**:
--   `syncPendingWrites()`: The core sync logic.
+-   `syncPendingWrites()`: The core sync logic, now also handling `UPDATE_USER_ROLE` pending writes.
 -   `createBoy()`, `fetchBoys()`, `fetchBoyById()`, `updateBoy()`, `recreateBoy()`, `deleteBoyById()`: Full CRUD operations for member data.
--   `createAuditLog()`, `fetchAuditLogs()`, `deleteOldAuditLogs()`, `clearAllAuditLogs()`: Full CRUD and cleanup operations for audit log data, including admin-only clear.
--   `createInviteCode()`, `fetchInviteCode()`, `updateInviteCode()`, `revokeInviteCode()`, `fetchAllInviteCodes()`, `clearAllUsedRevokedInviteCodes()`: CRUD and management operations for invite codes, including admin-only clear.
--   `fetchUserRole()`, `fetchAllUserRoles()`, `setUserRole()`, `updateUserRole()`: Functions for managing user roles.
--   `clearAllLocalData()`: Admin-only function to clear all local IndexedDB data for a section.
+-   `createAuditLog()`, `fetchAuditLogs()`, `deleteOldAuditLogs()`, `clearAllAuditLogs()`: Full CRUD and cleanup operations for audit log data, including admin-only clear. `createAuditLog` now supports `UPDATE_USER_ROLE`, `CLEAR_AUDIT_LOGS`, `CLEAR_USED_REVOKED_INVITE_CODES`, `CLEAR_LOCAL_DATA` action types.
+-   `createInviteCode()`, `fetchInviteCode()`, `updateInviteCode()`, `revokeInviteCode()`, `fetchAllInviteCodes()`, `clearAllUsedRevokedInviteCodes()`: CRUD and management operations for invite codes, including admin-only clear. `createInviteCode` now includes `defaultUserRole` and `expiresAt`.
+-   `fetchUserRole()`, `fetchAllUserRoles()`, `setUserRole()`, `updateUserRole()`: Functions for managing user roles, including caching in IndexedDB and client-side permission checks.
+-   `clearAllLocalData()`: Admin-only function to clear all local IndexedDB data for a section, including all invite codes and user roles.
 
 #### `offlineDb.ts` - IndexedDB Wrapper
 
@@ -53,8 +53,9 @@ This file is a low-level service that provides a clean, Promise-based API for in
 -   Opening and initializing the IndexedDB database.
 -   Managing the database schema and handling version migrations via the `onupgradeneeded` event. This is where object stores (like tables in a traditional DB) are created.
 -   Providing simple, async functions for all basic database operations: `get`, `getAll`, `put` (for create/update), `delete`, and `clear`.
--   Managing the `pending_writes` object store, which is critical for offline functionality.
+-   Managing the `pending_writes` object store, which is critical for offline functionality. The `PendingWrite` type now includes `UPDATE_USER_ROLE`.
 -   **Invite Code Management**: Provides specific functions for `saveInviteCodeToDB`, `getInviteCodeFromDB`, `getAllInviteCodesFromDB`, `deleteInviteCodeFromDB`, `deleteInviteCodesFromDB`, `clearUsedRevokedInviteCodesFromDB`, and `clearAllInviteCodesFromDB`.
+-   **User Role Management**: Provides `saveUserRoleToDB`, `getUserRoleFromDB`, `deleteUserRoleFromDB`, `clearAllUserRolesFromDB` for caching user roles.
 -   **Development Controls**: Provides `clearAllSectionDataFromDB` for clearing all local data for a section.
 
 #### `firebase.ts` - Firebase Initialization

@@ -11,12 +11,13 @@ This document serves as a reference for all the React components used in the BB 
 The root component of the entire application. It doesn't render much UI directly but is responsible for orchestrating the entire application flow.
 
 -   **Responsibilities**:
-    -   Manages global state: `currentUser`, `userRole`, `activeSection`, `boys`, `settings`, `isLoading`, `error`, `noRoleError`, `hasUnsavedChanges`.
+    -   Manages global state using custom hooks: `currentUser`, `userRole`, `activeSection`, `boys`, `settings`, `isLoading`, `error`, `noRoleError`, `hasUnsavedChanges`.
     -   Initializes Firebase and listens for authentication state changes (`onAuthStateChanged`), including fetching the user's role.
-    -   Handles the main "routing" logic by deciding which page component to render based on the `view` state, including special handling for unauthenticated users (Login, Signup, Help).
+    -   Handles the main "routing" logic by deciding which page component to render based on the `view` state, including special handling for unauthenticated users (Login, Signup, Help) and users without an assigned role.
     -   Orchestrates data fetching (`refreshData`) and offline synchronization (`syncPendingWrites`).
     -   Manages the "unsaved changes" confirmation modal.
     -   Manages and renders the global toast notification system.
+    -   Integrates custom hooks: `useToastNotifications`, `useAuthAndRole`, `useSectionManagement`, `useAppData`, `useUnsavedChangesProtection`.
 -   **Key Props**: None.
 
 ---
@@ -94,9 +95,9 @@ Allows users to configure application settings specific to the currently active 
 -   **Responsibilities**:
     -   Displays form inputs for available section settings (e.g., meeting day).
     -   Handles saving the settings to Firestore, with client-side permission checks based on `userRole`.
-    -   Provides a link to navigate to the `GlobalSettingsPage`.
+    -   Provides links to navigate to the `GlobalSettingsPage` and `AccountSettingsPage`.
     -   Creates audit log entries for all significant changes.
--   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToGlobalSettings`.
+-   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToGlobalSettings`, `onNavigateToAccountSettings`.
 
 #### `GlobalSettingsPage.tsx`
 
@@ -104,7 +105,7 @@ Provides administrative controls for managing invite codes, user roles, and deve
 
 -   **Responsibilities**:
     -   Allows administrators and captains to generate, view, and revoke invite codes.
-    -   Displays a list of all users with their assigned roles and allows administrators/captains to update roles.
+    -   Displays a list of all users with their assigned roles and allows administrators/captains to update roles (with restrictions, e.g., cannot change own role).
     -   Includes admin-only development controls for clearing audit logs, used/revoked invite codes, and all local IndexedDB data.
     -   Creates audit log entries for all significant changes.
 -   **Key Props**: `activeSection`, `showToast`, `userRole`, `refreshData`.
@@ -159,6 +160,7 @@ Allows the authenticated user to choose which section (Company or Junior) to man
     -   Displays buttons for selecting Company or Junior sections.
     -   Persists the selected section in `localStorage`.
     -   Provides navigation to `HelpPage`, `GlobalSettingsPage`, and a `Sign Out` button.
+    -   Conditionally renders "Global Settings" based on `userRole`.
 -   **Key Props**: `onSelectSection`, `onNavigateToHelp`, `onNavigateToGlobalSettings`, `userRole`, `onSignOut`.
 
 ---
@@ -198,6 +200,7 @@ A generic, reusable modal/dialog component.
     -   Renders a semi-transparent overlay and a centered content box.
     -   Controls its visibility based on the `isOpen` prop.
     -   Provides a consistent structure with a title and a close button.
+    -   Includes accessibility features like focus trapping and Escape key dismissal.
 -   **Key Props**: `isOpen`, `onClose`, `title`, `children`.
 
 #### `Icons.tsx`
@@ -206,7 +209,18 @@ A collection of simple, stateless SVG icon components.
 
 -   **Responsibilities**:
     -   Exports multiple functional components, each rendering a specific SVG icon.
+    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Question Mark Circle, Clipboard, Clipboard Document List, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
     -   Accepts an optional `className` prop for easy styling with Tailwind CSS.
+
+#### `DatePicker.tsx`
+
+A component for selecting dates, wrapping a native HTML `input type="date"`.
+
+-   **Responsibilities**:
+    -   Provides a date input field.
+    -   Relies on the browser's native date picker functionality when the input is clicked.
+    -   Accepts `value`, `onChange`, `disabled`, `ariaLabel`, and `accentRingClass` props for customization.
+-   **Key Props**: `value`, `onChange`, `disabled`, `ariaLabel`, `accentRingClass`.
 
 ---
 

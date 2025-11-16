@@ -40,6 +40,7 @@ The database schema is defined and migrated in the `openDB` function within `ser
 -   `junior_boys`: Stores all `Boy` objects for the Junior Section.
 -   `junior_audit_logs`: Stores all `AuditLog` objects for the Junior Section.
 -   `invite_codes`: Stores all `InviteCode` objects. The `id` property is the key.
+-   `user_roles`: Stores `UserRole` objects, keyed by `uid`. (Added in DB_VERSION 4)
 -   `pending_writes`: This is the crucial store for offline operations.
     -   It has an `autoIncrement` key, meaning each new entry gets a unique, sequential ID.
     -   It stores `PendingWrite` objects, which contain the type of operation (`CREATE_BOY`, `UPDATE_BOY`, `CREATE_AUDIT_LOG`, `CREATE_INVITE_CODE`, `UPDATE_INVITE_CODE`, `UPDATE_USER_ROLE`, etc.), the data payload, and the relevant section.
@@ -49,9 +50,9 @@ The combination of these technologies creates a seamless experience:
 1.  User makes changes offline. All changes are saved to IndexedDB.
 2.  User comes back online. The `online` event triggers `syncPendingWrites()`.
 3.  `syncPendingWrites()` sends all queued changes to Firestore.
-4.  Simultaneously, `fetchBoys()` (and `fetchAuditLogs`, `fetchAllInviteCodes`) runs a background fetch. It detects that the server data may be newer than the local cache.
+4.  Simultaneously, `fetchBoys()` (and `fetchAuditLogs`, `fetchAllInviteCodes`, `fetchUserRole`) runs a background fetch. It detects that the server data may be newer than the local cache.
 5.  After fetching, it compares the new data with the old. If changes are found, it updates the local IndexedDB cache.
-6.  This update dispatches a `datarefreshed` (or `logsrefreshed`, `inviteCodesRefreshed`) event, which the main `App` component is listening for.
+6.  This update dispatches a `datarefreshed` (or `logsrefreshed`, `inviteCodesRefreshed`, `userrolerefresh`) event, which the main `App` component is listening for.
 7.  The `App` component re-fetches data from the (now updated) IndexedDB and re-renders the UI, showing the user the latest information from all sources without requiring a manual page refresh.
 
 **Schema Migration**:
@@ -60,4 +61,4 @@ The database version is managed by the `DB_VERSION` constant. If a developer nee
 1.  Increment the `DB_VERSION` constant.
 2.  Add the schema modification logic inside the `request.onupgradeneeded` event handler, often within an `if (event.oldVersion < NEW_VERSION)` block.
 
-When a user opens the app after an update, the browser will detect the new version number and automatically trigger the `onupgradeneeded` event, safely migrating their local database to the new schema. The migration from v1 to v2 in the existing code is a practical example of this, where generic `boys` and `audit_logs` stores were replaced with section-specific ones, and v2 to v3 added the `invite_codes` store.
+When a user opens the app after an update, the browser will detect the new version number and automatically trigger the `onupgradeneeded` event, safely migrating their local database to the new schema. The migration from v1 to v2 in the existing code is a practical example of this, where generic `boys` and `audit_logs` stores were replaced with section-specific ones, v2 to v3 added the `invite_codes` store, and **v3 to v4 added the `user_roles` store**.

@@ -21,11 +21,11 @@ This documentation provides a complete guide to the application's architecture, 
 -   **Weekly Mark Recording**: A dedicated interface for quickly entering attendance and scores, with real-time feedback. Includes a read-only mode for past dates.
 -   **Visual Dashboard & Reporting**: At-a-glance dashboard with leaderboards, squad performance charts, attendance heatmaps, and monthly marks breakdown.
 -   **Advanced Roster Filtering**: Instantly search, sort, and filter members by squad, year, and performance metrics.
--   **100% Offline Functionality**: All changes are saved locally and synced automatically when the user goes online.
+-   **100% Offline Functionality**: All changes are saved locally and synced automatically when the user goes online. User roles are also cached for offline access.
 -   **Audit Logging & Reversion**: Every significant action is logged and can be easily reverted. Old audit logs and invite codes are automatically cleaned up after 14 days.
 -   **Secure Authentication**: User access is managed through Firebase Authentication.
--   **User Role Management**: Assign and manage roles (Admin, Captain, Officer) for users, controlling access to sensitive features.
--   **Invite Code System**: Administrators and Captains can generate one-time-use codes for new user sign-ups.
+-   **User Role Management**: Assign and manage roles (Admin, Captain, Officer) for users, controlling access to sensitive features. Users cannot change their own role.
+-   **Invite Code System**: Administrators and Captains can generate one-time-use codes for new user sign-ups. Each code specifies a default user role and has an expiration time.
 -   **Account Settings**: Users can change their password.
 -   **Development Controls**: Admin-only tools for clearing audit logs, invite codes, and local data for testing and development.
 

@@ -361,7 +361,7 @@ const HelpPage: React.FC = () => {
                         
                         <div id="login" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">How to Log In</h3>
-                            <p>You will be given a unique email and password to access the app. Simply enter these credentials on the login screen to get started.</p>
+                            <p>You will be given a unique email and password to access the app. Simply enter these credentials on the login screen to get started. If you don't have an account, you can sign up using an invite code provided by an administrator.</p>
                             <LoginPreview />
                         </div>
 
@@ -548,7 +548,7 @@ const HelpPage: React.FC = () => {
                     {/* Section 7: Offline Use */}
                     <section id="offline-use" className="space-y-4 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">7. Offline Use & Data Syncing</h2>
-                        <p>The app is designed to work without an internet connection. All your data is saved securely in your browser. You can add members, enter marks, and make any other changes while offline.</p>
+                        <p>The app is designed to work without an internet connection. All your data, including user roles, is saved securely in your browser. You can add members, enter marks, and make any other changes while offline.</p>
                         <p>When your device reconnects to the internet, the app will automatically sync all the changes you made with the central database, ensuring all officers have the most up-to-date information. A toast notification will confirm when a sync is complete.</p>
                     </section>
 

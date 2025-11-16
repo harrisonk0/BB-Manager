@@ -4,10 +4,10 @@ This document provides an in-depth look at the architectural principles that gov
 
 ### Core Principles
 
-1.  **Offline-First**: The application must be fully functional without an internet connection. The UI should be fast and responsive, interacting primarily with a local data source.
-2.  **Stateless UI / Centralized State**: React components are kept as stateless as possible. Global state (user, active section, data, user role) is managed by the root `App.tsx` component and passed down via props.
+1.  **Offline-First**: The application must be fully functional without an internet connection. The UI should be fast and responsive, interacting primarily with a local data source. This includes caching user roles for offline permission checks.
+2.  **Stateless UI / Centralized State**: React components are kept as stateless as possible. Global state (user, active section, data, user role) is managed by the root `App.tsx` component and custom hooks, then passed down via props.
 3.  **Data Abstraction**: The UI should not be concerned with where data comes from (local cache or remote server). The `services/db.ts` file acts as a single source of truth for all data operations, abstracting away the complexity of managing two data sources.
-4.  **Data Integrity**: All data changes must be durable. Actions taken offline are queued and synced reliably. The audit log and revert mechanism provide a safety net against user error.
+4.  **Data Integrity**: All data changes must be durable. Actions taken offline are queued and synced reliably. The audit log and revert mechanism provide a safety net against user error. Client-side validation is also implemented for critical data structures like `Boy` marks.
 
 ---
 
@@ -28,10 +28,10 @@ The offline-first approach is the cornerstone of this application's architecture
 ```
 
 1.  **App Shell Caching**: The Service Worker (`sw.js`) pre-caches the main application shell (HTML, JS, manifest). This makes the initial load nearly instantaneous on subsequent visits.
-2.  **Local Database (IndexedDB)**: `services/offlineDb.ts` sets up and manages a local IndexedDB database. This is the primary data source for the entire application. All `Boy` records, `AuditLog` entries, `InviteCode` entries, and other data are stored here.
+2.  **Local Database (IndexedDB)**: `services/offlineDb.ts` sets up and manages a local IndexedDB database. This is the primary data source for the entire application. All `Boy` records, `AuditLog` entries, `InviteCode` entries, and `UserRole` entries are stored here.
 3.  **UI Interaction**: When a user views a list of members or edits a mark, the React UI is reading from and writing to IndexedDB. This is why the interface feels incredibly fast—there are no network requests blocking the user's actions.
 4.  **Pending Writes Queue**: When a write operation (create, update, delete) occurs, it is immediately applied to the local IndexedDB. Simultaneously, a record of this operation is added to a special `pending_writes` store. This queue acts as a durable log of all changes that have not yet been saved to the central server.
-5.  **Event-Driven UI Refresh**: When the background sync successfully fetches new data from Firestore, it dispatches a custom browser event (e.g., `datarefreshed`, `logsrefreshed`, `inviteCodesRefreshed`). The root `App` component listens for this event and triggers a data refresh in the UI. This ensures the user sees the latest data without needing to manually reload the page after coming online.
+5.  **Event-Driven UI Refresh**: When the background sync successfully fetches new data from Firestore, it dispatches a custom browser event (e.g., `datarefreshed`, `logsrefreshed`, `inviteCodesRefreshed`, `userrolerefresh`). The root `App` component listens for these events and triggers a data refresh in the UI. This ensures the user sees the latest data without needing to manually reload the page after coming online.
 
 ---
 
@@ -60,7 +60,7 @@ Synchronization is the process of reconciling the local data with the remote Fir
 
 The app keeps data for the **Company Section** and **Junior Section** completely separate and isolated.
 
--   The user's choice of section is stored in `localStorage` and managed as state in `App.tsx`.
+-   The user's choice of section is stored in `localStorage` and managed as state in `App.tsx` (via `useSectionManagement` hook).
 -   This `activeSection` variable is passed down to all relevant components and service functions.
 -   The data service functions in `db.ts` and `offlineDb.ts` use this variable to dynamically determine which database collections to use. For example, `fetchBoys('company')` will target the `company_boys` Firestore collection and the `company_boys` IndexedDB object store.
 -   Global data, such as `invite_codes` and `user_roles`, are stored in dedicated, non-section-specific collections.
@@ -72,8 +72,8 @@ The app keeps data for the **Company Section** and **Junior Section** completely
 
 The application implements a robust user management system:
 
--   **User Roles**: Each user is assigned a `UserRole` (Admin, Captain, Officer) stored in a global `user_roles` Firestore collection. This role determines their permissions within the application, such as who can manage settings, generate invite codes, or clear audit logs. Roles are fetched on login and used for client-side permission checks.
--   **Invite Codes**: New users sign up using a one-time `InviteCode` generated by an administrator or captain. These codes are stored in a global `invite_codes` Firestore collection and locally in IndexedDB. The `SignupPage` validates and marks codes as used, and administrators/captains can revoke unused codes. Each invite code also specifies the `defaultUserRole` that will be assigned to the new user upon signup.
+-   **User Roles**: Each user is assigned a `UserRole` (Admin, Captain, Officer) stored in a global `user_roles` Firestore collection and locally cached in IndexedDB. This role determines their permissions within the application, such as who can manage settings, generate invite codes, or clear audit logs. Roles are fetched on login and used for client-side permission checks. Users are prevented from changing their own role, and specific rules apply to Admins and Captains when modifying other users' roles (e.g., Captains cannot demote Admins).
+-   **Invite Codes**: New users sign up using a one-time `InviteCode` generated by an administrator or captain. These codes are stored in a global `invite_codes` Firestore collection and locally in IndexedDB. The `SignupPage` validates and marks codes as used, and administrators/captains can revoke unused codes. Each invite code also specifies the `defaultUserRole` that will be assigned to the new user upon signup and has an `expiresAt` timestamp.
 
 ---
 
