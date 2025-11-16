@@ -12,8 +12,8 @@ import { QuestionMarkCircleIcon, CogIcon, LogOutIcon } from './Icons'; // Import
 interface SectionSelectPageProps {
   /** Callback function to inform the parent App component of the user's selection. */
   onSelectSection: (section: Section) => void;
-  /** Callback to navigate to the help page. */
-  onNavigateToHelp: () => void;
+  /** Callback to open the help modal. */
+  onOpenHelpModal: () => void;
   /** Callback to navigate to the global settings page. */
   onNavigateToGlobalSettings: () => void;
   /** The role of the currently logged-in user. */
@@ -22,7 +22,7 @@ interface SectionSelectPageProps {
   onSignOut: () => void; // New prop for sign out
 }
 
-const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, onNavigateToHelp, onNavigateToGlobalSettings, userRole, onSignOut }) => {
+const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, onOpenHelpModal, onNavigateToGlobalSettings, userRole, onSignOut }) => {
   const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
 
   return (
@@ -31,7 +31,7 @@ const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, 
       style={{ backgroundImage: 'url(https://i.postimg.cc/MKD36t18/mixed-activities.jpg)' }}
     >
        <button 
-        onClick={onNavigateToHelp} 
+        onClick={onOpenHelpModal} 
         className={`absolute bottom-6 ${canAccessGlobalSettings ? 'right-20' : 'right-6'} text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full`}
         aria-label="Help"
       >

@@ -25,9 +25,11 @@ interface HeaderProps {
     onSwitchSection: () => void;
     /** The role of the currently logged-in user. */
     userRole: UserRole | null;
+    /** Callback to open the help modal. */
+    onOpenHelpModal: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection, onSwitchSection, userRole }) => {
+const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection, onSwitchSection, userRole, onOpenHelpModal }) => {
     // State to manage the visibility of the mobile menu.
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     // State to manage the visibility of the desktop profile dropdown.
@@ -116,7 +118,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                 )}
                                 
                                 {/* Icon-based buttons for less frequent actions */}
-                                <button onClick={() => handleNavClick('help')} title="Help" aria-label="Help" className={iconButtonClasses}>
+                                <button onClick={() => { onOpenHelpModal(); setIsProfileMenuOpen(false); }} title="Help" aria-label="Help" className={iconButtonClasses}>
                                     <QuestionMarkCircleIcon className="h-6 w-6"/>
                                 </button>
                                 {canAccessSectionSettings && (
@@ -182,7 +184,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                         {canAccessAuditLog && (
                             <button onClick={() => handleNavClick('auditLog')} className={mobileNavLinkClasses}>Audit Log</button>
                         )}
-                        <button onClick={() => handleNavClick('help')} className={mobileNavLinkClasses}>
+                        <button onClick={() => { onOpenHelpModal(); setIsMenuOpen(false); }} className={mobileNavLinkClasses}>
                             <div className="flex items-center"><QuestionMarkCircleIcon className="h-5 w-5 mr-3"/><span>Help</span></div>
                         </button>
                         {canAccessSectionSettings && (

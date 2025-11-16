@@ -47,6 +47,7 @@ const App: React.FC = () => {
   // State for unsaved changes protection
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [view, setView] = useState<View>({ page: 'home' }); // Internal view state for useUnsavedChangesProtection
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // New state for Help modal
 
   // Use section management hook
   const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(
@@ -110,8 +111,6 @@ const App: React.FC = () => {
         return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} />;
       case 'accountSettings': // New: Account settings
         return <AccountSettingsPage showToast={showToast} />;
-      case 'help':
-        return <HelpPage />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
         return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} showToast={showToast} />;
@@ -122,37 +121,6 @@ const App: React.FC = () => {
     }
   };
   
-  // Helper function to render pages with a generic header when no section is active
-  const renderPageWithGenericHeader = (PageContent: React.FC<any>, backToPage: Page) => (
-    <>
-      <header className="bg-slate-700 text-white shadow-md sticky top-0 z-20">
-        <nav className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center space-x-4">
-              <img 
-                src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 
-                alt="The Boys' Brigade Logo" 
-                className="h-14 rounded-md"
-              />
-            </div>
-            <button onClick={() => navigateWithProtection({ page: backToPage })} className="px-3 py-2 rounded-md text-sm font-medium text-white hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white focus:ring-offset-slate-700">
-              Back to App
-            </button>
-          </div>
-        </nav>
-      </header>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Pass relevant props to the PageContent component */}
-        <PageContent 
-          activeSection={activeSection || 'company'} // Provide a dummy activeSection if null, as it's not truly relevant for these global pages
-          showToast={showToast} 
-          userRole={userRole} 
-          refreshData={refreshData} // Needed for GlobalSettingsPage
-        />
-      </main>
-    </>
-  );
-
   const renderApp = () => {
     // Handle loading state first
     if (authLoading || (currentUser && dataLoading && view.page !== 'signup')) {
@@ -182,26 +150,35 @@ const App: React.FC = () => {
     // Handle unauthenticated user
     if (!currentUser) {
         if (view.page === 'signup') {
-            return <SignupPage onNavigateToHelp={() => navigateWithProtection({ page: 'help' })} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => navigateWithProtection({ page: 'home' })} />;
+            return <SignupPage onNavigateToHelp={() => setIsHelpModalOpen(true)} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => navigateWithProtection({ page: 'home' })} />;
         }
-        // NEW: Allow HelpPage to be rendered for unauthenticated users
-        if (view.page === 'help') {
-            return renderPageWithGenericHeader(HelpPage, 'home'); // 'home' will navigate back to LoginPage when !currentUser
-        }
-        return <LoginPage onNavigateToHelp={() => navigateWithProtection({ page: 'help' })} showToast={showToast} onNavigateToSignup={navigateWithProtection} />;
+        return <LoginPage onOpenHelpModal={() => setIsHelpModalOpen(true)} showToast={showToast} onNavigateToSignup={navigateWithProtection} />;
     }
     
     // Handle authenticated user, but no active section selected yet
     if (!activeSection) {
         switch (view.page) {
             case 'globalSettings':
-                return renderPageWithGenericHeader(GlobalSettingsPage, 'home'); // 'home' will render SectionSelectPage when !activeSection
+                return (
+                    <>
+                        <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
+                        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                            <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} />
+                        </main>
+                    </>
+                );
             case 'accountSettings':
-                return renderPageWithGenericHeader(AccountSettingsPage, 'home'); // 'home' will render SectionSelectPage when !activeSection
-            // The 'help' case is now handled in the !currentUser block above
+                return (
+                    <>
+                        <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
+                        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                            <AccountSettingsPage showToast={showToast} />
+                        </main>
+                    </>
+                );
             default:
                 // If no specific page is requested, show the section selection
-                return <SectionSelectPage onSelectSection={handleSelectSection} onNavigateToHelp={() => navigateWithProtection({ page: 'help' })} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} userRole={userRole} onSignOut={handleSignOutWithProtection} />;
+                return <SectionSelectPage onSelectSection={handleSelectSection} onOpenHelpModal={() => setIsHelpModalOpen(true)} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} userRole={userRole} onSignOut={handleSignOutWithProtection} />;
         }
     }
     
@@ -213,7 +190,7 @@ const App: React.FC = () => {
     // Render main app content with header
     return (
         <>
-            <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} />
+            <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {renderMainContent()}
             </main>
@@ -234,6 +211,13 @@ const App: React.FC = () => {
 
       {renderApp()}
       
+      {/* Help Modal */}
+      <Modal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} title="User Guide">
+        <div className="max-h-[80vh] overflow-y-auto"> {/* Added max-h and overflow for scrollable content */}
+          <HelpPage />
+        </div>
+      </Modal>
+
       <Modal isOpen={!!confirmModalType} onClose={cancelAction} title="Unsaved Changes">
         <div className="space-y-4">
             <p className="text-slate-600">You have unsaved changes. Are you sure you want to leave? Your changes will be lost.</p>

@@ -120,7 +120,7 @@ export interface InviteCode {
 /**
  * Represents the main pages available in the application's navigation.
  */
-export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'globalSettings' | 'accountSettings' | 'help' | 'signup';
+export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'globalSettings' | 'accountSettings' | 'signup';
 
 /**
  * A specific view type for displaying an individual boy's marks page.

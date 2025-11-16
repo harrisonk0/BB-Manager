@@ -7,15 +7,15 @@ import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, View } from '../types';
 
 interface LoginPageProps {
-  /** Callback to navigate to the help page. */
-  onNavigateToHelp: () => void;
+  /** Callback to open the help modal. */
+  onOpenHelpModal: () => void;
   /** Function to display a toast notification. */
   showToast: (message: string, type?: ToastType) => void;
   /** Callback to navigate to the signup page. */
   onNavigateToSignup: (view: View) => void;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, showToast, onNavigateToSignup }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNavigateToSignup }) => {
   // State for form inputs, error messages, and loading status.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -97,9 +97,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigateToHelp, showToast, onNa
     >
       <div className="relative w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
         <button 
-            onClick={() => {
-              onNavigateToHelp();
-            }}
+            onClick={onOpenHelpModal}
             className="absolute top-4 right-4 text-slate-400 hover:text-junior-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue rounded-full"
             aria-label="Help"
         >
