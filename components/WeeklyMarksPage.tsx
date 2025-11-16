@@ -1,9 +1,4 @@
-/**
- * @file WeeklyMarksPage.tsx
- * @description This page allows officers to enter marks for all boys for a specific date.
- * It handles different marking schemes for Company and Junior sections and includes logic
- * for attendance. All changes for a given date are saved in a single batch operation.
- */
+"use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
@@ -205,6 +200,57 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       }
     }
     setIsDirty(true);
+  };
+
+  const handleMarkAllPresent = () => {
+    if (isLocked) {
+      showToast('Unlock the page to edit past marks.', 'info');
+      return;
+    }
+    const newAttendance: Record<string, 'present' | 'absent'> = {};
+    const newMarks: Record<string, CompanyMarkState | JuniorMarkState> = {};
+
+    boys.forEach(boy => {
+      if (boy.id) {
+        newAttendance[boy.id] = 'present';
+        // If already present, keep existing score. Otherwise, set to empty string.
+        const currentMark = marks[boy.id];
+        if (isCompany) {
+          newMarks[boy.id] = (typeof currentMark === 'number' && currentMark >= 0) ? currentMark : '';
+        } else {
+          const juniorCurrentMark = currentMark as JuniorMarkState;
+          newMarks[boy.id] = (typeof juniorCurrentMark?.uniform === 'number' && typeof juniorCurrentMark?.behaviour === 'number' && juniorCurrentMark.uniform >= 0 && juniorCurrentMark.behaviour >= 0)
+            ? juniorCurrentMark
+            : { uniform: '', behaviour: '' };
+        }
+      }
+    });
+    setAttendance(newAttendance);
+    setMarks(newMarks);
+    setIsDirty(true);
+    setMarkErrors({}); // Clear errors
+    showToast('All members marked as present.', 'info');
+  };
+
+  const handleClearAllMarks = () => {
+    if (isLocked) {
+      showToast('Unlock the page to edit past marks.', 'info');
+      return;
+    }
+    const newMarks: Record<string, CompanyMarkState | JuniorMarkState> = {};
+    const newAttendance: Record<string, 'present' | 'absent'> = {};
+
+    boys.forEach(boy => {
+      if (boy.id) {
+        newAttendance[boy.id] = 'present'; // Default to present when clearing marks
+        newMarks[boy.id] = isCompany ? '' : { uniform: '', behaviour: '' };
+      }
+    });
+    setMarks(newMarks);
+    setAttendance(newAttendance);
+    setIsDirty(true);
+    setMarkErrors({}); // Clear errors
+    showToast('All marks cleared for present members.', 'info');
   };
 
   /**
@@ -420,6 +466,22 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             accentRingClass={accentRing}
             ariaLabel="Select weekly marks date"
           />
+          <div className="flex space-x-2">
+            <button
+              onClick={handleMarkAllPresent}
+              disabled={isLocked}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing} disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              Mark All Present
+            </button>
+            <button
+              onClick={handleClearAllMarks}
+              disabled={isLocked}
+              className={`px-3 py-1.5 text-sm font-medium rounded-md shadow-sm text-slate-700 bg-slate-100 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400 disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              Clear All Marks
+            </button>
+          </div>
           {isPastDate && (
             <button
               onClick={() => setIsLocked(prev => !prev)}
