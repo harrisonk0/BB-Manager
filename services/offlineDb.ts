@@ -6,7 +6,7 @@
  * and version migrations.
  */
 
-import { Boy, AuditLog, Section, InviteCode } from '../types';
+import { Boy, AuditLog, Section, InviteCode, UserRole } from '../types';
 
 /**
  * Defines the structure of an object in the 'pending_writes' store.
@@ -15,15 +15,16 @@ import { Boy, AuditLog, Section, InviteCode } from '../types';
 export type PendingWrite = {
   id?: number;
   section?: Section; // Section is optional for invite codes
-  type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG' | 'CREATE_INVITE_CODE' | 'UPDATE_INVITE_CODE';
+  type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG' | 'CREATE_INVITE_CODE' | 'UPDATE_INVITE_CODE' | 'UPDATE_USER_ROLE'; // Added UPDATE_USER_ROLE
   payload: any; // This payload will now contain the full AuditLog data (without ID/timestamp)
   tempId?: string; // Used to track temporarily created boys before they get a real Firestore ID.
 };
 
 const DB_NAME = 'BBManagerDB';
-const DB_VERSION = 3; // Incrementing the database version to trigger onupgradeneeded
+const DB_VERSION = 4; // Incrementing the database version to trigger onupgradeneeded
 const PENDING_WRITES_STORE = 'pending_writes'; // Define the constant here
 const INVITE_CODES_STORE = 'invite_codes'; // New constant for invite codes store
+const USER_ROLES_STORE = 'user_roles'; // New constant for user roles store
 
 /**
  * Generates a consistent object store name based on the section and resource type.
@@ -69,10 +70,10 @@ export const openDB = (): Promise<IDBDatabase> => {
       const db = (event.target as IDBOpenDBRequest).result;
       const oldVersion = event.oldVersion;
       
-      // Migration from v2 to v3: Add invite_codes store
-      if (oldVersion < 3) {
-        if (!db.objectStoreNames.contains(INVITE_CODES_STORE)) {
-          db.createObjectStore(INVITE_CODES_STORE, { keyPath: 'id' });
+      // Migration from v3 to v4: Add user_roles store
+      if (oldVersion < 4) {
+        if (!db.objectStoreNames.contains(USER_ROLES_STORE)) {
+          db.createObjectStore(USER_ROLES_STORE, { keyPath: 'uid' });
         }
       }
 
@@ -94,6 +95,10 @@ export const openDB = (): Promise<IDBDatabase> => {
       // Create the pending_writes store if it doesn't exist.
       if (!db.objectStoreNames.contains(PENDING_WRITES_STORE)) {
           db.createObjectStore(PENDING_WRITES_STORE, { autoIncrement: true, keyPath: 'id' });
+      }
+      // Create the invite_codes store if it doesn't exist (for older versions or new installs)
+      if (!db.objectStoreNames.contains(INVITE_CODES_STORE)) {
+        db.createObjectStore(INVITE_CODES_STORE, { keyPath: 'id' });
       }
     };
   });
@@ -332,6 +337,45 @@ export const clearAllInviteCodesFromDB = async (): Promise<void> => {
   return clearStore(INVITE_CODES_STORE);
 };
 
+// --- User Role Functions ---
+/** Saves a single user role to the IndexedDB store. 'put' is used for both create and update. */
+export const saveUserRoleToDB = async (uid: string, role: UserRole): Promise<void> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const store = getStore(USER_ROLES_STORE, 'readwrite');
+    const request = store.put({ uid, role });
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
+/** Retrieves a single user role by their UID. */
+export const getUserRoleFromDB = async (uid: string): Promise<UserRole | undefined> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const store = getStore(USER_ROLES_STORE, 'readonly');
+    const request = store.get(uid);
+    request.onsuccess = () => resolve(request.result?.role);
+    request.onerror = () => reject(request.error);
+  });
+};
+
+/** Deletes a single user role by their UID. */
+export const deleteUserRoleFromDB = async (uid: string): Promise<void> => {
+  await openDB();
+  return new Promise((resolve, reject) => {
+    const store = getStore(USER_ROLES_STORE, 'readwrite');
+    const request = store.delete(uid);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+};
+
+/** Clears all user roles from the IndexedDB store. */
+export const clearAllUserRolesFromDB = async (): Promise<void> => {
+  return clearStore(USER_ROLES_STORE);
+};
+
 // --- Pending Writes Functions ---
 /** Adds a new offline operation to the pending writes queue. */
 export const addPendingWrite = async (write: Omit<PendingWrite, 'id'>): Promise<void> => {
@@ -378,5 +422,6 @@ export const clearAllSectionDataFromDB = async (section: Section): Promise<void>
     clearStore(getStoreName(section, 'audit_logs')),
     clearStore(PENDING_WRITES_STORE), // Clear pending writes as well
     clearAllInviteCodesFromDB(), // Clear all invite codes locally
+    clearAllUserRolesFromDB(), // Clear all user roles locally
   ]);
 };

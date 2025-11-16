@@ -421,7 +421,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 >
                   Clear All Local Data (Current Section & Global Invite Codes)
                 </button>
-                <p className="mt-1 text-xs text-red-700">Deletes all local data (boys, audit logs, pending writes, all invite codes) for the current section from your browser's IndexedDB. Requires page refresh.</p>
+                <p className="mt-1 text-xs text-red-700">Deletes all local data (boys, audit logs, pending writes, all invite codes, and all user roles) for the current section from your browser's IndexedDB. Requires page refresh.</p>
               </div>
             </div>
           </div>
@@ -451,6 +451,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
               <button
                 type="button"
                 onClick={() => setIsRoleModalOpen(false)}
+                disabled={isSaving}
                 className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
               >
                 Cancel

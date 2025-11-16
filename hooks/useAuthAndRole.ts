@@ -27,23 +27,26 @@ export const useAuthAndRole = () => {
     }
   }, []);
 
+  const loadUserRole = useCallback(async (user: User) => {
+    const role = await fetchUserRole(user.uid);
+    if (role === null) {
+      setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
+      await signOut(getAuthInstance()); // Force sign out if no role
+      setCurrentUser(null); // Ensure currentUser is null after forced sign out
+      setUserRole(null);
+      return;
+    }
+    setUserRole(role);
+    setNoRoleError(null);
+  }, []);
+
   useEffect(() => {
     try {
       initializeFirebase();
       const auth = getAuthInstance();
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (user) {
-          const role = await fetchUserRole(user.uid);
-          if (role === null) {
-            setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
-            await signOut(auth); // Force sign out if no role
-            setCurrentUser(null); // Ensure currentUser is null after forced sign out
-            setUserRole(null);
-            setAuthLoading(false);
-            return;
-          }
-          setUserRole(role);
-          setNoRoleError(null);
+          await loadUserRole(user);
         } else {
           setUserRole(null);
           setNoRoleError(null);
@@ -51,13 +54,27 @@ export const useAuthAndRole = () => {
         setCurrentUser(user);
         setAuthLoading(false);
       });
-      return () => unsubscribe();
+
+      // Listen for custom userrolerefresh event
+      const handleUserRoleRefresh = (event: Event) => {
+        const customEvent = event as CustomEvent;
+        if (currentUser && customEvent.detail.uid === currentUser.uid) {
+          console.log('User role cache updated in background, refreshing UI...');
+          loadUserRole(currentUser);
+        }
+      };
+      window.addEventListener('userrolerefresh', handleUserRoleRefresh);
+
+      return () => {
+        unsubscribe();
+        window.removeEventListener('userrolerefresh', handleUserRoleRefresh);
+      };
     } catch (err: any) {
       console.error(`Failed to initialize Firebase: ${err.message}`);
       // This error should ideally be handled at the App.tsx level or a global error boundary
       setAuthLoading(false);
     }
-  }, []);
+  }, [loadUserRole, currentUser]); // Added currentUser to dependencies
 
   return { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole };
 };

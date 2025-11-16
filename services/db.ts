@@ -48,7 +48,11 @@ import {
     clearStore,
     clearAllSectionDataFromDB,
     clearUsedRevokedInviteCodesFromDB,
-    clearAllInviteCodesFromDB
+    clearAllInviteCodesFromDB,
+    saveUserRoleToDB, // New: Save user role to IndexedDB
+    getUserRoleFromDB, // New: Get user role from IndexedDB
+    deleteUserRoleFromDB, // New: Delete user role from IndexedDB
+    clearAllUserRolesFromDB // New: Clear all user roles from IndexedDB
 } from './offlineDb';
 
 /**
@@ -180,6 +184,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
     const logsToUpdateInIDB: { log: AuditLog, section: Section }[] = [];
     const logsToDeleteFromIDB: { tempId: string, section: Section }[] = [];
     const inviteCodesToUpdateInIDB: InviteCode[] = [];
+    const userRolesToUpdateInIDB: { uid: string, role: UserRole }[] = []; // New: For user roles
     
     for (const write of pendingWrites) {
         const boysCollection = write.section ? getCollectionName(write.section, 'boys') : '';
@@ -258,6 +263,12 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 inviteCodesToUpdateInIDB.push({ ...write.payload, usedAt: write.payload.usedAt !== undefined ? Date.now() : write.payload.usedAt }); // Update usedAt locally if present
                 break;
             }
+            case 'UPDATE_USER_ROLE': { // New: Handle user role updates
+                const docRef = doc(db, userRolesCollection, write.payload.uid);
+                batch.update(docRef, { role: write.payload.role });
+                userRolesToUpdateInIDB.push({ uid: write.payload.uid, role: write.payload.role });
+                break;
+            }
             // Removed UPDATE_AUDIT_LOG case as audit logs are now immutable.
         }
     }
@@ -284,6 +295,10 @@ export const syncPendingWrites = async (): Promise<boolean> => {
         for (const code of inviteCodesToUpdateInIDB) {
             await saveInviteCodeToDB(code);
         }
+        // New: Handle user role updates
+        for (const { uid, role } of userRolesToUpdateInIDB) {
+            await saveUserRoleToDB(uid, role);
+        }
 
         console.log('Sync successful.');
         return true;
@@ -296,24 +311,60 @@ export const syncPendingWrites = async (): Promise<boolean> => {
 // --- User Role Functions ---
 /**
  * Fetches the role of a specific user from the 'user_roles' collection.
+ * Implements a "cache-first, then network" strategy.
  * @param uid The Firebase User ID (UID) of the user.
  * @returns The UserRole ('admin', 'captain', 'officer') or null if not found.
  */
 export const fetchUserRole = async (uid: string): Promise<UserRole | null> => {
-    if (!navigator.onLine) return null; // Roles are not cached locally for simplicity and security.
+    await openDB(); // Ensure DB is ready
 
-    try {
-        const db = getDb();
-        const docRef = doc(db, getCollectionName(null, 'user_roles'), uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            return docSnap.data().role as UserRole;
+    // 1. Try to get from IndexedDB first for immediate response
+    const cachedRole = await getUserRoleFromDB(uid);
+    if (cachedRole) {
+        // 2. If online, fetch from Firestore in background to update cache
+        if (navigator.onLine) {
+            getDoc(doc(getDb(), getCollectionName(null, 'user_roles'), uid))
+                .then(docSnap => {
+                    if (docSnap.exists()) {
+                        const freshRole = docSnap.data().role as UserRole;
+                        if (freshRole !== cachedRole) {
+                            console.log(`Background fetch for user role ${uid} found update. Refreshing cache.`);
+                            saveUserRoleToDB(uid, freshRole).then(() => {
+                                window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
+                            });
+                        }
+                    } else {
+                        // If role was deleted from Firestore, remove from cache
+                        deleteUserRoleFromDB(uid).then(() => {
+                            window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
+                        });
+                    }
+                })
+                .catch(err => console.error("Background fetch for user role failed:", err));
         }
-        return null;
-    } catch (error) {
-        console.error("Failed to fetch user role:", error);
-        return null;
+        return cachedRole;
     }
+
+    // 3. If no cached data, fetch from network if online
+    if (navigator.onLine) {
+        try {
+            const db = getDb();
+            const docRef = doc(db, getCollectionName(null, 'user_roles'), uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const role = docSnap.data().role as UserRole;
+                await saveUserRoleToDB(uid, role); // Cache the fetched role
+                return role;
+            }
+            return null;
+        } catch (error) {
+            console.error("Failed to fetch user role from Firestore:", error);
+            return null;
+        }
+    }
+    
+    // 4. If offline and no cache, return null
+    return null;
 };
 
 /**
@@ -324,7 +375,7 @@ export const fetchUserRole = async (uid: string): Promise<UserRole | null> => {
  * @throws Error if the acting user does not have permission.
  */
 export const fetchAllUserRoles = async (actingUserRole: UserRole | null): Promise<{ uid: string; email: string; role: UserRole }[]> => {
-    if (!navigator.onLine) return [];
+    if (!navigator.onLine) return []; // This function is primarily for admin UI, requires online.
     if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) {
         throw new Error("Permission denied: Only Admins and Captains can view user roles.");
     }
@@ -356,6 +407,7 @@ export const setUserRole = async (uid: string, email: string, role: UserRole): P
         const db = getDb();
         const docRef = doc(db, getCollectionName(null, 'user_roles'), uid);
         await setDoc(docRef, { email, role }, { merge: true });
+        await saveUserRoleToDB(uid, role); // Cache the new role locally
     } catch (error) {
         console.error("Failed to set user role:", error);
         throw new Error("Failed to set user role.");
@@ -415,6 +467,10 @@ export const updateUserRole = async (uid: string, newRole: UserRole, actingUserR
         const docRef = doc(db, getCollectionName(null, 'user_roles'), uid);
         await updateDoc(docRef, { role: newRole });
         
+        // Update local cache
+        await saveUserRoleToDB(uid, newRole);
+        window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
+
         // Create audit log
         await createAuditLog({
             userEmail: auth.currentUser.email || 'Unknown User',
