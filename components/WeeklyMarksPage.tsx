@@ -202,35 +202,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     setIsDirty(true);
   };
 
-  const handleMarkAllPresent = () => {
-    if (isLocked) {
-      showToast('Unlock the page to edit past marks.', 'info');
-      return;
-    }
-    const newAttendance: Record<string, 'present' | 'absent'> = {};
-    const newMarks: Record<string, CompanyMarkState | JuniorMarkState> = {};
-
-    boys.forEach(boy => {
-      if (boy.id) {
-        newAttendance[boy.id] = 'present';
-        // If already present, keep existing score. Otherwise, set to empty string.
-        const currentMark = marks[boy.id];
-        if (isCompany) {
-          newMarks[boy.id] = (typeof currentMark === 'number' && currentMark >= 0) ? currentMark : '';
-        } else {
-          const juniorCurrentMark = currentMark as JuniorMarkState;
-          newMarks[boy.id] = (typeof juniorCurrentMark?.uniform === 'number' && typeof juniorCurrentMark?.behaviour === 'number' && juniorCurrentMark.uniform >= 0 && juniorCurrentMark.behaviour >= 0)
-            ? juniorCurrentMark
-            : { uniform: '', behaviour: '' };
-        }
-      }
-    });
-    setAttendance(newAttendance);
-    setMarks(newMarks);
-    setIsDirty(true);
-    setMarkErrors({}); // Clear errors
-    showToast('All members marked as present.', 'info');
-  };
+  // Removed handleMarkAllPresent as it's redundant.
 
   const handleClearAllMarks = () => {
     if (isLocked) {
@@ -467,13 +439,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             ariaLabel="Select weekly marks date"
           />
           <div className="flex space-x-2">
-            <button
-              onClick={handleMarkAllPresent}
-              disabled={isLocked}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing} disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              Mark All Present
-            </button>
+            {/* Removed Mark All Present button */}
             <button
               onClick={handleClearAllMarks}
               disabled={isLocked}
