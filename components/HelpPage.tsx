@@ -318,18 +318,17 @@ const HelpPage: React.FC = () => {
 
     return (
         <div className="bg-white rounded-lg shadow-xl flex flex-col h-full">
-            {/* Main Header for the Help Page - always visible */}
-            <div className="flex-shrink-0 text-center border-b pb-8 pt-6 sm:pt-8 lg:pt-10 px-6 sm:px-8 lg:px-12">
-                <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="Boys' Brigade Logo" className="h-20 mx-auto" />
-                <h1 className="text-4xl font-bold text-slate-900 mt-4">User Guide</h1>
-                <p className="mt-2 text-lg text-slate-600">Your step-by-step guide to using the BB Manager app.</p>
+            {/* Fixed Header for the Help Page - now much smaller */}
+            <div className="flex-shrink-0 text-center border-b py-4 px-6">
+                <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="Boys' Brigade Logo" className="h-12 mx-auto" />
+                <h1 className="text-2xl font-bold text-slate-900 mt-2">User Guide</h1>
+                <p className="mt-1 text-sm text-slate-600">Your step-by-step guide to using the BB Manager app.</p>
             </div>
         
-            {/* Content Area: Table of Contents and Sections */}
-            {/* This div needs to be a flex container that fills the remaining height and allows its children to scroll independently */}
-            <div className="flex-grow flex flex-col lg:flex-row p-6 sm:p-8 lg:p-10">
-                {/* Table of Contents */}
-                <aside className="lg:w-1/4 lg:flex-shrink-0 h-full overflow-y-auto border-r border-slate-200 pr-4 pb-6 lg:pb-0">
+            {/* Main Content Area: Table of Contents and Sections */}
+            <div className="flex flex-col lg:flex-row flex-grow overflow-hidden">
+                {/* Table of Contents - dynamically generated from the `sections` array */}
+                <aside className="lg:w-1/4 lg:flex-shrink-0 h-full overflow-y-auto border-r border-slate-200 p-6">
                     <h2 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2">Table of Contents</h2>
                     <nav>
                         <ul className="space-y-2">
@@ -351,8 +350,8 @@ const HelpPage: React.FC = () => {
                     </nav>
                 </aside>
 
-                {/* Main Content */}
-                <main className="lg:w-3/4 flex-grow h-full overflow-y-auto pl-4 space-y-16">
+                {/* Main Content - sections are rendered with corresponding IDs for anchor linking */}
+                <main className="lg:w-3/4 flex-grow h-full overflow-y-auto p-6 space-y-16">
                     {/* Section 1: Getting Started */}
                     <section id="getting-started" className="space-y-8 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">1. Getting Started</h2>
