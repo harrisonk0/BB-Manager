@@ -57,7 +57,7 @@ const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, 
         <LogOutIcon className="h-8 w-8" />
       </button>
 
-      <div className="w-full max-w-lg text-center">
+      <div className="w-full max-w-lg p-8 space-y-8 bg-white rounded-lg shadow-md text-center">
         <img 
           src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 
           alt="The Boys' Brigade Logo" 
