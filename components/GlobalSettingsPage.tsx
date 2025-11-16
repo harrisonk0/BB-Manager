@@ -13,11 +13,11 @@ import {
   clearAllUsedRevokedInviteCodes,
   clearAllLocalData,
   updateInviteCode,
-  deleteUserRole // Imported deleteUserRole
+  deleteUserRole
 } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
-import { ClipboardIcon } from './Icons';
-import Modal from './Modal'; // Corrected import path
+import { ClipboardIcon, TrashIcon } from './Icons'; // Import TrashIcon
+import Modal from './Modal';
 
 interface GlobalSettingsPageProps {
   activeSection: Section; // Still needed for audit logging and clear local data
@@ -46,11 +46,11 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [loadingInviteCodes, setLoadingInviteCodes] = useState(true);
   const [codeToRevoke, setCodeToRevoke] = useState<InviteCode | null>(null);
-  const [codeToEdit, setCodeToEdit] = useState<InviteCode | null>(null); // New state for editing invite code
-  const [isEditInviteCodeModalOpen, setIsEditInviteCodeModalOpen] = useState(false); // New state for edit modal
-  const [editedDefaultUserRole, setEditedDefaultUserRole] = useState<UserRole>('officer'); // New state for edited role
-  const [editedExpiresAt, setEditedExpiresAt] = useState<string>(''); // New state for edited expiry date
-  const [inviteCodeEditError, setInviteCodeEditError] = useState<string | null>(null); // New state for invite code edit errors
+  const [codeToEdit, setCodeToEdit] = useState<InviteCode | null>(null);
+  const [isEditInviteCodeModalOpen, setIsEditInviteCodeModalOpen] = useState(false);
+  const [editedDefaultUserRole, setEditedDefaultUserRole] = useState<UserRole>('officer');
+  const [editedExpiresAt, setEditedExpiresAt] = useState<string>('');
+  const [inviteCodeEditError, setInviteCodeEditError] = useState<string | null>(null);
 
   const [usersWithRoles, setUsersWithRoles] = useState<UserWithEmailAndRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
@@ -59,14 +59,12 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const [selectedNewRole, setSelectedNewRole] = useState<UserRole | ''>('');
   const [roleEditError, setRoleEditError] = useState<string | null>(null);
 
-  // State for development controls confirmation modals
   const [isClearLogsModalOpen, setIsClearLogsModalOpen] = useState(false);
   const [isClearInviteCodesModalOpen, setIsClearInviteCodesModalOpen] = useState(false);
   const [isClearLocalDataModalOpen, setIsClearLocalDataModalOpen] = useState(false);
   const [isClearingDevData, setIsClearingDevData] = useState(false);
-  const [isSaving, setIsSaving] = useState(false); // Used for revoke code and save role
+  const [isSaving, setIsSaving] = useState(false);
 
-  // State for user deletion
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserWithEmailAndRole | null>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
@@ -75,7 +73,14 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const canManageInviteCodes = userRole && ['admin', 'captain'].includes(userRole);
   const canManageUserRoles = userRole && ['admin', 'captain'].includes(userRole);
   const isAdmin = userRole === 'admin';
-  const currentAuthUserUid = getAuthInstance().currentUser?.uid; // Get current user's UID
+  const currentAuthUserUid = getAuthInstance().currentUser?.uid;
+
+  // Helper to compare roles
+  const isRoleHigherOrEqual = (role1: UserRole, role2: UserRole): boolean => {
+    const index1 = ROLE_SORT_ORDER.indexOf(role1);
+    const index2 = ROLE_SORT_ORDER.indexOf(role2);
+    return index1 <= index2; // Lower index means higher privilege
+  };
 
   const loadInviteCodes = useCallback(async (showSpinner: boolean = true) => {
     if (!canManageInviteCodes) {
@@ -211,9 +216,9 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const handleEditInviteCodeClick = (code: InviteCode) => {
     setCodeToEdit(code);
     setEditedDefaultUserRole(code.defaultUserRole);
-    // Format expiresAt to YYYY-MM-DD for date input
+    // Format expiresAt to YYYY-MM-DDTHH:mm for datetime-local input
     const expiryDate = new Date(code.expiresAt);
-    setEditedExpiresAt(expiryDate.toISOString().split('T')[0]);
+    setEditedExpiresAt(expiryDate.toISOString().slice(0, 16)); // "YYYY-MM-DDTHH:mm"
     setInviteCodeEditError(null);
     setIsEditInviteCodeModalOpen(true);
   };
@@ -227,10 +232,10 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     try {
       const newExpiresAt = new Date(editedExpiresAt).getTime();
       if (isNaN(newExpiresAt)) {
-        throw new Error("Invalid expiry date.");
+        throw new Error("Invalid expiry date/time.");
       }
       if (newExpiresAt < Date.now()) {
-        throw new Error("Expiry date cannot be in the past.");
+        throw new Error("Expiry date/time cannot be in the past.");
       }
 
       const updates: Partial<InviteCode> = {
@@ -238,13 +243,12 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
         expiresAt: newExpiresAt,
       };
 
-      // Only create audit log if changes were actually made
       const changes: string[] = [];
       if (codeToEdit.defaultUserRole !== editedDefaultUserRole) {
         changes.push(`default role from ${codeToEdit.defaultUserRole} to ${editedDefaultUserRole}`);
       }
       if (codeToEdit.expiresAt !== newExpiresAt) {
-        changes.push(`expiry date from ${new Date(codeToEdit.expiresAt).toLocaleDateString()} to ${new Date(newExpiresAt).toLocaleDateString()}`);
+        changes.push(`expiry date from ${new Date(codeToEdit.expiresAt).toLocaleString()} to ${new Date(newExpiresAt).toLocaleString()}`);
       }
 
       if (changes.length > 0) {
@@ -252,7 +256,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
         const userEmail = auth.currentUser?.email || 'Unknown User';
         await createAuditLog({
           userEmail,
-          actionType: 'UPDATE_INVITE_CODE', // Corrected type
+          actionType: 'UPDATE_INVITE_CODE',
           description: `Updated invite code ${codeToEdit.id}: changed ${changes.join(', ')}.`,
           revertData: { inviteCodeId: codeToEdit.id, oldDefaultUserRole: codeToEdit.defaultUserRole, oldExpiresAt: codeToEdit.expiresAt },
         }, activeSection);
@@ -311,15 +315,14 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       const auth = getAuthInstance();
       const userEmail = auth.currentUser?.email || 'Unknown User';
 
-      // Call the new deleteUserRole function
       await deleteUserRole(userToDelete.uid, userRole);
 
       await createAuditLog({
         userEmail,
-        actionType: 'DELETE_USER_ROLE', // New audit log type
+        actionType: 'DELETE_USER_ROLE',
         description: `Deleted user role for: ${userToDelete.email}`,
         revertData: { uid: userToDelete.uid, email: userToDelete.email, role: userToDelete.role },
-      }, null); // Global log
+      }, null);
 
       showToast(`User '${userToDelete.email}' role deleted successfully.`, 'success');
       loadUsersWithRoles();
@@ -332,7 +335,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     }
   };
 
-  // --- Development Controls Handlers ---
   const handleClearAllAuditLogs = async () => {
     setIsClearingDevData(true);
     try {
@@ -340,7 +342,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       const userEmail = auth.currentUser?.email || 'Unknown User';
       await clearAllAuditLogs(activeSection, userEmail, userRole);
       showToast('All audit logs cleared successfully!', 'success');
-      // Trigger a refresh of the audit log page if it's currently viewed
       window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section: activeSection } }));
     } catch (err: any) {
       console.error("Failed to clear audit logs:", err);
@@ -358,7 +359,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       const userEmail = auth.currentUser?.email || 'Unknown User';
       await clearAllUsedRevokedInviteCodes(userEmail, userRole);
       showToast('All used/revoked invite codes cleared successfully!', 'success');
-      loadInviteCodes(); // Refresh the invite codes list
+      loadInviteCodes();
     } catch (err: any) {
       console.error("Failed to clear invite codes:", err);
       showToast(`Failed to clear invite codes: ${err.message}`, 'error');
@@ -375,7 +376,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       const userEmail = auth.currentUser?.email || 'Unknown User';
       await clearAllLocalData(activeSection, userEmail, userRole);
       showToast('All local data cleared successfully! Please refresh the page.', 'success');
-      // Force a full page refresh to reload all data from scratch
       window.location.reload();
     } catch (err: any) {
       console.error("Failed to clear local data:", err);
@@ -432,7 +432,8 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
                 {inviteCodes.map(code => {
                     const isExpired = code.expiresAt < Date.now();
-                    const statusText = code.isUsed ? 'Used' : (code.revoked ? 'Revoked' : (isExpired ? 'Expired' : 'Active'));
+                    // Prioritize 'Revoked' over 'Used'
+                    const statusText = code.revoked ? 'Revoked' : (code.isUsed ? 'Used' : (isExpired ? 'Expired' : 'Active'));
                     const statusColor = code.isUsed || code.revoked || isExpired ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
                     const codeClasses = code.isUsed || code.revoked || isExpired ? 'line-through text-slate-500' : '';
 
@@ -488,6 +489,9 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
               <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
                 {usersWithRoles.map(user => {
                   const isCurrentUser = user.uid === currentAuthUserUid;
+                  // Disable if target user's role is higher or equal to acting user's role
+                  const disableManagement = !userRole || isRoleHigherOrEqual(userRole, user.role);
+
                   return (
                     <li key={user.uid} className="p-3 flex items-center justify-between text-sm">
                       <div className="flex-1">
@@ -497,17 +501,18 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                       <div className="flex space-x-2">
                         <button
                             onClick={() => handleEditRoleClick(user)}
-                            disabled={isCurrentUser} // Disable if it's the current user
-                            className={`px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${accentRing} ${isCurrentUser ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={disableManagement || isSaving}
+                            className={`px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${accentRing} ${disableManagement || isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             Edit Role
                         </button>
                         <button
                             onClick={() => handleDeleteUserClick(user)}
-                            disabled={isCurrentUser || isDeletingUser} // Disable if it's the current user or deleting
-                            className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={disableManagement || isDeletingUser}
+                            className={`p-2 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100 ${disableManagement || isDeletingUser ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            aria-label={`Delete role for ${user.email}`}
                         >
-                            Delete User
+                            <TrashIcon className="h-5 w-5"/>
                         </button>
                       </div>
                     </li>
@@ -563,7 +568,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
 
       {/* Role Edit Modal */}
       <Modal isOpen={!!isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} title="Edit User Role">
-        {userToEditRole && (
+        {userToEditRole && userRole && (
           <div className="space-y-4">
             <p className="text-slate-600">Editing role for: <strong className="font-semibold text-slate-800">{userToEditRole.email}</strong></p>
             {roleEditError && <p className="text-red-500 text-sm">{roleEditError}</p>}
@@ -575,8 +580,11 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 onChange={(e) => setSelectedNewRole(e.target.value as UserRole)}
                 className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
               >
-                {Object.entries(USER_ROLE_DISPLAY_NAMES).map(([roleValue, displayName]) => (
-                  <option key={roleValue} value={roleValue}>{displayName}</option>
+                {ROLE_SORT_ORDER.filter(roleOption => 
+                    // Only allow selecting roles strictly lower than the acting user's role
+                    ROLE_SORT_ORDER.indexOf(roleOption) > ROLE_SORT_ORDER.indexOf(userRole)
+                ).map(roleValue => (
+                  <option key={roleValue} value={roleValue}>{USER_ROLE_DISPLAY_NAMES[roleValue]}</option>
                 ))}
               </select>
             </div>
@@ -624,7 +632,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
               <label htmlFor="edit-expires-at" className="block text-sm font-medium text-slate-700">Expires At</label>
               <input
                 id="edit-expires-at"
-                type="date"
+                type="datetime-local" // Changed to datetime-local
                 value={editedExpiresAt}
                 onChange={(e) => setEditedExpiresAt(e.target.value)}
                 className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
@@ -696,7 +704,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
               <button
                 onClick={confirmDeleteUser}
                 disabled={isDeletingUser}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isDeletingUser ? 'Deleting...' : 'Delete User Role'}
               </button>
@@ -773,7 +781,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
             <button
               onClick={handleClearAllLocalData}
               disabled={isClearingDevData}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isClearingDevData ? 'Clearing...' : 'Clear Local Data'}
             </button>

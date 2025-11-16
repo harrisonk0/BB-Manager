@@ -224,10 +224,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   };
 
   const handlePreviousWeek = () => {
-    if (isLocked) {
-      showToast('Unlock the page to navigate past dates.', 'info');
-      return;
-    }
     const currentDate = new Date(selectedDate + 'T00:00:00');
     currentDate.setDate(currentDate.getDate() - 7);
     setSelectedDate(currentDate.toISOString().split('T')[0]);
@@ -235,10 +231,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   };
 
   const handleNextWeek = () => {
-    if (isLocked) {
-      showToast('Unlock the page to navigate past dates.', 'info');
-      return;
-    }
     const currentDate = new Date(selectedDate + 'T00:00:00');
     currentDate.setDate(currentDate.getDate() + 7);
     setSelectedDate(currentDate.toISOString().split('T')[0]);
@@ -456,7 +448,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             onClick={handlePreviousWeek}
             className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
             aria-label="Previous week"
-            disabled={isLocked}
+            // Removed disabled={isLocked}
           >
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
@@ -471,7 +463,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             onClick={handleNextWeek}
             className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
             aria-label="Next week"
-            disabled={isLocked}
+            // Removed disabled={isLocked}
           >
             <ChevronRightIcon className="h-5 w-5" />
           </button>
