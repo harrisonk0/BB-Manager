@@ -39,7 +39,7 @@ const LoginPreview: React.FC = () => (
         </div>
         <div className="mt-4 space-y-3">
             <input type="email" placeholder="Email address" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
-            <input type="password" placeholder="Password" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
+            <input type="password" placeholder="Password" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 bg-slate-100 cursor-not-allowed" />
             <button disabled className="w-full py-2 px-4 rounded-md text-white bg-junior-blue/80 cursor-not-allowed">Sign In</button>
         </div>
     </div>
@@ -317,11 +317,11 @@ const HelpPage: React.FC = () => {
     ];
 
     return (
-        <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8 lg:p-10">
-            <div className="flex flex-col lg:flex-row gap-12">
+        <div className="bg-white rounded-lg shadow-xl h-full flex flex-col">
+            <div className="flex flex-col lg:flex-row gap-12 flex-grow overflow-hidden">
                 {/* Table of Contents - dynamically generated from the `sections` array */}
-                <aside className="lg:w-1/4 lg:sticky lg:top-28 self-start">
-                    <h2 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2">Table of Contents</h2>
+                <aside className="lg:w-1/4 self-start lg:h-full lg:overflow-y-auto lg:flex-shrink-0 lg:pr-4 lg:pb-4 p-6 sm:p-8 lg:p-0">
+                    <h2 className="text-xl font-bold text-slate-900 mb-4 border-b pb-2 pt-6 sm:pt-8 lg:pt-10">Table of Contents</h2>
                     <nav>
                         <ul className="space-y-2">
                             {sections.map(section => (
@@ -343,8 +343,8 @@ const HelpPage: React.FC = () => {
                 </aside>
 
                 {/* Main Content - sections are rendered with corresponding IDs for anchor linking */}
-                <main className="lg:w-3/4 space-y-16">
-                    <div className="text-center border-b pb-8">
+                <main className="lg:w-3/4 space-y-16 lg:overflow-y-auto lg:flex-grow lg:pl-4 lg:pb-4 p-6 sm:p-8 lg:p-0">
+                    <div className="text-center border-b pb-8 pt-6 sm:pt-8 lg:pt-10">
                         <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="Boys' Brigade Logo" className="h-20 mx-auto" />
                         <h1 className="text-4xl font-bold text-slate-900 mt-4">User Guide</h1>
                         <p className="mt-2 text-lg text-slate-600">Your step-by-step guide to using the BB Manager app.</p>
