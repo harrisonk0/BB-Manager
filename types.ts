@@ -113,6 +113,8 @@ export interface InviteCode {
   revoked?: boolean;
   /** The default role assigned to the user who uses this invite code. */
   defaultUserRole: UserRole;
+  /** The timestamp when the code expires (Unix milliseconds). */
+  expiresAt: number;
 }
 
 /**

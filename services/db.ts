@@ -73,17 +73,19 @@ const getCollectionName = (section: Section | null, resource: 'boys' | 'audit_lo
 };
 
 /**
- * Generates a random alphanumeric string of a specified length.
+ * Generates a cryptographically secure random alphanumeric string of a specified length.
  * Used for creating short, memorable invite codes.
  * @param length The desired length of the code.
  * @returns A random string consisting of uppercase letters and numbers.
  */
 const generateRandomCode = (length: number): string => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const randomBytes = new Uint8Array(length);
+  crypto.getRandomValues(randomBytes); // Use cryptographically secure random numbers
+
   let result = '';
-  const charactersLength = characters.length;
   for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    result += characters[randomBytes[i] % characters.length];
   }
   return result;
 };
@@ -233,7 +235,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
             }
             case 'CREATE_INVITE_CODE': {
                 const docRef = doc(db, inviteCodesCollection, write.payload.id); // Use ID from payload
-                batch.set(docRef, { ...write.payload, generatedAt: serverTimestamp() });
+                batch.set(docRef, { ...write.payload, generatedAt: serverTimestamp(), expiresAt: Timestamp.fromMillis(write.payload.expiresAt) });
                 const newCode = { ...write.payload, generatedAt: Date.now() }; // Use client timestamp for local consistency
                 inviteCodesToUpdateInIDB.push(newCode);
                 break;
@@ -247,6 +249,10 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 }
                 if (write.payload.revoked !== undefined) {
                     updatePayload.revoked = write.payload.revoked;
+                }
+                // If expiresAt is being updated, convert to Firestore Timestamp
+                if (write.payload.expiresAt !== undefined) {
+                    updatePayload.expiresAt = Timestamp.fromMillis(write.payload.expiresAt);
                 }
                 batch.update(docRef, updatePayload);
                 inviteCodesToUpdateInIDB.push({ ...write.payload, usedAt: write.payload.usedAt !== undefined ? Date.now() : write.payload.usedAt }); // Update usedAt locally if present
@@ -784,7 +790,7 @@ export const clearAllAuditLogs = async (section: Section, userEmail: string, use
 
 
 /**
- * Deletes audit logs and invite codes older than 14 days from both IndexedDB and Firestore to manage storage.
+ * Deletes audit logs and invite codes older than 14 days or expired from both IndexedDB and Firestore to manage storage.
  * This is typically run on app startup.
  * @param section The section to clean up logs and invite codes for.
  */
@@ -811,7 +817,7 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
     try {
         const localInviteCodes = await getAllInviteCodesFromDB();
         const oldLocalInviteCodeIds = localInviteCodes
-            .filter(code => (code.isUsed || code.revoked) && (code.usedAt || code.generatedAt || 0) < cutoffTimestamp)
+            .filter(code => (code.isUsed || code.revoked || code.expiresAt < Date.now()) && (code.usedAt || code.generatedAt || 0) < cutoffTimestamp)
             .map(code => code.id);
 
         if (oldLocalInviteCodeIds.length > 0) {
@@ -863,12 +869,21 @@ export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
                 } else {
                     generatedAtInMillis = Date.now();
                 }
-                return { ...data, id: doc.id, generatedAt: generatedAtInMillis } as InviteCode;
+                const expiresTs = data.expiresAt;
+                let expiresAtInMillis: number;
+                if (expiresTs && typeof expiresTs.toMillis === 'function') {
+                    expiresAtInMillis = expiresTs.toMillis();
+                } else if (typeof expiresTs === 'number') {
+                    expiresAtInMillis = expiresTs;
+                } else {
+                    expiresAtInMillis = 0; // Default or handle as needed
+                }
+                return { ...data, id: doc.id, generatedAt: generatedAtInMillis, expiresAt: expiresAtInMillis } as InviteCode;
             });
 
             const codesToDelete = allCodes.filter(code => {
                 const effectiveTimestamp = code.usedAt || code.generatedAt || 0;
-                return (code.isUsed || code.revoked || (!code.isUsed && !code.revoked)) && effectiveTimestamp < cutoffTimestamp;
+                return (code.isUsed || code.revoked || code.expiresAt < Date.now()) && effectiveTimestamp < cutoffTimestamp;
             });
 
             if (codesToDelete.length > 0) {
@@ -967,7 +982,7 @@ export const clearAllLocalData = async (section: Section, userEmail: string, use
  * @param userRole The role of the user attempting to create the code.
  * @returns The newly created InviteCode object.
  */
-export const createInviteCode = async (code: Omit<InviteCode, 'id' | 'generatedAt' | 'defaultUserRole'>, section: Section, userRole: UserRole | null): Promise<InviteCode> => {
+export const createInviteCode = async (code: Omit<InviteCode, 'id' | 'generatedAt' | 'defaultUserRole' | 'expiresAt'>, section: Section, userRole: UserRole | null): Promise<InviteCode> => {
     const auth = getAuthInstance();
     if (!auth.currentUser) throw new Error("User not authenticated to create invite code");
     if (!userRole || !['admin', 'captain'].includes(userRole)) {
@@ -975,13 +990,15 @@ export const createInviteCode = async (code: Omit<InviteCode, 'id' | 'generatedA
     }
 
     const newCodeId = generateRandomCode(6); // Generate a 6-character alphanumeric code
+    const generatedAt = Date.now();
+    const expiresAt = generatedAt + (24 * 60 * 60 * 1000); // 24 hours from now
 
-    const newInviteCode: InviteCode = { ...code, id: newCodeId, generatedAt: Date.now(), defaultUserRole: 'officer' }; // Default to 'officer'
+    const newInviteCode: InviteCode = { ...code, id: newCodeId, generatedAt, expiresAt, defaultUserRole: 'officer' }; // Default to 'officer'
     const inviteCodesCollection = getCollectionName(null, 'invite_codes');
 
     if (navigator.onLine) {
         const docRef = doc(getDb(), inviteCodesCollection, newInviteCode.id);
-        await setDoc(docRef, { ...newInviteCode, generatedAt: serverTimestamp() });
+        await setDoc(docRef, { ...newInviteCode, generatedAt: serverTimestamp(), expiresAt: Timestamp.fromMillis(expiresAt) });
         await saveInviteCodeToDB(newInviteCode);
         return newInviteCode;
     } else {
@@ -994,13 +1011,19 @@ export const createInviteCode = async (code: Omit<InviteCode, 'id' | 'generatedA
 /**
  * Fetches an invite code by its ID.
  * @param id The ID of the invite code to fetch.
- * @returns The InviteCode object, or undefined if not found.
+ * @returns The InviteCode object, or undefined if not found or expired.
  */
 export const fetchInviteCode = async (id: string): Promise<InviteCode | undefined> => {
     await openDB(); // Ensure DB is ready
 
     const cachedCode = await getInviteCodeFromDB(id);
-    if (cachedCode) return cachedCode;
+    if (cachedCode) {
+        if (cachedCode.expiresAt < Date.now()) {
+            console.log(`Cached invite code ${id} is expired.`);
+            return undefined; // Treat as not found if expired
+        }
+        return cachedCode;
+    }
 
     if (navigator.onLine) {
         const docRef = doc(getDb(), getCollectionName(null, 'invite_codes'), id);
@@ -1016,7 +1039,22 @@ export const fetchInviteCode = async (id: string): Promise<InviteCode | undefine
             } else {
                 generatedAtInMillis = Date.now();
             }
-            const code = { ...data, id: docSnap.id, generatedAt: generatedAtInMillis } as InviteCode;
+            const expiresTs = data.expiresAt;
+            let expiresAtInMillis: number;
+            if (expiresTs && typeof expiresTs.toMillis === 'function') {
+                expiresAtInMillis = expiresTs.toMillis();
+            } else if (typeof expiresTs === 'number') {
+                expiresAtInMillis = expiresTs;
+            } else {
+                expiresAtInMillis = 0; // Default or handle as needed
+            }
+            const code = { ...data, id: docSnap.id, generatedAt: generatedAtInMillis, expiresAt: expiresAtInMillis } as InviteCode;
+            
+            if (code.expiresAt < Date.now()) {
+                console.log(`Fetched invite code ${id} is expired.`);
+                return undefined; // Treat as not found if expired
+            }
+
             await saveInviteCodeToDB(code);
             return code;
         }
@@ -1054,6 +1092,9 @@ export const updateInviteCode = async (id: string, updates: Partial<InviteCode>,
         }
         if (updates.generatedAt !== undefined) { // Should not happen for updates, but for consistency
             firestoreUpdates.generatedAt = serverTimestamp();
+        }
+        if (updates.expiresAt !== undefined) {
+            firestoreUpdates.expiresAt = Timestamp.fromMillis(updates.expiresAt);
         }
         await updateDoc(docRef, firestoreUpdates);
         await saveInviteCodeToDB(updatedCode); // Save the fully updated object locally
@@ -1133,11 +1174,23 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
                     } else {
                         generatedAtInMillis = Date.now();
                     }
-                    return { ...data, id: doc.id, generatedAt: generatedAtInMillis } as InviteCode;
+                    const expiresTs = data.expiresAt;
+                    let expiresAtInMillis: number;
+                    if (expiresTs && typeof expiresTs.toMillis === 'function') {
+                        expiresAtInMillis = expiresTs.toMillis();
+                    } else if (typeof expiresTs === 'number') {
+                        expiresAtInMillis = expiresTs;
+                    } else {
+                        expiresAtInMillis = 0; // Default or handle as needed
+                    }
+                    return { ...data, id: doc.id, generatedAt: generatedAtInMillis, expiresAt: expiresAtInMillis } as InviteCode;
                 });
 
+                // Filter out expired codes before sorting and saving to cache
+                const activeFreshCodes = freshCodes.filter(code => code.expiresAt > Date.now());
+
                 // Sort client-side after fetching
-                freshCodes.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0));
+                activeFreshCodes.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0));
 
                 // Robust deep comparison logic for InviteCode objects
                 const comparableInviteCode = (code: InviteCode) => ({
@@ -1150,23 +1203,26 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
                     usedAt: code.usedAt ?? null,
                     revoked: code.revoked ?? null, // Include revoked status in comparison
                     defaultUserRole: code.defaultUserRole, // Include defaultUserRole in comparison
+                    expiresAt: code.expiresAt, // Include expiresAt in comparison
                 });
 
                 // Sort both arrays by ID to ensure consistent order for comparison.
-                const sortedFresh = [...freshCodes].sort((a, b) => a.id.localeCompare(b.id));
-                const sortedCached = [...cachedCodes].sort((a, b) => (a.id ?? '').localeCompare(b.id ?? ''));
+                const sortedFresh = [...activeFreshCodes].sort((a, b) => a.id.localeCompare(b.id));
+                const sortedCached = [...cachedCodes].filter(code => code.expiresAt > Date.now()).sort((a, b) => (a.id ?? '').localeCompare(b.id ?? ''));
 
                 if (JSON.stringify(sortedFresh.map(comparableInviteCode)) !== JSON.stringify(sortedCached.map(comparableInviteCode))) {
                     console.log(`Background fetch for invite codes found updates. Refreshing cache.`);
-                    Promise.all(freshCodes.map(code => saveInviteCodeToDB(code))).then(() => {
+                    Promise.all(activeFreshCodes.map(code => saveInviteCodeToDB(code))).then(() => {
                         window.dispatchEvent(new CustomEvent('inviteCodesRefreshed'));
                     });
                 }
             }).catch(err => console.error("Background fetch for invite codes failed:", err));
         }
+        // Filter out expired codes from cached codes before returning
+        const activeCachedCodes = cachedCodes.filter(code => code.expiresAt > Date.now());
         // Sort cached codes client-side before returning
-        cachedCodes.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0));
-        return cachedCodes;
+        activeCachedCodes.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0));
+        return activeCachedCodes;
     }
 
     if (navigator.onLine) {
@@ -1183,12 +1239,23 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
             } else {
                 generatedAtInMillis = Date.now();
             }
-            return { ...data, id: doc.id, generatedAt: generatedAtInMillis } as InviteCode;
+            const expiresTs = data.expiresAt;
+            let expiresAtInMillis: number;
+            if (expiresTs && typeof expiresTs.toMillis === 'function') {
+                expiresAtInMillis = expiresTs.toMillis();
+            } else if (typeof expiresTs === 'number') {
+                expiresAtInMillis = expiresTs;
+            } else {
+                expiresAtInMillis = 0; // Default or handle as needed
+            }
+            return { ...data, id: doc.id, generatedAt: generatedAtInMillis, expiresAt: expiresAtInMillis } as InviteCode;
         });
+        // Filter out expired codes before saving and returning
+        const activeCodes = codes.filter(code => code.expiresAt > Date.now());
         // Sort client-side before saving and returning
-        codes.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0));
-        await Promise.all(codes.map(code => saveInviteCodeToDB(code)));
-        return codes;
+        activeCodes.sort((a, b) => (b.generatedAt || 0) - (a.generatedAt || 0));
+        await Promise.all(activeCodes.map(code => saveInviteCodeToDB(code)));
+        return activeCodes;
     }
 
     return [];
