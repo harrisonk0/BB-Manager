@@ -75,7 +75,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const isAdmin = userRole === 'admin';
   const currentAuthUserUid = getAuthInstance().currentUser?.uid;
 
-  // Helper to compare roles
+  // Helper to compare roles: returns true if role1 has higher or equal privilege than role2
   const isRoleHigherOrEqual = (role1: UserRole, role2: UserRole): boolean => {
     const index1 = ROLE_SORT_ORDER.indexOf(role1);
     const index2 = ROLE_SORT_ORDER.indexOf(role2);
@@ -489,8 +489,13 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
               <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
                 {usersWithRoles.map(user => {
                   const isCurrentUser = user.uid === currentAuthUserUid;
-                  // Disable if target user's role is higher or equal to acting user's role
-                  const disableManagement = !userRole || isRoleHigherOrEqual(userRole, user.role);
+                  // Disable if:
+                  // 1. It's the current user (cannot edit self)
+                  // 2. The acting user is an 'officer' (cannot manage any roles)
+                  // 3. The acting user is a 'captain' AND the target user's role is 'admin' or 'captain'
+                  const disableManagement = isCurrentUser || 
+                                            (userRole === 'officer') || 
+                                            (userRole === 'captain' && isRoleHigherOrEqual(user.role, 'captain'));
 
                   return (
                     <li key={user.uid} className="p-3 flex items-center justify-between text-sm">
@@ -611,7 +616,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
 
       {/* Edit Invite Code Modal */}
       <Modal isOpen={isEditInviteCodeModalOpen} onClose={() => setIsEditInviteCodeModalOpen(false)} title="Edit Invite Code">
-        {codeToEdit && (
+        {codeToEdit && userRole && (
           <div className="space-y-4">
             <p className="text-slate-600">Editing invite code: <strong className="font-semibold text-slate-800">{codeToEdit.id}</strong></p>
             {inviteCodeEditError && <p className="text-red-500 text-sm">{inviteCodeEditError}</p>}
@@ -623,8 +628,11 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 onChange={(e) => setEditedDefaultUserRole(e.target.value as UserRole)}
                 className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
               >
-                {Object.entries(USER_ROLE_DISPLAY_NAMES).map(([roleValue, displayName]) => (
-                  <option key={roleValue} value={roleValue}>{displayName}</option>
+                {ROLE_SORT_ORDER.filter(roleOption => 
+                    // Only allow selecting roles strictly lower than the acting user's role
+                    ROLE_SORT_ORDER.indexOf(roleOption) > ROLE_SORT_ORDER.indexOf(userRole)
+                ).map(roleValue => (
+                  <option key={roleValue} value={roleValue}>{USER_ROLE_DISPLAY_NAMES[roleValue]}</option>
                 ))}
               </select>
             </div>

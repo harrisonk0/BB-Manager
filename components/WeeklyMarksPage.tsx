@@ -448,7 +448,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             onClick={handlePreviousWeek}
             className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
             aria-label="Previous week"
-            // Removed disabled={isLocked}
           >
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
@@ -457,13 +456,12 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             onChange={setSelectedDate}
             accentRingClass={accentRing}
             ariaLabel="Select weekly marks date"
-            disabled={isLocked}
+            // Removed disabled={isLocked}
           />
           <button
             onClick={handleNextWeek}
             className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
             aria-label="Next week"
-            // Removed disabled={isLocked}
           >
             <ChevronRightIcon className="h-5 w-5" />
           </button>
