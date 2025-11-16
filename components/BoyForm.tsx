@@ -32,7 +32,11 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
   const [squad, setSquad] = useState<Squad | JuniorSquad>(initialSquad);
   const [year, setYear] = useState<SchoolYear | JuniorYear>(initialYear);
   const [isSquadLeader, setIsSquadLeader] = useState(false);
-  const [error, setError] = useState('');
+  
+  // Granular error states
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [squadError, setSquadError] = useState<string | null>(null);
+  const [yearError, setYearError] = useState<string | null>(null);
 
   /**
    * EFFECT: Populates the form fields when `boyToEdit` prop changes.
@@ -52,6 +56,10 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
       setYear(initialYear);
       setIsSquadLeader(false);
     }
+    // Clear all errors when boyToEdit changes
+    setNameError(null);
+    setSquadError(null);
+    setYearError(null);
   }, [boyToEdit, activeSection]);
 
   /**
@@ -61,11 +69,23 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setNameError(null);
+    setSquadError(null);
+    setYearError(null);
+
+    let isValid = true;
     if (!name.trim()) {
-      setError('Name cannot be empty.');
+      setNameError('Name cannot be empty.');
+      isValid = false;
+    }
+    // Add more validation for squad and year if necessary, e.g., if they could be invalid.
+    // For now, assuming select/radio ensure valid values.
+
+    if (!isValid) {
       return;
     }
-    setError('');
 
     try {
       const auth = getAuthInstance();
@@ -104,7 +124,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
       }
     } catch (err) {
       console.error('Failed to save boy:', err);
-      setError('Failed to save boy. Please try again.');
+      setNameError('Failed to save boy. Please try again.'); // Generic error for save failure
     }
   };
   
@@ -124,7 +144,6 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
   
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {error && <p className="text-red-500 text-sm">{error}</p>}
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-slate-700">
           Name
@@ -134,9 +153,12 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+          className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none sm:text-sm ${nameError ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
           required
+          aria-invalid={nameError ? "true" : "false"}
+          aria-describedby={nameError ? "name-error" : undefined}
         />
+        {nameError && <p id="name-error" className="text-red-500 text-xs mt-1">{nameError}</p>}
       </div>
       <div>
         <label htmlFor="year" className="block text-sm font-medium text-slate-700">
@@ -150,7 +172,9 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
             const value = isCompany ? parseInt(e.target.value, 10) : e.target.value;
             setYear(value as SchoolYear | JuniorYear);
           }}
-          className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+          className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none sm:text-sm ${yearError ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
+          aria-invalid={yearError ? "true" : "false"}
+          aria-describedby={yearError ? "year-error" : undefined}
         >
           {schoolYears.map((yearNum) => (
             <option key={yearNum} value={yearNum}>
@@ -158,10 +182,11 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
             </option>
           ))}
         </select>
+        {yearError && <p id="year-error" className="text-red-500 text-xs mt-1">{yearError}</p>}
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-700">Squad</label>
-        <div className="mt-2 flex flex-wrap gap-4">
+        <div className={`mt-2 flex flex-wrap gap-4 ${squadError ? 'border border-red-500 p-2 rounded-md' : ''}`}>
           {squadOptions.map((squadNum) => (
             <label key={squadNum} className="inline-flex items-center">
               <input
@@ -176,6 +201,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
             </label>
           ))}
         </div>
+        {squadError && <p id="squad-error" className="text-red-500 text-xs mt-1">{squadError}</p>}
       </div>
        <div>
         <label className="inline-flex items-center">

@@ -14,22 +14,43 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [passwordError, setPasswordErrorState] = useState<string | null>(null);
+  
+  // Granular error states
+  const [oldPasswordError, setOldPasswordError] = useState<string | null>(null);
+  const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
+  const [newPasswordConfirmError, setNewPasswordConfirmError] = useState<string | null>(null);
+  const [generalError, setGeneralError] = useState<string | null>(null); // For non-field-specific errors
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordErrorState(null);
+    // Clear previous errors
+    setOldPasswordError(null);
+    setNewPasswordError(null);
+    setNewPasswordConfirmError(null);
+    setGeneralError(null);
 
-    if (!newPassword || !newPasswordConfirm || !oldPassword) {
-      setPasswordErrorState('All password fields are required.');
-      return;
+    let isValid = true;
+
+    if (!oldPassword) {
+      setOldPasswordError('Current password is required.');
+      isValid = false;
     }
-    if (newPassword !== newPasswordConfirm) {
-      setPasswordErrorState('New password and confirmation do not match.');
-      return;
+    if (!newPassword) {
+      setNewPasswordError('New password is required.');
+      isValid = false;
+    } else if (newPassword.length < 6) {
+      setNewPasswordError('New password must be at least 6 characters long.');
+      isValid = false;
     }
-    if (newPassword.length < 6) {
-      setPasswordErrorState('New password must be at least 6 characters long.');
+    if (!newPasswordConfirm) {
+      setNewPasswordConfirmError('Confirm new password is required.');
+      isValid = false;
+    } else if (newPassword !== newPasswordConfirm) {
+      setNewPasswordConfirmError('New password and confirmation do not match.');
+      isValid = false;
+    }
+
+    if (!isValid) {
       return;
     }
 
@@ -55,19 +76,19 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
       console.error("Failed to change password:", err);
       switch (err.code) {
         case 'auth/wrong-password':
-          setPasswordErrorState('Your current password is incorrect.');
+          setOldPasswordError('Your current password is incorrect.');
           break;
         case 'auth/weak-password':
-          setPasswordErrorState('The new password is too weak. Please choose a stronger one.');
+          setNewPasswordError('The new password is too weak. Please choose a stronger one.');
           break;
         case 'auth/requires-recent-login':
-          setPasswordErrorState('Please log out and log back in to change your password.');
+          setGeneralError('Please log out and log back in to change your password.');
           break;
         case 'auth/network-request-failed':
-          setPasswordErrorState('Network error. Please check your internet connection.');
+          setGeneralError('Network error. Please check your internet connection.');
           break;
         default:
-          setPasswordErrorState('Failed to change password. Please try again.');
+          setGeneralError('Failed to change password. Please try again.');
           break;
       }
       showToast('Failed to change password.', 'error');
@@ -90,7 +111,7 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
         <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
           <form onSubmit={handleChangePassword} className="space-y-6">
             <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Change Password</h2>
-            {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
+            {generalError && <p className="text-red-500 text-sm">{generalError}</p>}
             
             <div>
               <label htmlFor="current-password" className="block text-sm font-medium text-slate-700">
@@ -101,9 +122,12 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
                 id="current-password"
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
-                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+                className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none sm:text-sm ${oldPasswordError ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
                 required
+                aria-invalid={oldPasswordError ? "true" : "false"}
+                aria-describedby={oldPasswordError ? "current-password-error" : undefined}
               />
+              {oldPasswordError && <p id="current-password-error" className="text-red-500 text-xs mt-1">{oldPasswordError}</p>}
             </div>
             <div>
               <label htmlFor="new-password" className="block text-sm font-medium text-slate-700">
@@ -114,9 +138,12 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
                 id="new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+                className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none sm:text-sm ${newPasswordError ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
                 required
+                aria-invalid={newPasswordError ? "true" : "false"}
+                aria-describedby={newPasswordError ? "new-password-error" : undefined}
               />
+              {newPasswordError && <p id="new-password-error" className="text-red-500 text-xs mt-1">{newPasswordError}</p>}
             </div>
             <div>
               <label htmlFor="confirm-new-password" className="block text-sm font-medium text-slate-700">
@@ -127,9 +154,12 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
                 id="confirm-new-password"
                 value={newPasswordConfirm}
                 onChange={(e) => setNewPasswordConfirm(e.target.value)}
-                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
+                className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none sm:text-sm ${newPasswordConfirmError ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
                 required
+                aria-invalid={newPasswordConfirmError ? "true" : "false"}
+                aria-describedby={newPasswordConfirmError ? "confirm-new-password-error" : undefined}
               />
+              {newPasswordConfirmError && <p id="confirm-new-password-error" className="text-red-500 text-xs mt-1">{newPasswordConfirmError}</p>}
             </div>
             
             <div className="flex justify-end pt-4 border-t border-slate-200">

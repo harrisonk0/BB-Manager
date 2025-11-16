@@ -10,6 +10,7 @@ import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '..
 import { updateBoy, createAuditLog } from '../services/db';
 import { getAuthInstance } from '../services/firebase';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon } from './Icons';
+import DatePicker from './DatePicker'; // Import the new DatePicker component
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -63,6 +64,8 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false); // Tracks if there are unsaved changes.
   const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
+  const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
+
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
@@ -117,6 +120,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     setMarks(newMarks);
     setAttendance(newAttendance);
     setIsDirty(false); // Reset dirty state on date change.
+    setMarkErrors({}); // Clear errors on date change.
   }, [selectedDate, boys, isCompany]);
 
   /**
@@ -140,27 +144,45 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   }, [isDirty, setHasUnsavedChanges]);
   
   // --- EVENT HANDLERS ---
-  const handleCompanyMarkChange = (boyId: string, score: string) => {
-    const numericScore = parseFloat(score); // Use parseFloat
-    // Basic validation for Company section marks.
-    if (score === '' || (!isNaN(numericScore) && numericScore >= 0 && numericScore <= 10)) {
-      setMarks(prev => ({ ...prev, [boyId]: score }));
+  const validateAndSetMark = (boyId: string, type: 'score' | 'uniform' | 'behaviour', scoreStr: string, max: number) => {
+    const numericScore = parseFloat(scoreStr);
+    let error: string | undefined;
+
+    if (scoreStr === '') {
+      error = undefined; // No error for empty string
+    } else if (isNaN(numericScore)) {
+      error = 'Invalid number';
+    } else if (numericScore < 0 || numericScore > max) {
+      error = `Must be between 0 and ${max}`;
+    } else if (scoreStr.includes('.') && scoreStr.split('.')[1].length > 2) {
+      error = 'Max 2 decimal places';
+    }
+
+    setMarkErrors(prev => ({
+      ...prev,
+      [boyId]: { ...prev[boyId], [type]: error }
+    }));
+
+    if (!error) {
+      setMarks(prev => {
+        if (isCompany) {
+          return { ...prev, [boyId]: scoreStr };
+        } else {
+          const currentMark = (prev[boyId] as JuniorMarkState) || { uniform: '', behaviour: '' };
+          return { ...prev, [boyId]: { ...currentMark, [type]: scoreStr } };
+        }
+      });
       setIsDirty(true);
     }
   };
 
+  const handleCompanyMarkChange = (boyId: string, score: string) => {
+    validateAndSetMark(boyId, 'score', score, 10);
+  };
+
   const handleJuniorMarkChange = (boyId: string, type: 'uniform' | 'behaviour', score: string) => {
     const maxScore = type === 'uniform' ? 10 : 5;
-    const numericScore = parseFloat(score); // Use parseFloat
-    // Basic validation for Junior section marks.
-    if (score === '' || (!isNaN(numericScore) && numericScore >= 0 && numericScore <= maxScore)) {
-      // FIX: Ensure the object created always has both uniform and behaviour properties to match JuniorMarkState type.
-      setMarks(prev => {
-        const currentMark = (prev[boyId] as JuniorMarkState) || { uniform: '', behaviour: '' };
-        return { ...prev, [boyId]: { ...currentMark, [type]: score } };
-      });
-      setIsDirty(true);
-    }
+    validateAndSetMark(boyId, type, score, maxScore);
   };
 
   const handleAttendanceToggle = (boyId: string) => {
@@ -170,6 +192,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     if (newStatus === 'absent') {
       // If absent, set score to -1.
       setMarks(prev => ({ ...prev, [boyId]: isCompany ? -1 : { uniform: -1, behaviour: -1 } }));
+      setMarkErrors(prev => ({ ...prev, [boyId]: {} })); // Clear errors when absent
     } else {
       // If toggled back to present, restore their previous mark for this date if it exists, otherwise clear it.
       const markForDate = boys.find(b => b.id === boyId)?.marks.find(m => m.date === selectedDate);
@@ -189,6 +212,16 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
    * need updating, bundles these updates into a single transaction, and creates a single audit log entry.
    */
   const handleSaveMarks = async () => {
+    // Check for any active errors before saving
+    const hasErrors = Object.values(markErrors).some(boyErrors =>
+      Object.values(boyErrors).some(error => error !== undefined)
+    );
+
+    if (hasErrors) {
+      showToast('Please correct the errors before saving.', 'error');
+      return;
+    }
+
     setIsSaving(true);
     
     const changedBoysOldData: Boy[] = [];
@@ -381,11 +414,11 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">Weekly Marks</h1>
         <div className="flex items-center space-x-4">
-          <input
-            type="date"
+          <DatePicker
             value={selectedDate}
-            onChange={e => setSelectedDate(e.target.value)}
-            className={`px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none ${accentRing}`}
+            onChange={setSelectedDate}
+            accentRingClass={accentRing}
+            ariaLabel="Select weekly marks date"
           />
           {isPastDate && (
             <button
@@ -421,6 +454,8 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                 {boysBySquad[squad].map((boy) => {
                     if (!boy.id) return null;
                     const isPresent = attendance[boy.id] === 'present';
+                    const boyErrors = markErrors[boy.id] || {};
+
                     return (
                       <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                         <div className="flex-1">
@@ -447,21 +482,24 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                             {isPresent ? 'Present' : 'Absent'}
                           </button>
                           {isCompany ? (
-                            <input
-                              type="number"
-                              min="0"
-                              max="10"
-                              step="0.01"
-                              // FIX: Use Number() to correctly compare union type with number and fix TS errors. This also fixes a parser error with operator precedence.
-                              value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
-                              onChange={e => handleCompanyMarkChange(boy.id!, e.target.value)}
-                              disabled={!isPresent || isLocked}
-                              className={`w-20 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
-                              placeholder="0-10"
-                            />
+                            <div className="flex flex-col items-center">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="10"
+                                  step="0.01"
+                                  // FIX: Use Number() to correctly compare union type with number and fix TS errors. This also fixes a parser error with operator precedence.
+                                  value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
+                                  onChange={e => handleCompanyMarkChange(boy.id!, e.target.value)}
+                                  disabled={!isPresent || isLocked}
+                                  className={`w-20 text-center px-2 py-1 bg-white border rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${boyErrors.score ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
+                                  placeholder="0-10"
+                                />
+                                {boyErrors.score && <p className="text-red-500 text-xs mt-1">{boyErrors.score}</p>}
+                            </div>
                           ) : (
                              <div className="flex items-center space-x-2">
-                                <div>
+                                <div className="flex flex-col items-center">
                                     <label htmlFor={`uniform-${boy.id}`} className="block text-xs text-center text-slate-500">Uniform</label>
                                     <input
                                       id={`uniform-${boy.id}`}
@@ -471,11 +509,12 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                       value={Number((marks[boy.id] as JuniorMarkState)?.uniform) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.uniform ?? ''}
                                       onChange={e => handleJuniorMarkChange(boy.id!, 'uniform', e.target.value)}
                                       disabled={!isPresent || isLocked}
-                                      className={`w-16 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
+                                      className={`w-16 text-center px-2 py-1 bg-white border rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${boyErrors.uniform ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
                                       placeholder="/10"
                                     />
+                                    {boyErrors.uniform && <p className="text-red-500 text-xs mt-1">{boyErrors.uniform}</p>}
                                 </div>
-                                <div>
+                                <div className="flex flex-col items-center">
                                     <label htmlFor={`behaviour-${boy.id}`} className="block text-xs text-center text-slate-500">Behaviour</label>
                                     <input
                                       id={`behaviour-${boy.id}`}
@@ -485,9 +524,10 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                       value={Number((marks[boy.id] as JuniorMarkState)?.behaviour) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.behaviour ?? ''}
                                       onChange={e => handleJuniorMarkChange(boy.id!, 'behaviour', e.target.value)}
                                       disabled={!isPresent || isLocked}
-                                      className={`w-16 text-center px-2 py-1 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${accentRing}`}
+                                      className={`w-16 text-center px-2 py-1 bg-white border rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${boyErrors.behaviour ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
                                       placeholder="/5"
                                     />
+                                    {boyErrors.behaviour && <p className="text-red-500 text-xs mt-1">{boyErrors.behaviour}</p>}
                                 </div>
                              </div>
                           )}

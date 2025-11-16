@@ -23,23 +23,50 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null); // General error for Firebase issues
+  
+  // Granular error states
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
+  const [inviteCodeError, setInviteCodeError] = useState<string | null>(null);
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setEmailError(null);
+    setPasswordError(null);
+    setConfirmPasswordError(null);
+    setInviteCodeError(null);
 
-    if (!email || !password || !confirmPassword || !inviteCode) {
-      setError('All fields are required.');
-      return;
+    let isValid = true;
+
+    if (!email) {
+      setEmailError('Email is required.');
+      isValid = false;
     }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
+    if (!password) {
+      setPasswordError('Password is required.');
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters long.');
+      isValid = false;
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+    if (!confirmPassword) {
+      setConfirmPasswordError('Confirm password is required.');
+      isValid = false;
+    } else if (password !== confirmPassword) {
+      setConfirmPasswordError('Passwords do not match.');
+      isValid = false;
+    }
+    if (!inviteCode) {
+      setInviteCodeError('Invite code is required.');
+      isValid = false;
+    }
+
+    if (!isValid) {
       return;
     }
 
@@ -47,8 +74,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
     try {
       // 1. Validate Invite Code
       const fetchedCode = await fetchInviteCode(inviteCode);
-      if (!fetchedCode || fetchedCode.isUsed) {
-        setError('Invalid or already used invite code.');
+      if (!fetchedCode || fetchedCode.isUsed || fetchedCode.revoked || fetchedCode.expiresAt < Date.now()) {
+        setInviteCodeError('Invalid, used, revoked, or expired invite code.');
         setIsLoading(false);
         return;
       }
@@ -84,13 +111,13 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       console.error("Sign up error:", err);
       switch (err.code) {
         case 'auth/email-already-in-use':
-          setError('The email address is already in use by another account.');
+          setEmailError('The email address is already in use by another account.');
           break;
         case 'auth/invalid-email':
-          setError('The email address is not valid.');
+          setEmailError('The email address is not valid.');
           break;
         case 'auth/weak-password':
-          setError('The password is too weak.');
+          setPasswordError('The password is too weak.');
           break;
         default:
           setError('Failed to create account. Please try again.');
@@ -145,13 +172,16 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
                 type="email"
                 autoComplete="email"
                 required
-                className="relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-500 text-slate-900 bg-white rounded-t-md focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm"
+                className={`relative block w-full px-3 py-2 border placeholder-slate-500 text-slate-900 bg-white rounded-t-md focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm ${emailError ? 'border-red-500' : 'border-slate-300'}`}
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={emailError ? "true" : "false"}
+                aria-describedby={emailError ? "email-error" : undefined}
               />
+              {emailError && <p id="email-error" className="text-red-500 text-xs mt-1">{emailError}</p>}
             </div>
-            <div>
+            <div className="mt-px"> {/* Added mt-px to separate from previous input */}
               <label htmlFor="password" className="sr-only">Password</label>
               <input
                 id="password"
@@ -159,13 +189,16 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
                 type="password"
                 autoComplete="new-password"
                 required
-                className="relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-500 text-slate-900 bg-white focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm"
+                className={`relative block w-full px-3 py-2 border placeholder-slate-500 text-slate-900 bg-white focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm ${passwordError ? 'border-red-500' : 'border-slate-300'}`}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                aria-invalid={passwordError ? "true" : "false"}
+                aria-describedby={passwordError ? "password-error" : undefined}
               />
+              {passwordError && <p id="password-error" className="text-red-500 text-xs mt-1">{passwordError}</p>}
             </div>
-            <div>
+            <div className="mt-px"> {/* Added mt-px to separate from previous input */}
               <label htmlFor="confirm-password" className="sr-only">Confirm Password</label>
               <input
                 id="confirm-password"
@@ -173,24 +206,30 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
                 type="password"
                 autoComplete="new-password"
                 required
-                className="relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-500 text-slate-900 bg-white focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm"
+                className={`relative block w-full px-3 py-2 border placeholder-slate-500 text-slate-900 bg-white focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm ${confirmPasswordError ? 'border-red-500' : 'border-slate-300'}`}
                 placeholder="Confirm Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                aria-invalid={confirmPasswordError ? "true" : "false"}
+                aria-describedby={confirmPasswordError ? "confirm-password-error" : undefined}
               />
+              {confirmPasswordError && <p id="confirm-password-error" className="text-red-500 text-xs mt-1">{confirmPasswordError}</p>}
             </div>
-            <div>
+            <div className="mt-px"> {/* Added mt-px to separate from previous input */}
               <label htmlFor="invite-code" className="sr-only">Invite Code</label>
               <input
                 id="invite-code"
                 name="invite-code"
                 type="text"
                 required
-                className="relative block w-full px-3 py-2 border border-slate-300 placeholder-slate-500 text-slate-900 bg-white rounded-b-md focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm"
+                className={`relative block w-full px-3 py-2 border placeholder-slate-500 text-slate-900 bg-white rounded-b-md focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm ${inviteCodeError ? 'border-red-500' : 'border-slate-300'}`}
                 placeholder="Invite Code"
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value)}
+                aria-invalid={inviteCodeError ? "true" : "false"}
+                aria-describedby={inviteCodeError ? "invite-code-error" : undefined}
               />
+              {inviteCodeError && <p id="invite-code-error" className="text-red-500 text-xs mt-1">{inviteCodeError}</p>}
             </div>
           </div>
 
