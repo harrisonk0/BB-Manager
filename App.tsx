@@ -296,10 +296,7 @@ const App: React.FC = () => {
           </div>
         </nav>
       </header>
-      <main 
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-cover bg-center"
-        style={{ backgroundImage: 'url(https://i.postimg.cc/MKD36t18/mixed-activities.jpg)' }}
-      >
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Pass relevant props to the PageContent component */}
         <PageContent 
           activeSection={activeSection || 'company'} // Provide a dummy activeSection if null, as it's not truly relevant for these global pages
@@ -372,10 +369,7 @@ const App: React.FC = () => {
     return (
         <>
             <Header setView={handleNavigation} user={currentUser} onSignOut={handleSignOut} activeSection={activeSection} onSwitchSection={handleSwitchSection} userRole={userRole} />
-            <main 
-              className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-cover bg-center"
-              style={{ backgroundImage: 'url(https://i.postimg.cc/MKD36t18/mixed-activities.jpg)' }}
-            >
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {renderMainContent()}
             </main>
         </>
@@ -383,7 +377,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen text-slate-800">
+    <div className="min-h-screen bg-slate-200 text-slate-800">
       <div
         aria-live="assertive"
         className="fixed bottom-0 w-full max-w-sm mx-auto flex flex-col-reverse items-center p-4 space-y-2 space-y-reverse pointer-events-none z-[100]"
