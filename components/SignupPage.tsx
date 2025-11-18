@@ -130,7 +130,10 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-200">
+    <div 
+      className="flex items-center justify-center min-h-screen bg-slate-200 bg-cover bg-center"
+      style={{ backgroundImage: 'url(https://i.postimg.cc/MKD36t18/mixed-activities.jpg)' }}
+    >
       <div className="relative w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
         <button 
             onClick={onNavigateBack} 
