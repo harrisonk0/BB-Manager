@@ -1,11 +1,11 @@
 # 3. Getting Started
 
-This guide will walk you through the process of setting up the BB Manager project on your local machine for development. Thanks to its buildless architecture, the setup process is straightforward and does not require Node.js or npm.
+This guide will walk you through the process of setting up the BB Manager project on your local machine for development.
 
 ### Prerequisites
 
--   A modern web browser that supports import maps and service workers (e.g., Chrome, Firefox, Edge).
--   A simple local web server to serve the project files.
+-   **Node.js and npm**: You will need Node.js and npm (Node Package Manager) installed to manage project dependencies and run the development server. You can download them from [nodejs.org](https://nodejs.org/).
+-   A modern web browser (e.g., Chrome, Firefox, Edge).
 -   A Google account to create and manage the Firebase project.
 
 ---
@@ -103,24 +103,19 @@ The application requires a Firebase project to handle its backend, database, and
 
 ### Step 3: Run the Application Locally
 
-Since this is a static web application with no build step, you just need a simple local server to serve the files.
+The application uses **Vite** for its development server and build process.
 
-**Option A: Using Python (If installed)**
+1.  **Install Dependencies**:
+    -   Open your terminal or command prompt.
+    -   Navigate to the root directory of the project.
+    -   Run `npm install` to install all necessary project dependencies.
 
-1.  Open your terminal or command prompt.
-2.  Navigate to the root directory of the project.
-3.  Run one of the following commands:
-    -   If you have Python 3: `python -m http.server 8000`
-    -   If you have Python 2: `python -m SimpleHTTPServer 8000`
-
-**Option B: Using VS Code Live Server**
-
-1.  Install the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension in Visual Studio Code.
-2.  Open the project folder in VS Code.
-3.  Right-click on the `index.html` file and select "Open with Live Server".
+2.  **Start the Development Server**:
+    -   In the same terminal, run `npm run dev`.
+    -   This will start the Vite development server, typically on `http://localhost:3000`.
 
 **Accessing the App**
 
-Once your server is running, open your web browser and navigate to `http://localhost:8000` (or the URL provided by Live Server).
+Once your server is running, open your web browser and navigate to the URL provided by Vite (usually `http://localhost:3000`).
 
 You should see the login page. Use the email and password you created in the Firebase Authentication console to sign in and start using the app.
