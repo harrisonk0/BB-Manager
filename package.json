@@ -10,6 +10,10 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/ios": "^7.4.4",
     "express": "^4.18.2",
     "firebase": "^12.4.0",
     "react": "^19.2.0",
@@ -19,10 +23,10 @@
     "@dyad-sh/react-vite-component-tagger": "^0.8.0",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0",
-    "tailwindcss": "^3.4.4",
+    "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
-    "autoprefixer": "^10.4.19"
+    "tailwindcss": "^3.4.4",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
   }
 }

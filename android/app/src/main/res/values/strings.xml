@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BB-Manager</string>
+    <string name="title_activity_main">BB-Manager</string>
+    <string name="package_name">com.example.bbmanager</string>
+    <string name="custom_url_scheme">com.example.bbmanager</string>
+</resources>
