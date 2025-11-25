@@ -48,6 +48,9 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
   const [logToRevert, setLogToRevert] = useState<AuditLog | null>(null);
 
   const isCompany = activeSection === 'company';
+  const isAdmin = userRole === 'admin';
+  const isCaptain = userRole === 'captain';
+  const canDelete = isAdmin || isCaptain; // Only admins/captains can perform destructive actions
   
   // A mapping of action types to color styles for visual distinction.
   const ACTION_COLORS: Record<AuditLogActionType, string> = {
@@ -143,10 +146,12 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
       switch (actionType) {
         case 'CREATE_BOY':
           // To revert a creation, we delete the boy using the ID saved in `revertData`.
+          // Requires DELETE privileges.
           await deleteBoyById(revertData.boyId, activeSection);
           break;
         case 'DELETE_BOY':
           // To revert a deletion, we recreate the boy using the full boy object saved in `revertData`.
+          // Requires INSERT privileges.
           await recreateBoy(revertData.boyData as Boy, activeSection);
           break;
         case 'UPDATE_BOY':
@@ -221,17 +226,31 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     });
   };
 
-  // Define explicitly revertible action types
-  const revertibleActionTypes: AuditLogActionType[] = [
-    'CREATE_BOY',
-    'DELETE_BOY',
-    'UPDATE_BOY',
-    'UPDATE_SETTINGS',
-    'GENERATE_INVITE_CODE',
-    'UPDATE_INVITE_CODE', // Added: Allow reverting invite code updates
-    'UPDATE_USER_ROLE',
-    'DELETE_USER_ROLE', // New: Allow reverting user role deletions
-  ];
+  // Check if the current user can revert a specific log action
+  const canUserRevert = (actionType: AuditLogActionType) => {
+    switch (actionType) {
+        case 'CREATE_BOY':
+            // Reverting a creation means DELETING the boy. Only admins/captains can delete.
+            return canDelete;
+        case 'DELETE_BOY':
+            // Reverting a deletion means CREATING the boy. Everyone can create.
+            return true;
+        case 'UPDATE_BOY':
+            // Everyone can update.
+            return true;
+        case 'UPDATE_SETTINGS':
+            // Only Admins/Captains can save settings.
+            return canDelete;
+        case 'GENERATE_INVITE_CODE':
+        case 'UPDATE_INVITE_CODE':
+        case 'UPDATE_USER_ROLE':
+        case 'DELETE_USER_ROLE':
+            // These are admin/captain only actions.
+            return canDelete;
+        default:
+            return false;
+    }
+  };
 
   // --- RENDER LOGIC ---
   if (loading) return <div className="text-center p-8">Loading audit trail...</div>;
@@ -257,8 +276,8 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
             
             // Determine if this log has been reverted by checking the `revertedLogIds` set.
             const hasBeenReverted = revertedLogIds.has(log.id);
-            // Only allow revert if the action type is in our list of revertible types AND it hasn't been reverted yet.
-            const canRevert = revertibleActionTypes.includes(log.actionType) && !hasBeenReverted;
+            // Only allow revert if it hasn't been reverted yet AND user has permission
+            const canRevert = !hasBeenReverted && canUserRevert(log.actionType);
 
             return (
               <li key={log.id} className="bg-white shadow-md rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
