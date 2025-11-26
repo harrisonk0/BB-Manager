@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 
 AI_RULES.md
+serviceAccountKey.json

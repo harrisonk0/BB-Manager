@@ -1,93 +1,46 @@
 "use client";
 
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { getAuthInstance } from '../services/firebase';
+import { performLogin } from '../services/auth';
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, View } from '../types';
 
 interface LoginPageProps {
-  /** Callback to open the help modal. */
   onOpenHelpModal: () => void;
-  /** Function to display a toast notification. */
   showToast: (message: string, type?: ToastType) => void;
-  /** Callback to navigate to the signup page. */
   onNavigateToSignup: (view: View) => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNavigateToSignup }) => {
-  // State for form inputs, error messages, and loading status.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
 
-  /**
-   * Handles the sign-in form submission.
-   * It calls the Firebase authentication service and provides user-friendly error messages
-   * for common authentication failures.
-   */
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    
     try {
-      const auth = getAuthInstance();
-      // FIX: Use signInWithEmailAndPassword function from named import.
-      await signInWithEmailAndPassword(auth, email, password);
-      // After successful sign-in, the onAuthStateChanged listener in App.tsx
-      // will detect the change and update the application state accordingly.
-    } catch (err: any) {
-      // Handle specific Firebase auth errors with user-friendly messages.
-      switch (err.code) {
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
-        case 'auth/invalid-credential':
-          setError('Invalid email or password.');
-          break;
-        case 'auth/invalid-email':
-          setError('Please enter a valid email address.');
-          break;
-        default:
-          setError('An unexpected error occurred. Please try again.');
-          break;
+      // Use our new service that checks Firebase if Supabase login fails
+      const result = await performLogin(email, password);
+      
+      if (result.source === 'migration') {
+        showToast('Account migrated successfully!', 'success');
       }
+      // Login successful, App.tsx will detect state change
+    } catch (err: any) {
       console.error(err);
+      setError(err.message || 'Invalid email or password.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  /**
-   * Handles the "Forgot Password" request.
-   * Sends a password reset email to the provided email address.
-   */
   const handleForgotPassword = async () => {
-    if (!email.trim()) {
-      setError('Please enter your email address to reset your password.');
-      return;
-    }
-    setIsSendingResetEmail(true);
-    setError(null);
-    try {
-      const auth = getAuthInstance();
-      await sendPasswordResetEmail(auth, email);
-      showToast('Password reset email sent! Check your inbox.', 'success');
-    } catch (err: any) {
-      console.error("Forgot password error:", err);
-      switch (err.code) {
-        case 'auth/user-not-found':
-        case 'auth/invalid-email':
-          showToast('No user found with that email address.', 'error');
-          break;
-        default:
-          showToast('Failed to send password reset email. Please try again.', 'error');
-          break;
-      }
-    } finally {
-      setIsSendingResetEmail(false);
-    }
+      // TODO: Implement Supabase password reset
+      showToast('Please contact your Captain to reset password during migration.', 'info');
   };
 
   return (
@@ -111,7 +64,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
           </h2>
         </div>
 
-        {/* Display error message if login fails */}
         {error && (
           <div className="p-4 text-sm text-red-700 bg-red-100 rounded-md">
             <strong>Login Failed:</strong> {error}
@@ -155,19 +107,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                disabled={isSendingResetEmail}
-                className="font-medium text-junior-blue hover:text-junior-blue/80 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSendingResetEmail ? 'Sending...' : 'Forgot your password?'}
-              </button>
-            </div>
-            <div className="text-sm">
-              <button
-                type="button"
-                onClick={() => onNavigateToSignup({ page: 'signup' })}
                 className="font-medium text-junior-blue hover:text-junior-blue/80"
               >
-                Sign up with an invite code
+                Forgot your password?
               </button>
             </div>
           </div>

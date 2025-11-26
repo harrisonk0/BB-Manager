@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Boy, Squad, View, Section, JuniorSquad, ToastType, SortByType, SchoolYear, JuniorYear } from '../types';
+import { Boy, Squad, View, Section, JuniorSquad, ToastType, SortByType, SchoolYear, JuniorYear, UserRole } from '../types';
 import Modal from './Modal';
 import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
@@ -19,6 +19,8 @@ interface HomePageProps {
   activeSection: Section;
   /** Function to display a toast notification. */
   showToast: (message: string, type?: ToastType) => void;
+  /** The role of the currently logged-in user. */
+  userRole: UserRole | null;
 }
 
 // Color mappings for squad names, specific to each section.
@@ -35,7 +37,7 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   4: 'text-yellow-600',
 };
 
-const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection, showToast }) => {
+const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection, showToast, userRole }) => {
   // --- STATE MANAGEMENT ---
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -52,6 +54,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
+  const canDelete = userRole === 'admin' || userRole === 'captain';
 
   // --- EFFECTS for persisting state ---
   useEffect(() => {
@@ -236,7 +239,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       handleCloseDeleteModal();
     } catch (error) {
         console.error("Failed to delete boy:", error);
-        showToast('Failed to delete member.', 'error');
+        showToast('Failed to delete member. You may not have permission.', 'error');
     }
   };
 
@@ -381,13 +384,15 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
                           >
                             <PencilIcon />
                           </button>
-                           <button
-                            onClick={() => handleOpenDeleteModal(boy)}
-                            className="p-3 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100"
-                            aria-label={`Delete ${boy.name}`}
-                          >
-                            <TrashIcon />
-                          </button>
+                          {canDelete && (
+                            <button
+                                onClick={() => handleOpenDeleteModal(boy)}
+                                className="p-3 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100"
+                                aria-label={`Delete ${boy.name}`}
+                            >
+                                <TrashIcon />
+                            </button>
+                          )}
                         </div>
                       </li>
                     ))}

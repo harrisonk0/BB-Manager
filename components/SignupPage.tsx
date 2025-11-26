@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { getAuthInstance } from '../services/firebase';
-import { fetchInviteCode, updateInviteCode, createAuditLog, setUserRole } from '../services/db';
+import { fetchInviteCode, markInviteCodeAsUsed, createAuditLog, setUserRole } from '../services/db';
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, Section } from '../types';
 
@@ -72,7 +72,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
 
     setIsLoading(true);
     try {
-      // 1. Validate Invite Code
+      // 1. Validate Invite Code (Uses secure RPC)
       const fetchedCode = await fetchInviteCode(inviteCode);
       if (!fetchedCode || fetchedCode.isUsed || fetchedCode.revoked || fetchedCode.expiresAt < Date.now()) {
         setInviteCodeError('Invalid, used, revoked, or expired invite code.');
@@ -88,14 +88,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       // 3. Assign Default Role to New User
       await setUserRole(newUser.uid, newUser.email || email, fetchedCode.defaultUserRole);
 
-      // 4. Mark Invite Code as Used
-      const updatedCode = {
-        ...fetchedCode,
-        isUsed: true,
-        usedBy: newUser.email || 'Unknown',
-        usedAt: Date.now(),
-      };
-      await updateInviteCode(updatedCode.id, updatedCode, null);
+      // 4. Mark Invite Code as Used (Uses secure RPC)
+      await markInviteCodeAsUsed(fetchedCode.id, newUser.email || 'Unknown');
 
       // 5. Create Audit Log Entry
       await createAuditLog({

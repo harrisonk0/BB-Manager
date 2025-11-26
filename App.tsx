@@ -34,7 +34,6 @@ const App: React.FC = () => {
       initializeFirebase();
     } catch (err: any) {
       console.error(`Failed to initialize Firebase: ${err.message}`);
-      // This error should ideally be handled by a global error boundary
     }
   }, []);
 
@@ -98,7 +97,7 @@ const App: React.FC = () => {
 
     switch (view.page) {
       case 'home':
-        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
+        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
       case 'weeklyMarks':
         return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} settings={settings} showToast={showToast} />;
       case 'dashboard':
@@ -117,7 +116,7 @@ const App: React.FC = () => {
       case 'signup':
         return null;
       default:
-        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
+        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
     }
   };
   
@@ -133,15 +132,23 @@ const App: React.FC = () => {
             <div className="flex items-center justify-center min-h-screen bg-slate-200 p-4">
                 <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md text-center">
                     <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="The Boys' Brigade Logo" className="w-48 mx-auto mb-4" />
-                    <h2 className="2xl font-bold text-red-600">Access Denied</h2>
+                    <h2 className="text-2xl font-bold text-red-600">Access Denied</h2>
                     <p className="text-slate-700">{noRoleError}</p>
                     <p className="text-slate-500">Please ensure your email address is registered with an administrator.</p>
-                    <button
-                        onClick={() => setCurrentUser(null)} // Reset currentUser to trigger login page
-                        className="mt-6 group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-junior-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue"
-                    >
-                        Return to Login
-                    </button>
+                    <div className="mt-6 flex flex-col gap-3">
+                        <button
+                            onClick={() => window.location.reload()} 
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-junior-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue"
+                        >
+                            Check Again
+                        </button>
+                        <button
+                            onClick={() => setCurrentUser(null)} // Reset currentUser to trigger login page
+                            className="group relative w-full flex justify-center py-2 px-4 border border-slate-300 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue"
+                        >
+                            Return to Login
+                        </button>
+                    </div>
                 </div>
             </div>
         );
