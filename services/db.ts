@@ -212,11 +212,13 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                     break;
                 }
                 case 'UPDATE_INVITE_CODE': {
-                    const { id, usedAt, expiresAt, generatedAt, ...rest } = write.payload;
+                    const { id, usedAt, expiresAt, generatedAt, defaultUserRole, usedBy, ...rest } = write.payload;
                     const updateData: any = { ...rest };
-                    if (usedAt) updateData.used_at = toISO(usedAt); // snake_case mapping
+                    if (usedAt) updateData.used_at = toISO(usedAt);
                     if (expiresAt) updateData.expires_at = toISO(expiresAt);
                     if (generatedAt) updateData.generated_at = toISO(generatedAt);
+                    if (defaultUserRole) updateData.default_user_role = defaultUserRole;
+                    if (usedBy) updateData.used_by = usedBy;
 
                     const { error } = await supabase
                         .from(invitesTable)
@@ -628,14 +630,19 @@ export const createInviteCode = async (code: any, section: Section, role: UserRo
     return newCode;
 };
 
-export const updateInviteCode = async (id: string, updates: any, role: UserRole | null): Promise<InviteCode> => {
+export const updateInviteCode = async (id: string, updates: Partial<InviteCode>, role: UserRole | null): Promise<InviteCode> => {
     const dbUpdates: any = {};
     if (updates.isUsed !== undefined) dbUpdates.is_used = updates.isUsed;
-    if (updates.revoked !== undefined) dbUpdates.revoked = updates.revoked; // Assuming column exists or handled via is_used/expiration
-    // ... map other fields
+    if (updates.revoked !== undefined) dbUpdates.revoked = updates.revoked;
+    if (updates.expiresAt !== undefined) dbUpdates.expires_at = toISO(updates.expiresAt);
+    if (updates.defaultUserRole !== undefined) dbUpdates.default_user_role = updates.defaultUserRole;
+    if (updates.section !== undefined) dbUpdates.section = updates.section;
+    if (updates.usedAt !== undefined) dbUpdates.used_at = toISO(updates.usedAt);
+    if (updates.usedBy !== undefined) dbUpdates.used_by = updates.usedBy;
     
     if (navigator.onLine) {
-        await supabase.from('invites').update(dbUpdates).eq('id', id);
+        const { error } = await supabase.from('invites').update(dbUpdates).eq('id', id);
+        if (error) throw error;
     }
     // Update local cache
     const current = await getInviteCodeFromDB(id);
