@@ -9,6 +9,7 @@ import { saveSettings } from '../services/settings';
 import { AuditLog, Boy, Section, SectionSettings, ToastType, UserRole, AuditLogActionType } from '../types';
 import { ClockIcon, PlusIcon, PencilIcon, TrashIcon, UndoIcon, CogIcon, CheckCircleIcon, XCircleIcon } from './Icons';
 import Modal from './Modal';
+import { Logger } from '../services/logger';
 
 interface AuditLogPageProps {
   refreshData: () => void;
@@ -72,7 +73,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
       const fetchedLogs = await fetchAuditLogs(activeSection, encryptionKey);
       setLogs(fetchedLogs);
     } catch (err) {
-      console.error(err);
+      Logger.error("Failed to load audit logs", err);
       setError('Failed to load audit logs.');
     } finally {
       setLoading(false);
@@ -159,7 +160,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
       loadLogs();
 
     } catch (err: any) {
-      console.error('Failed to revert action:', err);
+      Logger.error('Failed to revert action:', err);
       showToast(`Failed to revert: ${err.message}`, 'error');
       setError(`Failed to revert: ${err.message}`);
     } finally {

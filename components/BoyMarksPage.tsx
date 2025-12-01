@@ -10,6 +10,7 @@ import { fetchBoyById, updateBoy } from '../services/db';
 import { Boy, Mark, Squad, Section, JuniorSquad, ToastType } from '../types';
 import { TrashIcon, SaveIcon } from './Icons';
 import { BoyMarksPageSkeleton } from './SkeletonLoaders';
+import { Logger } from '../services/logger';
 
 interface BoyMarksPageProps {
   boyId: string;
@@ -84,7 +85,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
       }
     } catch (err) {
       setError('Failed to load boy data.');
-      console.error(err);
+      Logger.error("Error loading boy data", err);
     } finally {
       setLoading(false);
     }
@@ -246,7 +247,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     } catch (err) {
       showToast('Failed to save changes.', 'error');
       setError('Failed to save changes. Please try again.');
-      console.error(err);
+      Logger.error("Failed to save boy marks", err);
     } finally {
       setIsSaving(false);
     }

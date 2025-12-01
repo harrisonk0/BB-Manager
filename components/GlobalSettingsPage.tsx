@@ -5,13 +5,14 @@ import { Section, ToastType, UserRole } from '../types';
 import { 
   fetchAllUserRoles, 
   updateUserRole, 
-  approveUser,
-  denyUser,
+  approveUser, 
+  denyUser, 
   deleteUserRole,
   createAuditLog
 } from '../services/db';
 import { TrashIcon, CheckCircleIcon, XCircleIcon } from './Icons';
 import Modal from './Modal';
+import { Logger } from '../services/logger';
 
 interface GlobalSettingsPageProps {
   activeSection: Section;
@@ -101,7 +102,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       setUsersWithRoles(fetchedUsers.filter(u => u.role !== 'pending'));
       setPendingUsers(fetchedUsers.filter(u => u.role === 'pending'));
     } catch (err: any) {
-      console.error("Failed to load users with roles:", err);
+      Logger.error("Failed to load users with roles:", err);
       showToast(`Failed to load user roles: ${err.message}`, 'error');
     } finally {
       setLoadingUsers(false);

@@ -6,6 +6,7 @@
 
 import { supabase } from '@/src/integrations/supabase/client';
 import { Section, SectionSettings, UserRole } from '../types';
+import { Logger } from './logger';
 
 const SETTINGS_TABLE = 'settings';
 const DEFAULT_MEETING_DAY = 5; // Friday
@@ -32,7 +33,7 @@ export const getSettings = async (section: Section): Promise<SectionSettings> =>
     // Map snake_case DB column to camelCase app type
     return { meetingDay: data.meeting_day };
   } catch (error) {
-    console.error(`Error fetching settings for ${section}:`, error);
+    Logger.error(`Error fetching settings for ${section}:`, error);
     return { meetingDay: DEFAULT_MEETING_DAY };
   }
 };
@@ -46,7 +47,6 @@ export const getSettings = async (section: Section): Promise<SectionSettings> =>
  */
 export const saveSettings = async (section: Section, settings: SectionSettings, userRole: UserRole | null): Promise<void> => {
   // RLS on the 'settings' table enforces that only 'admin' or 'captain' can update.
-  // Removing redundant client-side check to rely solely on RLS for security enforcement.
   
   // Upsert the settings
   const { error } = await supabase

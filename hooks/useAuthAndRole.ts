@@ -6,6 +6,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { fetchUserRole, clearAllLocalData } from '../services/db'; // Import clearAllLocalData
 import { deriveKeyFromToken } from '../services/crypto';
 import { UserRole, UserRoleInfo } from '../types';
+import { Logger } from '../services/logger';
 
 /**
  * Custom hook for managing Supabase authentication state and user roles.
@@ -26,7 +27,7 @@ export const useAuthAndRole = () => {
       await clearAllLocalData(); // CRITICAL FIX: Clear all local data on sign out
       // State will be reset by the onAuthStateChange listener
     } catch (error) {
-      console.error('Sign out failed', error);
+      Logger.error('Sign out failed', error);
     }
   }, []);
 
@@ -64,7 +65,7 @@ export const useAuthAndRole = () => {
                     const key = await deriveKeyFromToken(session.access_token);
                     setEncryptionKey(key);
                 } catch (e) {
-                    console.error("Failed to derive encryption key:", e);
+                    Logger.error("Failed to derive encryption key:", e);
                     // Critical failure: force sign out
                     await performSignOut();
                     return;

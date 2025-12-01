@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { Boy, Squad, SchoolYear, Section, JuniorSquad, JuniorYear } from '../types';
 import { createBoy, updateBoy, createAuditLog } from '../services/db';
+import { Logger } from '../services/logger';
 
 interface BoyFormProps {
   /** If provided, the form will be in 'edit' mode, pre-filled with this boy's data. If null/undefined, it's in 'add' mode. */
@@ -131,7 +132,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     try {
       await executeSave(incomingBoyData);
     } catch (err) {
-      console.error('Failed to save boy:', err);
+      Logger.error('Failed to save boy:', err);
       setNameError('Failed to save boy. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -151,7 +152,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
       await executeSave(incomingBoyData);
 
     } catch (err) {
-      console.error('Failed to change squad leader:', err);
+      Logger.error('Failed to change squad leader:', err);
       setNameError('Failed to change squad leader. Please try again.');
     } finally {
       setIsSubmitting(false);
