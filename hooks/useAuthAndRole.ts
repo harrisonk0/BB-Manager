@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/src/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
-import { fetchUserRole } from '../services/db';
-import { clearPendingWrites } from '../services/offlineDb';
+import { fetchUserRole, clearAllLocalData } from '../services/db'; // Import clearAllLocalData
 import { deriveKeyFromToken } from '../services/crypto';
 import { UserRole, UserRoleInfo } from '../types';
 
@@ -24,7 +23,7 @@ export const useAuthAndRole = () => {
   const performSignOut = useCallback(async () => {
     try {
       await supabase.auth.signOut();
-      await clearPendingWrites(); // Clear pending writes as the encryption key will change
+      await clearAllLocalData(); // CRITICAL FIX: Clear all local data on sign out
       // State will be reset by the onAuthStateChange listener
     } catch (error) {
       console.error('Sign out failed', error);

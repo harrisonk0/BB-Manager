@@ -26,7 +26,7 @@ import {
     deleteUserRoleFromDB,
     clearAllUserRolesFromDB,
     clearStore,
-    clearAllSectionDataFromDB,
+    clearAllLocalDataFromDB, // Updated import name
 } from './offlineDb';
 
 // --- Helpers ---
@@ -263,13 +263,12 @@ export const fetchUserRole = async (uid: string): Promise<UserRoleInfo | null> =
             .select('role, sections')
             .eq('id', uid)
             .single()
-            .then(({ data }) => {
+            .then(async ({ data }) => {
                 if (data) {
                     const freshRoleInfo: UserRoleInfo = { role: data.role, sections: data.sections || [] };
                     if (JSON.stringify(freshRoleInfo) !== JSON.stringify(cachedRoleInfo)) {
-                        saveUserRoleToDB(uid, freshRoleInfo).then(() => {
-                            window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
-                        });
+                        await saveUserRoleToDB(uid, freshRoleInfo);
+                        window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
                     }
                 }
             });
@@ -761,4 +760,5 @@ export const clearAllAuditLogs = async (section: Section | null, email: string, 
     await clearStore(table);
 };
 
-export const clearAllLocalData = clearAllSectionDataFromDB;
+// Export the comprehensive local data clearing function
+export const clearAllLocalData = clearAllLocalDataFromDB;

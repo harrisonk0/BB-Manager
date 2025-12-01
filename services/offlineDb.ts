@@ -277,11 +277,17 @@ export const clearPendingWrites = async (): Promise<void> => {
   });
 };
 
-export const clearAllSectionDataFromDB = async (section: Section): Promise<void> => {
+/**
+ * Clears all sensitive local data from IndexedDB.
+ * This is crucial for security when a user signs out or switches sections.
+ */
+export const clearAllLocalDataFromDB = async (): Promise<void> => {
   await openDB();
   await Promise.all([
-    clearStore(getStoreName(section, 'boys')),
-    clearStore(getStoreName(section, 'audit_logs')),
+    clearStore(getStoreName('company', 'boys')),
+    clearStore(getStoreName('junior', 'boys')),
+    clearStore(getStoreName('company', 'audit_logs')),
+    clearStore(getStoreName('junior', 'audit_logs')),
     clearStore(GLOBAL_AUDIT_LOGS_STORE),
     clearStore(PENDING_WRITES_STORE),
     clearAllUserRolesFromDB(),
