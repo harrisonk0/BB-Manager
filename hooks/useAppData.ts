@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchBoys, syncPendingWrites, deleteOldAuditLogs } from '../services/db';
 import { getSettings } from '../services/settings';
 import { Boy, Section, SectionSettings, ToastType } from '../types';
@@ -18,6 +18,10 @@ export const useAppData = (
   const [settings, setSettings] = useState<SectionSettings | null>(null);
   const [dataLoading, setDataLoading] = useState(true); // New loading state for data
   const [dataError, setDataError] = useState<string | null>(null);
+  
+  // Use a ref to track if we've already loaded data for a specific section/user combo
+  // to prevent reloading if the user object reference changes but ID is same
+  const loadedRef = useRef<{ section: Section | null, userId: string | undefined }>({ section: null, userId: undefined });
 
   const refreshData = useCallback(async () => {
     if (!activeSection) return;
@@ -40,6 +44,7 @@ export const useAppData = (
         setDataLoading(false);
         return;
     }
+    
     setDataLoading(true);
     setDataError(null);
     try {
@@ -56,14 +61,19 @@ export const useAppData = (
   // Initial data load when activeSection or currentUser changes
   useEffect(() => {
     if (activeSection && currentUser) {
-      loadDataAndSettings();
+        // Only load if section or user ID has changed from what we last loaded
+        if (loadedRef.current.section !== activeSection || loadedRef.current.userId !== currentUser.id) {
+            loadedRef.current = { section: activeSection, userId: currentUser.id };
+            loadDataAndSettings();
+        }
     } else if (!currentUser) {
       // Clear data if user logs out
       setBoys([]);
       setSettings(null);
       setDataLoading(false);
+      loadedRef.current = { section: null, userId: undefined };
     }
-  }, [activeSection, currentUser, loadDataAndSettings]);
+  }, [activeSection, currentUser?.id, loadDataAndSettings]); // Depend on ID, not object
 
   // Handle online/offline sync and background data refresh events
   useEffect(() => {

@@ -41,8 +41,11 @@ export const useAuthAndRole = () => {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+
     // 1. Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       if (session?.user) {
         setCurrentUser(session.user);
         loadUserRole(session.user);
@@ -55,8 +58,17 @@ export const useAuthAndRole = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
+      
       if (session?.user) {
-        setCurrentUser(session.user);
+        // Only update state if the user ID has changed or we didn't have a user before
+        // This prevents infinite loops if the session object is recreated but represents the same user
+        setCurrentUser(prev => {
+            if (prev?.id === session.user.id) return prev;
+            return session.user;
+        });
+        
+        // We still load role to be safe, but loadUserRole handles its own state updates
         await loadUserRole(session.user);
       } else {
         setCurrentUser(null);
@@ -69,18 +81,23 @@ export const useAuthAndRole = () => {
     // Listen for custom userrolerefresh event
     const handleUserRoleRefresh = (event: Event) => {
       const customEvent = event as CustomEvent;
-      if (currentUser && customEvent.detail.uid === currentUser.id) {
-        console.log('User role cache updated in background, refreshing UI...');
-        loadUserRole(currentUser);
-      }
+      // We need to access the current user from state, but we can't put it in deps or we loop.
+      // We'll trust the event detail UID match against the session user (which we can get fresh) or simply reload if we have a user.
+      supabase.auth.getUser().then(({ data: { user } }) => {
+          if (mounted && user && user.id === customEvent.detail.uid) {
+             console.log('User role cache updated in background, refreshing UI...');
+             loadUserRole(user);
+          }
+      });
     };
     window.addEventListener('userrolerefresh', handleUserRoleRefresh);
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
       window.removeEventListener('userrolerefresh', handleUserRoleRefresh);
     };
-  }, [loadUserRole, currentUser]);
+  }, [loadUserRole]); // Removed currentUser to prevent infinite loop
 
   return { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole };
 };
