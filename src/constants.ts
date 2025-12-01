@@ -1,4 +1,4 @@
-import { Squad, JuniorSquad } from './types';
+import { Squad, JuniorSquad } from '../types';
 
 export const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
   1: 'text-red-600',
