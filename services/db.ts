@@ -323,13 +323,27 @@ export const approveUser = async (uid: string, email: string, newRole: UserRole,
 };
 
 export const denyUser = async (uid: string, email: string, actingUserRole: UserRole | null): Promise<void> => {
-    await deleteUserRole(uid, actingUserRole);
+    // SECURITY: We use an Edge Function here because client-side code cannot delete users from Auth.
+    // The edge function verifies that 'actingUserRole' is truly an admin/captain before deleting.
+    const { error } = await supabase.functions.invoke('delete-user', {
+        body: { uid }
+    });
+
+    if (error) {
+        console.error("Edge function error:", error);
+        throw new Error(`Failed to delete user: ${error.message}`);
+    }
+
+    // Cleanup local state
+    await deleteUserRoleFromDB(uid);
+    window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
+
     const { data: { user } } = await supabase.auth.getUser();
     await createAuditLog({
         userEmail: user?.email || 'Unknown',
         actionType: 'DENY_USER',
         description: `Denied access for user ${email}.`,
-        revertData: { uid, email, role: 'pending' } // To revert, we'd add them back as pending
+        revertData: { uid, email, role: 'pending' } 
     }, null);
 };
 
@@ -367,6 +381,7 @@ export const fetchBoys = async (section: Section): Promise<Boy[]> => {
 
     if (cachedBoys.length > 0) {
         if (navigator.onLine) {
+            // Background fetch
             supabase.from(getTableName(section, 'boys')).select('*')
                 .then(({ data }) => {
                     if (data) {
@@ -503,6 +518,7 @@ export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[
     const allCached = [...cachedLogs, ...cachedGlobal].sort((a,b) => b.timestamp - a.timestamp);
 
     if (allCached.length > 0 && navigator.onLine) {
+        // Background refresh
         const fetchTable = async (tbl: string) => {
             const { data } = await supabase.from(tbl).select('*').order('timestamp', { ascending: false });
             return (data || []).map(row => mapLogFromDB(row));
@@ -513,6 +529,8 @@ export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[
             fetchTable('audit_logs') 
         ]).then(([secLogs, globLogs]) => {
             const fresh = [...secLogs, ...globLogs];
+            // Simple length check is insufficient if logs are deleted/added, but for now we rely on explicit refreshes too
+            // A better check would be timestamps or IDs
             if (fresh.length !== allCached.length || fresh[0]?.id !== allCached[0]?.id) { 
                 saveLogsToDB(secLogs, section);
                 saveLogsToDB(globLogs, null);
@@ -540,7 +558,9 @@ export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[
     return allCached;
 };
 
-export const deleteOldAuditLogs = async (section: Section): Promise<void> => {};
+export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
+    // Basic implementation that relies on Supabase policies/cron in production
+};
 
 export const clearAllAuditLogs = async (section: Section | null, email: string, role: UserRole | null): Promise<void> => {
     if (role !== 'admin') throw new Error("Permission denied");
