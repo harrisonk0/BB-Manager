@@ -151,7 +151,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
                 onClick={() => onNavigateToSignup({ page: 'signup' })}
                 className="font-medium text-junior-blue hover:text-junior-blue/80"
               >
-                Sign up with an invite code
+                Sign Up
               </button>
             </div>
           </div>
