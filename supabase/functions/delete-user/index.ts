@@ -15,7 +15,6 @@ serve(async (req) => {
   }
 
   try {
-    // Create a Supabase client with the SERVICE ROLE key to perform admin actions
     const supabaseAdmin = createClient(
       // @ts-ignore
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -23,21 +22,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 1. Verify the requester's identity
+    // 1. Strict Auth Header Validation
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      throw new Error('Missing Authorization header')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new Error('Missing or malformed Authorization header')
     }
 
     const token = authHeader.replace('Bearer ', '')
     const { data: { user: requestUser }, error: userError } = await supabaseAdmin.auth.getUser(token)
 
     if (userError || !requestUser) {
-      throw new Error('Invalid token')
+      throw new Error('Invalid authentication token')
     }
 
-    // 2. Check the requester's role in the database
-    // Only Admins and Captains can delete users
+    // 2. Authorization Check
     const { data: roleData, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
@@ -51,34 +49,33 @@ serve(async (req) => {
       })
     }
 
-    // 3. Get the UID to delete from the request body
+    // 3. Input Validation
     const { uid } = await req.json()
-    if (!uid) throw new Error('Missing uid to delete')
+    // Strict UUID v4 regex validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    
+    if (!uid || !uuidRegex.test(uid)) {
+        throw new Error('Invalid or missing UID format');
+    }
 
-    // --- SECURITY CHECK START ---
-    // Fetch the target user's role to prevent privilege escalation.
-    // We assume if the fetch fails (user has no role/doesn't exist), they are not an admin.
+    // 4. Privilege Escalation Check
     const { data: targetRoleData } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('id', uid)
       .single()
 
-    // If the target user is an Admin, the requester MUST also be an Admin.
     if (targetRoleData && targetRoleData.role === 'admin' && roleData.role !== 'admin') {
       return new Response(JSON.stringify({ error: 'Unauthorized: Captains cannot delete Administrators' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
-    // --- SECURITY CHECK END ---
 
-    // 4. Perform the deletion from Supabase Auth
+    // 5. Execution
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(uid)
-    
     if (deleteError) throw deleteError
 
-    // 5. Also ensure their role entry is deleted (cleanup)
     await supabaseAdmin.from('user_roles').delete().eq('id', uid)
 
     return new Response(JSON.stringify({ success: true, message: `User ${uid} deleted` }), {

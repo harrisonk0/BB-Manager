@@ -22,8 +22,8 @@ export const useAppData = (
   const [dataError, setDataError] = useState<string | null>(null);
   
   // Use a ref to track if we've already loaded data for a specific section/user combo
-  // to prevent reloading if the user object reference changes but ID is same
   const loadedRef = useRef<{ section: Section | null, userId: string | undefined }>({ section: null, userId: undefined });
+  const syncAttempts = useRef(0);
 
   const refreshData = useCallback(async () => {
     if (!activeSection || !encryptionKey) return;
@@ -63,52 +63,52 @@ export const useAppData = (
   // Initial data load when activeSection or currentUser changes
   useEffect(() => {
     if (activeSection && currentUser && encryptionKey) {
-        // Only load if section or user ID has changed from what we last loaded
         if (loadedRef.current.section !== activeSection || loadedRef.current.userId !== currentUser.id) {
             loadedRef.current = { section: activeSection, userId: currentUser.id };
             loadDataAndSettings();
         }
     } else if (!currentUser || !encryptionKey) {
-      // Clear data if user logs out or key is missing
       setBoys([]);
       setSettings(null);
       setDataLoading(false);
       loadedRef.current = { section: null, userId: undefined };
     }
-  }, [activeSection, currentUser?.id, encryptionKey, loadDataAndSettings]); // Depend on ID and key
+  }, [activeSection, currentUser?.id, encryptionKey, loadDataAndSettings]);
 
-  // Handle online/offline sync and background data refresh events
+  // Handle online/offline sync with Exponential Backoff
   useEffect(() => {
-    let debounceTimer: NodeJS.Timeout;
+    let syncTimeout: NodeJS.Timeout;
+
+    const performSync = async () => {
+        if (!encryptionKey || !navigator.onLine) return;
+
+        try {
+            const success = await syncPendingWrites(encryptionKey);
+            if (success) {
+                Logger.info('Sync complete.');
+                syncAttempts.current = 0; // Reset attempts on success
+                refreshData();
+            } else {
+                throw new Error('Sync failed (likely network)');
+            }
+        } catch (error) {
+            syncAttempts.current++;
+            const delay = Math.min(1000 * (2 ** syncAttempts.current), 30000); // Cap at 30 seconds
+            Logger.warn(`Sync failed. Retrying in ${delay}ms...`, error);
+            syncTimeout = setTimeout(performSync, delay);
+        }
+    };
 
     const handleOnline = () => {
-        Logger.info('App came online. Debouncing sync...');
-        
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            if (!encryptionKey) {
-                Logger.warn('Cannot sync: Encryption key not available.');
-                return;
-            }
-            
-            Logger.info('Executing sync after debounce.');
-            syncPendingWrites(encryptionKey).then(synced => {
-                if (synced) {
-                    Logger.info('Sync complete, refreshing data.');
-                    showToast('Data synced successfully.', 'success');
-                    refreshData();
-                }
-            });
-        }, 3000); // 3 second debounce
+        Logger.info('App came online. Starting sync...');
+        performSync();
     };
     
     window.addEventListener('online', handleOnline);
     
-    // Also attempt sync on mount in case we just came online
-    if (encryptionKey) {
-        syncPendingWrites(encryptionKey).then(synced => {
-            if(synced) refreshData();
-        });
+    // Attempt sync on mount if online
+    if (encryptionKey && navigator.onLine) {
+        performSync();
     }
 
     const handleDataRefresh = (event: Event) => {
@@ -123,9 +123,9 @@ export const useAppData = (
     return () => {
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('datarefreshed', handleDataRefresh);
-        clearTimeout(debounceTimer);
+        clearTimeout(syncTimeout);
     };
-  }, [activeSection, encryptionKey, refreshData, showToast]);
+  }, [activeSection, encryptionKey, refreshData]);
 
   return { boys, settings, dataLoading, dataError, refreshData, setSettings };
 };

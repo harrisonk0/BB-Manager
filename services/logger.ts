@@ -1,8 +1,6 @@
 /**
  * @file logger.ts
  * @description Centralized logging service.
- * Currently wraps console methods but designed to be easily extended 
- * with a remote logging provider (e.g., Sentry, LogRocket) in the future.
  */
 
 type LogLevel = 'info' | 'warn' | 'error';
@@ -12,8 +10,9 @@ class LoggerService {
     const timestamp = new Date().toISOString();
     const payload = { timestamp, level, message, context };
 
-    // In a real production app, send 'payload' to Sentry/Datadog here.
-    
+    // Placeholder for Sentry/Datadog integration
+    // if (window.Sentry) window.Sentry.captureMessage(message, { level, extra: context });
+
     switch (level) {
       case 'info':
         console.log(`[${level.toUpperCase()}] ${message}`, context || '');
@@ -36,7 +35,6 @@ class LoggerService {
   }
 
   error(message: string, error?: any) {
-    // Extract meaningful info from Error objects
     const context = error instanceof Error 
       ? { message: error.message, stack: error.stack, ...error }
       : error;

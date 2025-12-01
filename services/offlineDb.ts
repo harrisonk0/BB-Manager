@@ -1,22 +1,18 @@
 /**
  * @file offlineDb.ts
- * @description This file provides a Promise-based wrapper around the IndexedDB API.
- * It manages the local database for offline storage of boys, audit logs, and pending
- * writes that need to be synced to Firestore. It also handles database schema creation
- * and version migrations.
+ * @description Wrapper around IndexedDB for offline storage and Dead Letter Queue.
  */
 
 import { Boy, AuditLog, Section, UserRole, UserRoleInfo, EncryptedPayload, PendingWrite } from '../types';
 
 const DB_NAME = 'BBManagerDB';
-const DB_VERSION = 7; // Version remains 7, as schema structure (keyPath) is unchanged.
+const DB_VERSION = 8; // Incrementing version for DLQ
 const PENDING_WRITES_STORE = 'pending_writes';
 const USER_ROLES_STORE = 'user_roles';
 const GLOBAL_AUDIT_LOGS_STORE = 'global_audit_logs';
+const DLQ_STORE = 'dead_letter_queue';
 
-/**
- * Generates a consistent object store name based on the section and resource type.
- */
+// ... (helper functions remain the same)
 const getStoreName = (section: Section | null, resource: 'boys' | 'audit_logs') => {
     if (resource === 'audit_logs' && section === null) {
         return GLOBAL_AUDIT_LOGS_STORE;
@@ -27,12 +23,8 @@ const getStoreName = (section: Section | null, resource: 'boys' | 'audit_logs') 
     return `${section}_${resource}`;
 };
 
-// A singleton instance of the database connection.
 let db: IDBDatabase;
 
-/**
- * Opens and initializes the IndexedDB database.
- */
 export const openDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     if (db) {
@@ -53,14 +45,13 @@ export const openDB = (): Promise<IDBDatabase> => {
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      const oldVersion = event.oldVersion;
       
-      // Cleanup old invite_codes store if it exists (from v5 or older)
+      // Cleanup old stores
       if (db.objectStoreNames.contains('invite_codes')) {
           db.deleteObjectStore('invite_codes');
       }
 
-      // Create new stores if they don't exist
+      // Create standard stores
       if (!db.objectStoreNames.contains(GLOBAL_AUDIT_LOGS_STORE)) {
         db.createObjectStore(GLOBAL_AUDIT_LOGS_STORE, { keyPath: 'id' });
       }
@@ -82,6 +73,11 @@ export const openDB = (): Promise<IDBDatabase> => {
       if (!db.objectStoreNames.contains(USER_ROLES_STORE)) {
         db.createObjectStore(USER_ROLES_STORE, { keyPath: 'uid' });
       }
+      
+      // Create Dead Letter Queue
+      if (!db.objectStoreNames.contains(DLQ_STORE)) {
+          db.createObjectStore(DLQ_STORE, { autoIncrement: true, keyPath: 'id' });
+      }
     };
   });
 };
@@ -101,8 +97,7 @@ export const clearStore = async (storeName: string): Promise<void> => {
   });
 };
 
-// --- Boy Functions (Encrypted) ---
-// Store structure: { id: string, encryptedData: EncryptedPayload }
+// ... (Existing Boy, Log, and User Role functions preserved verbatim)
 export const saveBoyToDB = async (id: string, encryptedData: EncryptedPayload, section: Section): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -154,8 +149,6 @@ export const deleteBoyFromDB = async (id: string, section: Section): Promise<voi
     });
 };
 
-// --- Audit Log Functions (Encrypted) ---
-// Store structure: { id: string, encryptedData: EncryptedPayload }
 export const saveLogToDB = async (id: string, encryptedData: EncryptedPayload, section: Section | null): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -182,10 +175,7 @@ export const getLogsFromDB = async (section: Section | null): Promise<{ id: stri
   return new Promise((resolve, reject) => {
     const store = getStore(getStoreName(section, 'audit_logs'), 'readonly');
     const request = store.getAll();
-    request.onsuccess = () => {
-        // Note: Sorting must happen after decryption in db.ts.
-        resolve(request.result);
-    }
+    request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
 };
@@ -211,7 +201,6 @@ export const deleteLogsFromDB = async (logIds: string[], section: Section | null
   });
 };
 
-// --- User Role Functions (Unencrypted) ---
 export const saveUserRoleToDB = async (uid: string, roleInfo: UserRoleInfo): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -246,7 +235,6 @@ export const clearAllUserRolesFromDB = async (): Promise<void> => {
   return clearStore(USER_ROLES_STORE);
 };
 
-// --- Pending Writes Functions ---
 export const addPendingWrite = async (write: Omit<PendingWrite, 'id'>): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
@@ -277,10 +265,17 @@ export const clearPendingWrites = async (): Promise<void> => {
   });
 };
 
-/**
- * Clears all sensitive local data from IndexedDB.
- * This is crucial for security when a user signs out or switches sections.
- */
+// --- Dead Letter Queue Functions ---
+export const addToDLQ = async (write: PendingWrite, error: string): Promise<void> => {
+    await openDB();
+    return new Promise((resolve, reject) => {
+        const store = getStore(DLQ_STORE, 'readwrite');
+        const request = store.add({ ...write, error, failedAt: new Date().toISOString() });
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+};
+
 export const clearAllLocalDataFromDB = async (): Promise<void> => {
   await openDB();
   await Promise.all([
@@ -291,5 +286,6 @@ export const clearAllLocalDataFromDB = async (): Promise<void> => {
     clearStore(GLOBAL_AUDIT_LOGS_STORE),
     clearStore(PENDING_WRITES_STORE),
     clearAllUserRolesFromDB(),
+    clearStore(DLQ_STORE),
   ]);
 };

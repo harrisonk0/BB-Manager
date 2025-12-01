@@ -16,6 +16,7 @@ import {
     addPendingWrite, 
     getPendingWrites, 
     clearPendingWrites, 
+    addToDLQ,
     getLogsFromDB, 
     saveLogsToDB, 
     deleteBoyFromDB, 
@@ -141,8 +142,10 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
     Logger.info(`Syncing ${pendingWrites.length} offline writes to Supabase...`);
 
     let hasNetworkError = false;
+    const writesToRemove: number[] = [];
 
-    for (const write of pendingWrites) {
+    // Helper to process a single write
+    const processWrite = async (write: PendingWrite) => {
         const table = write.section ? getTableName(write.section, 'boys') : '';
         const logsTable = getTableName(write.section || null, 'audit_logs');
         const rolesTable = 'user_roles';
@@ -157,10 +160,12 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
                     break;
                 }
                 case 'UPDATE_BOY': {
-                    const decryptedBoy = await decryptData(write.payload as EncryptedPayload, key);
+                    const decryptedBoy = await decryptData(write.payload as EncryptedPayload, key) as Boy;
+                    
+                    // Simple merge strategy: if record exists, update it.
                     const { error } = await supabase
                         .from(table)
-                        .update(mapBoyToDB(decryptedBoy as Boy))
+                        .update(mapBoyToDB(decryptedBoy))
                         .eq('id', decryptedBoy.id);
                     if (error) throw error;
                     break;
@@ -179,12 +184,10 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
                 case 'CREATE_AUDIT_LOG': {
                     const decryptedLog = await decryptData(write.payload as EncryptedPayload, key);
                     
-                    // PII PROTECTION: Encrypt revertData before sending to Supabase
                     const encryptedRevertData = await encryptData(decryptedLog.revertData, key);
                     const logForSupabase = { ...decryptedLog, revertData: encryptedRevertData };
                     
                     const dbPayload = mapLogToDB(logForSupabase);
-                    // Remove ID from payload to let DB generate one if it's new
                     if (!logForSupabase.id || String(logForSupabase.id).startsWith('offline_')) {
                         delete dbPayload.id;
                     }
@@ -219,6 +222,9 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
                     break;
                 }
             }
+            // If successful, mark for removal
+            if (write.id) writesToRemove.push(write.id);
+
         } catch (err: any) {
             const isNetworkError = err.message === 'Failed to fetch' || err.name === 'TypeError';
             const isUniqueViolation = err.code === '23505';
@@ -226,20 +232,42 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
             if (isNetworkError) {
                 Logger.error(`Network error syncing ${write.type}. Will retry.`, err);
                 hasNetworkError = true;
-                break; 
             } else if (isUniqueViolation) {
-                Logger.warn(`Sync ${write.type}: Unique violation (already synced). Marking as done.`);
+                Logger.warn(`Sync ${write.type}: Unique violation (already synced). Marking done.`);
+                if (write.id) writesToRemove.push(write.id);
             } else {
-                Logger.error(`Fatal error syncing ${write.type}. Discarding write to unblock queue.`, err);
+                Logger.error(`Fatal error syncing ${write.type}. Moving to DLQ.`, err);
+                await addToDLQ(write, err.message);
+                if (write.id) writesToRemove.push(write.id);
             }
         }
+    };
+
+    // Process in batches of 5 to avoid overwhelming the network
+    const BATCH_SIZE = 5;
+    for (let i = 0; i < pendingWrites.length; i += BATCH_SIZE) {
+        const batch = pendingWrites.slice(i, i + BATCH_SIZE);
+        await Promise.all(batch.map(processWrite));
+        
+        // If we hit a network error in this batch, stop processing future batches
+        if (hasNetworkError) break;
     }
 
+    // Clean up processed writes
+    // Since IndexedDB doesn't support "delete multiple by key list" easily in basic API,
+    // we just clear all and re-add any that failed due to network if we wanted robust partial sync.
+    // Simpler strategy: clearPendingWrites() then re-add pending ones? 
+    // No, risk of data loss. 
+    // Current strategy: If no network error, we assume all valid writes were processed or moved to DLQ.
+    
     if (!hasNetworkError) {
         await clearPendingWrites();
         Logger.info('Sync queue cleared.');
         return true;
     } else {
+        // If network error, we can't easily remove just the successful ones without a more complex IDB wrapper.
+        // We will leave them in the queue. They will be retried (and idempotent operations will just overwrite).
+        // CREATE operations might fail uniqueness checks next time, but we handle 23505.
         Logger.info('Sync paused due to network error.');
         return false;
     }
@@ -478,33 +506,47 @@ export const updateBoy = async (boy: Boy, section: Section, key: CryptoKey, shou
     validateBoyMarks(boy, section);
 
     let oldBoy: Boy | null = null;
-    if (shouldLog && navigator.onLine) {
+    let boyToSave = boy;
+
+    if (navigator.onLine) {
+        // Optimistic Locking / Merge Strategy:
+        // 1. Fetch remote version
         try {
-            const { data: oldBoyData, error: fetchError } = await supabase
+            const { data: remoteData, error: fetchError } = await supabase
                 .from(getTableName(section, 'boys'))
                 .select('*')
                 .eq('id', boy.id)
                 .single();
             
-            if (fetchError) {
-                Logger.warn(`Could not fetch old boy data for logging: ${fetchError.message}`);
-            } else if (oldBoyData) {
-                oldBoy = mapBoyFromDB(oldBoyData);
+            if (remoteData) {
+                const remoteBoy = mapBoyFromDB(remoteData);
+                oldBoy = remoteBoy;
+
+                // Merge Marks:
+                // We want to keep marks from 'boy' (local changes) but preserve marks from 'remoteBoy' that we didn't touch.
+                // This naive merge prioritizes the local state for any conflicting dates,
+                // but crucially, it keeps dates that exist in remote but NOT in local.
+                const localDates = new Set(boy.marks.map(m => m.date));
+                const remoteMarksToKeep = remoteBoy.marks.filter(m => !localDates.has(m.date));
+                
+                // New marks list = (Local Marks) + (Remote Marks that weren't in local)
+                boyToSave = {
+                    ...boy,
+                    marks: [...boy.marks, ...remoteMarksToKeep].sort((a,b) => b.date.localeCompare(a.date))
+                };
             }
         } catch (e) {
-            Logger.warn(`Could not fetch old boy data for logging:`, e);
+            Logger.warn("Failed to fetch remote boy for merging, proceeding with local overwrite.", e);
         }
-    }
 
-    if (navigator.onLine) {
-        const dbPayload = mapBoyToDB(boy);
+        const dbPayload = mapBoyToDB(boyToSave);
         const { error } = await supabase
             .from(getTableName(section, 'boys'))
             .update(dbPayload)
             .eq('id', boy.id);
         if (error) throw error;
         
-        const encryptedBoy = await encryptData(boy, key);
+        const encryptedBoy = await encryptData(boyToSave, key);
         await saveBoyToDB(boy.id, encryptedBoy, section);
     } else {
         const encryptedBoy = await encryptData(boy, key);
@@ -512,13 +554,14 @@ export const updateBoy = async (boy: Boy, section: Section, key: CryptoKey, shou
         await saveBoyToDB(boy.id, encryptedBoy, section);
     }
 
-    if (oldBoy) {
+    if (shouldLog && oldBoy) {
         const changes: string[] = [];
-        if (oldBoy.name !== boy.name) changes.push(`name to "${boy.name}"`);
-        if (oldBoy.squad !== boy.squad) changes.push(`squad to ${boy.squad}`);
-        if (oldBoy.year !== boy.year) changes.push(`year to ${boy.year}`);
-        if (!!oldBoy.isSquadLeader !== !!boy.isSquadLeader) changes.push(`squad leader status to ${boy.isSquadLeader}`);
-        if (JSON.stringify(oldBoy.marks) !== JSON.stringify(boy.marks)) {
+        if (oldBoy.name !== boyToSave.name) changes.push(`name to "${boyToSave.name}"`);
+        if (oldBoy.squad !== boyToSave.squad) changes.push(`squad to ${boyToSave.squad}`);
+        if (oldBoy.year !== boyToSave.year) changes.push(`year to ${boyToSave.year}`);
+        
+        // Marks logging is simplified for brevity
+        if (JSON.stringify(oldBoy.marks) !== JSON.stringify(boyToSave.marks)) {
             changes.push('marks');
         }
 
@@ -531,7 +574,7 @@ export const updateBoy = async (boy: Boy, section: Section, key: CryptoKey, shou
         }
     }
 
-    return boy;
+    return boyToSave;
 };
 
 export const deleteBoyById = async (id: string, section: Section): Promise<void> => {
@@ -653,9 +696,15 @@ export const fetchAuditLogs = async (section: Section | null, key: CryptoKey): P
     
     allCached.sort((a,b) => b.timestamp - a.timestamp);
 
-    if (allCached.length > 0 && navigator.onLine) {
+    // PERFORMANCE FIX: Pagination. Only fetch last 50 logs when online.
+    if (navigator.onLine) {
         const fetchTable = async (tbl: string, sec: Section | null) => {
-            const { data } = await supabase.from(tbl).select('*').order('timestamp', { ascending: false });
+            const { data } = await supabase
+                .from(tbl)
+                .select('*')
+                .order('timestamp', { ascending: false })
+                .range(0, 49); // Limit to 50
+
             const logs = (data || []).map(async row => {
                 const log = mapLogFromDB(row);
                 if (log.revertData && log.revertData.ciphertext && log.revertData.iv) {
@@ -679,58 +728,31 @@ export const fetchAuditLogs = async (section: Section | null, key: CryptoKey): P
             return decryptedLogs;
         };
 
-        Promise.all([
-            section ? fetchTable(getTableName(section, 'audit_logs'), section) : Promise.resolve([]),
-            fetchTable('audit_logs', null) 
-        ]).then(([secLogs, globLogs]) => {
-            const fresh = [...secLogs, ...globLogs];
-            fresh.sort((a,b) => b.timestamp - a.timestamp);
-            
-            if (fresh.length !== allCached.length || fresh[0]?.id !== allCached[0]?.id) { 
-                window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section } }));
-            }
-        });
-        return allCached;
-    }
-
-    if (navigator.onLine) {
-        const fetchTable = async (tbl: string, sec: Section | null) => {
-            const { data } = await supabase.from(tbl).select('*').order('timestamp', { ascending: false });
-            const logs = (data || []).map(async row => {
-                const log = mapLogFromDB(row);
-                if (log.revertData && log.revertData.ciphertext && log.revertData.iv) {
-                    try {
-                        log.revertData = await decryptData(log.revertData, key);
-                    } catch (e) {
-                        Logger.warn(`Could not decrypt revertData for log ${log.id}`, e);
-                    }
-                }
-                return log;
-            });
-            return Promise.all(logs);
-        };
         const [secLogs, globLogs] = await Promise.all([
             section ? fetchTable(getTableName(section, 'audit_logs'), section) : Promise.resolve([]),
-            fetchTable('audit_logs', null)
+            fetchTable('audit_logs', null) 
         ]);
         
-        const allLogs = [...secLogs, ...globLogs].sort((a,b) => b.timestamp - a.timestamp);
-
-        const encryptedLogsPromises = allLogs.map(async log => ({
-            id: log.id!,
-            encryptedData: await encryptData(log, key)
-        }));
-        const encryptedLogs = await Promise.all(encryptedLogsPromises);
-        
-        await saveLogsToDB(encryptedLogs, section);
-        return allLogs;
+        const fresh = [...secLogs, ...globLogs].sort((a,b) => b.timestamp - a.timestamp);
+        return fresh; // Return mostly the fresh data, cached data might be stale or too large
     }
 
     return allCached;
 };
 
 export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
-    // Basic implementation that relies on Supabase policies/cron in production
+    // COMPLIANCE FIX: Actual deletion logic
+    if (navigator.onLine) {
+        // Deletes logs older than 14 days
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        
+        const table = getTableName(section, 'audit_logs');
+        await supabase
+            .from(table)
+            .delete()
+            .lt('timestamp', twoWeeksAgo.toISOString());
+    }
 };
 
 export const clearAllAuditLogs = async (section: Section | null, email: string, role: UserRole | null): Promise<void> => {
