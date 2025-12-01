@@ -79,9 +79,11 @@ export const useAuthAndRole = () => {
         return;
       }
 
-      // Reset password recovery state on other events
-      if (isPasswordRecovery) {
-        setIsPasswordRecovery(false);
+      // If we are in password recovery mode, we should not proceed with the normal
+      // sign-in flow. We wait until the user resets their password and is signed out.
+      if (isPasswordRecovery && event !== 'SIGNED_OUT') {
+        setAuthLoading(false);
+        return;
       }
 
       if (session?.user) {
@@ -93,9 +95,11 @@ export const useAuthAndRole = () => {
         // Wait for role load before setting authLoading to false if it was true
         await loadUserRole(session.user);
       } else {
+        // This block handles SIGNED_OUT or when the session becomes null.
         setCurrentUser(null);
         setUserRole(null);
         setNoRoleError(null);
+        setIsPasswordRecovery(false); // Reset recovery state on sign out.
       }
       setAuthLoading(false);
     });
