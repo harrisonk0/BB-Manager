@@ -18,6 +18,8 @@ interface HomePageProps {
   activeSection: Section;
   /** Function to display a toast notification. */
   showToast: (message: string, type?: ToastType) => void;
+  /** The encryption key derived from the user session. */
+  encryptionKey: CryptoKey | null;
 }
 
 // Color mappings for squad names, specific to each section.
@@ -34,7 +36,7 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   4: 'text-yellow-600',
 };
 
-const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection, showToast }) => {
+const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection, showToast, encryptionKey }) => {
   // --- STATE MANAGEMENT ---
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -215,7 +217,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   };
   
   const handleDeleteBoy = async () => {
-    if (!boyToDelete) return;
+    if (!boyToDelete || !encryptionKey) return;
 
     try {
       await createAuditLog({
@@ -223,7 +225,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
           actionType: 'DELETE_BOY',
           description: `Deleted boy: ${boyToDelete.name}`,
           revertData: { boyData: boyToDelete },
-      }, activeSection);
+      }, activeSection, encryptionKey);
       
       await deleteBoyById(boyToDelete.id!, activeSection);
       
@@ -396,7 +398,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
       {/* Modals for Add/Edit Form and Delete Confirmation */}
       <Modal isOpen={isFormModalOpen} onClose={handleCloseFormModal} title={boyToEdit ? 'Edit Boy' : 'Add New Boy'}>
-        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} activeSection={activeSection} allBoys={boys} />
+        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} activeSection={activeSection} allBoys={boys} encryptionKey={encryptionKey} />
       </Modal>
 
       <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Confirm Deletion">

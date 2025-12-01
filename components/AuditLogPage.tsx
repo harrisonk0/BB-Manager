@@ -15,6 +15,8 @@ interface AuditLogPageProps {
   activeSection: Section;
   showToast: (message: string, type?: ToastType) => void;
   userRole: UserRole | null;
+  /** The encryption key derived from the user session. */
+  encryptionKey: CryptoKey | null;
 }
 
 const ACTION_ICONS: Record<AuditLogActionType, React.FC<{className?: string}>> = {
@@ -33,7 +35,7 @@ const ACTION_ICONS: Record<AuditLogActionType, React.FC<{className?: string}>> =
   CLEAR_LOCAL_DATA: TrashIcon,
 };
 
-const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection, showToast, userRole }) => {
+const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection, showToast, userRole, encryptionKey }) => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,10 +61,15 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
   };
 
   const loadLogs = useCallback(async () => {
+    if (!encryptionKey) {
+        setError('Encryption key missing. Cannot load audit logs.');
+        setLoading(false);
+        return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const fetchedLogs = await fetchAuditLogs(activeSection);
+      const fetchedLogs = await fetchAuditLogs(activeSection, encryptionKey);
       setLogs(fetchedLogs);
     } catch (err) {
       console.error(err);
@@ -70,7 +77,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     } finally {
       setLoading(false);
     }
-  }, [activeSection]);
+  }, [activeSection, encryptionKey]);
 
   useEffect(() => {
     loadLogs();
@@ -104,7 +111,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
   };
 
   const handleRevert = async () => {
-    if (!logToRevert) return;
+    if (!logToRevert || !encryptionKey) return;
 
     setIsReverting(true);
     setError(null);
@@ -117,13 +124,13 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
           await deleteBoyById(revertData.boyId, activeSection);
           break;
         case 'DELETE_BOY':
-          await recreateBoy(revertData.boyData as Boy, activeSection);
+          await recreateBoy(revertData.boyData as Boy, activeSection, encryptionKey);
           break;
         case 'UPDATE_BOY':
           if (revertData.boyData) { 
-            await updateBoy(revertData.boyData as Boy, activeSection, false);
+            await updateBoy(revertData.boyData as Boy, activeSection, encryptionKey, false);
           } else if (revertData.boysData) { 
-            const updates = (revertData.boysData as Boy[]).map(boy => updateBoy(boy, activeSection, false));
+            const updates = (revertData.boysData as Boy[]).map(boy => updateBoy(boy, activeSection, encryptionKey, false));
             await Promise.all(updates);
           }
           break;
@@ -131,10 +138,10 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
             await saveSettings(activeSection, revertData.settings as SectionSettings, userRole);
             break;
         case 'UPDATE_USER_ROLE':
-            await updateUserRole(revertData.uid, revertData.oldRole as UserRole, revertData.oldSections as Section[], userRole);
+            await updateUserRole(revertData.uid, revertData.oldRole as UserRole, revertData.oldSections as Section[], userRole, encryptionKey);
             break;
         case 'APPROVE_USER':
-            await updateUserRole(revertData.uid, revertData.oldRole as UserRole, revertData.oldSections as Section[], userRole);
+            await updateUserRole(revertData.uid, revertData.oldRole as UserRole, revertData.oldSections as Section[], userRole, encryptionKey);
             break;
         default:
           throw new Error('This action cannot be reverted.');
@@ -145,7 +152,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
         description: `Reverted action: "${logToRevert.description}"`,
         revertData: {}, 
         revertedLogId: logToRevert.id,
-      }, logToRevert.section || null); 
+      }, logToRevert.section || null, encryptionKey); 
       
       showToast('Action reverted successfully.', 'success');
       refreshData();

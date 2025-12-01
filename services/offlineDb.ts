@@ -6,22 +6,10 @@
  * and version migrations.
  */
 
-import { Boy, AuditLog, Section, UserRole, UserRoleInfo } from '../types';
-
-/**
- * Defines the structure of an object in the 'pending_writes' store.
- * Each object represents a database operation that occurred while offline.
- */
-export type PendingWrite = {
-  id?: number;
-  section?: Section; // Section is optional for global audit logs
-  type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG' | 'UPDATE_USER_ROLE' | 'DELETE_USER_ROLE';
-  payload: any;
-  tempId?: string; // Used to track temporarily created boys before they get a real Firestore ID.
-};
+import { Boy, AuditLog, Section, UserRole, UserRoleInfo, EncryptedPayload, PendingWrite } from '../types';
 
 const DB_NAME = 'BBManagerDB';
-const DB_VERSION = 7; // Incrementing version to store full UserRoleInfo object
+const DB_VERSION = 7; // Version remains 7, as schema structure (keyPath) is unchanged.
 const PENDING_WRITES_STORE = 'pending_writes';
 const USER_ROLES_STORE = 'user_roles';
 const GLOBAL_AUDIT_LOGS_STORE = 'global_audit_logs';
@@ -113,18 +101,19 @@ export const clearStore = async (storeName: string): Promise<void> => {
   });
 };
 
-// --- Boy Functions ---
-export const saveBoyToDB = async (boy: Boy, section: Section): Promise<void> => {
+// --- Boy Functions (Encrypted) ---
+// Store structure: { id: string, encryptedData: EncryptedPayload }
+export const saveBoyToDB = async (id: string, encryptedData: EncryptedPayload, section: Section): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const store = getStore(getStoreName(section, 'boys'), 'readwrite');
-    const request = store.put(boy);
+    const request = store.put({ id, encryptedData });
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
 };
 
-export const saveBoysToDB = async (boys: Boy[], section: Section): Promise<void> => {
+export const saveBoysToDB = async (boys: { id: string, encryptedData: EncryptedPayload }[], section: Section): Promise<void> => {
     await openDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(getStoreName(section, 'boys'), 'readwrite');
@@ -135,7 +124,7 @@ export const saveBoysToDB = async (boys: Boy[], section: Section): Promise<void>
     });
 };
 
-export const getBoysFromDB = async (section: Section): Promise<Boy[]> => {
+export const getBoysFromDB = async (section: Section): Promise<{ id: string, encryptedData: EncryptedPayload }[]> => {
     await openDB();
     return new Promise((resolve, reject) => {
         const store = getStore(getStoreName(section, 'boys'), 'readonly');
@@ -145,7 +134,7 @@ export const getBoysFromDB = async (section: Section): Promise<Boy[]> => {
     });
 };
 
-export const getBoyFromDB = async (id: string, section: Section): Promise<Boy | undefined> => {
+export const getBoyFromDB = async (id: string, section: Section): Promise<{ id: string, encryptedData: EncryptedPayload } | undefined> => {
     await openDB();
     return new Promise((resolve, reject) => {
         const store = getStore(getStoreName(section, 'boys'), 'readonly');
@@ -165,18 +154,19 @@ export const deleteBoyFromDB = async (id: string, section: Section): Promise<voi
     });
 };
 
-// --- Audit Log Functions ---
-export const saveLogToDB = async (log: AuditLog, section: Section | null): Promise<void> => {
+// --- Audit Log Functions (Encrypted) ---
+// Store structure: { id: string, encryptedData: EncryptedPayload }
+export const saveLogToDB = async (id: string, encryptedData: EncryptedPayload, section: Section | null): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const store = getStore(getStoreName(section, 'audit_logs'), 'readwrite');
-    const request = store.put(log);
+    const request = store.put({ id, encryptedData });
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
 };
 
-export const saveLogsToDB = async (logs: AuditLog[], section: Section | null): Promise<void> => {
+export const saveLogsToDB = async (logs: { id: string, encryptedData: EncryptedPayload }[], section: Section | null): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(getStoreName(section, 'audit_logs'), 'readwrite');
@@ -187,14 +177,14 @@ export const saveLogsToDB = async (logs: AuditLog[], section: Section | null): P
   });
 };
 
-export const getLogsFromDB = async (section: Section | null): Promise<AuditLog[]> => {
+export const getLogsFromDB = async (section: Section | null): Promise<{ id: string, encryptedData: EncryptedPayload }[]> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const store = getStore(getStoreName(section, 'audit_logs'), 'readonly');
     const request = store.getAll();
     request.onsuccess = () => {
-        const sortedLogs = request.result.sort((a,b) => b.timestamp - a.timestamp);
-        resolve(sortedLogs);
+        // Note: Sorting must happen after decryption in db.ts.
+        resolve(request.result);
     }
     request.onerror = () => reject(request.error);
   });
@@ -221,7 +211,7 @@ export const deleteLogsFromDB = async (logIds: string[], section: Section | null
   });
 };
 
-// --- User Role Functions ---
+// --- User Role Functions (Unencrypted) ---
 export const saveUserRoleToDB = async (uid: string, roleInfo: UserRoleInfo): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {

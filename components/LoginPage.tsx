@@ -13,9 +13,11 @@ interface LoginPageProps {
   showToast: (message: string, type?: ToastType) => void;
   /** Callback to navigate to the signup page. */
   onNavigateToSignup: (view: View) => void;
+  /** The encryption key derived from the user session. */
+  encryptionKey: CryptoKey | null;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNavigateToSignup }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNavigateToSignup, encryptionKey }) => {
   // State for form inputs, error messages, and loading status.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,6 +63,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
       setError('Please enter your email address to reset your password.');
       return;
     }
+    if (!encryptionKey) {
+        showToast('Authentication error: Encryption key missing. Please try logging in first.', 'error');
+        return;
+    }
     setIsSendingResetEmail(true);
     setError(null);
     try {
@@ -72,7 +78,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
           description: `Password reset requested for ${email}.`,
           revertData: {},
           userEmail: email,
-      }, null);
+      }, null, encryptionKey);
 
       showToast('Password reset email sent! Check your inbox.', 'success');
     } catch (err: any) {

@@ -15,6 +15,8 @@ interface WeeklyMarksPageProps {
   settings: SectionSettings | null;
   /** Function to display a toast notification. */
   showToast: (message: string, type?: ToastType) => void;
+  /** The encryption key derived from the user session. */
+  encryptionKey: CryptoKey | null;
 }
 
 // Section-specific color mappings for squad names.
@@ -50,7 +52,7 @@ const getNearestMeetingDay = (meetingDay: number): string => {
   return today.toISOString().split('T')[0];
 };
 
-const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings, showToast }) => {
+const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings, showToast, encryptionKey }) => {
   // --- STATE MANAGEMENT ---
   const [selectedDate, setSelectedDate] = useState('');
   const [marks, setMarks] = useState<Record<string, CompanyMarkState | JuniorMarkState>>({});
@@ -250,6 +252,11 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       showToast('Please correct the errors before saving.', 'error');
       return;
     }
+    
+    if (!encryptionKey) {
+        showToast('Encryption key missing. Cannot save sensitive data.', 'error');
+        return;
+    }
 
     setIsSaving(true);
     
@@ -313,7 +320,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         // If this boy's marks have changed, add them to the update list.
         if (hasChanged) {
             changedBoysOldData.push(JSON.parse(JSON.stringify(boy))); // Deep copy for revert data.
-            return updateBoy({ ...boy, marks: updatedMarks }, activeSection, false);
+            return updateBoy({ ...boy, marks: updatedMarks }, activeSection, encryptionKey, false);
         }
         return Promise.resolve(null);
     });
@@ -326,7 +333,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                 actionType: 'UPDATE_BOY',
                 description: `Updated weekly marks for ${selectedDate} for ${changedBoysOldData.length} boys.`,
                 revertData: { boysData: changedBoysOldData }, // Save all old boy objects for potential revert.
-            }, activeSection);
+            }, activeSection, encryptionKey);
         }
         await Promise.all(updates);
         showToast('Marks saved successfully!', 'success');

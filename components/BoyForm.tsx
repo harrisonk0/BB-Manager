@@ -19,9 +19,11 @@ interface BoyFormProps {
   activeSection: Section;
   /** The full list of boys, used to check for squad leader conflicts. */
   allBoys: Boy[];
+  /** The encryption key derived from the user session. */
+  encryptionKey: CryptoKey | null;
 }
 
-const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSection, allBoys }) => {
+const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSection, allBoys, encryptionKey }) => {
   const isCompany = activeSection === 'company';
   
   const initialSquad = isCompany ? 1 : 1;
@@ -58,16 +60,18 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
   }, [boyToEdit, activeSection]);
 
   const executeSave = async (boyData: Omit<Boy, 'marks'> & { id?: string }) => {
+    if (!encryptionKey) throw new Error("Encryption key missing.");
+
     if (boyToEdit) {
-      await updateBoy({ ...boyToEdit, ...boyData }, activeSection);
+      await updateBoy({ ...boyToEdit, ...boyData }, activeSection, encryptionKey);
       onSave(false, boyData.name);
     } else {
-      const newBoy = await createBoy({ ...boyData, marks: [] }, activeSection);
+      const newBoy = await createBoy({ ...boyData, marks: [] }, activeSection, encryptionKey);
       await createAuditLog({
           actionType: 'CREATE_BOY',
           description: `Added new boy: ${boyData.name}`,
           revertData: { boyId: newBoy.id },
-      }, activeSection);
+      }, activeSection, encryptionKey);
       onSave(true, boyData.name);
     }
   };
@@ -83,6 +87,10 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     if (!name.trim()) {
       setNameError('Name cannot be empty.');
       isValid = false;
+    }
+    if (!encryptionKey) {
+        setNameError('Authentication error: Encryption key missing.');
+        isValid = false;
     }
 
     if (!isValid) {
@@ -124,14 +132,14 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
   };
 
   const handleConfirmLeaderChange = async () => {
-    if (!leaderConflict) return;
+    if (!leaderConflict || !encryptionKey) return;
 
     setIsSubmitting(true);
     const { existingLeader, incomingBoyData } = leaderConflict;
 
     try {
       // The updateBoy function will now handle logging this change.
-      await updateBoy({ ...existingLeader, isSquadLeader: false }, activeSection);
+      await updateBoy({ ...existingLeader, isSquadLeader: false }, activeSection, encryptionKey);
 
       await executeSave(incomingBoyData);
 

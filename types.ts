@@ -95,6 +95,14 @@ export interface AuditLog {
 }
 
 /**
+ * Represents an encrypted payload stored in IndexedDB.
+ */
+export interface EncryptedPayload {
+  ciphertext: ArrayBuffer;
+  iv: ArrayBuffer;
+}
+
+/**
  * Represents the main pages available in the application's navigation.
  */
 export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'globalSettings' | 'accountSettings' | 'signup';
@@ -154,6 +162,19 @@ export interface UserRoleInfo {
   role: UserRole;
   sections: Section[];
 }
+
+/**
+ * Defines the structure of an object in the 'pending_writes' store.
+ * Each object represents a database operation that occurred while offline.
+ */
+export type PendingWrite = {
+  id?: number;
+  section?: Section; // Section is optional for global audit logs
+  type: 'CREATE_BOY' | 'UPDATE_BOY' | 'DELETE_BOY' | 'RECREATE_BOY' | 'CREATE_AUDIT_LOG' | 'UPDATE_USER_ROLE' | 'DELETE_USER_ROLE';
+  // Payload is now the encrypted data for sensitive types, or raw data for others.
+  payload: any; 
+  tempId?: string; // Used to track temporarily created boys before they get a real Firestore ID.
+};
 
 // Import the User type from @supabase/supabase-js to extend it correctly
 import { User } from '@supabase/supabase-js';

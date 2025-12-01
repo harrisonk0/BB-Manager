@@ -12,7 +12,8 @@ import { Boy, Section, SectionSettings, ToastType } from '../types';
 export const useAppData = (
   activeSection: Section | null,
   showToast: (message: string, type?: ToastType) => void,
-  currentUser: any // User type from firebase/auth
+  currentUser: any, // User type from firebase/auth
+  encryptionKey: CryptoKey | null // New dependency
 ) => {
   const [boys, setBoys] = useState<Boy[]>([]);
   const [settings, setSettings] = useState<SectionSettings | null>(null);
@@ -24,10 +25,10 @@ export const useAppData = (
   const loadedRef = useRef<{ section: Section | null, userId: string | undefined }>({ section: null, userId: undefined });
 
   const refreshData = useCallback(async () => {
-    if (!activeSection) return;
+    if (!activeSection || !encryptionKey) return;
     try {
         const [allBoys, sectionSettings] = await Promise.all([
-          fetchBoys(activeSection),
+          fetchBoys(activeSection, encryptionKey),
           getSettings(activeSection)
         ]);
         setBoys(allBoys.sort((a, b) => a.name.localeCompare(b.name)));
@@ -37,10 +38,10 @@ export const useAppData = (
         console.error("Failed to refresh data:", err);
         setDataError(`Could not refresh data. Please check your connection. Error: ${err.message}`);
     }
-  }, [activeSection, showToast]);
+  }, [activeSection, encryptionKey, showToast]);
 
   const loadDataAndSettings = useCallback(async () => {
-    if (!activeSection || !currentUser) {
+    if (!activeSection || !currentUser || !encryptionKey) {
         setDataLoading(false);
         return;
     }
@@ -56,30 +57,34 @@ export const useAppData = (
     } finally {
       setDataLoading(false);
     }
-  }, [activeSection, currentUser, refreshData]);
+  }, [activeSection, currentUser, encryptionKey, refreshData]);
 
   // Initial data load when activeSection or currentUser changes
   useEffect(() => {
-    if (activeSection && currentUser) {
+    if (activeSection && currentUser && encryptionKey) {
         // Only load if section or user ID has changed from what we last loaded
         if (loadedRef.current.section !== activeSection || loadedRef.current.userId !== currentUser.id) {
             loadedRef.current = { section: activeSection, userId: currentUser.id };
             loadDataAndSettings();
         }
-    } else if (!currentUser) {
-      // Clear data if user logs out
+    } else if (!currentUser || !encryptionKey) {
+      // Clear data if user logs out or key is missing
       setBoys([]);
       setSettings(null);
       setDataLoading(false);
       loadedRef.current = { section: null, userId: undefined };
     }
-  }, [activeSection, currentUser?.id, loadDataAndSettings]); // Depend on ID, not object
+  }, [activeSection, currentUser?.id, encryptionKey, loadDataAndSettings]); // Depend on ID and key
 
   // Handle online/offline sync and background data refresh events
   useEffect(() => {
     const handleOnline = () => {
         console.log('App is online, attempting to sync...');
-        syncPendingWrites().then(synced => {
+        if (!encryptionKey) {
+            console.warn('Cannot sync: Encryption key not available.');
+            return;
+        }
+        syncPendingWrites(encryptionKey).then(synced => {
             if (synced) {
                 console.log('Sync complete, refreshing data.');
                 showToast('Data synced successfully.', 'success');
@@ -90,9 +95,11 @@ export const useAppData = (
     
     window.addEventListener('online', handleOnline);
     // Also attempt sync on mount in case we just came online
-    syncPendingWrites().then(synced => {
-        if(synced) refreshData();
-    });
+    if (encryptionKey) {
+        syncPendingWrites(encryptionKey).then(synced => {
+            if(synced) refreshData();
+        });
+    }
 
     const handleDataRefresh = (event: Event) => {
         const customEvent = event as CustomEvent;
@@ -107,7 +114,7 @@ export const useAppData = (
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('datarefreshed', handleDataRefresh);
     };
-  }, [activeSection, refreshData, showToast]);
+  }, [activeSection, encryptionKey, refreshData, showToast]);
 
   return { boys, settings, dataLoading, dataError, refreshData, setSettings };
 };

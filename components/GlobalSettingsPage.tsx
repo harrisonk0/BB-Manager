@@ -19,6 +19,8 @@ interface GlobalSettingsPageProps {
   userRole: UserRole | null;
   refreshData: () => void;
   currentUser: any;
+  /** The encryption key derived from the user session. */
+  encryptionKey: CryptoKey | null;
 }
 
 interface UserWithEmailAndRole {
@@ -37,7 +39,7 @@ const USER_ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
 
 const ROLE_SORT_ORDER: UserRole[] = ['admin', 'captain', 'officer', 'pending'];
 
-const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, showToast, userRole, refreshData, currentUser }) => {
+const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, showToast, userRole, refreshData, currentUser, encryptionKey }) => {
   const [usersWithRoles, setUsersWithRoles] = useState<UserWithEmailAndRole[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   
@@ -125,7 +127,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   };
 
   const confirmApprove = async () => {
-      if (!userToActOn) return;
+      if (!userToActOn || !encryptionKey) return;
       setIsSaving(true);
       const sectionsToSave = approveRole === 'officer' ? approveSections : [];
       if (approveRole === 'officer' && sectionsToSave.length === 0) {
@@ -134,7 +136,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
           return;
       }
       try {
-          await approveUser(userToActOn.uid, userToActOn.email, approveRole, sectionsToSave, userRole);
+          await approveUser(userToActOn.uid, userToActOn.email, approveRole, sectionsToSave, userRole, encryptionKey);
           showToast(`User ${userToActOn.email} approved.`, 'success');
           loadUsersWithRoles();
           setIsApproveModalOpen(false);
@@ -147,10 +149,10 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   };
 
   const confirmDeny = async () => {
-      if (!userToActOn) return;
+      if (!userToActOn || !encryptionKey) return;
       setIsSaving(true);
       try {
-          await denyUser(userToActOn.uid, userToActOn.email, userRole);
+          await denyUser(userToActOn.uid, userToActOn.email, userRole, encryptionKey);
           showToast(`User ${userToActOn.email} denied.`, 'success');
           loadUsersWithRoles();
           setIsDenyModalOpen(false);
@@ -172,7 +174,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   };
 
   const handleSaveUser = async () => {
-    if (!userToEdit || !selectedNewRole) return;
+    if (!userToEdit || !selectedNewRole || !encryptionKey) return;
     setRoleEditError(null);
     const sectionsToSave = ['admin', 'captain'].includes(selectedNewRole) ? [] : selectedNewSections;
     if (selectedNewRole === 'officer' && sectionsToSave.length === 0) {
@@ -181,7 +183,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     }
     setIsSaving(true);
     try {
-      await updateUserRole(userToEdit.uid, selectedNewRole, sectionsToSave, userRole);
+      await updateUserRole(userToEdit.uid, selectedNewRole, sectionsToSave, userRole, encryptionKey);
       showToast(`User ${userToEdit.email} updated successfully.`, 'success');
       loadUsersWithRoles();
       setIsEditUserModalOpen(false);
@@ -199,10 +201,10 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   };
 
   const confirmDeleteUser = async () => {
-    if (!userToDelete) return;
+    if (!userToDelete || !encryptionKey) return;
     setIsDeletingUser(true);
     try {
-      await deleteUserRole(userToDelete.uid, userToDelete.email, userRole); 
+      await deleteUserRole(userToDelete.uid, userToDelete.email, userRole, encryptionKey); 
       showToast(`User '${userToDelete.email}' and their account were permanently deleted.`, 'success');
       loadUsersWithRoles();
       setIsDeleteUserModalOpen(false);

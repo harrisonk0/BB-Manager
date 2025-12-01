@@ -7,9 +7,11 @@ import { createAuditLog } from '../services/db';
 
 interface PasswordResetPageProps {
   showToast: (message: string, type?: ToastType) => void;
+  /** The encryption key derived from the user session. */
+  encryptionKey: CryptoKey | null;
 }
 
-const PasswordResetPage: React.FC<PasswordResetPageProps> = ({ showToast }) => {
+const PasswordResetPage: React.FC<PasswordResetPageProps> = ({ showToast, encryptionKey }) => {
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
@@ -40,6 +42,10 @@ const PasswordResetPage: React.FC<PasswordResetPageProps> = ({ showToast }) => {
       setNewPasswordConfirmError('New password and confirmation do not match.');
       isValid = false;
     }
+    if (!encryptionKey) {
+        setGeneralError('Authentication error: Encryption key missing.');
+        isValid = false;
+    }
 
     if (!isValid) {
       return;
@@ -57,7 +63,7 @@ const PasswordResetPage: React.FC<PasswordResetPageProps> = ({ showToast }) => {
           actionType: 'PASSWORD_RESET',
           description: `User ${user.email} successfully reset their password.`,
           revertData: {},
-      }, null);
+      }, null, encryptionKey);
 
       showToast('Password updated successfully! You can now log in.', 'success');
       // After a successful update, we sign the user out to force them to log in

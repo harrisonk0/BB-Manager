@@ -33,7 +33,7 @@ const App: React.FC = () => {
   const { toasts, showToast, removeToast } = useToastNotifications();
 
   // Use auth and role hook
-  const { currentUser, userRoleInfo, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRoleInfo, isPasswordRecovery } = useAuthAndRole();
+  const { currentUser, userRoleInfo, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRoleInfo, isPasswordRecovery, encryptionKey } = useAuthAndRole();
   const userRole = userRoleInfo?.role || null;
 
   // State for unsaved changes protection
@@ -52,7 +52,8 @@ const App: React.FC = () => {
   const { boys, settings, dataLoading, dataError, refreshData, setSettings } = useAppData(
     activeSection,
     showToast,
-    currentUser
+    currentUser,
+    encryptionKey
   );
 
   // Use unsaved changes protection hook
@@ -87,26 +88,26 @@ const App: React.FC = () => {
 
     switch (view.page) {
       case 'home':
-        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
+        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} encryptionKey={encryptionKey} />;
       case 'weeklyMarks':
-        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} settings={settings} showToast={showToast} />;
+        return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} settings={settings} showToast={showToast} encryptionKey={encryptionKey} />;
       case 'dashboard':
         return <DashboardPage boys={boys} activeSection={activeSection!} />;
       case 'auditLog':
-        return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
+        return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} encryptionKey={encryptionKey} />;
       case 'settings': 
-        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} />;
+        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} encryptionKey={encryptionKey} />;
       case 'globalSettings': 
-        return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} currentUser={currentUser} />;
+        return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} currentUser={currentUser} encryptionKey={encryptionKey} />;
       case 'accountSettings': 
-        return <AccountSettingsPage showToast={showToast} />;
+        return <AccountSettingsPage showToast={showToast} encryptionKey={encryptionKey} />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
-        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} showToast={showToast} />;
+        return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} showToast={showToast} encryptionKey={encryptionKey} />;
       case 'signup':
         return null;
       default:
-        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
+        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} encryptionKey={encryptionKey} />;
     }
   };
   
@@ -117,7 +118,7 @@ const App: React.FC = () => {
     }
 
     if (isPasswordRecovery) {
-        return <PasswordResetPage showToast={showToast} />;
+        return <PasswordResetPage showToast={showToast} encryptionKey={encryptionKey} />;
     }
 
     if (noRoleError) {
@@ -142,7 +143,7 @@ const App: React.FC = () => {
         if (view.page === 'signup') {
             return <SignupPage onNavigateToHelp={() => setIsHelpModalOpen(true)} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => navigateWithProtection({ page: 'home' })} />;
         }
-        return <LoginPage onOpenHelpModal={() => setIsHelpModalOpen(true)} showToast={showToast} onNavigateToSignup={navigateWithProtection} />;
+        return <LoginPage onOpenHelpModal={() => setIsHelpModalOpen(true)} showToast={showToast} onNavigateToSignup={navigateWithProtection} encryptionKey={encryptionKey} />;
     }
 
     // Handle Pending Approval State
@@ -157,7 +158,7 @@ const App: React.FC = () => {
                     <>
                         <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
                         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} currentUser={currentUser} />
+                            <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} currentUser={currentUser} encryptionKey={encryptionKey} />
                         </main>
                     </>
                 );
@@ -166,7 +167,7 @@ const App: React.FC = () => {
                     <>
                         <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
                         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            <AccountSettingsPage showToast={showToast} />
+                            <AccountSettingsPage showToast={showToast} encryptionKey={encryptionKey} />
                         </main>
                     </>
                 );

@@ -7,9 +7,11 @@ import { createAuditLog } from '../services/db';
 
 interface AccountSettingsPageProps {
   showToast: (message: string, type?: ToastType) => void;
+  /** The encryption key derived from the user session. */
+  encryptionKey: CryptoKey | null;
 }
 
-const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) => {
+const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast, encryptionKey }) => {
   const [oldPassword, setOldPassword] = useState(''); // Note: Supabase updateUser doesn't strictly require this if logged in, but useful for extra verification logic if implemented manually.
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
@@ -45,6 +47,10 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
       setNewPasswordConfirmError('New password and confirmation do not match.');
       isValid = false;
     }
+    if (!encryptionKey) {
+        setGeneralError('Authentication error: Encryption key missing.');
+        isValid = false;
+    }
 
     if (!isValid) {
       return;
@@ -62,7 +68,7 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
           actionType: 'PASSWORD_CHANGE',
           description: `User ${user.email} changed their password.`,
           revertData: {},
-      }, null);
+      }, null, encryptionKey);
 
       showToast('Password changed successfully!', 'success');
       setOldPassword('');

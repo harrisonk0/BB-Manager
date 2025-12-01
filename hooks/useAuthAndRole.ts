@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/src/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { fetchUserRole } from '../services/db';
+import { clearPendingWrites } from '../services/offlineDb';
+import { deriveKeyFromToken } from '../services/crypto';
 import { UserRole, UserRoleInfo } from '../types';
 
 /**
@@ -15,12 +17,14 @@ export const useAuthAndRole = () => {
   const [userRoleInfo, setUserRoleInfo] = useState<UserRoleInfo | null>(null);
   const [noRoleError, setNoRoleError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [roleLoading, setRoleLoading] = useState(false); // New state to track role fetching
+  const [roleLoading, setRoleLoading] = useState(false);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [encryptionKey, setEncryptionKey] = useState<CryptoKey | null>(null);
 
   const performSignOut = useCallback(async () => {
     try {
       await supabase.auth.signOut();
+      await clearPendingWrites(); // Clear pending writes as the encryption key will change
       // State will be reset by the onAuthStateChange listener
     } catch (error) {
       console.error('Sign out failed', error);
@@ -33,8 +37,7 @@ export const useAuthAndRole = () => {
       const roleInfo = await fetchUserRole(user.id);
       if (roleInfo === null) {
         setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
-        // Force sign out if no role, but avoid loops by checking current state if needed.
-        // For now, simple signOut is safer.
+        // Force sign out if no role
         await supabase.auth.signOut(); 
         setCurrentUser(null);
         setUserRoleInfo(null);
@@ -50,18 +53,43 @@ export const useAuthAndRole = () => {
   useEffect(() => {
     let mounted = true;
 
+    const handleSession = async (session: Session | null) => {
+        if (!mounted) return;
+
+        if (session?.user) {
+            setCurrentUser(session.user);
+            
+            // --- Derive Encryption Key ---
+            if (session.access_token) {
+                try {
+                    const key = await deriveKeyFromToken(session.access_token);
+                    setEncryptionKey(key);
+                } catch (e) {
+                    console.error("Failed to derive encryption key:", e);
+                    // Critical failure: force sign out
+                    await performSignOut();
+                    return;
+                }
+            }
+            // -----------------------------
+
+            // Load role immediately, authLoading remains true until role is loaded or fails.
+            loadUserRole(session.user).finally(() => {
+                if (mounted) setAuthLoading(false);
+            });
+        } else {
+            setCurrentUser(null);
+            setUserRoleInfo(null);
+            setNoRoleError(null);
+            setEncryptionKey(null);
+            setAuthLoading(false);
+        }
+    };
+
     // 1. Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
-      if (session?.user) {
-        setCurrentUser(session.user);
-        // Load role immediately, authLoading remains true until role is loaded or fails.
-        loadUserRole(session.user).finally(() => {
-            if (mounted) setAuthLoading(false);
-        });
-      } else {
-        setAuthLoading(false);
-      }
+      handleSession(session);
     });
 
     // 2. Listen for changes
@@ -79,27 +107,17 @@ export const useAuthAndRole = () => {
         return;
       }
 
-      // If we are in password recovery mode, we should not proceed with the normal
-      // sign-in flow. We wait until the user resets their password and is signed out.
       if (isPasswordRecovery && event !== 'SIGNED_OUT') {
         setAuthLoading(false);
         return;
       }
 
-      if (session?.user) {
-        setCurrentUser(prev => {
-            if (prev?.id === session.user.id) return prev;
-            return session.user;
-        });
-        
-        // Wait for role load before setting authLoading to false if it was true
-        await loadUserRole(session.user);
-      } else {
-        // This block handles SIGNED_OUT or when the session becomes null.
-        setCurrentUser(null);
-        setUserRoleInfo(null);
-        setNoRoleError(null);
+      if (event === 'SIGNED_OUT') {
         setIsPasswordRecovery(false); // Reset recovery state on sign out.
+        handleSession(null);
+      } else if (session?.user) {
+        // Handle SIGNED_IN, TOKEN_REFRESHED, USER_UPDATED
+        handleSession(session);
       }
       setAuthLoading(false);
     });
@@ -107,8 +125,6 @@ export const useAuthAndRole = () => {
     // Listen for custom userrolerefresh event
     const handleUserRoleRefresh = (event: Event) => {
       const customEvent = event as CustomEvent;
-      // We need to access the current user from state, but we can't put it in deps or we loop.
-      // We'll trust the event detail UID match against the session user (which we can get fresh) or simply reload if we have a user.
       supabase.auth.getUser().then(({ data: { user } }) => {
           if (mounted && user && user.id === customEvent.detail.uid) {
              console.log('User role cache updated in background, refreshing UI...');
@@ -123,7 +139,7 @@ export const useAuthAndRole = () => {
       subscription.unsubscribe();
       window.removeEventListener('userrolerefresh', handleUserRoleRefresh);
     };
-  }, [loadUserRole, isPasswordRecovery]);
+  }, [loadUserRole, isPasswordRecovery, performSignOut]);
 
-  return { currentUser, userRoleInfo, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRoleInfo, isPasswordRecovery };
+  return { currentUser, userRoleInfo, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRoleInfo, isPasswordRecovery, encryptionKey };
 };

@@ -17,13 +17,15 @@ interface SettingsPageProps {
   onNavigateToGlobalSettings: () => void;
   /** Callback to navigate to the account settings page. */
   onNavigateToAccountSettings: () => void;
+  /** The encryption key derived from the user session. */
+  encryptionKey: CryptoKey | null;
 }
 
 const WEEKDAYS = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
 
-const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole, onNavigateToGlobalSettings, onNavigateToAccountSettings }) => {
+const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSettings, onSettingsSaved, showToast, userRole, onNavigateToGlobalSettings, onNavigateToAccountSettings, encryptionKey }) => {
   const [meetingDay, setMeetingDay] = useState<number>(5);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +48,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
         showToast('Permission denied: You do not have permission to save settings.', 'error');
         return;
     }
+    if (!encryptionKey) {
+        showToast('Encryption key missing. Cannot save settings audit log.', 'error');
+        return;
+    }
 
     setIsSaving(true);
     setError(null);
@@ -60,7 +66,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
         actionType: 'UPDATE_SETTINGS',
         description: `Updated meeting day from ${oldDay} to ${newDay}.`,
         revertData: { settings: currentSettings },
-      }, activeSection);
+      }, activeSection, encryptionKey);
 
       await saveSettings(activeSection, newSettings, userRole);
       onSettingsSaved(newSettings);

@@ -17,6 +17,8 @@ interface BoyMarksPageProps {
   setHasUnsavedChanges: (dirty: boolean) => void;
   activeSection: Section;
   showToast: (message: string, type?: ToastType) => void;
+  /** The encryption key derived from the user session. */
+  encryptionKey: CryptoKey | null;
 }
 
 // Section-specific color mappings.
@@ -46,7 +48,7 @@ type EditableMark = {
   behaviourScore?: number | '';
 };
 
-const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges, activeSection, showToast }) => {
+const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges, activeSection, showToast, encryptionKey }) => {
   // --- STATE MANAGEMENT ---
   const [boy, setBoy] = useState<Boy | null>(null);
   const [editedMarks, setEditedMarks] = useState<EditableMark[]>([]);
@@ -62,10 +64,15 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
    * Fetches the specific boy's data from the database.
    */
   const fetchBoyData = useCallback(async () => {
+    if (!encryptionKey) {
+        setError('Encryption key missing. Cannot load data.');
+        setLoading(false);
+        return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const boyData = await fetchBoyById(boyId, activeSection);
+      const boyData = await fetchBoyById(boyId, activeSection, encryptionKey);
       if (boyData) {
         // Sort marks by date descending for display.
         boyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -81,7 +88,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     } finally {
       setLoading(false);
     }
-  }, [boyId, activeSection]);
+  }, [boyId, activeSection, encryptionKey]);
 
   // Fetch data when the component mounts or the ID changes.
   useEffect(() => {
@@ -201,6 +208,10 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
 
   const handleSaveChanges = async () => {
     if (!boy || !isDirty) return;
+    if (!encryptionKey) {
+        showToast('Encryption key missing. Cannot save sensitive data.', 'error');
+        return;
+    }
     setIsSaving(true);
     setError(null);
 
@@ -223,7 +234,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
 
     try {
       // The updateBoy function will now handle logging.
-      await updateBoy(updatedBoyData, activeSection);
+      await updateBoy(updatedBoyData, activeSection, encryptionKey);
       
       // Update local state to match the saved data.
       updatedBoyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
