@@ -269,6 +269,8 @@ export const fetchAllUserRoles = async (actingUserRole: UserRole | null): Promis
     const { data, error } = await supabase.from('user_roles').select('*');
     if (error) throw error;
 
+    console.log("Fetched User Roles:", data); // DEBUG: Log the fetched users
+
     return data.map(row => ({
         uid: row.id,
         email: row.email,
