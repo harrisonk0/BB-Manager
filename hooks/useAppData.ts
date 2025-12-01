@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchBoys, syncPendingWrites, deleteOldAuditLogs } from '../services/db';
 import { getSettings } from '../services/settings';
 import { Boy, Section, SectionSettings, ToastType } from '../types';
+import { Logger } from '../services/logger';
 
 /**
  * Custom hook for managing core application data (boys, settings) and their synchronization.
@@ -35,10 +36,10 @@ export const useAppData = (
         setSettings(sectionSettings);
         setDataError(null);
     } catch (err: any) {
-        console.error("Failed to refresh data:", err);
+        Logger.error("Failed to refresh data", err);
         setDataError(`Could not refresh data. Please check your connection. Error: ${err.message}`);
     }
-  }, [activeSection, encryptionKey, showToast]);
+  }, [activeSection, encryptionKey]);
 
   const loadDataAndSettings = useCallback(async () => {
     if (!activeSection || !currentUser || !encryptionKey) {
@@ -52,7 +53,7 @@ export const useAppData = (
       await deleteOldAuditLogs(activeSection); // Clean up old logs on load
       await refreshData();
     } catch (err: any) {
-      console.error("Failed to fetch data:", err);
+      Logger.error("Failed to fetch data", err);
       setDataError(`Failed to connect to the database. You may not have permission. Error: ${err.message}`);
     } finally {
       setDataLoading(false);
@@ -78,22 +79,31 @@ export const useAppData = (
 
   // Handle online/offline sync and background data refresh events
   useEffect(() => {
+    let debounceTimer: NodeJS.Timeout;
+
     const handleOnline = () => {
-        console.log('App is online, attempting to sync...');
-        if (!encryptionKey) {
-            console.warn('Cannot sync: Encryption key not available.');
-            return;
-        }
-        syncPendingWrites(encryptionKey).then(synced => {
-            if (synced) {
-                console.log('Sync complete, refreshing data.');
-                showToast('Data synced successfully.', 'success');
-                refreshData();
+        Logger.info('App came online. Debouncing sync...');
+        
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            if (!encryptionKey) {
+                Logger.warn('Cannot sync: Encryption key not available.');
+                return;
             }
-        });
+            
+            Logger.info('Executing sync after debounce.');
+            syncPendingWrites(encryptionKey).then(synced => {
+                if (synced) {
+                    Logger.info('Sync complete, refreshing data.');
+                    showToast('Data synced successfully.', 'success');
+                    refreshData();
+                }
+            });
+        }, 3000); // 3 second debounce
     };
     
     window.addEventListener('online', handleOnline);
+    
     // Also attempt sync on mount in case we just came online
     if (encryptionKey) {
         syncPendingWrites(encryptionKey).then(synced => {
@@ -104,7 +114,7 @@ export const useAppData = (
     const handleDataRefresh = (event: Event) => {
         const customEvent = event as CustomEvent;
         if (activeSection && customEvent.detail.section === activeSection) {
-            console.log('Cache updated in background, refreshing UI data...');
+            Logger.info('Cache updated in background, refreshing UI data...');
             refreshData();
         }
     };
@@ -113,6 +123,7 @@ export const useAppData = (
     return () => {
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('datarefreshed', handleDataRefresh);
+        clearTimeout(debounceTimer);
     };
   }, [activeSection, encryptionKey, refreshData, showToast]);
 
