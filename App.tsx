@@ -16,6 +16,7 @@ import AccountSettingsPage from './components/AccountSettingsPage';
 import HelpPage from './components/HelpPage';
 import PendingApprovalPage from './components/PendingApprovalPage';
 import Toast from './components/Toast';
+import Modal from './components/Modal';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { View, BoyMarksPageView } from './types';
 
