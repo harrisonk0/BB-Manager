@@ -16,25 +16,24 @@ export const useAppData = (
   currentUser: any, // User type from firebase/auth
   encryptionKey: CryptoKey | null // New dependency
 ) => {
+  // Start with dataLoading as false, as we only load data once a section is selected.
   const [boys, setBoys] = useState<Boy[]>([]);
   const [settings, setSettings] = useState<SectionSettings | null>(null);
-  const [dataLoading, setDataLoading] = useState(true); // Internal loading state
+  const [dataLoading, setDataLoading] = useState(false); 
   const [dataError, setDataError] = useState<string | null>(null);
   
-  // Use a ref to track if we've already loaded data for a specific section/user combo
-  const loadedRef = useRef<{ section: Section | null, userId: string | undefined }>({ section: null, userId: undefined });
+  // Use a ref to track the last successfully loaded context (user/section)
+  const loadedContextRef = useRef<{ section: Section | null, userId: string | undefined }>({ section: null, userId: undefined });
   const syncAttempts = useRef(0);
 
-  // Derived state to prevent UI flicker: 
-  // If we have an active section and user, but the loaded reference doesn't match,
-  // we are technically "loading" (syncing) even if the effect hasn't run yet.
-  const isSyncingData = activeSection && currentUser && (
-      loadedRef.current.section !== activeSection || 
-      loadedRef.current.userId !== currentUser.id
+  // Determine if we are currently waiting for data based on context change
+  const isContextChanging = activeSection && currentUser && (
+      loadedContextRef.current.section !== activeSection || 
+      loadedContextRef.current.userId !== currentUser.id
   );
   
   // The effective loading state exposed to the component
-  const isLoading = dataLoading || !!isSyncingData;
+  const isLoading = dataLoading || !!isContextChanging;
 
   const refreshData = useCallback(async () => {
     if (!activeSection || !encryptionKey) return;
@@ -54,7 +53,10 @@ export const useAppData = (
 
   const loadDataAndSettings = useCallback(async () => {
     if (!activeSection || !currentUser || !encryptionKey) {
+        // If context is invalid, ensure we are not loading and clear data
         setDataLoading(false);
+        setBoys([]);
+        setSettings(null);
         return;
     }
     
@@ -63,6 +65,8 @@ export const useAppData = (
     try {
       await deleteOldAuditLogs(activeSection); // Clean up old logs on load
       await refreshData();
+      // Update the loaded context ref only upon successful data fetch
+      loadedContextRef.current = { section: activeSection, userId: currentUser.id };
     } catch (err: any) {
       Logger.error("Failed to fetch data", err);
       setDataError(`Failed to connect to the database. You may not have permission. Error: ${err.message}`);
@@ -71,24 +75,18 @@ export const useAppData = (
     }
   }, [activeSection, currentUser, encryptionKey, refreshData]);
 
-  // Initial data load when activeSection or currentUser changes
+  // Core data loading effect: runs when user/section context changes
   useEffect(() => {
-    if (activeSection && currentUser && encryptionKey) {
-        if (loadedRef.current.section !== activeSection || loadedRef.current.userId !== currentUser.id) {
-            loadedRef.current = { section: activeSection, userId: currentUser.id };
-            loadDataAndSettings();
-        }
-    } else if (!currentUser || !encryptionKey) {
-      setBoys([]);
-      setSettings(null);
-      setDataLoading(false);
-      loadedRef.current = { section: null, userId: undefined };
-    } else if (!activeSection && currentUser) {
-      // FIX: If logged in but no section selected, we are not loading data.
-      setDataLoading(false);
-      loadedRef.current = { section: null, userId: currentUser.id };
+    if (isContextChanging) {
+        loadDataAndSettings();
+    } else if (!currentUser || !activeSection) {
+        // If logged out or no section selected, reset data and context ref
+        setBoys([]);
+        setSettings(null);
+        setDataLoading(false);
+        loadedContextRef.current = { section: null, userId: undefined };
     }
-  }, [activeSection, currentUser?.id, encryptionKey, loadDataAndSettings]);
+  }, [isContextChanging, currentUser, activeSection, loadDataAndSettings]);
 
   // Handle online/offline sync with Exponential Backoff
   useEffect(() => {
