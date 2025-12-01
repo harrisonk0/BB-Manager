@@ -309,12 +309,14 @@ export const updateUserRole = async (uid: string, newRole: UserRole, actingUserR
     window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
     
     const { data: { user } } = await supabase.auth.getUser();
-    await createAuditLog({
+    // Ensure no ID is passed to createAuditLog
+    const { id, ...logData } = {
         userEmail: user?.email || 'Unknown',
         actionType: 'UPDATE_USER_ROLE',
         description: `Updated role for user ${uid} to ${newRole}.`,
         revertData: { uid, newRole }
-    }, null);
+    } as AuditLog;
+    await createAuditLog(logData, null);
 };
 
 export const deleteUserRole = async (uid: string, email: string, actingUserRole: UserRole | null): Promise<void> => {
@@ -335,23 +337,27 @@ export const deleteUserRole = async (uid: string, email: string, actingUserRole:
     window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
 
     const { data: { user } } = await supabase.auth.getUser();
-    await createAuditLog({
+    // Ensure no ID is passed to createAuditLog
+    const { id, ...logData } = {
         userEmail: user?.email || 'Unknown',
         actionType: 'DELETE_USER_ROLE',
         description: `Permanently deleted user ${email} and their account.`,
         revertData: { uid, email } 
-    }, null);
+    } as AuditLog;
+    await createAuditLog(logData, null);
 };
 
 export const approveUser = async (uid: string, email: string, newRole: UserRole, actingUserRole: UserRole | null): Promise<void> => {
     await updateUserRole(uid, newRole, actingUserRole);
     const { data: { user } } = await supabase.auth.getUser();
-    await createAuditLog({
+    // Ensure no ID is passed to createAuditLog
+    const { id, ...logData } = {
         userEmail: user?.email || 'Unknown',
         actionType: 'APPROVE_USER',
         description: `Approved user ${email} with role ${newRole}.`,
         revertData: { uid, role: 'pending' }
-    }, null);
+    } as AuditLog;
+    await createAuditLog(logData, null);
 };
 
 export const denyUser = async (uid: string, email: string, actingUserRole: UserRole | null): Promise<void> => {
@@ -371,12 +377,14 @@ export const denyUser = async (uid: string, email: string, actingUserRole: UserR
     window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
 
     const { data: { user } } = await supabase.auth.getUser();
-    await createAuditLog({
+    // Ensure no ID is passed to createAuditLog
+    const { id, ...logData } = {
         userEmail: user?.email || 'Unknown',
         actionType: 'DENY_USER',
         description: `Denied access for user ${email}.`,
         revertData: { uid, email, role: 'pending' } 
-    }, null);
+    } as AuditLog;
+    await createAuditLog(logData, null);
 };
 
 // --- Boy Functions ---
