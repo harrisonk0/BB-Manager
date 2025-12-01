@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import HomePage from './components/HomePage';
 import WeeklyMarksPage from './components/WeeklyMarksPage';
 import BoyMarksPage from './components/BoyMarksPage';
@@ -16,8 +16,8 @@ import AccountSettingsPage from './components/AccountSettingsPage';
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { initializeFirebase } from './services/firebase';
-import { View, Page, BoyMarksPageView, Section, ToastType } from './types';
+// Removed: import { initializeFirebase } from './services/firebase';
+import { View, BoyMarksPageView } from './types';
 import Modal from './components/Modal';
 
 // Import custom hooks
@@ -28,16 +28,6 @@ import { useAppData } from '@/hooks/useAppData';
 import { useUnsavedChangesProtection } from '@/hooks/useUnsavedChangesProtection';
 
 const App: React.FC = () => {
-  // Initialize Firebase once
-  useEffect(() => {
-    try {
-      initializeFirebase();
-    } catch (err: any) {
-      console.error(`Failed to initialize Firebase: ${err.message}`);
-      // This error should ideally be handled by a global error boundary
-    }
-  }, []);
-
   // Use toast notifications hook
   const { toasts, showToast, removeToast } = useToastNotifications();
 

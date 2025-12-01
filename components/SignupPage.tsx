@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { getAuthInstance } from '../services/firebase';
+import { supabase } from '@/src/integrations/supabase/client';
 import { fetchInviteCode, updateInviteCode, createAuditLog, setUserRole } from '../services/db';
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, Section } from '../types';
@@ -23,7 +22,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
-  const [error, setError] = useState<string | null>(null); // General error for Firebase issues
+  const [error, setError] = useState<string | null>(null);
   
   // Granular error states
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -80,13 +79,23 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
         return;
       }
 
-      // 2. Create User in Firebase Auth
-      const auth = getAuthInstance();
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const newUser = userCredential.user;
+      // 2. Create User in Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+      const newUser = data.user;
+
+      if (!newUser) {
+          throw new Error("Signup successful but no user returned.");
+      }
 
       // 3. Assign Default Role to New User
-      await setUserRole(newUser.uid, newUser.email || email, fetchedCode.defaultUserRole);
+      // Note: In Supabase, the user might not be fully "confirmed" yet if you have email verification on.
+      // However, we can still set the role for the UID.
+      await setUserRole(newUser.id, newUser.email || email, fetchedCode.defaultUserRole);
 
       // 4. Mark Invite Code as Used
       const updatedCode = {
@@ -102,26 +111,20 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
         userEmail: newUser.email || 'Unknown',
         actionType: 'USE_INVITE_CODE',
         description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${fetchedCode.defaultUserRole}'.`,
-        revertData: { userId: newUser.uid, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
+        revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
       }, fetchedCode.section || null);
 
       showToast('Account created successfully! Please select your section.', 'success');
       onSignupSuccess(fetchedCode.section || 'company');
     } catch (err: any) {
       console.error("Sign up error:", err);
-      switch (err.code) {
-        case 'auth/email-already-in-use':
+      // Map Supabase errors
+      if (err.message.includes('User already registered')) {
           setEmailError('The email address is already in use by another account.');
-          break;
-        case 'auth/invalid-email':
-          setEmailError('The email address is not valid.');
-          break;
-        case 'auth/weak-password':
-          setPasswordError('The password is too weak.');
-          break;
-        default:
-          setError('Failed to create account. Please try again.');
-          break;
+      } else if (err.message.includes('Password should be')) {
+          setPasswordError(err.message);
+      } else {
+          setError(err.message || 'Failed to create account. Please try again.');
       }
       showToast('Failed to create account.', 'error');
     } finally {
