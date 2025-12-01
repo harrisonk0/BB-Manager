@@ -1,0 +1,1 @@
+Although the RLS technically allows Officers to modify any record in their section, in practice this is not an issue because the scope is limited to their section, misuse is rare, operational procedures and UI restrictions prevent most unsafe actions, and all changes are auditable. Restricting further would add complexity without real security benefit.
