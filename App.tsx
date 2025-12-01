@@ -36,16 +36,35 @@ const App: React.FC = () => {
   const { currentUser, userRoleInfo, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRoleInfo, isPasswordRecovery, encryptionKey } = useAuthAndRole();
   const userRole = userRoleInfo?.role || null;
 
-  // State for unsaved changes protection
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // Main view state
   const [view, setView] = useState<View>({ page: 'home' }); 
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); 
+  
+  // State for unsaved changes protection (managed locally)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Use section management hook
   const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(
     setView, 
-    setHasUnsavedChanges,
+    setHasUnsavedChanges, // Pass the local setter
     performSignOut
+  );
+
+  // Use unsaved changes protection hook
+  const {
+    setView: navigateWithProtection,
+    confirmModalType,
+    confirmAction,
+    cancelAction,
+    handleSwitchSection: handleSwitchSectionWithProtection,
+    handleSignOut: handleSignOutWithProtection,
+  } = useUnsavedChangesProtection(
+    view, // Pass current view state
+    setView, 
+    performSwitchSection,
+    performSignOut,
+    hasUnsavedChanges, // Pass local state
+    setHasUnsavedChanges // Pass local setter
   );
 
   // Use app data hook
@@ -55,25 +74,6 @@ const App: React.FC = () => {
     currentUser,
     encryptionKey
   );
-
-  // Use unsaved changes protection hook
-  const {
-    view: protectedView, 
-    setView: navigateWithProtection,
-    confirmModalType,
-    confirmAction,
-    cancelAction,
-    handleSwitchSection: handleSwitchSectionWithProtection,
-    handleSignOut: handleSignOutWithProtection,
-  } = useUnsavedChangesProtection(
-    setView, 
-    performSwitchSection,
-    performSignOut
-  );
-
-  useEffect(() => {
-    setView(protectedView);
-  }, [protectedView]);
 
   useEffect(() => {
     if (noRoleError) {
@@ -113,8 +113,6 @@ const App: React.FC = () => {
   
   const renderApp = () => {
     // Check if we are loading auth, or if we have a user but are still loading their role or app data.
-    // FIX: Only show skeleton for dataLoading if we actually have an activeSection selected.
-    // If no section is selected, we want to show the SectionSelectPage, not a skeleton.
     if (authLoading || roleLoading || (currentUser && activeSection && dataLoading && view.page !== 'signup' && userRole !== 'pending')) {
         return <HomePageSkeleton />;
     }

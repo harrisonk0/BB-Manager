@@ -10,23 +10,26 @@ type ConfirmationModalType = 'navigate' | 'switchSection' | 'signOut' | null;
  * Integrates with navigation, section switching, and sign-out actions.
  */
 export const useUnsavedChangesProtection = (
+  currentView: View, // The current view state from App.tsx
   setView: (view: View) => void,
   performSwitchSection: () => void, // Callback from useSectionManagement
-  performSignOut: () => Promise<void> // Callback from useAuthAndRole
+  performSignOut: () => Promise<void>, // Callback from useAuthAndRole
+  hasUnsavedChanges: boolean, // External state
+  setHasUnsavedChanges: (dirty: boolean) => void // External setter
 ) => {
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [confirmModalType, setConfirmModalType] = useState<ConfirmationModalType>(null);
   const [nextView, setNextView] = useState<View | null>(null);
-  const [currentView, setCurrentView] = useState<View>({ page: 'home' }); // Internal state to track current view
 
-  // Update currentView when setView is called
   const navigateWithProtection = useCallback((newView: View) => {
-    if (hasUnsavedChanges && newView.page !== currentView.page) {
+    // Check if the new page is different from the current page
+    const isPageChanging = newView.page !== currentView.page || 
+                           (newView.page === 'boyMarks' && (currentView as any).boyId !== (newView as any).boyId);
+
+    if (hasUnsavedChanges && isPageChanging) {
       setNextView(newView);
       setConfirmModalType('navigate');
     } else {
       setView(newView);
-      setCurrentView(newView); // Update internal currentView
     }
   }, [hasUnsavedChanges, currentView, setView]);
 
@@ -52,7 +55,6 @@ export const useUnsavedChangesProtection = (
         if (nextView) {
           setHasUnsavedChanges(false);
           setView(nextView);
-          setCurrentView(nextView); // Update internal currentView
         }
         break;
       case 'switchSection':
@@ -65,7 +67,7 @@ export const useUnsavedChangesProtection = (
         break;
     }
     cancelAction();
-  }, [confirmModalType, nextView, setView, performSwitchSection, performSignOut]);
+  }, [confirmModalType, nextView, setView, performSwitchSection, performSignOut, setHasUnsavedChanges]);
 
   const cancelAction = useCallback(() => {
     setConfirmModalType(null);
@@ -87,7 +89,6 @@ export const useUnsavedChangesProtection = (
   }, [hasUnsavedChanges]);
 
   return {
-    view: currentView, // Expose currentView for App.tsx to render
     setView: navigateWithProtection, // Expose protected navigation
     setHasUnsavedChanges,
     confirmModalType,
