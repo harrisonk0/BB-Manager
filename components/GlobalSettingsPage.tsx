@@ -134,8 +134,9 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const confirmApprove = async () => {
       if (!userToActOn) return;
       setIsSaving(true);
+      const sectionsToSave = approveRole === 'officer' ? approveSections : [];
       try {
-          await approveUser(userToActOn.uid, userToActOn.email, approveRole, approveSections, userRole);
+          await approveUser(userToActOn.uid, userToActOn.email, approveRole, sectionsToSave, userRole);
           showToast(`User ${userToActOn.email} approved.`, 'success');
           loadUsersWithRoles();
           setIsApproveModalOpen(false);
@@ -176,8 +177,9 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     if (!userToEdit || !selectedNewRole) return;
     setRoleEditError(null);
     setIsSaving(true);
+    const sectionsToSave = ['admin', 'captain'].includes(selectedNewRole) ? [] : selectedNewSections;
     try {
-      await updateUser(userToEdit.uid, selectedNewRole, selectedNewSections, userRole);
+      await updateUser(userToEdit.uid, selectedNewRole, sectionsToSave, userRole);
       showToast(`User ${userToEdit.email} updated successfully.`, 'success');
       loadUsersWithRoles();
       setIsEditUserModalOpen(false);
@@ -384,17 +386,19 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                       ))}
                   </select>
               </div>
-              <div>
-                  <label className="block text-sm font-medium text-slate-700">Assign Sections</label>
-                  <div className="mt-2 space-y-2">
-                      {(['company', 'junior'] as Section[]).map(section => (
-                          <label key={section} className="flex items-center">
-                              <input type="checkbox" checked={approveSections.includes(section)} onChange={() => setApproveSections(prev => prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section])} className={`h-4 w-4 rounded border-gray-300 ${accentText}`} />
-                              <span className="ml-2 text-sm text-slate-600">{section.charAt(0).toUpperCase() + section.slice(1)} Section</span>
-                          </label>
-                      ))}
-                  </div>
-              </div>
+              {approveRole === 'officer' && (
+                <div>
+                    <label className="block text-sm font-medium text-slate-700">Assign Sections</label>
+                    <div className="mt-2 space-y-2">
+                        {(['company', 'junior'] as Section[]).map(section => (
+                            <label key={section} className="flex items-center">
+                                <input type="checkbox" checked={approveSections.includes(section)} onChange={() => setApproveSections(prev => prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section])} className={`h-4 w-4 rounded border-gray-300 ${accentText}`} />
+                                <span className="ml-2 text-sm text-slate-600">{section.charAt(0).toUpperCase() + section.slice(1)} Section</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+              )}
               <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
                   <button onClick={() => setIsApproveModalOpen(false)} className="px-4 py-2 text-sm text-slate-700 bg-slate-100 rounded-md">Cancel</button>
                   <button onClick={confirmApprove} disabled={isSaving} className="px-4 py-2 text-sm text-white bg-green-600 rounded-md shadow-sm hover:bg-green-700">
@@ -432,13 +436,29 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
             <div>
                 <label className="block text-sm font-medium text-slate-700">Accessible Sections</label>
                 <div className="mt-2 space-y-2">
-                    {(['company', 'junior'] as Section[]).map(section => (
-                        <label key={section} className="flex items-center">
-                            <input type="checkbox" checked={selectedNewSections.includes(section)} onChange={() => setSelectedNewSections(prev => prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section])} className={`h-4 w-4 rounded border-gray-300 ${accentText}`} />
-                            <span className="ml-2 text-sm text-slate-600">{section.charAt(0).toUpperCase() + section.slice(1)} Section</span>
-                        </label>
-                    ))}
+                    {(['company', 'junior'] as Section[]).map(section => {
+                        const isPrivilegedRole = ['admin', 'captain'].includes(selectedNewRole || '');
+                        return (
+                            <label key={section} className={`flex items-center ${isPrivilegedRole ? 'cursor-not-allowed' : ''}`}>
+                                <input 
+                                    type="checkbox" 
+                                    checked={selectedNewSections.includes(section) || isPrivilegedRole}
+                                    disabled={isPrivilegedRole}
+                                    onChange={() => {
+                                        if (!isPrivilegedRole) {
+                                            setSelectedNewSections(prev => prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section])
+                                        }
+                                    }} 
+                                    className={`h-4 w-4 rounded border-gray-300 ${accentText} ${isPrivilegedRole ? 'opacity-50' : ''}`} 
+                                />
+                                <span className={`ml-2 text-sm ${isPrivilegedRole ? 'text-slate-400' : 'text-slate-600'}`}>{section.charAt(0).toUpperCase() + section.slice(1)} Section</span>
+                            </label>
+                        );
+                    })}
                 </div>
+                {['admin', 'captain'].includes(selectedNewRole || '') && (
+                    <p className="text-xs text-slate-500 mt-2">Administrators and Captains automatically have access to all sections.</p>
+                )}
             </div>
             <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
               <button type="button" onClick={() => setIsEditUserModalOpen(false)} disabled={isSaving} className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md">Cancel</button>
