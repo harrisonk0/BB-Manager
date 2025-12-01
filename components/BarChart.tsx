@@ -3,6 +3,7 @@
  * @description A simple, reusable bar chart component using SVG.
  */
 import React from 'react';
+import DOMPurify from 'dompurify';
 
 interface BarChartProps {
   data: {
@@ -16,6 +17,15 @@ const BarChart: React.FC<BarChartProps> = ({ data }) => {
   if (!data || data.length === 0) {
     return null;
   }
+  
+  // Helper function to sanitize text content for safe rendering inside SVG elements
+  const sanitizeText = (text: string | number): string => {
+    // Convert to string first
+    const str = String(text);
+    // Use DOMPurify to strip any potentially malicious HTML/SVG markup.
+    // We use {ALLOWED_TAGS: []} to ensure only plain text remains.
+    return DOMPurify.sanitize(str, {ALLOWED_TAGS: []});
+  };
   
   const topPadding = 20; // Add space at the top for labels on the highest bars
   const maxValue = Math.max(...data.map(d => d.value), 0);
@@ -41,6 +51,9 @@ const BarChart: React.FC<BarChartProps> = ({ data }) => {
           const x = i * (barWidth + barMargin) + barMargin / 2;
           const y = chartHeight - barHeight;
 
+          const sanitizedLabel = sanitizeText(d.label);
+          const sanitizedValue = sanitizeText(d.value);
+
           return (
             <g key={d.label}>
               <rect
@@ -52,7 +65,8 @@ const BarChart: React.FC<BarChartProps> = ({ data }) => {
                 rx="4"
                 ry="4"
               >
-                <title>{`${d.label}: ${d.value} marks`}</title>
+                {/* Sanitize content rendered inside <title> for tooltip safety */}
+                <title>{`${sanitizedLabel}: ${sanitizedValue} marks`}</title>
               </rect>
               <text
                 x={x + barWidth / 2}
@@ -62,7 +76,8 @@ const BarChart: React.FC<BarChartProps> = ({ data }) => {
                 fontWeight="bold"
                 fill="#334155"
               >
-                {d.value}
+                {/* Sanitize content rendered inside <text> */}
+                {sanitizedValue}
               </text>
               <text
                 x={x + barWidth / 2}
@@ -71,7 +86,8 @@ const BarChart: React.FC<BarChartProps> = ({ data }) => {
                 fontSize="12"
                 fill="#64748b"
               >
-                {d.label}
+                {/* Sanitize content rendered inside <text> */}
+                {sanitizedLabel}
               </text>
             </g>
           );
