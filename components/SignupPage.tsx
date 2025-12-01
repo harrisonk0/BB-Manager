@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { supabase } from '@/src/integrations/supabase/client';
-import { setUserRole } from '../services/db';
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, Section } from '../types';
 
@@ -65,20 +64,15 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
     setIsLoading(true);
     try {
       // 1. Create User in Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
       });
 
       if (error) throw error;
-      const newUser = data.user;
 
-      if (!newUser) {
-          throw new Error("Signup successful but no user returned.");
-      }
-
-      // 2. Assign 'pending' Role to New User
-      await setUserRole(newUser.id, newUser.email || email, 'pending');
+      // The database trigger 'handle_new_user' will automatically 
+      // create the 'pending' role in user_roles table.
 
       showToast('Account created! Please wait for approval.', 'success');
       // No navigation needed, auth state change in App.tsx will redirect to Pending Page
