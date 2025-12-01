@@ -83,6 +83,10 @@ export const useAppData = (
       setSettings(null);
       setDataLoading(false);
       loadedRef.current = { section: null, userId: undefined };
+    } else if (!activeSection && currentUser) {
+      // FIX: If logged in but no section selected, we are not loading data.
+      setDataLoading(false);
+      loadedRef.current = { section: null, userId: currentUser.id };
     }
   }, [activeSection, currentUser?.id, encryptionKey, loadDataAndSettings]);
 

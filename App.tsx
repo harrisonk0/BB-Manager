@@ -113,7 +113,9 @@ const App: React.FC = () => {
   
   const renderApp = () => {
     // Check if we are loading auth, or if we have a user but are still loading their role or app data.
-    if (authLoading || roleLoading || (currentUser && dataLoading && view.page !== 'signup' && userRole !== 'pending')) {
+    // FIX: Only show skeleton for dataLoading if we actually have an activeSection selected.
+    // If no section is selected, we want to show the SectionSelectPage, not a skeleton.
+    if (authLoading || roleLoading || (currentUser && activeSection && dataLoading && view.page !== 'signup' && userRole !== 'pending')) {
         return <HomePageSkeleton />;
     }
 
