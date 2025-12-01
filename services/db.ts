@@ -245,7 +245,7 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
     }
 };
 
-// ... (Rest of User Role functions remain largely same, just adding Logger)
+// --- User Role Functions (Unencrypted) ---
 
 export const fetchUserRole = async (uid: string): Promise<UserRoleInfo | null> => {
     await openDB();
@@ -281,10 +281,116 @@ export const fetchUserRole = async (uid: string): Promise<UserRoleInfo | null> =
     return cachedRoleInfo || null;
 };
 
-// ... [Using Logger in other functions implicitly through refactoring or explicit error logs]
+export const fetchAllUserRoles = async (actingUserRole: UserRole | null): Promise<{ uid: string; email: string; role: UserRole; sections: Section[] }[]> => {
+    if (!navigator.onLine) return [];
 
-// --- Boy Functions --- (Unchanged logic, just ensure imports work)
-// NOTE: I am keeping existing export structure but ensuring Logger usage in error blocks
+    const { data, error } = await supabase.from('user_roles').select('*');
+    if (error) throw error;
+
+    return data.map(row => ({
+        uid: row.id,
+        email: row.email,
+        role: row.role as UserRole,
+        sections: row.sections || []
+    }));
+};
+
+export const setUserRole = async (uid: string, email: string, role: UserRole): Promise<void> => {
+    if (!navigator.onLine) throw new Error("Offline");
+    const { error } = await supabase.from('user_roles').upsert({ id: uid, email, role });
+    if (error) throw error;
+    await saveUserRoleToDB(uid, { role, sections: [] });
+};
+
+export const updateUserRole = async (uid: string, newRole: UserRole, newSections: Section[], actingUserRole: UserRole | null, key: CryptoKey, shouldLog: boolean = true): Promise<void> => {
+    let oldUserData: { role: UserRole, sections: Section[] } | null = null;
+    if (shouldLog) {
+        const { data: oldBoyData, error: fetchError } = await supabase
+            .from('user_roles')
+            .select('role, sections')
+            .eq('id', uid)
+            .single();
+        if (fetchError) throw new Error(`Failed to fetch current user role for logging: ${fetchError.message}`);
+        oldUserData = { role: oldBoyData.role, sections: oldBoyData.sections || [] };
+    }
+
+    const { error } = await supabase.from('user_roles').update({ role: newRole, sections: newSections }).eq('id', uid);
+    if (error) throw error;
+
+    await saveUserRoleToDB(uid, { role: newRole, sections: newSections });
+    window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
+    
+    if (shouldLog && oldUserData) {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { id, ...logData } = {
+            userEmail: user?.email || 'Unknown',
+            actionType: 'UPDATE_USER_ROLE',
+            description: `Updated user role for UID ${uid} to ${newRole} with sections [${newSections.join(', ')}].`,
+            revertData: { uid, oldRole: oldUserData.role, oldSections: oldUserData.sections }
+        } as AuditLog;
+        await createAuditLog(logData, null, key);
+    }
+};
+
+export const deleteUserRole = async (uid: string, email: string, actingUserRole: UserRole | null, key: CryptoKey): Promise<void> => {
+    const { error } = await supabase.functions.invoke('delete-user', {
+        body: { uid }
+    });
+
+    if (error) {
+        Logger.error("Edge function error:", error);
+        throw new Error(`Failed to delete user: ${error.message}`);
+    }
+
+    await deleteUserRoleFromDB(uid);
+    window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const { id, ...logData } = {
+        userEmail: user?.email || 'Unknown',
+        actionType: 'DELETE_USER_ROLE',
+        description: `Permanently deleted user ${email} and their account.`,
+        revertData: { uid, email } 
+    } as AuditLog;
+    await createAuditLog(logData, null, key);
+};
+
+export const approveUser = async (uid: string, email: string, newRole: UserRole, newSections: Section[], actingUserRole: UserRole | null, key: CryptoKey): Promise<void> => {
+    await updateUserRole(uid, newRole, newSections, actingUserRole, key, false);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { id, ...logData } = {
+        userEmail: user?.email || 'Unknown',
+        actionType: 'APPROVE_USER',
+        description: `Approved user ${email} with role ${newRole} and sections [${newSections.join(', ')}].`,
+        revertData: { uid, oldRole: 'pending', oldSections: [] }
+    } as AuditLog;
+    await createAuditLog(logData, null, key);
+};
+
+export const denyUser = async (uid: string, email: string, actingUserRole: UserRole | null, key: CryptoKey): Promise<void> => {
+    const { error } = await supabase.functions.invoke('delete-user', {
+        body: { uid }
+    });
+
+    if (error) {
+        Logger.error("Edge function error:", error);
+        throw new Error(`Failed to delete user: ${error.message}`);
+    }
+
+    await deleteUserRoleFromDB(uid);
+    window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const { id, ...logData } = {
+        userEmail: user?.email || 'Unknown',
+        actionType: 'DENY_USER',
+        description: `Denied access for user ${email}.`,
+        revertData: { uid, email, role: 'pending' } 
+    } as AuditLog;
+    await createAuditLog(logData, null, key);
+};
+
+// --- Boy Functions (Encrypted) ---
 
 export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section, key: CryptoKey): Promise<Boy> => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -311,9 +417,175 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section, key: Cry
     }
 };
 
-// ... (Other Boy functions remain same)
+export const fetchBoys = async (section: Section, key: CryptoKey): Promise<Boy[]> => {
+    await openDB();
+    const cachedEncryptedBoys = await getBoysFromDB(section);
+    
+    const cachedBoys: Boy[] = [];
+    for (const { id, encryptedData } of cachedEncryptedBoys) {
+        try {
+            const decryptedBoy = await decryptData(encryptedData, key);
+            cachedBoys.push(decryptedBoy as Boy);
+        } catch (e) {
+            Logger.error(`Failed to decrypt boy data for ID ${id}. Data may be corrupted or key changed.`, e);
+        }
+    }
 
-// --- Audit Log Functions (Updated for Encryption) ---
+    if (cachedBoys.length > 0) {
+        if (navigator.onLine) {
+            supabase.from(getTableName(section, 'boys')).select('*')
+                .then(async ({ data }) => {
+                    if (data) {
+                        const freshBoys = data.map(mapBoyFromDB);
+                        
+                        const freshEncryptedPromises = freshBoys.map(async boy => ({
+                            id: boy.id!,
+                            encryptedData: await encryptData(boy, key)
+                        }));
+                        const freshEncrypted = await Promise.all(freshEncryptedPromises);
+                        
+                        if (freshEncrypted.length !== cachedEncryptedBoys.length || freshEncrypted[0]?.id !== cachedEncryptedBoys[0]?.id) {
+                            Logger.info('Background update found for boys.');
+                            await saveBoysToDB(freshEncrypted, section);
+                            window.dispatchEvent(new CustomEvent('datarefreshed', { detail: { section } }));
+                        }
+                    }
+                });
+        }
+        return cachedBoys;
+    }
+
+    if (navigator.onLine) {
+        const { data, error } = await supabase.from(getTableName(section, 'boys')).select('*');
+        if (error) throw error;
+        const boys = data.map(mapBoyFromDB);
+        
+        const encryptedBoysPromises = boys.map(async boy => ({
+            id: boy.id!,
+            encryptedData: await encryptData(boy, key)
+        }));
+        const encryptedBoys = await Promise.all(encryptedBoysPromises);
+        
+        await saveBoysToDB(encryptedBoys, section);
+        return boys;
+    }
+
+    return [];
+};
+
+export const updateBoy = async (boy: Boy, section: Section, key: CryptoKey, shouldLog: boolean = true): Promise<Boy> => {
+    if (!boy.id) throw new Error("No ID");
+    validateBoyMarks(boy, section);
+
+    let oldBoy: Boy | null = null;
+    if (shouldLog && navigator.onLine) {
+        try {
+            const { data: oldBoyData, error: fetchError } = await supabase
+                .from(getTableName(section, 'boys'))
+                .select('*')
+                .eq('id', boy.id)
+                .single();
+            
+            if (fetchError) {
+                Logger.warn(`Could not fetch old boy data for logging: ${fetchError.message}`);
+            } else if (oldBoyData) {
+                oldBoy = mapBoyFromDB(oldBoyData);
+            }
+        } catch (e) {
+            Logger.warn(`Could not fetch old boy data for logging:`, e);
+        }
+    }
+
+    if (navigator.onLine) {
+        const dbPayload = mapBoyToDB(boy);
+        const { error } = await supabase
+            .from(getTableName(section, 'boys'))
+            .update(dbPayload)
+            .eq('id', boy.id);
+        if (error) throw error;
+        
+        const encryptedBoy = await encryptData(boy, key);
+        await saveBoyToDB(boy.id, encryptedBoy, section);
+    } else {
+        const encryptedBoy = await encryptData(boy, key);
+        await addPendingWrite({ type: 'UPDATE_BOY', payload: encryptedBoy, section });
+        await saveBoyToDB(boy.id, encryptedBoy, section);
+    }
+
+    if (oldBoy) {
+        const changes: string[] = [];
+        if (oldBoy.name !== boy.name) changes.push(`name to "${boy.name}"`);
+        if (oldBoy.squad !== boy.squad) changes.push(`squad to ${boy.squad}`);
+        if (oldBoy.year !== boy.year) changes.push(`year to ${boy.year}`);
+        if (!!oldBoy.isSquadLeader !== !!boy.isSquadLeader) changes.push(`squad leader status to ${boy.isSquadLeader}`);
+        if (JSON.stringify(oldBoy.marks) !== JSON.stringify(boy.marks)) {
+            changes.push('marks');
+        }
+
+        if (changes.length > 0) {
+            await createAuditLog({
+                actionType: 'UPDATE_BOY',
+                description: `Updated ${oldBoy.name}: changed ${changes.join(', ')}.`,
+                revertData: { boyData: oldBoy },
+            }, section, key);
+        }
+    }
+
+    return boy;
+};
+
+export const deleteBoyById = async (id: string, section: Section): Promise<void> => {
+    if (navigator.onLine) {
+        const { error } = await supabase.from(getTableName(section, 'boys')).delete().eq('id', id);
+        if (error) throw error;
+        await deleteBoyFromDB(id, section);
+    } else {
+        await addPendingWrite({ type: 'DELETE_BOY', payload: { id }, section });
+        await deleteBoyFromDB(id, section);
+    }
+};
+
+export const recreateBoy = async (boy: Boy, section: Section, key: CryptoKey): Promise<Boy> => {
+    if (navigator.onLine) {
+        const dbPayload = mapBoyToDB(boy);
+        const { error } = await supabase.from(getTableName(section, 'boys')).upsert(dbPayload);
+        if (error) throw error;
+        
+        const encryptedBoy = await encryptData(boy, key);
+        await saveBoyToDB(boy.id!, encryptedBoy, section);
+    } else {
+        const encryptedBoy = await encryptData(boy, key);
+        await addPendingWrite({ type: 'RECREATE_BOY', payload: encryptedBoy, section });
+        await saveBoyToDB(boy.id!, encryptedBoy, section);
+    }
+    return boy;
+};
+
+export const fetchBoyById = async (id: string, section: Section, key: CryptoKey): Promise<Boy | undefined> => {
+    const cachedEncrypted = await getBoyFromDB(id, section);
+    
+    if (cachedEncrypted) {
+        try {
+            const decryptedBoy = await decryptData(cachedEncrypted.encryptedData, key);
+            return decryptedBoy as Boy;
+        } catch (e) {
+            Logger.error(`Failed to decrypt boy data for ID ${id}.`, e);
+        }
+    }
+
+    if (navigator.onLine) {
+        const { data } = await supabase.from(getTableName(section, 'boys')).select('*').eq('id', id).single();
+        if (data) {
+            const boy = mapBoyFromDB(data);
+            const encryptedBoy = await encryptData(boy, key);
+            await saveBoyToDB(boy.id!, encryptedBoy, section);
+            return boy;
+        }
+    }
+    return undefined;
+};
+
+// --- Audit Log Functions (Encrypted) ---
 
 export const createAuditLog = async (
     log: Omit<AuditLog, 'id' | 'timestamp' | 'userEmail'> & { userEmail?: string }, 
@@ -334,7 +606,6 @@ export const createAuditLog = async (
     const table = getTableName(section, 'audit_logs');
 
     if (navigator.onLine) {
-        // PII PROTECTION: Encrypt revertData
         const encryptedRevertData = await encryptData(logData.revertData, key);
         const logForSupabase = { ...logData, revertData: encryptedRevertData };
         
@@ -383,12 +654,10 @@ export const fetchAuditLogs = async (section: Section | null, key: CryptoKey): P
     allCached.sort((a,b) => b.timestamp - a.timestamp);
 
     if (allCached.length > 0 && navigator.onLine) {
-        // Background refresh logic
         const fetchTable = async (tbl: string, sec: Section | null) => {
             const { data } = await supabase.from(tbl).select('*').order('timestamp', { ascending: false });
             const logs = (data || []).map(async row => {
                 const log = mapLogFromDB(row);
-                // Check if revertData is encrypted (has ciphertext/iv structure) and decrypt if so
                 if (log.revertData && log.revertData.ciphertext && log.revertData.iv) {
                     try {
                         log.revertData = await decryptData(log.revertData, key);
@@ -400,7 +669,6 @@ export const fetchAuditLogs = async (section: Section | null, key: CryptoKey): P
             });
             const decryptedLogs = await Promise.all(logs);
             
-            // Encrypt fresh logs for local storage (encrypting the DECRYPTED version)
             const encryptedLogsPromises = decryptedLogs.map(async log => ({
                 id: log.id!,
                 encryptedData: await encryptData(log, key)
@@ -430,7 +698,6 @@ export const fetchAuditLogs = async (section: Section | null, key: CryptoKey): P
             const { data } = await supabase.from(tbl).select('*').order('timestamp', { ascending: false });
             const logs = (data || []).map(async row => {
                 const log = mapLogFromDB(row);
-                // Decrypt PII from Supabase if present
                 if (log.revertData && log.revertData.ciphertext && log.revertData.iv) {
                     try {
                         log.revertData = await decryptData(log.revertData, key);
@@ -449,33 +716,32 @@ export const fetchAuditLogs = async (section: Section | null, key: CryptoKey): P
         
         const allLogs = [...secLogs, ...globLogs].sort((a,b) => b.timestamp - a.timestamp);
 
-        // Encrypt and save to local DB
         const encryptedLogsPromises = allLogs.map(async log => ({
             id: log.id!,
             encryptedData: await encryptData(log, key)
         }));
         const encryptedLogs = await Promise.all(encryptedLogsPromises);
         
-        await saveLogsToDB(encryptedLogs, section); // Note: this might duplicate global logs in section store if logic not careful, but simpler for now.
+        await saveLogsToDB(encryptedLogs, section);
         return allLogs;
     }
 
     return allCached;
 };
 
-// Re-exports
-export { 
-    fetchAllUserRoles, 
-    updateUserRole, 
-    approveUser, 
-    denyUser, 
-    deleteUserRole, 
-    fetchBoys, 
-    fetchBoyById, 
-    updateBoy, 
-    deleteBoyById, 
-    recreateBoy, 
-    deleteOldAuditLogs, 
-    clearAllAuditLogs, 
-    clearAllLocalData 
+export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
+    // Basic implementation that relies on Supabase policies/cron in production
 };
+
+export const clearAllAuditLogs = async (section: Section | null, email: string, role: UserRole | null): Promise<void> => {
+    if (role !== 'admin') throw new Error("Permission denied");
+    const table = getTableName(section, 'audit_logs');
+    
+    if (navigator.onLine) {
+        const { error } = await supabase.from(table).delete().neq('id', '0'); 
+        if (error) throw error;
+    }
+    await clearStore(table);
+};
+
+export const clearAllLocalData = clearAllLocalDataFromDB;
