@@ -147,6 +147,14 @@ export type SortByType = 'name' | 'marks' | 'attendance';
  */
 export type UserRole = 'admin' | 'captain' | 'officer' | 'pending';
 
+/**
+ * Represents the full role information for a user, including their assigned sections.
+ */
+export interface UserRoleInfo {
+  role: UserRole;
+  sections: Section[];
+}
+
 // Import the User type from @supabase/supabase-js to extend it correctly
 import { User } from '@supabase/supabase-js';
 

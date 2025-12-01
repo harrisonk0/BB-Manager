@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { Section, Page } from '../types';
+import { Section, Page, UserRoleInfo, ToastType } from '../types';
 import { QuestionMarkCircleIcon, CogIcon, LogOutIcon } from './Icons'; // Import LogOutIcon
 
 interface SectionSelectPageProps {
@@ -16,14 +16,30 @@ interface SectionSelectPageProps {
   onOpenHelpModal: () => void;
   /** Callback to navigate to the global settings page. */
   onNavigateToGlobalSettings: () => void;
-  /** The role of the currently logged-in user. */
-  userRole: string | null;
+  /** The full role information for the currently logged-in user. */
+  userRoleInfo: UserRoleInfo | null;
   /** Callback to handle user sign out. */
-  onSignOut: () => void; // New prop for sign out
+  onSignOut: () => void;
+  /** Function to display a toast notification. */
+  showToast: (message: string, type?: ToastType) => void;
 }
 
-const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, onOpenHelpModal, onNavigateToGlobalSettings, userRole, onSignOut }) => {
+const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, onOpenHelpModal, onNavigateToGlobalSettings, userRoleInfo, onSignOut, showToast }) => {
+  const userRole = userRoleInfo?.role || null;
+  const userSections = userRoleInfo?.sections || [];
+
   const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
+
+  const handleSectionClick = (section: Section) => {
+    if (userRole === 'officer' && !userSections.includes(section)) {
+      showToast("You have not been granted access to this section. Please contact your Captain or an Administrator.", 'info');
+      return;
+    }
+    onSelectSection(section);
+  };
+
+  const hasCompanyAccess = userRole === 'admin' || userRole === 'captain' || userSections.includes('company');
+  const hasJuniorAccess = userRole === 'admin' || userRole === 'captain' || userSections.includes('junior');
 
   // Positioning logic:
   // If Global Settings is present (Admin/Captain):
@@ -83,9 +99,12 @@ const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Company Section Button */}
           <button
-            onClick={() => onSelectSection('company')}
-            className="p-8 bg-company-blue text-white rounded-lg shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-200 focus:ring-white"
+            onClick={() => handleSectionClick('company')}
+            className={`p-8 bg-company-blue text-white rounded-lg shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-200 focus:ring-white ${
+              hasCompanyAccess ? 'hover:shadow-xl transform hover:-translate-y-1' : 'opacity-50 cursor-not-allowed'
+            }`}
             aria-label="Manage Company Section"
+            aria-disabled={!hasCompanyAccess}
           >
             <img src="https://i.postimg.cc/0j44DjdY/company-boxed-colour.png" alt="Company Section Logo" className="w-56 mx-auto" />
             <p className="mt-4 text-slate-200">Manage boys in school years 8-14.</p>
@@ -93,9 +112,12 @@ const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, 
 
           {/* Junior Section Button */}
           <button
-            onClick={() => onSelectSection('junior')}
-            className="p-8 bg-junior-blue text-white rounded-lg shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-200 focus:ring-white"
+            onClick={() => handleSectionClick('junior')}
+            className={`p-8 bg-junior-blue text-white rounded-lg shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-200 focus:ring-white ${
+              hasJuniorAccess ? 'hover:shadow-xl transform hover:-translate-y-1' : 'opacity-50 cursor-not-allowed'
+            }`}
             aria-label="Manage Junior Section"
+            aria-disabled={!hasJuniorAccess}
           >
             <img src="https://i.postimg.cc/W1qvWLdp/juniors-boxed-colour.png" alt="Junior Section Logo" className="w-56 mx-auto" />
             <p className="mt-4 text-slate-200">Manage boys in school years P4-P7.</p>

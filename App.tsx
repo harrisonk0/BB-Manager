@@ -33,7 +33,8 @@ const App: React.FC = () => {
   const { toasts, showToast, removeToast } = useToastNotifications();
 
   // Use auth and role hook
-  const { currentUser, userRole, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRole, isPasswordRecovery } = useAuthAndRole();
+  const { currentUser, userRoleInfo, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRoleInfo, isPasswordRecovery } = useAuthAndRole();
+  const userRole = userRoleInfo?.role || null;
 
   // State for unsaved changes protection
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -76,10 +77,10 @@ const App: React.FC = () => {
   useEffect(() => {
     if (noRoleError) {
       setActiveSection(null);
-      setUserRole(null);
+      setUserRoleInfo(null);
       localStorage.removeItem('activeSection');
     }
-  }, [noRoleError, setActiveSection, setUserRole]);
+  }, [noRoleError, setActiveSection, setUserRoleInfo]);
 
   const renderMainContent = () => {
     if (!activeSection) return null; 
@@ -170,7 +171,7 @@ const App: React.FC = () => {
                     </>
                 );
             default:
-                return <SectionSelectPage onSelectSection={handleSelectSection} onOpenHelpModal={() => setIsHelpModalOpen(true)} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} userRole={userRole} onSignOut={handleSignOutWithProtection} />;
+                return <SectionSelectPage onSelectSection={handleSelectSection} onOpenHelpModal={() => setIsHelpModalOpen(true)} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} userRoleInfo={userRoleInfo} onSignOut={handleSignOutWithProtection} showToast={showToast} />;
         }
     }
     

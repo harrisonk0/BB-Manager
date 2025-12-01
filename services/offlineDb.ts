@@ -6,7 +6,7 @@
  * and version migrations.
  */
 
-import { Boy, AuditLog, Section, UserRole } from '../types';
+import { Boy, AuditLog, Section, UserRole, UserRoleInfo } from '../types';
 
 /**
  * Defines the structure of an object in the 'pending_writes' store.
@@ -21,7 +21,7 @@ export type PendingWrite = {
 };
 
 const DB_NAME = 'BBManagerDB';
-const DB_VERSION = 6; // Incrementing version to remove invite_codes
+const DB_VERSION = 7; // Incrementing version to store full UserRoleInfo object
 const PENDING_WRITES_STORE = 'pending_writes';
 const USER_ROLES_STORE = 'user_roles';
 const GLOBAL_AUDIT_LOGS_STORE = 'global_audit_logs';
@@ -222,22 +222,22 @@ export const deleteLogsFromDB = async (logIds: string[], section: Section | null
 };
 
 // --- User Role Functions ---
-export const saveUserRoleToDB = async (uid: string, role: UserRole): Promise<void> => {
+export const saveUserRoleToDB = async (uid: string, roleInfo: UserRoleInfo): Promise<void> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const store = getStore(USER_ROLES_STORE, 'readwrite');
-    const request = store.put({ uid, role });
+    const request = store.put({ uid, ...roleInfo });
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
 };
 
-export const getUserRoleFromDB = async (uid: string): Promise<UserRole | undefined> => {
+export const getUserRoleFromDB = async (uid: string): Promise<UserRoleInfo | undefined> => {
   await openDB();
   return new Promise((resolve, reject) => {
     const store = getStore(USER_ROLES_STORE, 'readonly');
     const request = store.get(uid);
-    request.onsuccess = () => resolve(request.result?.role);
+    request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
 };

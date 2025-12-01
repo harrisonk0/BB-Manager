@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/src/integrations/supabase/client';
-import { Boy, AuditLog, Section, UserRole } from '../types';
+import { Boy, AuditLog, Section, UserRole, UserRoleInfo } from '../types';
 import { 
     openDB, 
     getBoysFromDB, 
@@ -244,36 +244,40 @@ export const syncPendingWrites = async (): Promise<boolean> => {
 
 // --- User Role Functions ---
 
-export const fetchUserRole = async (uid: string): Promise<UserRole | null> => {
+export const fetchUserRole = async (uid: string): Promise<UserRoleInfo | null> => {
     await openDB();
-    const cachedRole = await getUserRoleFromDB(uid);
+    const cachedRoleInfo = await getUserRoleFromDB(uid);
     
-    if (cachedRole && navigator.onLine) {
+    if (cachedRoleInfo && navigator.onLine) {
         // Background update
         supabase
             .from('user_roles')
-            .select('role')
+            .select('role, sections')
             .eq('id', uid)
             .single()
             .then(({ data }) => {
-                if (data && data.role !== cachedRole) {
-                    saveUserRoleToDB(uid, data.role as UserRole).then(() => {
-                        window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
-                    });
+                if (data) {
+                    const freshRoleInfo: UserRoleInfo = { role: data.role, sections: data.sections || [] };
+                    if (JSON.stringify(freshRoleInfo) !== JSON.stringify(cachedRoleInfo)) {
+                        saveUserRoleToDB(uid, freshRoleInfo).then(() => {
+                            window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
+                        });
+                    }
                 }
             });
-        return cachedRole;
+        return cachedRoleInfo;
     }
 
     if (navigator.onLine) {
-        const { data } = await supabase.from('user_roles').select('role').eq('id', uid).single();
+        const { data } = await supabase.from('user_roles').select('role, sections').eq('id', uid).single();
         if (data) {
-            await saveUserRoleToDB(uid, data.role as UserRole);
-            return data.role as UserRole;
+            const roleInfo: UserRoleInfo = { role: data.role, sections: data.sections || [] };
+            await saveUserRoleToDB(uid, roleInfo);
+            return roleInfo;
         }
     }
     
-    return cachedRole || null;
+    return cachedRoleInfo || null;
 };
 
 export const fetchAllUserRoles = async (actingUserRole: UserRole | null): Promise<{ uid: string; email: string; role: UserRole; sections: Section[] }[]> => {
@@ -295,7 +299,7 @@ export const setUserRole = async (uid: string, email: string, role: UserRole): P
     if (!navigator.onLine) throw new Error("Offline");
     const { error } = await supabase.from('user_roles').upsert({ id: uid, email, role });
     if (error) throw error;
-    await saveUserRoleToDB(uid, role);
+    await saveUserRoleToDB(uid, { role, sections: [] });
 };
 
 export const updateUserRole = async (uid: string, newRole: UserRole, newSections: Section[], actingUserRole: UserRole | null, shouldLog: boolean = true): Promise<void> => {
@@ -315,7 +319,7 @@ export const updateUserRole = async (uid: string, newRole: UserRole, newSections
     const { error } = await supabase.from('user_roles').update({ role: newRole, sections: newSections }).eq('id', uid);
     if (error) throw error;
 
-    await saveUserRoleToDB(uid, newRole);
+    await saveUserRoleToDB(uid, { role: newRole, sections: newSections });
     window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
     
     if (shouldLog && oldUserData) {

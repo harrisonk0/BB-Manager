@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/src/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { fetchUserRole } from '../services/db';
-import { UserRole } from '../types';
+import { UserRole, UserRoleInfo } from '../types';
 
 /**
  * Custom hook for managing Supabase authentication state and user roles.
@@ -12,7 +12,7 @@ import { UserRole } from '../types';
  */
 export const useAuthAndRole = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [userRoleInfo, setUserRoleInfo] = useState<UserRoleInfo | null>(null);
   const [noRoleError, setNoRoleError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [roleLoading, setRoleLoading] = useState(false); // New state to track role fetching
@@ -30,17 +30,17 @@ export const useAuthAndRole = () => {
   const loadUserRole = useCallback(async (user: User) => {
     setRoleLoading(true); // Start loading role
     try {
-      const role = await fetchUserRole(user.id);
-      if (role === null) {
+      const roleInfo = await fetchUserRole(user.id);
+      if (roleInfo === null) {
         setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
         // Force sign out if no role, but avoid loops by checking current state if needed.
         // For now, simple signOut is safer.
         await supabase.auth.signOut(); 
         setCurrentUser(null);
-        setUserRole(null);
+        setUserRoleInfo(null);
         return;
       }
-      setUserRole(role);
+      setUserRoleInfo(roleInfo);
       setNoRoleError(null);
     } finally {
       setRoleLoading(false); // End loading role
@@ -97,7 +97,7 @@ export const useAuthAndRole = () => {
       } else {
         // This block handles SIGNED_OUT or when the session becomes null.
         setCurrentUser(null);
-        setUserRole(null);
+        setUserRoleInfo(null);
         setNoRoleError(null);
         setIsPasswordRecovery(false); // Reset recovery state on sign out.
       }
@@ -125,5 +125,5 @@ export const useAuthAndRole = () => {
     };
   }, [loadUserRole, isPasswordRecovery]);
 
-  return { currentUser, userRole, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRole, isPasswordRecovery };
+  return { currentUser, userRoleInfo, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRoleInfo, isPasswordRecovery };
 };
