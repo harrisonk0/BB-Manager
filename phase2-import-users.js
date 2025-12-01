@@ -1,11 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
+import path from 'path';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+// Environment Setup
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-// 1. Setup Supabase Admin
-// We need the SERVICE_ROLE key to bypass Auth restrictions
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -20,47 +23,59 @@ const supabase = createClient(
 async function importUsers() {
   console.log('Starting Supabase User Import...');
   
-  if (!fs.existsSync('firebase-users.json')) {
-    console.error('Error: firebase-users.json not found. Run the export script first.');
-    process.exit(1);
-  }
+  try {
+    const users = JSON.parse(fs.readFileSync('firebase-users.json', 'utf8'));
+    const idMap = {}; // Maps Firebase UID -> Supabase UUID
+    
+    let successCount = 0;
+    let failCount = 0;
 
-  const users = JSON.parse(fs.readFileSync('firebase-users.json', 'utf8'));
-  let successCount = 0;
-  let errorCount = 0;
+    for (const user of users) {
+      console.log(`Importing ${user.email}...`);
 
-  // 2. Loop and Create
-  for (const user of users) {
-    if (!user.email) {
-      console.log(`Skipping user ${user.uid} (No email)`);
-      continue;
-    }
+      // 1. Check if user already exists to avoid duplicates
+      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      const existingUser = existingUsers.users.find(u => u.email === user.email);
 
-    try {
-      // createUser allows us to specify the ID, preserving the Firebase UID
+      if (existingUser) {
+        console.log(`  -> User already exists. Mapping ID.`);
+        idMap[user.uid] = existingUser.id;
+        successCount++;
+        continue;
+      }
+
+      // 2. Create new user (Let Supabase generate the ID)
       const { data, error } = await supabase.auth.admin.createUser({
         email: user.email,
-        id: user.uid, // CRITICAL: This links the user to their future data
-        password: 'temp-password-123', // Placeholder as discussed
         email_confirm: user.emailVerified,
+        password: 'temp-password-change-me', // User will need to reset password
         user_metadata: {
-          display_name: user.displayName,
-          photo_url: user.photoURL,
-          firebase_uid: user.uid // backup reference
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          firebase_uid: user.uid, // Store old ID for reference
+          ...user.customClaims
         }
       });
 
-      if (error) throw error;
-      console.log(`Imported: ${user.email}`);
-      successCount++;
-    } catch (err) {
-      console.error(`Failed: ${user.email} - ${err.message}`);
-      errorCount++;
+      if (error) {
+        console.error(`  -> Failed: ${error.message}`);
+        failCount++;
+      } else {
+        console.log(`  -> Success! New ID: ${data.user.id}`);
+        idMap[user.uid] = data.user.id;
+        successCount++;
+      }
     }
-  }
 
-  console.log(`\nImport Complete! Success: ${successCount}, Failed: ${errorCount}`);
-  process.exit(0);
+    // 3. Save the ID Mapping for Phase 3
+    fs.writeFileSync('id-map.json', JSON.stringify(idMap, null, 2));
+    
+    console.log(`\nImport Complete! Success: ${successCount}, Failed: ${failCount}`);
+    console.log('ID Mapping saved to id-map.json (REQUIRED for database migration)');
+
+  } catch (err) {
+    console.error('Fatal Error:', err);
+  }
 }
 
-importUsers().catch(console.error);
+importUsers();
