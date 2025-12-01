@@ -25,19 +25,33 @@ interface SectionSelectPageProps {
 const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, onOpenHelpModal, onNavigateToGlobalSettings, userRole, onSignOut }) => {
   const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
 
+  // Positioning logic:
+  // If Global Settings is present (Admin/Captain):
+  //   - Global Settings (Cog): right-6
+  //   - Help (Question Mark): right-20
+  //   - Log Out: right-36
+  // If Global Settings is absent (Officer/Pending):
+  //   - Log Out: right-6
+  //   - Help (Question Mark): right-20
+  
+  const helpRightClass = canAccessGlobalSettings ? 'right-20' : 'right-20';
+  const logoutRightClass = canAccessGlobalSettings ? 'right-36' : 'right-6';
+
   return (
     <div 
       className="flex flex-col items-center justify-center min-h-screen bg-slate-200 p-4 bg-cover bg-center"
       style={{ backgroundImage: 'url(https://i.postimg.cc/MKD36t18/mixed-activities.jpg)' }}
     >
+       {/* Help Button (Question Mark) */}
        <button 
         onClick={onOpenHelpModal} 
-        className={`absolute bottom-6 ${canAccessGlobalSettings ? 'right-20' : 'right-6'} text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full`}
+        className={`absolute bottom-6 ${helpRightClass} text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full`}
         aria-label="Help"
       >
         <QuestionMarkCircleIcon className="h-8 w-8" />
       </button>
 
+      {/* Global Settings Button (Cog) - Only for Admin/Captain */}
       {canAccessGlobalSettings && (
         <button 
           onClick={onNavigateToGlobalSettings} 
@@ -48,10 +62,10 @@ const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, 
         </button>
       )}
 
-      {/* New Log Out button */}
+      {/* Log Out button */}
       <button 
         onClick={onSignOut} 
-        className={`absolute bottom-6 ${canAccessGlobalSettings ? 'right-36' : 'right-6'} text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full`}
+        className={`absolute bottom-6 ${logoutRightClass} text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full`}
         aria-label="Log Out"
       >
         <LogOutIcon className="h-8 w-8" />
