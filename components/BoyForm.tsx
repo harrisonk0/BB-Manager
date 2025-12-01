@@ -23,6 +23,8 @@ interface BoyFormProps {
   encryptionKey: CryptoKey | null;
 }
 
+const MAX_NAME_LENGTH = 100;
+
 const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSection, allBoys, encryptionKey }) => {
   const isCompany = activeSection === 'company';
   
@@ -84,8 +86,13 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     setYearError(null);
 
     let isValid = true;
-    if (!name.trim()) {
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
       setNameError('Name cannot be empty.');
+      isValid = false;
+    } else if (trimmedName.length > MAX_NAME_LENGTH) {
+      setNameError(`Name cannot exceed ${MAX_NAME_LENGTH} characters.`);
       isValid = false;
     }
     if (!encryptionKey) {
@@ -100,7 +107,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     setIsSubmitting(true);
 
     const incomingBoyData = {
-      name: name.trim(),
+      name: trimmedName,
       squad,
       year,
       isSquadLeader,
@@ -208,6 +215,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
           onChange={(e) => setName(e.target.value)}
           className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none sm:text-sm ${nameError ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
           required
+          maxLength={MAX_NAME_LENGTH}
           aria-invalid={nameError ? "true" : "false"}
           aria-describedby={nameError ? "name-error" : undefined}
         />
