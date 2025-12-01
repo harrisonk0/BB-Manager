@@ -15,6 +15,7 @@ export const useAuthAndRole = () => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [noRoleError, setNoRoleError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(false); // New state to track role fetching
 
   const performSignOut = useCallback(async () => {
     try {
@@ -26,18 +27,23 @@ export const useAuthAndRole = () => {
   }, []);
 
   const loadUserRole = useCallback(async (user: User) => {
-    const role = await fetchUserRole(user.id);
-    if (role === null) {
-      setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
-      // Force sign out if no role, but avoid loops by checking current state if needed.
-      // For now, simple signOut is safer.
-      await supabase.auth.signOut(); 
-      setCurrentUser(null);
-      setUserRole(null);
-      return;
+    setRoleLoading(true); // Start loading role
+    try {
+      const role = await fetchUserRole(user.id);
+      if (role === null) {
+        setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
+        // Force sign out if no role, but avoid loops by checking current state if needed.
+        // For now, simple signOut is safer.
+        await supabase.auth.signOut(); 
+        setCurrentUser(null);
+        setUserRole(null);
+        return;
+      }
+      setUserRole(role);
+      setNoRoleError(null);
+    } finally {
+      setRoleLoading(false); // End loading role
     }
-    setUserRole(role);
-    setNoRoleError(null);
   }, []);
 
   useEffect(() => {
@@ -48,7 +54,10 @@ export const useAuthAndRole = () => {
       if (!mounted) return;
       if (session?.user) {
         setCurrentUser(session.user);
-        loadUserRole(session.user);
+        // Load role immediately, authLoading remains true until role is loaded or fails.
+        loadUserRole(session.user).finally(() => {
+            if (mounted) setAuthLoading(false);
+        });
       } else {
         setAuthLoading(false);
       }
@@ -61,14 +70,12 @@ export const useAuthAndRole = () => {
       if (!mounted) return;
       
       if (session?.user) {
-        // Only update state if the user ID has changed or we didn't have a user before
-        // This prevents infinite loops if the session object is recreated but represents the same user
         setCurrentUser(prev => {
             if (prev?.id === session.user.id) return prev;
             return session.user;
         });
         
-        // We still load role to be safe, but loadUserRole handles its own state updates
+        // Wait for role load before setting authLoading to false if it was true
         await loadUserRole(session.user);
       } else {
         setCurrentUser(null);
@@ -99,5 +106,5 @@ export const useAuthAndRole = () => {
     };
   }, [loadUserRole]); // Removed currentUser to prevent infinite loop
 
-  return { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole };
+  return { currentUser, userRole, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRole };
 };

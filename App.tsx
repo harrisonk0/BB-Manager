@@ -18,7 +18,6 @@ import PendingApprovalPage from './components/PendingApprovalPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { View, BoyMarksPageView } from './types';
-import Modal from './components/Modal';
 
 // Import custom hooks
 import { useToastNotifications } from '@/hooks/useToastNotifications';
@@ -32,7 +31,7 @@ const App: React.FC = () => {
   const { toasts, showToast, removeToast } = useToastNotifications();
 
   // Use auth and role hook
-  const { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole } = useAuthAndRole();
+  const { currentUser, userRole, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRole } = useAuthAndRole(); // Added roleLoading
 
   // State for unsaved changes protection
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -109,7 +108,8 @@ const App: React.FC = () => {
   };
   
   const renderApp = () => {
-    if (authLoading || (currentUser && dataLoading && view.page !== 'signup' && userRole !== 'pending')) {
+    // Check if we are loading auth, or if we have a user but are still loading their role or app data.
+    if (authLoading || roleLoading || (currentUser && dataLoading && view.page !== 'signup' && userRole !== 'pending')) {
         return <HomePageSkeleton />;
     }
 
