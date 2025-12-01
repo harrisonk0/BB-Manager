@@ -3,6 +3,7 @@ import { UserRole, UserRoleInfo, Section } from '../types';
 import { openDB, saveUserRoleToDB, getUserRoleFromDB, deleteUserRoleFromDB } from './offlineDb';
 import { createAuditLog } from './auditService';
 import { Logger } from './logger';
+import { deepEqual } from './mappers'; // Import deepEqual
 
 export const fetchUserRole = async (uid: string): Promise<UserRoleInfo | null> => {
     await openDB();
@@ -11,8 +12,10 @@ export const fetchUserRole = async (uid: string): Promise<UserRoleInfo | null> =
     if (navigator.onLine) {
         const { data } = await supabase.from('user_roles').select('role, sections').eq('id', uid).single();
         if (data) {
-            const fresh = { role: data.role, sections: data.sections || [] };
-            if (JSON.stringify(fresh) !== JSON.stringify(cached)) {
+            const fresh: UserRoleInfo = { role: data.role, sections: data.sections || [] };
+            
+            // Use deepEqual for reliable comparison
+            if (!deepEqual(fresh, cached)) {
                 await saveUserRoleToDB(uid, fresh);
                 window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
             }
