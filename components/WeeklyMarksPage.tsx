@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; 
+import { CompanyMarkInput, JuniorMarkInput } from './MarkInputs';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -302,7 +303,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             }, activeSection, encryptionKey);
         }
 
-        // Use Promise.allSettled to handle partial failures
         const results = await Promise.allSettled(updates);
         
         const rejected = results.filter(r => r.status === 'rejected');
@@ -312,11 +312,10 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
             console.error('Some updates failed:', rejected);
             if (fulfilled.length > 0) {
                 showToast(`Saved ${fulfilled.length} updates, but ${rejected.length} failed.`, 'error');
-                refreshData(); // Refresh to show what actually stuck
+                refreshData(); 
             } else {
                 showToast('All updates failed. Please try again.', 'error');
             }
-            // Keep dirty state true so user knows something is wrong
         } else {
             showToast('Marks saved successfully!', 'success');
             refreshData();
@@ -330,8 +329,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         setIsSaving(false);
     }
   };
-  
-  // ... (Memoized computations and Render logic remain same)
   
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -516,52 +513,30 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                           >
                             {isPresent ? 'Present' : 'Absent'}
                           </button>
+                          
                           {isCompany ? (
-                            <div className="flex flex-col items-center">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  max="10"
-                                  step="0.01"
-                                  value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
-                                  onChange={e => handleCompanyMarkChange(boy.id!, e.target.value)}
-                                  disabled={!isPresent || isLocked}
-                                  className={`w-20 text-center px-2 py-1 bg-white border rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${boyErrors.score ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
-                                  placeholder="0-10"
-                                />
-                                {boyErrors.score && <p className="text-red-500 text-xs mt-1">{boyErrors.score}</p>}
-                            </div>
+                            <CompanyMarkInput
+                              boyId={boy.id}
+                              score={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
+                              error={boyErrors.score}
+                              isPresent={isPresent}
+                              isLocked={isLocked}
+                              accentRing={accentRing}
+                              onChange={(val) => handleCompanyMarkChange(boy.id!, val)}
+                            />
                           ) : (
-                             <div className="flex items-center space-x-2">
-                                <div className="flex flex-col items-center">
-                                    <label htmlFor={`uniform-${boy.id}`} className="block text-xs text-center text-slate-500">Uniform</label>
-                                    <input
-                                      id={`uniform-${boy.id}`}
-                                      type="number" min="0" max="10"
-                                      step="0.01"
-                                      value={Number((marks[boy.id] as JuniorMarkState)?.uniform) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.uniform ?? ''}
-                                      onChange={e => handleJuniorMarkChange(boy.id!, 'uniform', e.target.value)}
-                                      disabled={!isPresent || isLocked}
-                                      className={`w-16 text-center px-2 py-1 bg-white border rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${boyErrors.uniform ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
-                                      placeholder="/10"
-                                    />
-                                    {boyErrors.uniform && <p className="text-red-500 text-xs mt-1">{boyErrors.uniform}</p>}
-                                </div>
-                                <div className="flex flex-col items-center">
-                                    <label htmlFor={`behaviour-${boy.id}`} className="block text-xs text-center text-slate-500">Behaviour</label>
-                                    <input
-                                      id={`behaviour-${boy.id}`}
-                                      type="number" min="0" max="5"
-                                      step="0.01"
-                                      value={Number((marks[boy.id] as JuniorMarkState)?.behaviour) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.behaviour ?? ''}
-                                      onChange={e => handleJuniorMarkChange(boy.id!, 'behaviour', e.target.value)}
-                                      disabled={!isPresent || isLocked}
-                                      className={`w-16 text-center px-2 py-1 bg-white border rounded-md shadow-sm focus:outline-none disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${boyErrors.behaviour ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
-                                      placeholder="/5"
-                                    />
-                                    {boyErrors.behaviour && <p className="text-red-500 text-xs mt-1">{boyErrors.behaviour}</p>}
-                                </div>
-                             </div>
+                            <JuniorMarkInput
+                              boyId={boy.id}
+                              uniform={Number((marks[boy.id] as JuniorMarkState)?.uniform) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.uniform ?? ''}
+                              behaviour={Number((marks[boy.id] as JuniorMarkState)?.behaviour) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.behaviour ?? ''}
+                              uniformError={boyErrors.uniform}
+                              behaviourError={boyErrors.behaviour}
+                              isPresent={isPresent}
+                              isLocked={isLocked}
+                              accentRing={accentRing}
+                              onUniformChange={(val) => handleJuniorMarkChange(boy.id!, 'uniform', val)}
+                              onBehaviourChange={(val) => handleJuniorMarkChange(boy.id!, 'behaviour', val)}
+                            />
                           )}
                         </div>
                       </li>

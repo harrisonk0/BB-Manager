@@ -8,9 +8,10 @@ import {
   approveUser, 
   denyUser, 
   deleteUserRole,
-  createAuditLog
+  createAuditLog,
+  exportDatabaseJSON
 } from '../services/db';
-import { TrashIcon, CheckCircleIcon, XCircleIcon } from './Icons';
+import { TrashIcon, CheckCircleIcon, XCircleIcon, SaveIcon } from './Icons';
 import Modal from './Modal';
 import { Logger } from '../services/logger';
 
@@ -64,8 +65,10 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserWithEmailAndRole | null>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const [isBackingUp, setIsBackingUp] = useState(false);
 
   const canManageUserRoles = userRole && ['admin', 'captain'].includes(userRole);
+  const canDownloadBackup = userRole === 'admin';
   const currentAuthUserUid = currentUser?.id;
 
   const isRoleHigherOrEqual = (role1: UserRole, role2: UserRole): boolean => {
@@ -215,6 +218,29 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       setIsDeletingUser(false);
     }
   };
+
+  const handleDownloadBackup = async () => {
+      if (!canDownloadBackup) return;
+      setIsBackingUp(true);
+      try {
+          const json = await exportDatabaseJSON();
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `bb-manager-backup-${new Date().toISOString().split('T')[0]}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('Backup downloaded successfully.', 'success');
+      } catch (err: any) {
+          console.error(err);
+          showToast(`Backup failed: ${err.message}`, 'error');
+      } finally {
+          setIsBackingUp(false);
+      }
+  };
   
   const isCompany = activeSection === 'company';
   const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
@@ -227,6 +253,26 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       
       <div className="max-w-2xl mx-auto space-y-6">
         
+        {canDownloadBackup && (
+            <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
+                <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>System Maintenance</h2>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="font-medium text-slate-800">Database Backup</p>
+                        <p className="text-sm text-slate-500">Download a full JSON dump of all application data.</p>
+                    </div>
+                    <button 
+                        onClick={handleDownloadBackup}
+                        disabled={isBackingUp}
+                        className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-slate-600 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 ${isBackingUp ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                       <SaveIcon className="h-4 w-4 mr-2" />
+                       {isBackingUp ? 'Downloading...' : 'Download Backup'}
+                    </button>
+                </div>
+            </div>
+        )}
+
         {canManageUserRoles && (
             <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
                 <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Pending Access Requests</h2>

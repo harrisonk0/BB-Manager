@@ -766,4 +766,20 @@ export const clearAllAuditLogs = async (section: Section | null, email: string, 
     await clearStore(table);
 };
 
+export const exportDatabaseJSON = async (): Promise<string> => {
+    // Fetches all data from all tables for backup
+    const tables = ['company_boys', 'junior_boys', 'company_audit_logs', 'junior_audit_logs', 'global_audit_logs'];
+    const backup: any = {};
+    
+    if (!navigator.onLine) throw new Error("Must be online to perform backup");
+
+    for (const table of tables) {
+        const { data, error } = await supabase.from(table).select('*');
+        if (error) throw new Error(`Backup failed for table ${table}: ${error.message}`);
+        backup[table] = data;
+    }
+    
+    return JSON.stringify(backup, null, 2);
+};
+
 export const clearAllLocalData = clearAllLocalDataFromDB;
