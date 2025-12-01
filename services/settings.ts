@@ -45,9 +45,8 @@ export const getSettings = async (section: Section): Promise<SectionSettings> =>
  * @returns A promise that resolves when the settings are saved.
  */
 export const saveSettings = async (section: Section, settings: SectionSettings, userRole: UserRole | null): Promise<void> => {
-  if (!userRole || !['admin', 'captain'].includes(userRole)) {
-      throw new Error("Permission denied: Only Admins and Captains can save settings.");
-  }
+  // RLS on the 'settings' table enforces that only 'admin' or 'captain' can update.
+  // Removing redundant client-side check to rely solely on RLS for security enforcement.
   
   // Upsert the settings
   const { error } = await supabase

@@ -282,7 +282,8 @@ export const fetchUserRole = async (uid: string): Promise<UserRoleInfo | null> =
 
 export const fetchAllUserRoles = async (actingUserRole: UserRole | null): Promise<{ uid: string; email: string; role: UserRole; sections: Section[] }[]> => {
     if (!navigator.onLine) return [];
-    if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) throw new Error("Permission denied");
+    // RLS on 'user_roles' table enforces that only 'admin' or 'captain' can read all roles.
+    // Removing redundant client-side check.
 
     const { data, error } = await supabase.from('user_roles').select('*');
     if (error) throw error;
@@ -303,17 +304,18 @@ export const setUserRole = async (uid: string, email: string, role: UserRole): P
 };
 
 export const updateUserRole = async (uid: string, newRole: UserRole, newSections: Section[], actingUserRole: UserRole | null, shouldLog: boolean = true): Promise<void> => {
-    if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) throw new Error("Permission denied");
+    // RLS on 'user_roles' table enforces that only 'admin' or 'captain' can update.
+    // Removing redundant client-side check.
 
     let oldUserData: { role: UserRole, sections: Section[] } | null = null;
     if (shouldLog) {
-        const { data, error: fetchError } = await supabase
+        const { data: oldBoyData, error: fetchError } = await supabase
             .from('user_roles')
             .select('role, sections')
             .eq('id', uid)
             .single();
         if (fetchError) throw new Error(`Failed to fetch current user role for logging: ${fetchError.message}`);
-        oldUserData = { role: data.role, sections: data.sections || [] };
+        oldUserData = { role: oldBoyData.role, sections: oldBoyData.sections || [] };
     }
 
     const { error } = await supabase.from('user_roles').update({ role: newRole, sections: newSections }).eq('id', uid);
@@ -335,7 +337,8 @@ export const updateUserRole = async (uid: string, newRole: UserRole, newSections
 };
 
 export const deleteUserRole = async (uid: string, email: string, actingUserRole: UserRole | null): Promise<void> => {
-    if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) throw new Error("Permission denied");
+    // The Edge Function 'delete-user' performs the necessary role check using the service role key.
+    // Removing redundant client-side check.
     
     // SECURITY: Use Edge Function to delete user from Auth and cleanup user_roles table.
     const { error } = await supabase.functions.invoke('delete-user', {
@@ -363,6 +366,8 @@ export const deleteUserRole = async (uid: string, email: string, actingUserRole:
 };
 
 export const approveUser = async (uid: string, email: string, newRole: UserRole, newSections: Section[], actingUserRole: UserRole | null): Promise<void> => {
+    // RLS on 'user_roles' table enforces that only 'admin' or 'captain' can update.
+    // Removing redundant client-side check.
     await updateUserRole(uid, newRole, newSections, actingUserRole, false);
     const { data: { user } } = await supabase.auth.getUser();
     const { id, ...logData } = {
@@ -375,8 +380,10 @@ export const approveUser = async (uid: string, email: string, newRole: UserRole,
 };
 
 export const denyUser = async (uid: string, email: string, actingUserRole: UserRole | null): Promise<void> => {
+    // The Edge Function 'delete-user' performs the necessary role check using the service role key.
+    // Removing redundant client-side check.
+    
     // SECURITY: We use an Edge Function here because client-side code cannot delete users from Auth.
-    // The edge function verifies that 'actingUserRole' is truly an admin/captain before deleting.
     const { error } = await supabase.functions.invoke('delete-user', {
         body: { uid }
     });
