@@ -16,7 +16,6 @@ import AccountSettingsPage from './components/AccountSettingsPage';
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-// Removed: import { initializeFirebase } from './services/firebase';
 import { View, BoyMarksPageView } from './types';
 import Modal from './components/Modal';
 
@@ -98,7 +97,8 @@ const App: React.FC = () => {
       case 'settings': // Section-specific settings
         return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} />;
       case 'globalSettings': // New: Global settings
-        return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} />;
+        // Pass currentUser to GlobalSettingsPage
+        return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} currentUser={currentUser} />;
       case 'accountSettings': // New: Account settings
         return <AccountSettingsPage showToast={showToast} />;
       case 'boyMarks':
@@ -153,7 +153,8 @@ const App: React.FC = () => {
                     <>
                         <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
                         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} />
+                            {/* Pass currentUser here as well */}
+                            <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} currentUser={currentUser} />
                         </main>
                     </>
                 );

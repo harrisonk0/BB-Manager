@@ -6,9 +6,9 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy, revokeInviteCode, updateUserRole, deleteUserRole, updateInviteCode } from '../services/db';
+import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy, revokeInviteCode, updateUserRole, updateInviteCode } from '../services/db';
 import { saveSettings } from '../services/settings';
-import { getAuthInstance } from '../services/firebase';
+// Removed: import { getAuthInstance } from '../services/firebase';
 import { AuditLog, Boy, Section, SectionSettings, ToastType, UserRole, AuditLogActionType } from '../types';
 import { ClockIcon, PlusIcon, PencilIcon, TrashIcon, UndoIcon, CogIcon } from './Icons';
 import Modal from './Modal';
@@ -188,10 +188,8 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
       
       // Audit logs are now immutable. Instead of marking the original log as 'reverted',
       // we create a new log entry for the revert action itself, linking it to the original.
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
       await createAuditLog({
-        userEmail,
+        // userEmail handled by db.ts
         actionType: 'REVERT_ACTION',
         description: `Reverted action: "${logToRevert.description}"`,
         revertData: {}, // Revert actions cannot be reverted.

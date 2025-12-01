@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { Boy, Squad, SchoolYear, Section, JuniorSquad, JuniorYear } from '../types';
 import { createBoy, updateBoy, createAuditLog } from '../services/db';
-import { getAuthInstance } from '../services/firebase';
+// Removed: import { getAuthInstance } from '../services/firebase';
 
 interface BoyFormProps {
   /** If provided, the form will be in 'edit' mode, pre-filled with this boy's data. If null/undefined, it's in 'add' mode. */
@@ -88,9 +88,6 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     }
 
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
-
       if (boyToEdit) {
         // --- UPDATE LOGIC ---
         // Construct a description of the changes for the audit log.
@@ -103,7 +100,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
         // Only create an audit log if something actually changed.
         if (changes.length > 0) {
             await createAuditLog({
-                userEmail,
+                // userEmail handled by db.ts
                 actionType: 'UPDATE_BOY',
                 description: `Updated ${boyToEdit.name}: changed ${changes.join(', ')}.`,
                 revertData: { boyData: boyToEdit }, // Save the old data for potential revert.
@@ -115,7 +112,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
         // --- CREATE LOGIC ---
         const newBoy = await createBoy({ name, squad, year, marks: [], isSquadLeader }, activeSection);
         await createAuditLog({
-            userEmail,
+            // userEmail handled by db.ts
             actionType: 'CREATE_BOY',
             description: `Added new boy: ${name}`,
             revertData: { boyId: newBoy.id }, // Save the new ID for potential revert.

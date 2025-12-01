@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
-import { getAuthInstance } from '../services/firebase';
+// Removed: import { getAuthInstance } from '../services/firebase';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
 
@@ -322,10 +322,8 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     try {
         // If any boys were changed, create a single, comprehensive audit log entry.
         if (changedBoysOldData.length > 0) {
-            const auth = getAuthInstance();
-            const userEmail = auth.currentUser?.email || 'Unknown User';
             await createAuditLog({
-                userEmail,
+                // userEmail handled by db.ts
                 actionType: 'UPDATE_BOY',
                 description: `Updated weekly marks for ${selectedDate} for ${changedBoysOldData.length} boys.`,
                 revertData: { boysData: changedBoysOldData }, // Save all old boy objects for potential revert.

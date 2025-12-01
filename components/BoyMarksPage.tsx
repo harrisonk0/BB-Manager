@@ -9,7 +9,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchBoyById, updateBoy, createAuditLog } from '../services/db';
 import { Boy, Mark, Squad, Section, JuniorSquad, ToastType } from '../types';
 import { TrashIcon, SaveIcon } from './Icons';
-import { getAuthInstance } from '../services/firebase';
+// Removed: import { getAuthInstance } from '../services/firebase';
 import { BoyMarksPageSkeleton } from './SkeletonLoaders';
 
 interface BoyMarksPageProps {
@@ -223,12 +223,9 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     const updatedBoyData = { ...boy, marks: validMarks };
 
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
-      
       // Create an audit log entry for the change.
       await createAuditLog({
-        userEmail,
+        // userEmail handled by db.ts
         actionType: 'UPDATE_BOY',
         description: `Updated marks for ${boy.name}.`,
         revertData: { boyData: JSON.parse(JSON.stringify(boy)) }, // Save old data for revert.

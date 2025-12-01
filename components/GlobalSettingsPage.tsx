@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Section, ToastType, InviteCode, UserRole, AuditLogActionType } from '../types';
+import { Section, ToastType, InviteCode, UserRole } from '../types';
 import { 
   createAuditLog, 
   createInviteCode, 
@@ -15,15 +15,17 @@ import {
   updateInviteCode,
   deleteUserRole
 } from '../services/db';
-import { getAuthInstance } from '../services/firebase';
+// Removed: import { getAuthInstance } from '../services/firebase';
 import { ClipboardIcon, TrashIcon } from './Icons'; // Import TrashIcon
 import Modal from './Modal';
+import { User } from 'firebase/auth'; // Still using firebase types, but should switch to supabase or just any
 
 interface GlobalSettingsPageProps {
   activeSection: Section; // Still needed for audit logging and clear local data
   showToast: (message: string, type?: ToastType) => void;
   userRole: UserRole | null;
   refreshData: () => void; // To refresh data in App.tsx after destructive actions
+  currentUser: any; // Using any for now to match App's state type easily, or import User type
 }
 
 interface UserWithEmailAndRole {
@@ -40,7 +42,7 @@ const USER_ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
 
 const ROLE_SORT_ORDER: UserRole[] = ['admin', 'captain', 'officer'];
 
-const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, showToast, userRole, refreshData }) => {
+const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, showToast, userRole, refreshData, currentUser }) => {
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
@@ -73,7 +75,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const canManageInviteCodes = userRole && ['admin', 'captain'].includes(userRole);
   const canManageUserRoles = userRole && ['admin', 'captain'].includes(userRole);
   const isAdmin = userRole === 'admin';
-  const currentAuthUserUid = getAuthInstance().currentUser?.uid;
+  const currentAuthUserUid = currentUser?.id; // Use prop
 
   // Helper to compare roles: returns true if role1 has higher or equal privilege than role2
   const isRoleHigherOrEqual = (role1: UserRole, role2: UserRole): boolean => {
@@ -155,18 +157,16 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     setIsGeneratingCode(true);
     setGeneratedCode(null);
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
-
       const newInviteCode: Omit<InviteCode, 'id' | 'generatedAt' | 'defaultUserRole' | 'expiresAt'> = {
-        generatedBy: userEmail,
+        generatedBy: currentUser?.email || 'Unknown User', // Use prop
         isUsed: false,
         section: activeSection,
       };
 
       const createdCode = await createInviteCode(newInviteCode, activeSection, userRole);
       await createAuditLog({
-        userEmail,
+        // userEmail will be handled by db.ts if not passed, but we have it here
+        userEmail: currentUser?.email || 'Unknown User',
         actionType: 'GENERATE_INVITE_CODE',
         description: `Generated new invite code: ${createdCode.id}`,
         revertData: { inviteCodeId: createdCode.id },
@@ -252,10 +252,8 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       }
 
       if (changes.length > 0) {
-        const auth = getAuthInstance();
-        const userEmail = auth.currentUser?.email || 'Unknown User';
         await createAuditLog({
-          userEmail,
+          userEmail: currentUser?.email || 'Unknown User',
           actionType: 'UPDATE_INVITE_CODE',
           description: `Updated invite code ${codeToEdit.id}: changed ${changes.join(', ')}.`,
           revertData: { inviteCodeId: codeToEdit.id, oldDefaultUserRole: codeToEdit.defaultUserRole, oldExpiresAt: codeToEdit.expiresAt },
@@ -312,13 +310,10 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
 
     setIsDeletingUser(true);
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
-
       await deleteUserRole(userToDelete.uid, userRole);
 
       await createAuditLog({
-        userEmail,
+        userEmail: currentUser?.email || 'Unknown User',
         actionType: 'DELETE_USER_ROLE',
         description: `Deleted user role for: ${userToDelete.email}`,
         revertData: { uid: userToDelete.uid, email: userToDelete.email, role: userToDelete.role },
@@ -338,8 +333,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const handleClearAllAuditLogs = async () => {
     setIsClearingDevData(true);
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
+      const userEmail = currentUser?.email || 'Unknown User';
       // Pass null for section to clear global logs as well
       await clearAllAuditLogs(activeSection, userEmail, userRole); // This will clear section-specific logs
       await clearAllAuditLogs(null, userEmail, userRole); // Clear global logs
@@ -358,8 +352,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const handleClearAllUsedRevokedInviteCodes = async () => {
     setIsClearingDevData(true);
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
+      const userEmail = currentUser?.email || 'Unknown User';
       await clearAllUsedRevokedInviteCodes(userEmail, userRole);
       showToast('All used/revoked invite codes cleared successfully!', 'success');
       loadInviteCodes();
@@ -375,8 +368,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const handleClearAllLocalData = async () => {
     setIsClearingDevData(true);
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
+      const userEmail = currentUser?.email || 'Unknown User';
       await clearAllLocalData(activeSection, userEmail, userRole);
       showToast('All local data cleared successfully! Please refresh the page.', 'success');
       window.location.reload();

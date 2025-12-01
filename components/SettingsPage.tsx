@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Section, SectionSettings, ToastType, UserRole, Page } from '../types';
 import { saveSettings } from '../services/settings';
 import { createAuditLog } from '../services/db';
-import { getAuthInstance } from '../services/firebase';
+// Removed: import { getAuthInstance } from '../services/firebase';
 
 interface SettingsPageProps {
   activeSection: Section;
@@ -53,13 +53,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     try {
       const newSettings: SectionSettings = { meetingDay };
       
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
       const oldDay = WEEKDAYS[currentSettings.meetingDay];
       const newDay = WEEKDAYS[meetingDay];
 
       await createAuditLog({
-        userEmail,
+        // userEmail handled by db.ts
         actionType: 'UPDATE_SETTINGS',
         description: `Updated meeting day from ${oldDay} to ${newDay}.`,
         revertData: { settings: currentSettings },

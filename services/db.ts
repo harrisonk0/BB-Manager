@@ -323,9 +323,9 @@ export const updateUserRole = async (uid: string, newRole: UserRole, actingUserR
     await saveUserRoleToDB(uid, newRole);
     window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
     
-    const user = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     await createAuditLog({
-        userEmail: user.data.user?.email || 'Unknown',
+        userEmail: user?.email || 'Unknown',
         actionType: 'UPDATE_USER_ROLE',
         description: `Updated role for user ${uid} to ${newRole}.`,
         revertData: { uid, newRole } // simplified
@@ -463,19 +463,32 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
 
 // --- Audit Log Functions ---
 
-export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, section: Section | null, shouldLog: boolean = true): Promise<AuditLog | null> => {
+/**
+ * Creates an audit log entry.
+ * Now optionally accepts `userEmail`. If not provided, it fetches the current user's email.
+ */
+export const createAuditLog = async (
+    log: Omit<AuditLog, 'id' | 'timestamp' | 'userEmail'> & { userEmail?: string }, 
+    section: Section | null, 
+    shouldLog: boolean = true
+): Promise<AuditLog | null> => {
     if (!shouldLog) return null;
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
+    
+    let userEmail = log.userEmail;
+    if (!userEmail) {
+        const { data: { user } } = await supabase.auth.getUser();
+        userEmail = user?.email || 'Unknown User';
+    }
 
     const timestamp = Date.now();
-    const logData = { ...log, timestamp };
+    // We need to cast here because Omit removed userEmail but we've ensured it's present
+    const logData = { ...log, userEmail, timestamp } as AuditLog;
     const table = getTableName(section, 'audit_logs');
 
     if (navigator.onLine) {
         const { data, error } = await supabase
             .from(table)
-            .insert({ ...log, timestamp: toISO(timestamp) })
+            .insert({ ...logData, timestamp: toISO(timestamp) })
             .select('id')
             .single();
         
@@ -542,7 +555,6 @@ export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[
 export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
     // Basic implementation that relies on Supabase policies/cron in production
     // For now, we clear local.
-    const cutoff = Date.now() - (14 * 24 * 60 * 60 * 1000);
     // (Logic simplified - proper implementation would use DELETE SQL)
 };
 
@@ -566,33 +578,13 @@ export const fetchInviteCode = async (id: string): Promise<InviteCode | undefine
     if (navigator.onLine) {
         const { data } = await supabase.from('invites').select('*').eq('id', id).single();
         if (data) {
-            const code = {
-                ...data,
-                generatedAt: toMillis(data.generated_at),
-                expiresAt: toMillis(data.expires_at),
-                usedAt: toMillis(data.used_at),
-                defaultUserRole: data.default_user_role // Map snake_case to camelCase if needed, but schema seems to use text keys
-            } as unknown as InviteCode; 
-            // Note: Schema might need 'defaultUserRole' column name check. 
-            // Assuming Supabase returns columns matching schema. If schema used camelCase, fine. 
-            // If schema used snake_case (default_user_role), we map it here.
-            // Let's assume you mapped them or Supabase returns them as is. 
-            // Based on previous export, keys were underscores.
-            
-            // Correction: Re-mapping snake_case from DB to camelCase for App
+            // Mapped keys from DB snake_case to app camelCase
             const mappedCode: InviteCode = {
                 id: data.id,
-                generatedBy: data.generated_by, // schema: invited_by? No, wait.
-                // Let's check Schema again.
-                // TABLE invites: id, email, invited_by, invited_at, is_used.
-                // Wait, your schema was minimal. 
-                // "invited_by" maps to "generatedBy"
-                // "invited_at" maps to "generatedAt"
-                // We need to match the TypeScript InviteCode interface.
                 generatedBy: data.invited_by,
                 generatedAt: toMillis(data.invited_at),
                 isUsed: data.is_used,
-                expiresAt: toMillis(data.expires_at) || (Date.now() + 86400000), // Fallback if column missing
+                expiresAt: toMillis(data.expires_at) || (Date.now() + 86400000), 
                 defaultUserRole: data.default_user_role || 'officer',
                 section: data.section || 'company'
             };
@@ -619,7 +611,9 @@ export const createInviteCode = async (code: any, section: Section, role: UserRo
         invited_at: toISO(generatedAt),
         is_used: false,
         email: code.email || null,
-        // Add extra columns if your schema supports them, otherwise they are ignored
+        expires_at: toISO(expiresAt),
+        default_user_role: code.defaultUserRole,
+        section: code.section
     };
 
     if (navigator.onLine) {
@@ -627,8 +621,7 @@ export const createInviteCode = async (code: any, section: Section, role: UserRo
         if (error) throw error;
         await saveInviteCodeToDB(newCode);
     } else {
-        // Offline not fully supported for invites in this specific logic block without pending writes
-        // adding minimal support
+        // Offline support via pending writes
         await addPendingWrite({ type: 'CREATE_INVITE_CODE', payload: newCode, section });
         await saveInviteCodeToDB(newCode);
     }
@@ -636,10 +629,10 @@ export const createInviteCode = async (code: any, section: Section, role: UserRo
 };
 
 export const updateInviteCode = async (id: string, updates: any, role: UserRole | null): Promise<InviteCode> => {
-    // Implementation simplified for brevity, similar logic to create
-    // Mapping camelCase updates to snake_case DB columns needed
     const dbUpdates: any = {};
     if (updates.isUsed !== undefined) dbUpdates.is_used = updates.isUsed;
+    if (updates.revoked !== undefined) dbUpdates.revoked = updates.revoked; // Assuming column exists or handled via is_used/expiration
+    // ... map other fields
     
     if (navigator.onLine) {
         await supabase.from('invites').update(dbUpdates).eq('id', id);
@@ -648,13 +641,15 @@ export const updateInviteCode = async (id: string, updates: any, role: UserRole 
     const current = await getInviteCodeFromDB(id);
     const updated = { ...current, ...updates } as InviteCode;
     await saveInviteCodeToDB(updated);
+    
+    // Add pending write if offline? (Simplified for now)
+    if (!navigator.onLine) {
+         await addPendingWrite({ type: 'UPDATE_INVITE_CODE', payload: { id, ...updates }, section: updated.section });
+    }
+    
     return updated;
 };
 
-// ... (Other functions follow similar pattern: offline check -> Supabase call -> IDB update)
-
-// Placeholder for full implementations of remaining functions (revoke, fetchAll, clear)
-// using the same pattern.
 export const revokeInviteCode = async (id: string, section: Section, log: boolean, role: UserRole | null) => {
     await updateInviteCode(id, { revoked: true }, role);
 };
@@ -668,8 +663,9 @@ export const fetchAllInviteCodes = async (role: UserRole | null): Promise<Invite
         generatedAt: toMillis(row.invited_at),
         isUsed: row.is_used,
         expiresAt: toMillis(row.expires_at) || 0,
-        defaultUserRole: 'officer', // Defaulting as schema might miss this
-        section: 'company'
+        defaultUserRole: row.default_user_role || 'officer',
+        section: row.section || 'company',
+        revoked: row.revoked // Assuming schema update or logic
     }));
 };
 

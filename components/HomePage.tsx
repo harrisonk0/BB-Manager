@@ -6,7 +6,7 @@ import Modal from './Modal';
 import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
 import { deleteBoyById, createAuditLog } from '../services/db';
-import { getAuthInstance } from '../services/firebase';
+// Removed: import { getAuthInstance } from '../services/firebase';
 
 interface HomePageProps {
   /** The list of all boys for the active section. */
@@ -219,11 +219,8 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     if (!boyToDelete) return;
 
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
-      
       await createAuditLog({
-          userEmail,
+          // userEmail handled by db.ts
           actionType: 'DELETE_BOY',
           description: `Deleted boy: ${boyToDelete.name}`,
           revertData: { boyData: boyToDelete },
