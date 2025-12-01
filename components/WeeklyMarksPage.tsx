@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
+import { Boy, Section, SectionSettings, ToastType } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; 
 import { CompanyMarkInput, JuniorMarkInput } from './MarkInputs';
+import { useSquads } from '../hooks/useSquads';
+import { useWeeklyMarksLogic } from '../hooks/useWeeklyMarksLogic';
+import { COMPANY_SQUAD_COLORS, JUNIOR_SQUAD_COLORS } from '../src/constants';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -17,51 +20,28 @@ interface WeeklyMarksPageProps {
   encryptionKey: CryptoKey | null;
 }
 
-// ... (Constants and types remain the same)
-const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
-  1: 'text-red-600',
-  2: 'text-green-600',
-  3: 'text-yellow-600',
-};
-const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
-  1: 'text-red-600',
-  2: 'text-green-600',
-  3: 'text-blue-600',
-  4: 'text-yellow-600',
-};
-
-type JuniorMarkState = { uniform: number | '', behaviour: number | '' };
-type CompanyMarkState = number | string;
-
 const getNearestMeetingDay = (meetingDay: number): string => {
   const today = new Date();
   const currentDay = today.getDay();
   let diff = meetingDay - currentDay;
-  if (diff < 0) {
-    diff += 7;
-  }
+  if (diff < 0) diff += 7;
   today.setDate(today.getDate() + diff);
   return today.toISOString().split('T')[0];
 };
 
 const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings, showToast, encryptionKey }) => {
-  // ... (State management remains the same)
   const [selectedDate, setSelectedDate] = useState('');
-  const [marks, setMarks] = useState<Record<string, CompanyMarkState | JuniorMarkState>>({});
-  const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
-  const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
-  // ... (Effects remain the same)
+  const { boysBySquad, sortedSquads } = useSquads(boys);
+  const { marks, attendance, markErrors, isDirty, setIsDirty, updateMark, updateAttendance, setError, setMarks, setAttendance, setMarkErrors } = useWeeklyMarksLogic(boys, selectedDate, activeSection);
+
   useEffect(() => {
-    if (settings && !selectedDate) {
-      setSelectedDate(getNearestMeetingDay(settings.meetingDay));
-    }
+    if (settings && !selectedDate) setSelectedDate(getNearestMeetingDay(settings.meetingDay));
   }, [settings, selectedDate]);
   
   useEffect(() => {
@@ -71,221 +51,86 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   }, [selectedDate]);
 
   useEffect(() => {
-    if (!selectedDate) return;
-
-    const newMarks: Record<string, CompanyMarkState | JuniorMarkState> = {};
-    const newAttendance: Record<string, 'present' | 'absent'> = {};
-
-    boys.forEach(boy => {
-      if (boy.id) {
-        const markForDate = boy.marks.find(m => m.date === selectedDate);
-        if (markForDate) {
-          if (markForDate.score < 0) {
-            newAttendance[boy.id] = 'absent';
-            newMarks[boy.id] = isCompany ? -1 : { uniform: -1, behaviour: -1 };
-          } else {
-            newAttendance[boy.id] = 'present';
-            newMarks[boy.id] = isCompany
-              ? markForDate.score
-              : { uniform: markForDate.uniformScore ?? '', behaviour: markForDate.behaviourScore ?? '' };
-          }
-        } else {
-          newAttendance[boy.id] = 'present';
-          newMarks[boy.id] = isCompany ? '' : { uniform: '', behaviour: '' };
-        }
-      }
-    });
-    setMarks(newMarks);
-    setAttendance(newAttendance);
-    setIsDirty(false);
-    setMarkErrors({});
-  }, [selectedDate, boys, isCompany]);
-
-  useEffect(() => {
     setHasUnsavedChanges(isDirty);
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (isDirty) {
-        event.preventDefault();
-        event.returnValue = '';
-      }
-    };
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => { if (isDirty) { event.preventDefault(); event.returnValue = ''; } };
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      setHasUnsavedChanges(false);
-    };
+    return () => { window.removeEventListener('beforeunload', handleBeforeUnload); setHasUnsavedChanges(false); };
   }, [isDirty, setHasUnsavedChanges]);
-  
-  // ... (Event handlers remain the same)
+
+  // Validation Logic
   const validateAndSetMark = (boyId: string, type: 'score' | 'uniform' | 'behaviour', scoreStr: string, max: number) => {
     const numericScore = parseFloat(scoreStr);
     let error: string | undefined;
 
-    if (scoreStr === '') {
-      error = undefined;
-    } else if (isNaN(numericScore)) {
-      error = 'Invalid number';
-    } else if (numericScore < 0 || numericScore > max) {
-      error = `Must be between 0 and ${max}`;
-    } else if (scoreStr.includes('.') && scoreStr.split('.')[1].length > 2) {
-      error = 'Max 2 decimal places';
-    }
+    if (scoreStr === '') error = undefined;
+    else if (isNaN(numericScore)) error = 'Invalid number';
+    else if (numericScore < 0 || numericScore > max) error = `Must be between 0 and ${max}`;
+    else if (scoreStr.includes('.') && scoreStr.split('.')[1].length > 2) error = 'Max 2 decimal places';
 
-    setMarkErrors(prev => ({
-      ...prev,
-      [boyId]: { ...prev[boyId], [type]: error }
-    }));
+    setError(boyId, { [type]: error });
 
     if (!error) {
-      setMarks(prev => {
-        if (isCompany) {
-          return { ...prev, [boyId]: scoreStr };
-        } else {
-          const currentMark = (prev[boyId] as JuniorMarkState) || { uniform: '', behaviour: '' };
-          return { ...prev, [boyId]: { ...currentMark, [type]: scoreStr } };
+        if (isCompany) updateMark(boyId, scoreStr);
+        else {
+            const currentMark = (marks[boyId] as any) || { uniform: '', behaviour: '' };
+            updateMark(boyId, { ...currentMark, [type]: scoreStr });
         }
-      });
-      setIsDirty(true);
     }
-  };
-
-  const handleCompanyMarkChange = (boyId: string, score: string) => {
-    validateAndSetMark(boyId, 'score', score, 10);
-  };
-
-  const handleJuniorMarkChange = (boyId: string, type: 'uniform' | 'behaviour', score: string) => {
-    const maxScore = type === 'uniform' ? 10 : 5;
-    validateAndSetMark(boyId, type, score, maxScore);
   };
 
   const handleAttendanceToggle = (boyId: string) => {
     const newStatus = attendance[boyId] === 'present' ? 'absent' : 'present';
-    setAttendance(prev => ({ ...prev, [boyId]: newStatus }));
+    updateAttendance(boyId, newStatus);
 
     if (newStatus === 'absent') {
-      setMarks(prev => ({ ...prev, [boyId]: isCompany ? -1 : { uniform: -1, behaviour: -1 } }));
+      updateMark(boyId, isCompany ? -1 : { uniform: -1, behaviour: -1 });
       setMarkErrors(prev => ({ ...prev, [boyId]: {} }));
     } else {
       const markForDate = boys.find(b => b.id === boyId)?.marks.find(m => m.date === selectedDate);
       const presentMark = (markForDate && markForDate.score >= 0);
-      
-      if(isCompany) {
-        setMarks(prev => ({ ...prev, [boyId]: presentMark ? markForDate.score : '' }));
-      } else {
-        setMarks(prev => ({ ...prev, [boyId]: presentMark ? { uniform: markForDate.uniformScore ?? '', behaviour: markForDate.behaviourScore ?? '' } : { uniform: '', behaviour: '' } }));
-      }
+      if(isCompany) updateMark(boyId, presentMark ? markForDate.score : '');
+      else updateMark(boyId, presentMark ? { uniform: markForDate.uniformScore ?? '', behaviour: markForDate.behaviourScore ?? '' } : { uniform: '', behaviour: '' });
     }
-    setIsDirty(true);
   };
 
-  const handleClearAllMarks = () => {
-    if (isLocked) {
-      showToast('Unlock the page to edit past marks.', 'info');
-      return;
-    }
-    const newMarks: Record<string, CompanyMarkState | JuniorMarkState> = {};
-    const newAttendance: Record<string, 'present' | 'absent'> = {};
-
-    boys.forEach(boy => {
-      if (boy.id) {
-        newAttendance[boy.id] = 'present';
-        newMarks[boy.id] = isCompany ? '' : { uniform: '', behaviour: '' };
-      }
-    });
-    setMarks(newMarks);
-    setAttendance(newAttendance);
-    setIsDirty(true);
-    setMarkErrors({});
-    showToast('All marks cleared for present members.', 'info');
-  };
-
-  const handlePreviousWeek = () => {
-    const currentDate = new Date(selectedDate + 'T00:00:00');
-    currentDate.setDate(currentDate.getDate() - 7);
-    setSelectedDate(currentDate.toISOString().split('T')[0]);
-    setIsDirty(true);
-  };
-
-  const handleNextWeek = () => {
-    const currentDate = new Date(selectedDate + 'T00:00:00');
-    currentDate.setDate(currentDate.getDate() + 7);
-    setSelectedDate(currentDate.toISOString().split('T')[0]);
-    setIsDirty(true);
-  };
-
-  // UPDATED SAVE LOGIC
   const handleSaveMarks = async () => {
-    const hasErrors = Object.values(markErrors).some(boyErrors =>
-      Object.values(boyErrors).some(error => error !== undefined)
-    );
-
-    if (hasErrors) {
-      showToast('Please correct the errors before saving.', 'error');
-      return;
-    }
-    
-    if (!encryptionKey) {
-        showToast('Encryption key missing. Cannot save sensitive data.', 'error');
-        return;
-    }
+    const hasErrors = Object.values(markErrors).some(boyErrors => Object.values(boyErrors).some(error => error !== undefined));
+    if (hasErrors) return showToast('Please correct the errors before saving.', 'error');
+    if (!encryptionKey) return showToast('Encryption key missing.', 'error');
 
     setIsSaving(true);
-    
     const changedBoysOldData: Boy[] = [];
     const updates: Promise<any>[] = [];
 
     boys.forEach(boy => {
         if (!boy.id) return;
-        
         const markIndex = boy.marks.findIndex(m => m.date === selectedDate);
         let updatedMarks = [...boy.marks];
         let hasChanged = false;
         
         const attendanceStatus = attendance[boy.id];
+        let finalMark: any = { date: selectedDate, score: -1 };
 
-        if (attendanceStatus === 'absent') {
-            const finalScore = -1;
-            if (markIndex > -1) {
-                if (updatedMarks[markIndex].score !== finalScore) {
-                    updatedMarks[markIndex] = { date: selectedDate, score: finalScore };
-                    hasChanged = true;
-                }
+        if (attendanceStatus === 'present') {
+            if (isCompany) {
+                const score = parseFloat(String(marks[boy.id]));
+                finalMark = { date: selectedDate, score: isNaN(score) ? 0 : score };
             } else {
-                updatedMarks.push({ date: selectedDate, score: finalScore });
+                const m = marks[boy.id] as any;
+                const u = parseFloat(String(m.uniform || 0));
+                const b = parseFloat(String(m.behaviour || 0));
+                finalMark = { date: selectedDate, score: u + b, uniformScore: u, behaviourScore: b };
+            }
+        }
+
+        if (markIndex > -1) {
+            if (JSON.stringify(updatedMarks[markIndex]) !== JSON.stringify(finalMark)) { // simplified comparison
+                updatedMarks[markIndex] = finalMark;
                 hasChanged = true;
             }
         } else {
-            if (isCompany) {
-                const newScoreRaw = marks[boy.id] as CompanyMarkState;
-                const newScore = typeof newScoreRaw === 'string' ? parseFloat(newScoreRaw) : newScoreRaw;
-                const finalScore = (newScoreRaw !== '' && !isNaN(newScore as number)) ? newScore : 0;
-
-                if (markIndex > -1) {
-                    if (updatedMarks[markIndex].score !== finalScore || updatedMarks[markIndex].uniformScore !== undefined) {
-                        updatedMarks[markIndex] = { date: selectedDate, score: finalScore as number };
-                        hasChanged = true;
-                    }
-                } else {
-                    updatedMarks.push({ date: selectedDate, score: finalScore as number });
-                    hasChanged = true;
-                }
-            } else {
-                const newScores = marks[boy.id] as JuniorMarkState;
-                const uniformScore = newScores.uniform === '' ? 0 : parseFloat(String(newScores.uniform));
-                const behaviourScore = newScores.behaviour === '' ? 0 : parseFloat(String(newScores.behaviour));
-                const finalScore = uniformScore + behaviourScore;
-                
-                if (markIndex > -1) {
-                    const oldMark = updatedMarks[markIndex];
-                    if (oldMark.score !== finalScore || oldMark.uniformScore !== uniformScore || oldMark.behaviourScore !== behaviourScore) {
-                        updatedMarks[markIndex] = { date: selectedDate, score: finalScore, uniformScore, behaviourScore };
-                        hasChanged = true;
-                    }
-                } else {
-                    updatedMarks.push({ date: selectedDate, score: finalScore, uniformScore, behaviourScore });
-                    hasChanged = true;
-                }
-            }
+            updatedMarks.push(finalMark);
+            hasChanged = true;
         }
         
         if (hasChanged) {
@@ -296,172 +141,47 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
 
     try {
         if (changedBoysOldData.length > 0) {
-            await createAuditLog({
-                actionType: 'UPDATE_BOY',
-                description: `Updated weekly marks for ${selectedDate} for ${changedBoysOldData.length} boys.`,
-                revertData: { boysData: changedBoysOldData },
-            }, activeSection, encryptionKey);
+            await createAuditLog({ actionType: 'UPDATE_BOY', description: `Updated marks for ${selectedDate}.`, revertData: { boysData: changedBoysOldData } }, activeSection, encryptionKey);
         }
-
-        const results = await Promise.allSettled(updates);
-        
-        const rejected = results.filter(r => r.status === 'rejected');
-        const fulfilled = results.filter(r => r.status === 'fulfilled');
-
-        if (rejected.length > 0) {
-            console.error('Some updates failed:', rejected);
-            if (fulfilled.length > 0) {
-                showToast(`Saved ${fulfilled.length} updates, but ${rejected.length} failed.`, 'error');
-                refreshData(); 
-            } else {
-                showToast('All updates failed. Please try again.', 'error');
-            }
-        } else {
-            showToast('Marks saved successfully!', 'success');
-            refreshData();
-            setIsDirty(false);
-        }
-
-    } catch(error) {
-        console.error("Failed to save marks", error);
-        showToast('Failed to save marks.', 'error');
-    } finally {
-        setIsSaving(false);
-    }
+        await Promise.all(updates);
+        showToast('Marks saved successfully!', 'success');
+        refreshData();
+        setIsDirty(false);
+    } catch(error) { showToast('Failed to save marks.', 'error'); } 
+    finally { setIsSaving(false); }
   };
-  
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
 
-  const boysBySquad = useMemo(() => {
-    const grouped: Record<string, Boy[]> = {};
-    boys.forEach(boy => {
-      if (!grouped[boy.squad]) {
-        grouped[boy.squad] = [];
-      }
-      grouped[boy.squad].push(boy);
-    });
-    for (const squad of Object.keys(grouped)) {
-        grouped[squad].sort((a, b) => {
-            const yearA = a.year || 0;
-            const yearB = b.year || 0;
-            if (typeof yearA === 'string' && typeof yearB === 'string') {
-                return yearB.localeCompare(yearA);
-            }
-            if (typeof yearA === 'number' && typeof yearB === 'number') {
-                return yearB - yearA;
-            }
-            return a.name.localeCompare(b.name);
-        });
-    }
-    return grouped;
-  }, [boys]);
+  const handleDateChange = (offset: number) => {
+      const d = new Date(selectedDate + 'T00:00:00');
+      d.setDate(d.getDate() + offset);
+      setSelectedDate(d.toISOString().split('T')[0]);
+      setIsDirty(true);
+  };
 
-  const squadLeaders = useMemo(() => {
-    const leaders: Record<string, string | undefined> = {};
-    Object.keys(boysBySquad).forEach(squad => {
-        const squadBoys = boysBySquad[squad];
-        if (squadBoys.length === 0) return;
-        let leader = squadBoys.find(b => b.isSquadLeader);
-        if (!leader) {
-            leader = squadBoys[0];
-        }
-        if (leader) {
-            leaders[squad] = leader.id;
-        }
-    });
-    return leaders;
-  }, [boysBySquad]);
-  
+  // Stats Logic
   const squadAttendanceStats = useMemo(() => {
-    const stats: Record<string, { present: number; total: number; percentage: number }> = {};
+    const stats: Record<string, any> = {};
     for (const squad in boysBySquad) {
       const squadBoys = boysBySquad[squad];
-      const total = squadBoys.length;
-      if (total === 0) {
-        stats[squad] = { present: 0, total: 0, percentage: 0 };
-        continue;;
-      }
+      if (squadBoys.length === 0) { stats[squad] = { present: 0, total: 0, percentage: 0 }; continue; }
       const present = squadBoys.filter(boy => boy.id && attendance[boy.id] === 'present').length;
-      const percentage = Math.round((present / total) * 100);
-      stats[squad] = { present, total, percentage };
+      stats[squad] = { present, total: squadBoys.length, percentage: Math.round((present / squadBoys.length) * 100) };
     }
     return stats;
   }, [boysBySquad, attendance]);
 
-  const sortedSquads = Object.keys(boysBySquad).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-  const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
-  const accentBg = isCompany ? 'bg-company-blue focus:ring-company-blue disabled:bg-company-blue' : 'bg-junior-blue focus:ring-junior-blue disabled:bg-junior-blue';
-  
-  if (!settings) {
-    return <div className="text-center p-8">Loading settings...</div>;
-  }
-  
-  const accentTextColor = isCompany ? 'text-company-blue' : 'text-junior-blue';
-
-  if (boys.length === 0) {
-      return (
-          <div className="space-y-6">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Weekly Marks</h1>
-              <div className="text-center py-16 px-6 bg-white rounded-lg shadow-md mt-8">
-                  <ClipboardDocumentListIcon className="mx-auto h-16 w-16 text-slate-400" />
-                  <h3 className="mt-4 text-xl font-semibold text-slate-900">No Members to Mark</h3>
-                  <p className="mt-2 text-md text-slate-500">
-                      You can't record marks until you've added members to your section.
-                  </p>
-                  <p className="mt-4 text-md text-slate-500">
-                      Go to the <strong className={accentTextColor}>Home</strong> page to build your roster.
-                  </p>
-              </div>
-          </div>
-      );
-  }
-
-  const isPastDate = selectedDate < today;
+  if (!settings) return <div className="text-center p-8">Loading settings...</div>;
+  if (boys.length === 0) return <div className="text-center p-16"><ClipboardDocumentListIcon className="mx-auto h-16 w-16 text-slate-400"/><h3 className="mt-4 text-xl font-semibold">No Members</h3></div>;
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">Weekly Marks</h1>
         <div className="flex items-center space-x-4">
-          <button
-            onClick={handlePreviousWeek}
-            className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
-            aria-label="Previous week"
-          >
-            <ChevronLeftIcon className="h-5 w-5" />
-          </button>
-          <DatePicker
-            value={selectedDate}
-            onChange={setSelectedDate}
-            accentRingClass={accentRing}
-            ariaLabel="Select weekly marks date"
-          />
-          <button
-            onClick={handleNextWeek}
-            className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
-            aria-label="Next week"
-          >
-            <ChevronRightIcon className="h-5 w-5" />
-          </button>
-          <div className="flex space-x-2 ml-4"> 
-            <button
-              onClick={handleClearAllMarks}
-              disabled={isLocked}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md shadow-sm text-slate-700 bg-slate-100 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400 disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              Clear All Marks
-            </button>
-          </div>
-          {isPastDate && (
-            <button
-              onClick={() => setIsLocked(prev => !prev)}
-              className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
-              title={isLocked ? 'Unlock to edit past marks' : 'Lock page'}
-              aria-label={isLocked ? 'Unlock to edit past marks' : 'Lock page'}
-            >
-              {isLocked ? <LockClosedIcon className="h-5 w-5" /> : <LockOpenIcon className="h-5 w-5" />}
-            </button>
-          )}
+          <button onClick={() => handleDateChange(-7)} className="p-2 rounded-full hover:bg-slate-100"><ChevronLeftIcon className="h-5 w-5" /></button>
+          <DatePicker value={selectedDate} onChange={setSelectedDate} />
+          <button onClick={() => handleDateChange(7)} className="p-2 rounded-full hover:bg-slate-100"><ChevronRightIcon className="h-5 w-5" /></button>
+          {selectedDate < new Date().toISOString().split('T')[0] && <button onClick={() => setIsLocked(!isLocked)} className="p-2 rounded-full hover:bg-slate-100">{isLocked ? <LockClosedIcon className="h-5 w-5" /> : <LockOpenIcon className="h-5 w-5" />}</button>}
         </div>
       </div>
       
@@ -470,73 +190,25 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
           <div key={squad}>
             <div className="flex justify-between items-baseline mb-4">
               <h2 className="text-2xl font-semibold text-slate-800">{`Squad ${squad}`}</h2>
-              {squadAttendanceStats[squad] && (
-                <div className="text-right">
-                  <p className="font-semibold text-slate-600">
-                    Attendance: {squadAttendanceStats[squad].percentage}%
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    ({squadAttendanceStats[squad].present} / {squadAttendanceStats[squad].total} present)
-                  </p>
-                </div>
-              )}
+              {squadAttendanceStats[squad] && <div className="text-right text-slate-500 text-sm">Attendance: {squadAttendanceStats[squad].percentage}% ({squadAttendanceStats[squad].present}/{squadAttendanceStats[squad].total})</div>}
             </div>
             <div className="bg-white shadow-md rounded-lg">
               <ul className="divide-y divide-slate-200">
                 {boysBySquad[squad].map((boy) => {
                     if (!boy.id) return null;
                     const isPresent = attendance[boy.id] === 'present';
-                    const boyErrors = markErrors[boy.id] || {};
-
                     return (
-                      <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                      <li key={boy.id} className="p-4 flex justify-between items-center">
                         <div className="flex-1">
-                          <span className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
-                            {boy.name}
-                            {squadLeaders[squad] === boy.id && (
-                                <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
-                            )}
-                          </span>
-                          <p className="text-sm text-slate-500">{isCompany ? `Year ${boy.year}` : boy.year}</p>
+                          <span className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>{boy.name}</span>
+                          {boy.isSquadLeader && <span className="ml-2 text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>}
                         </div>
-                        <div className="flex items-center space-x-2 sm:space-x-4">
-                          <button
-                            onClick={() => handleAttendanceToggle(boy.id!)}
-                            disabled={isLocked}
-                            className={`px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors w-20 text-center ${
-                                isPresent
-                                ? 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
-                                : 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
-                            } disabled:opacity-70 disabled:cursor-not-allowed`}
-                            aria-pressed={!isPresent}
-                            aria-label={`Mark ${boy.name} as ${isPresent ? 'absent' : 'present'}`}
-                          >
-                            {isPresent ? 'Present' : 'Absent'}
-                          </button>
-                          
+                        <div className="flex items-center space-x-4">
+                          <button onClick={() => handleAttendanceToggle(boy.id!)} disabled={isLocked} className={`px-3 py-1 rounded text-white w-20 ${isPresent ? 'bg-green-600' : 'bg-red-600'} disabled:opacity-50`}>{isPresent ? 'Present' : 'Absent'}</button>
                           {isCompany ? (
-                            <CompanyMarkInput
-                              boyId={boy.id}
-                              score={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
-                              error={boyErrors.score}
-                              isPresent={isPresent}
-                              isLocked={isLocked}
-                              accentRing={accentRing}
-                              onChange={(val) => handleCompanyMarkChange(boy.id!, val)}
-                            />
+                            <CompanyMarkInput boyId={boy.id} score={marks[boy.id] as any} error={markErrors[boy.id]?.score} isPresent={isPresent} isLocked={isLocked} accentRing="focus:ring-blue-500" onChange={(v) => validateAndSetMark(boy.id!, 'score', v, 10)} />
                           ) : (
-                            <JuniorMarkInput
-                              boyId={boy.id}
-                              uniform={Number((marks[boy.id] as JuniorMarkState)?.uniform) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.uniform ?? ''}
-                              behaviour={Number((marks[boy.id] as JuniorMarkState)?.behaviour) < 0 ? '' : (marks[boy.id] as JuniorMarkState)?.behaviour ?? ''}
-                              uniformError={boyErrors.uniform}
-                              behaviourError={boyErrors.behaviour}
-                              isPresent={isPresent}
-                              isLocked={isLocked}
-                              accentRing={accentRing}
-                              onUniformChange={(val) => handleJuniorMarkChange(boy.id!, 'uniform', val)}
-                              onBehaviourChange={(val) => handleJuniorMarkChange(boy.id!, 'behaviour', val)}
-                            />
+                            <JuniorMarkInput boyId={boy.id} uniform={(marks[boy.id] as any).uniform} behaviour={(marks[boy.id] as any).behaviour} uniformError={markErrors[boy.id]?.uniform} behaviourError={markErrors[boy.id]?.behaviour} isPresent={isPresent} isLocked={isLocked} accentRing="focus:ring-blue-500" onUniformChange={(v) => validateAndSetMark(boy.id!, 'uniform', v, 10)} onBehaviourChange={(v) => validateAndSetMark(boy.id!, 'behaviour', v, 5)} />
                           )}
                         </div>
                       </li>
@@ -547,22 +219,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
           </div>
         ))}
       </div>
-
-       {isDirty && (
-          <button
-            onClick={handleSaveMarks}
-            disabled={isSaving}
-            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
-            aria-label="Save Marks"
-          >
-            {isSaving ? (
-              <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : <SaveIcon className="h-7 w-7" />}
-          </button>
-       )}
+       {isDirty && <button onClick={handleSaveMarks} disabled={isSaving} className="fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white bg-blue-600 shadow-lg flex items-center justify-center">{isSaving ? '...' : <SaveIcon className="h-7 w-7" />}</button>}
     </div>
   );
 };
