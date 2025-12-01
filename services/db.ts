@@ -215,7 +215,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 case 'UPDATE_USER_ROLE': {
                     const { error } = await supabase
                         .from(rolesTable)
-                        .update({ role: write.payload.role })
+                        .update({ role: write.payload.role, sections: write.payload.sections })
                         .eq('id', write.payload.uid);
                     if (error) throw error;
                     break;
@@ -276,19 +276,18 @@ export const fetchUserRole = async (uid: string): Promise<UserRole | null> => {
     return cachedRole || null;
 };
 
-export const fetchAllUserRoles = async (actingUserRole: UserRole | null): Promise<{ uid: string; email: string; role: UserRole }[]> => {
+export const fetchAllUserRoles = async (actingUserRole: UserRole | null): Promise<{ uid: string; email: string; role: UserRole; sections: Section[] }[]> => {
     if (!navigator.onLine) return [];
     if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) throw new Error("Permission denied");
 
     const { data, error } = await supabase.from('user_roles').select('*');
     if (error) throw error;
 
-    console.log("Fetched User Roles:", data); // DEBUG: Log the fetched users
-
     return data.map(row => ({
         uid: row.id,
         email: row.email,
-        role: row.role as UserRole
+        role: row.role as UserRole,
+        sections: row.sections || []
     }));
 };
 
@@ -299,22 +298,21 @@ export const setUserRole = async (uid: string, email: string, role: UserRole): P
     await saveUserRoleToDB(uid, role);
 };
 
-export const updateUserRole = async (uid: string, newRole: UserRole, actingUserRole: UserRole | null): Promise<void> => {
+export const updateUser = async (uid: string, newRole: UserRole, newSections: Section[], actingUserRole: UserRole | null): Promise<void> => {
     if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) throw new Error("Permission denied");
 
-    const { error } = await supabase.from('user_roles').update({ role: newRole }).eq('id', uid);
+    const { error } = await supabase.from('user_roles').update({ role: newRole, sections: newSections }).eq('id', uid);
     if (error) throw error;
 
     await saveUserRoleToDB(uid, newRole);
     window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
     
     const { data: { user } } = await supabase.auth.getUser();
-    // Ensure no ID is passed to createAuditLog
     const { id, ...logData } = {
         userEmail: user?.email || 'Unknown',
         actionType: 'UPDATE_USER_ROLE',
-        description: `Updated role for user ${uid} to ${newRole}.`,
-        revertData: { uid, newRole }
+        description: `Updated user ${uid}: role to ${newRole}, sections to [${newSections.join(', ')}].`,
+        revertData: { uid, newRole, newSections }
     } as AuditLog;
     await createAuditLog(logData, null);
 };
@@ -347,15 +345,15 @@ export const deleteUserRole = async (uid: string, email: string, actingUserRole:
     await createAuditLog(logData, null);
 };
 
-export const approveUser = async (uid: string, email: string, newRole: UserRole, actingUserRole: UserRole | null): Promise<void> => {
-    await updateUserRole(uid, newRole, actingUserRole);
+export const approveUser = async (uid: string, email: string, newRole: UserRole, newSections: Section[], actingUserRole: UserRole | null): Promise<void> => {
+    await updateUser(uid, newRole, newSections, actingUserRole);
     const { data: { user } } = await supabase.auth.getUser();
     // Ensure no ID is passed to createAuditLog
     const { id, ...logData } = {
         userEmail: user?.email || 'Unknown',
         actionType: 'APPROVE_USER',
-        description: `Approved user ${email} with role ${newRole}.`,
-        revertData: { uid, role: 'pending' }
+        description: `Approved user ${email} with role ${newRole} and sections [${newSections.join(', ')}].`,
+        revertData: { uid, role: 'pending', sections: [] }
     } as AuditLog;
     await createAuditLog(logData, null);
 };

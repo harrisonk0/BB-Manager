@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Section, ToastType, UserRole } from '../types';
 import { 
   fetchAllUserRoles, 
-  updateUserRole, 
+  updateUser, 
   approveUser,
   denyUser,
   clearAllAuditLogs,
@@ -27,6 +27,7 @@ interface UserWithEmailAndRole {
   uid: string;
   email: string;
   role: UserRole;
+  sections: Section[];
 }
 
 const USER_ROLE_DISPLAY_NAMES: Record<UserRole, string> = {
@@ -48,11 +49,13 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const [isDenyModalOpen, setIsDenyModalOpen] = useState(false);
   const [userToActOn, setUserToActOn] = useState<UserWithEmailAndRole | null>(null);
   const [approveRole, setApproveRole] = useState<UserRole>('officer');
+  const [approveSections, setApproveSections] = useState<Section[]>([]);
 
   // Role Management States
-  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
-  const [userToEditRole, setUserToEditRole] = useState<UserWithEmailAndRole | null>(null);
+  const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<UserWithEmailAndRole | null>(null);
   const [selectedNewRole, setSelectedNewRole] = useState<UserRole | ''>('');
+  const [selectedNewSections, setSelectedNewSections] = useState<Section[]>([]);
   const [roleEditError, setRoleEditError] = useState<string | null>(null);
 
   // Dev Control States
@@ -75,15 +78,12 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     return index1 <= index2;
   };
   
-  /**
-   * Determines which roles the current user is allowed to assign.
-   */
   const getAssignableRoles = useCallback((currentRole: UserRole | null): UserRole[] => {
     if (currentRole === 'admin') {
       return ['admin', 'captain', 'officer'];
     }
     if (currentRole === 'captain') {
-      return ['officer'];
+      return ['captain', 'officer'];
     }
     return [];
   }, []);
@@ -98,7 +98,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     setLoadingUsers(true);
     try {
       const fetchedUsers = await fetchAllUserRoles(userRole);
-      // Sort: Approved first (by rank), then pending
       fetchedUsers.sort((a, b) => {
         const roleAIndex = ROLE_SORT_ORDER.indexOf(a.role);
         const roleBIndex = ROLE_SORT_ORDER.indexOf(b.role);
@@ -121,9 +120,9 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   // --- Approval Handlers ---
   const handleOpenApprove = (user: UserWithEmailAndRole) => {
       setUserToActOn(user);
-      // Default to the lowest assignable role
       const assignableRoles = getAssignableRoles(userRole);
       setApproveRole(assignableRoles[assignableRoles.length - 1] || 'officer');
+      setApproveSections([]);
       setIsApproveModalOpen(true);
   };
 
@@ -136,8 +135,8 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       if (!userToActOn) return;
       setIsSaving(true);
       try {
-          await approveUser(userToActOn.uid, userToActOn.email, approveRole, userRole);
-          showToast(`User ${userToActOn.email} approved as ${USER_ROLE_DISPLAY_NAMES[approveRole]}.`, 'success');
+          await approveUser(userToActOn.uid, userToActOn.email, approveRole, approveSections, userRole);
+          showToast(`User ${userToActOn.email} approved.`, 'success');
           loadUsersWithRoles();
           setIsApproveModalOpen(false);
       } catch (err: any) {
@@ -165,25 +164,26 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   };
 
   // --- Role Management Handlers ---
-  const handleEditRoleClick = (user: UserWithEmailAndRole) => {
-    setUserToEditRole(user);
+  const handleEditUserClick = (user: UserWithEmailAndRole) => {
+    setUserToEdit(user);
     setSelectedNewRole(user.role);
+    setSelectedNewSections(user.sections || []);
     setRoleEditError(null);
-    setIsRoleModalOpen(true);
+    setIsEditUserModalOpen(true);
   };
 
-  const handleSaveRole = async () => {
-    if (!userToEditRole || !selectedNewRole) return;
+  const handleSaveUser = async () => {
+    if (!userToEdit || !selectedNewRole) return;
     setRoleEditError(null);
     setIsSaving(true);
     try {
-      await updateUserRole(userToEditRole.uid, selectedNewRole, userRole);
-      showToast(`Role for ${userToEditRole.email} updated to ${USER_ROLE_DISPLAY_NAMES[selectedNewRole]}.`, 'success');
+      await updateUser(userToEdit.uid, selectedNewRole, selectedNewSections, userRole);
+      showToast(`User ${userToEdit.email} updated successfully.`, 'success');
       loadUsersWithRoles();
-      setIsRoleModalOpen(false);
+      setIsEditUserModalOpen(false);
     } catch (err: any) {
-      setRoleEditError(err.message || "Failed to update role. Please try again.");
-      showToast('Failed to update user role.', 'error');
+      setRoleEditError(err.message || "Failed to update user. Please try again.");
+      showToast('Failed to update user.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -198,7 +198,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     if (!userToDelete) return;
     setIsDeletingUser(true);
     try {
-      // Use the updated service function for permanent deletion
       await deleteUserRole(userToDelete.uid, userToDelete.email, userRole); 
       showToast(`User '${userToDelete.email}' and their account were permanently deleted.`, 'success');
       loadUsersWithRoles();
@@ -260,7 +259,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       
       <div className="max-w-2xl mx-auto space-y-6">
         
-        {/* Pending Requests Section */}
         {canManageUserRoles && (
             <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
                 <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Pending Access Requests</h2>
@@ -296,11 +294,10 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
             </div>
         )}
 
-        {/* User Role Management Section */}
         {canManageUserRoles && (
           <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
-            <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>User Role Management</h2>
-            <p className="text-slate-600 mb-4">View and manage roles for approved users.</p>
+            <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>User Management</h2>
+            <p className="text-slate-600 mb-4">View and manage roles and section access for approved users.</p>
 
             {loadingUsers ? (
               <p className="text-slate-500">Loading users...</p>
@@ -311,28 +308,32 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 {usersWithRoles.map(user => {
                   const isCurrentUser = user.uid === currentAuthUserUid;
                   const disableManagement = isCurrentUser || 
-                                            (userRole === 'officer') || 
                                             (userRole === 'captain' && isRoleHigherOrEqual(user.role, 'captain'));
 
                   return (
                     <li key={user.uid} className="p-3 flex items-center justify-between text-sm">
                       <div className="flex-1">
                         <span className="font-medium text-slate-800">{user.email}</span>
-                        <p className="text-xs text-slate-500 mt-1"><span className="font-semibold">{USER_ROLE_DISPLAY_NAMES[user.role]}</span></p>
+                        <p className="text-xs text-slate-500 mt-1">
+                            <span className="font-semibold">{USER_ROLE_DISPLAY_NAMES[user.role]}</span>
+                            {user.sections && user.sections.length > 0 && (
+                                <> &bull; {user.sections.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}</>
+                            )}
+                        </p>
                       </div>
                       <div className="flex space-x-2">
                         <button
-                            onClick={() => handleEditRoleClick(user)}
+                            onClick={() => handleEditUserClick(user)}
                             disabled={disableManagement || isSaving}
                             className={`px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${accentRing} ${disableManagement || isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                            Edit Role
+                            Edit
                         </button>
                         <button
                             onClick={() => handleDeleteUserClick(user)}
                             disabled={disableManagement || isDeletingUser}
                             className={`p-2 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100 ${disableManagement || isDeletingUser ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            aria-label={`Delete role for ${user.email}`}
+                            aria-label={`Delete user ${user.email}`}
                         >
                             <TrashIcon className="h-5 w-5"/>
                         </button>
@@ -345,7 +346,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
           </div>
         )}
 
-        {/* Development Controls Section (Admin Only) */}
         {isAdmin && (
           <div className="bg-red-50 border-l-4 border-red-400 p-6 sm:p-8 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold text-red-800 border-b border-red-300 pb-2 mb-4">Development Controls (Admin Only)</h2>
@@ -373,21 +373,27 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
         )}
       </div>
 
-      {/* Approve User Modal */}
       <Modal isOpen={isApproveModalOpen} onClose={() => setIsApproveModalOpen(false)} title="Approve Request">
           <div className="space-y-4">
               <p className="text-slate-600">Approve access for <strong className="text-slate-800">{userToActOn?.email}</strong>?</p>
               <div>
                   <label className="block text-sm font-medium text-slate-700">Assign Role</label>
-                  <select
-                    value={approveRole}
-                    onChange={(e) => setApproveRole(e.target.value as UserRole)}
-                    className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
-                  >
+                  <select value={approveRole} onChange={(e) => setApproveRole(e.target.value as UserRole)} className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}>
                       {getAssignableRoles(userRole).map(role => (
                           <option key={role} value={role}>{USER_ROLE_DISPLAY_NAMES[role]}</option>
                       ))}
                   </select>
+              </div>
+              <div>
+                  <label className="block text-sm font-medium text-slate-700">Assign Sections</label>
+                  <div className="mt-2 space-y-2">
+                      {(['company', 'junior'] as Section[]).map(section => (
+                          <label key={section} className="flex items-center">
+                              <input type="checkbox" checked={approveSections.includes(section)} onChange={() => setApproveSections(prev => prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section])} className={`h-4 w-4 rounded border-gray-300 ${accentText}`} />
+                              <span className="ml-2 text-sm text-slate-600">{section.charAt(0).toUpperCase() + section.slice(1)} Section</span>
+                          </label>
+                      ))}
+                  </div>
               </div>
               <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
                   <button onClick={() => setIsApproveModalOpen(false)} className="px-4 py-2 text-sm text-slate-700 bg-slate-100 rounded-md">Cancel</button>
@@ -398,73 +404,56 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
           </div>
       </Modal>
 
-      {/* Deny User Modal */}
       <Modal isOpen={isDenyModalOpen} onClose={() => setIsDenyModalOpen(false)} title="Deny Request">
           <div className="space-y-4">
-              <p className="text-slate-600">Are you sure you want to deny access for <strong className="text-slate-800">{userToActOn?.email}</strong>?</p>
+              <p className="text-slate-600">Are you sure you want to deny access for <strong className="text-slate-800">{userToActOn?.email}</strong>? This will permanently delete their account.</p>
               <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
                   <button onClick={() => setIsDenyModalOpen(false)} className="px-4 py-2 text-sm text-slate-700 bg-slate-100 rounded-md">Cancel</button>
                   <button onClick={confirmDeny} disabled={isSaving} className="px-4 py-2 text-sm text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700">
-                      {isSaving ? 'Denying...' : 'Deny'}
+                      {isSaving ? 'Denying...' : 'Deny & Delete'}
                   </button>
               </div>
           </div>
       </Modal>
 
-      {/* Role Edit Modal */}
-      <Modal isOpen={!!isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)} title="Edit User Role">
-        {userToEditRole && userRole && (
-          <div className="space-y-4">
-            <p className="text-slate-600">Editing role for: <strong className="font-semibold text-slate-800">{userToEditRole.email}</strong></p>
+      <Modal isOpen={!!isEditUserModalOpen} onClose={() => setIsEditUserModalOpen(false)} title="Edit User">
+        {userToEdit && userRole && (
+          <div className="space-y-6">
+            <p className="text-slate-600">Editing user: <strong className="font-semibold text-slate-800">{userToEdit.email}</strong></p>
             {roleEditError && <p className="text-red-500 text-sm">{roleEditError}</p>}
             <div>
-              <label htmlFor="new-role" className="block text-sm font-medium text-slate-700">New Role</label>
-              <select
-                id="new-role"
-                value={selectedNewRole}
-                onChange={(e) => setSelectedNewRole(e.target.value as UserRole)}
-                className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
-              >
-                {getAssignableRoles(userRole)
-                    .filter(roleOption => 
-                        roleOption !== 'pending' &&
-                        // Prevent changing own role unless you are an admin changing to a lower role (which is handled by the backend service)
-                        (userToEditRole.uid !== currentAuthUserUid || roleOption === userToEditRole.role)
-                    )
-                    .map(roleValue => (
-                        <option key={roleValue} value={roleValue}>{USER_ROLE_DISPLAY_NAMES[roleValue]}</option>
-                    ))
-                }
+              <label htmlFor="new-role" className="block text-sm font-medium text-slate-700">Role</label>
+              <select id="new-role" value={selectedNewRole} onChange={(e) => setSelectedNewRole(e.target.value as UserRole)} className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}>
+                {getAssignableRoles(userRole).map(roleValue => (
+                    <option key={roleValue} value={roleValue}>{USER_ROLE_DISPLAY_NAMES[roleValue]}</option>
+                ))}
               </select>
             </div>
+            <div>
+                <label className="block text-sm font-medium text-slate-700">Accessible Sections</label>
+                <div className="mt-2 space-y-2">
+                    {(['company', 'junior'] as Section[]).map(section => (
+                        <label key={section} className="flex items-center">
+                            <input type="checkbox" checked={selectedNewSections.includes(section)} onChange={() => setSelectedNewSections(prev => prev.includes(section) ? prev.filter(s => s !== section) : [...prev, section])} className={`h-4 w-4 rounded border-gray-300 ${accentText}`} />
+                            <span className="ml-2 text-sm text-slate-600">{section.charAt(0).toUpperCase() + section.slice(1)} Section</span>
+                        </label>
+                    ))}
+                </div>
+            </div>
             <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-              <button
-                type="button"
-                onClick={() => setIsRoleModalOpen(false)}
-                disabled={isSaving}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveRole}
-                disabled={isSaving}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${accentBg} ${accentRing}`}
-              >
-                {isSaving ? 'Saving...' : 'Save Role'}
+              <button type="button" onClick={() => setIsEditUserModalOpen(false)} disabled={isSaving} className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md">Cancel</button>
+              <button onClick={handleSaveUser} disabled={isSaving} className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm ${accentBg} disabled:opacity-50`}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
         )}
       </Modal>
 
-      {/* Delete User Confirmation Modal */}
       <Modal isOpen={isDeleteUserModalOpen} onClose={() => setIsDeleteUserModalOpen(false)} title="Confirm Permanent User Deletion">
         {userToDelete && (
           <div className="space-y-4">
-            <p className="text-red-600 font-semibold">
-                <span className="font-bold">SECURITY WARNING:</span> Are you sure you want to permanently delete the user account for <strong className="text-slate-800">{userToDelete.email}</strong>?
-            </p>
+            <p className="text-red-600 font-semibold"><span className="font-bold">SECURITY WARNING:</span> Are you sure you want to permanently delete the user account for <strong className="text-slate-800">{userToDelete.email}</strong>?</p>
             <p className="text-slate-600">This action will remove the user from Supabase Authentication and delete their role record. This cannot be undone.</p>
             <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
               <button onClick={() => setIsDeleteUserModalOpen(false)} className="px-4 py-2 text-sm text-slate-700 bg-slate-100 rounded-md">Cancel</button>
@@ -476,7 +465,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
         )}
       </Modal>
 
-      {/* Clear Logs Modal */}
       <Modal isOpen={isClearLogsModalOpen} onClose={() => setIsClearLogsModalOpen(false)} title="Confirm Clear Logs">
         <div className="space-y-4">
           <p className="text-slate-600">Are you sure you want to clear all audit logs?</p>
@@ -487,7 +475,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
         </div>
       </Modal>
 
-      {/* Clear Local Data Modal */}
       <Modal isOpen={isClearLocalDataModalOpen} onClose={() => setIsClearLocalDataModalOpen(false)} title="Confirm Clear Local Data">
         <div className="space-y-4">
           <p className="text-slate-600">Are you sure you want to clear all local data? This may help fix sync issues.</p>
