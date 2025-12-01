@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/src/integrations/supabase/client';
 import { ToastType } from '../types';
+import { createAuditLog } from '../services/db';
 
 interface PasswordResetPageProps {
   showToast: (message: string, type?: ToastType) => void;
@@ -46,9 +47,17 @@ const PasswordResetPage: React.FC<PasswordResetPageProps> = ({ showToast }) => {
 
     setIsUpdating(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error('User not found for password reset');
 
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
+
+      await createAuditLog({
+          actionType: 'PASSWORD_RESET',
+          description: `User ${user.email} successfully reset their password.`,
+          revertData: {},
+      }, null);
 
       showToast('Password updated successfully! You can now log in.', 'success');
       // After a successful update, we sign the user out to force them to log in

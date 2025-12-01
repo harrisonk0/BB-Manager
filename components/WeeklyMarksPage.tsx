@@ -313,7 +313,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         // If this boy's marks have changed, add them to the update list.
         if (hasChanged) {
             changedBoysOldData.push(JSON.parse(JSON.stringify(boy))); // Deep copy for revert data.
-            return updateBoy({ ...boy, marks: updatedMarks }, activeSection);
+            return updateBoy({ ...boy, marks: updatedMarks }, activeSection, false);
         }
         return Promise.resolve(null);
     });

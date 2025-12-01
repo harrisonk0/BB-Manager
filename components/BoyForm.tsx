@@ -59,19 +59,6 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
 
   const executeSave = async (boyData: Omit<Boy, 'marks'> & { id?: string }) => {
     if (boyToEdit) {
-      const changes: string[] = [];
-      if (boyToEdit.name !== boyData.name) changes.push(`name to "${boyData.name}"`);
-      if (boyToEdit.squad !== boyData.squad) changes.push(`squad to ${boyData.squad}`);
-      if (boyToEdit.year !== boyData.year) changes.push(`year to ${boyData.year}`);
-      if (!!boyToEdit.isSquadLeader !== boyData.isSquadLeader) changes.push(`squad leader status to ${boyData.isSquadLeader}`);
-      
-      if (changes.length > 0) {
-          await createAuditLog({
-              actionType: 'UPDATE_BOY',
-              description: `Updated ${boyToEdit.name}: changed ${changes.join(', ')}.`,
-              revertData: { boyData: boyToEdit },
-          }, activeSection);
-      }
       await updateBoy({ ...boyToEdit, ...boyData }, activeSection);
       onSave(false, boyData.name);
     } else {
@@ -143,11 +130,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     const { existingLeader, incomingBoyData } = leaderConflict;
 
     try {
-      await createAuditLog({
-        actionType: 'UPDATE_BOY',
-        description: `Removed Squad Leader status from ${existingLeader.name} due to new assignment.`,
-        revertData: { boyData: existingLeader },
-      }, activeSection);
+      // The updateBoy function will now handle logging this change.
       await updateBoy({ ...existingLeader, isSquadLeader: false }, activeSection);
 
       await executeSave(incomingBoyData);

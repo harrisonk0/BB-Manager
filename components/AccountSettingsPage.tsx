@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/src/integrations/supabase/client';
 import { ToastType } from '../types';
+import { createAuditLog } from '../services/db';
 
 interface AccountSettingsPageProps {
   showToast: (message: string, type?: ToastType) => void;
@@ -29,14 +30,6 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
     setGeneralError(null);
 
     let isValid = true;
-
-    // Supabase allows password update without old password if session is valid.
-    // However, it's good UX to ask for it. But strictly speaking, we can't verify it 
-    // easily without signing in again, which is disruptive. 
-    // For this migration, we will focus on the new password validation.
-    
-    // If you wanted to verify old password, you'd have to signInWithPassword(email, oldPassword) 
-    // but that would refresh the session tokens.
     
     if (!newPassword) {
       setNewPasswordError('New password is required.');
@@ -59,9 +52,17 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
 
     setIsChangingPassword(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error('User not found');
 
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
+
+      await createAuditLog({
+          actionType: 'PASSWORD_CHANGE',
+          description: `User ${user.email} changed their password.`,
+          revertData: {},
+      }, null);
 
       showToast('Password changed successfully!', 'success');
       setOldPassword('');
@@ -96,12 +97,6 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
           <form onSubmit={handleChangePassword} className="space-y-6">
             <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Change Password</h2>
             {generalError && <p className="text-red-500 text-sm">{generalError}</p>}
-            
-            {/* Note: Removed 'Current Password' requirement check for simplicity in Supabase migration 
-                unless we implement re-auth flow. Kept UI for now but it's not strictly verified by updateUser API directly.
-                Ideally, we should implement re-auth or remove this field. For now, we'll keep it as a "dummy" field 
-                to match the previous UI, or remove it. Let's remove it to avoid confusion since we aren't verifying it.
-            */}
             
             <div>
               <label htmlFor="new-password" className="block text-sm font-medium text-slate-700">

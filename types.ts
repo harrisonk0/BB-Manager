@@ -65,8 +65,10 @@ export type AuditLogActionType =
   'UPDATE_SETTINGS' | 
   'UPDATE_USER_ROLE' |
   'DELETE_USER_ROLE' | 
-  'APPROVE_USER' | // New: When an admin approves a pending user
-  'DENY_USER' |    // New: When an admin denies a pending user
+  'APPROVE_USER' |
+  'DENY_USER' |
+  'PASSWORD_CHANGE' |
+  'PASSWORD_RESET' |
   'CLEAR_AUDIT_LOGS' | 
   'CLEAR_LOCAL_DATA';
 

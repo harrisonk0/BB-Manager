@@ -27,6 +27,8 @@ const ACTION_ICONS: Record<AuditLogActionType, React.FC<{className?: string}>> =
   DELETE_USER_ROLE: TrashIcon,
   APPROVE_USER: CheckCircleIcon,
   DENY_USER: XCircleIcon,
+  PASSWORD_CHANGE: CogIcon,
+  PASSWORD_RESET: UndoIcon,
   CLEAR_AUDIT_LOGS: TrashIcon,
   CLEAR_LOCAL_DATA: TrashIcon,
 };
@@ -50,6 +52,8 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     DELETE_USER_ROLE: 'bg-red-100 text-red-700',
     APPROVE_USER: 'bg-green-100 text-green-700',
     DENY_USER: 'bg-red-100 text-red-700',
+    PASSWORD_CHANGE: 'bg-purple-100 text-purple-700',
+    PASSWORD_RESET: 'bg-yellow-100 text-yellow-700',
     CLEAR_AUDIT_LOGS: 'bg-red-100 text-red-700',
     CLEAR_LOCAL_DATA: 'bg-red-100 text-red-700',
   };
@@ -117,9 +121,9 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
           break;
         case 'UPDATE_BOY':
           if (revertData.boyData) { 
-            await updateBoy(revertData.boyData as Boy, activeSection);
+            await updateBoy(revertData.boyData as Boy, activeSection, false);
           } else if (revertData.boysData) { 
-            const updates = (revertData.boysData as Boy[]).map(boy => updateBoy(boy, activeSection));
+            const updates = (revertData.boysData as Boy[]).map(boy => updateBoy(boy, activeSection, false));
             await Promise.all(updates);
           }
           break;

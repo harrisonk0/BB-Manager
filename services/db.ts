@@ -452,9 +452,28 @@ export const fetchBoys = async (section: Section): Promise<Boy[]> => {
     return [];
 };
 
-export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
+export const updateBoy = async (boy: Boy, section: Section, shouldLog: boolean = true): Promise<Boy> => {
     if (!boy.id) throw new Error("No ID");
     validateBoyMarks(boy, section);
+
+    let oldBoy: Boy | null = null;
+    if (shouldLog && navigator.onLine) {
+        try {
+            const { data: oldBoyData, error: fetchError } = await supabase
+                .from(getTableName(section, 'boys'))
+                .select('*')
+                .eq('id', boy.id)
+                .single();
+            
+            if (fetchError) {
+                console.warn(`Could not fetch old boy data for logging: ${fetchError.message}`);
+            } else if (oldBoyData) {
+                oldBoy = mapBoyFromDB(oldBoyData);
+            }
+        } catch (e) {
+            console.warn(`Could not fetch old boy data for logging:`, e);
+        }
+    }
 
     if (navigator.onLine) {
         const dbPayload = mapBoyToDB(boy);
@@ -468,6 +487,26 @@ export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
         await addPendingWrite({ type: 'UPDATE_BOY', payload: boy, section });
         await saveBoyToDB(boy, section);
     }
+
+    if (oldBoy) {
+        const changes: string[] = [];
+        if (oldBoy.name !== boy.name) changes.push(`name to "${boy.name}"`);
+        if (oldBoy.squad !== boy.squad) changes.push(`squad to ${boy.squad}`);
+        if (oldBoy.year !== boy.year) changes.push(`year to ${boy.year}`);
+        if (!!oldBoy.isSquadLeader !== !!boy.isSquadLeader) changes.push(`squad leader status to ${boy.isSquadLeader}`);
+        if (JSON.stringify(oldBoy.marks) !== JSON.stringify(boy.marks)) {
+            changes.push('marks');
+        }
+
+        if (changes.length > 0) {
+            await createAuditLog({
+                actionType: 'UPDATE_BOY',
+                description: `Updated ${oldBoy.name}: changed ${changes.join(', ')}.`,
+                revertData: { boyData: oldBoy },
+            }, section);
+        }
+    }
+
     return boy;
 };
 

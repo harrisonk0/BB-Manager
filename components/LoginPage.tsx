@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { supabase } from '@/src/integrations/supabase/client';
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, View } from '../types';
+import { createAuditLog } from '../services/db';
 
 interface LoginPageProps {
   /** Callback to open the help modal. */
@@ -65,6 +66,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email);
       if (error) throw error;
+
+      await createAuditLog({
+          actionType: 'PASSWORD_RESET',
+          description: `Password reset requested for ${email}.`,
+          revertData: {},
+          userEmail: email,
+      }, null);
+
       showToast('Password reset email sent! Check your inbox.', 'success');
     } catch (err: any) {
       console.error("Forgot password error:", err);

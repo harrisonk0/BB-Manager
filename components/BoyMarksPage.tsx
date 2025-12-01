@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchBoyById, updateBoy, createAuditLog } from '../services/db';
+import { fetchBoyById, updateBoy } from '../services/db';
 import { Boy, Mark, Squad, Section, JuniorSquad, ToastType } from '../types';
 import { TrashIcon, SaveIcon } from './Icons';
 import { BoyMarksPageSkeleton } from './SkeletonLoaders';
@@ -222,15 +222,9 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     const updatedBoyData = { ...boy, marks: validMarks };
 
     try {
-      // Create an audit log entry for the change.
-      await createAuditLog({
-        // userEmail handled by db.ts
-        actionType: 'UPDATE_BOY',
-        description: `Updated marks for ${boy.name}.`,
-        revertData: { boyData: JSON.parse(JSON.stringify(boy)) }, // Save old data for revert.
-      }, activeSection);
-
+      // The updateBoy function will now handle logging.
       await updateBoy(updatedBoyData, activeSection);
+      
       // Update local state to match the saved data.
       updatedBoyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setBoy(updatedBoyData);
