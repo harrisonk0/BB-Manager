@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '@/src/integrations/supabase/client';
-import { Boy, AuditLog, Section, UserRole, UserRoleInfo, EncryptedPayload } from '../types';
+import { Boy, AuditLog, Section, UserRole, UserRoleInfo, EncryptedPayload, PendingWrite } from '../types';
 import { encryptData, decryptData } from './crypto';
 import { 
     openDB, 
@@ -26,7 +26,7 @@ import {
     deleteUserRoleFromDB,
     clearAllUserRolesFromDB,
     clearStore,
-    clearAllLocalDataFromDB, // Updated import name
+    clearAllLocalDataFromDB,
 } from './offlineDb';
 
 // --- Helpers ---
@@ -112,7 +112,6 @@ const mapLogToDB = (log: AuditLog) => {
     };
     
     // Only include ID if it exists (for updates/reverts of existing logs)
-    // If log.id is undefined, we omit the property, allowing Supabase to use the default UUID.
     if (log.id) {
         payload.id = log.id;
     }
@@ -141,6 +140,8 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
 
     console.log(`Syncing ${pendingWrites.length} offline writes to Supabase...`);
 
+    let hasNetworkError = false;
+
     for (const write of pendingWrites) {
         const table = write.section ? getTableName(write.section, 'boys') : '';
         const logsTable = getTableName(write.section || null, 'audit_logs');
@@ -152,25 +153,13 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
                     const decryptedBoy = await decryptData(write.payload as EncryptedPayload, key);
                     const dbPayload = mapBoyToDB(decryptedBoy as Boy); 
                     
-                    const { data, error } = await supabase
+                    // ID is now generated client-side, so dbPayload already contains the UUID.
+                    const { error } = await supabase
                         .from(table)
-                        .insert(dbPayload)
-                        .select('id')
-                        .single();
+                        .insert(dbPayload);
                     
                     if (error) throw error;
-
-                    const newId = data.id;
-                    const newBoy = { ...decryptedBoy, id: newId };
-                    
-                    // Re-encrypt the boy data with the new permanent ID
-                    const encryptedNewBoy = await encryptData(newBoy, key);
-                    
-                    // Update local cache with permanent ID and re-encrypted data
-                    await saveBoyToDB(newId, encryptedNewBoy, write.section!);
-                    if (write.tempId) {
-                        await deleteBoyFromDB(write.tempId, write.section!);
-                    }
+                    // No ID swap needed anymore.
                     break;
                 }
                 case 'UPDATE_BOY': {
@@ -183,7 +172,6 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
                     break;
                 }
                 case 'DELETE_BOY': {
-                    // Payload is just { id: string }, no decryption needed.
                     const { error } = await supabase
                         .from(table)
                         .delete()
@@ -214,7 +202,6 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
 
                     if (write.tempId) {
                         const newLog = { ...decryptedLog, id: data.id };
-                        // Re-encrypt the log data with the new permanent ID
                         const encryptedNewLog = await encryptData(newLog, key);
                         
                         await saveLogToDB(data.id, encryptedNewLog, write.section || null);
@@ -239,15 +226,41 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
                     break;
                 }
             }
-        } catch (err) {
-            console.error(`Failed to sync write: ${write.type}`, err);
-            return false; 
+        } catch (err: any) {
+            // Check for Network Error (Retry) vs Data/Logic Error (Discard)
+            // fetch throws TypeError on network failure.
+            const isNetworkError = err.message === 'Failed to fetch' || err.name === 'TypeError';
+            
+            // Handle Postgres "Unique Violation" (23505) as success (idempotency)
+            const isUniqueViolation = err.code === '23505';
+
+            if (isNetworkError) {
+                console.error(`Network error syncing ${write.type}. Will retry.`, err);
+                hasNetworkError = true;
+                // Stop processing subsequent writes to maintain order
+                break; 
+            } else if (isUniqueViolation) {
+                console.warn(`Sync ${write.type}: Unique violation (already synced). Marking as done.`);
+                // Allow loop to continue, this write will be cleared.
+            } else {
+                // Poison Pill: Client error (e.g. 4xx, validation, RLS violation).
+                // We cannot fix this by retrying. Log it and discard it.
+                console.error(`Fatal error syncing ${write.type}. Discarding write to unblock queue.`, err, write);
+                // Allow loop to continue, this write will be cleared.
+            }
         }
     }
 
-    await clearPendingWrites();
-    console.log('Sync successful.');
-    return true;
+    // Only clear pending writes if we didn't stop due to a network error.
+    // NOTE: This assumes sequential processing. If we broke the loop, we shouldn't clear the queue.
+    if (!hasNetworkError) {
+        await clearPendingWrites();
+        console.log('Sync queue cleared.');
+        return true;
+    } else {
+        console.log('Sync paused due to network error.');
+        return false;
+    }
 };
 
 // --- User Role Functions (Unencrypted) ---
@@ -409,29 +422,27 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section, key: Cry
     if (!user) throw new Error("User not authenticated");
     validateBoyMarks(boy as Boy, section);
 
+    // FIXED: Generate UUID client-side to prevent duplicates on partial failures
+    const newId = crypto.randomUUID();
+    const newBoy = { ...boy, id: newId } as Boy;
+
     if (navigator.onLine) {
-        const dbPayload = mapBoyToDB(boy as Boy);
-        const { data, error } = await supabase
+        const dbPayload = mapBoyToDB(newBoy);
+        // We supply the ID, so no need to select it back.
+        const { error } = await supabase
             .from(getTableName(section, 'boys'))
-            .insert(dbPayload)
-            .select('id')
-            .single();
+            .insert(dbPayload);
         
         if (error) throw error;
-        const newBoy = { ...boy, id: data.id };
         
         // Encrypt and save to local DB
         const encryptedBoy = await encryptData(newBoy, key);
         await saveBoyToDB(newBoy.id!, encryptedBoy, section);
         return newBoy;
     } else {
-        const tempId = `offline_${crypto.randomUUID()}`;
-        const newBoy = { ...boy, id: tempId } as Boy;
-        
-        // Encrypt payload for pending write and local storage
+        // Offline: ID is already a valid UUID, so no tempId swap needed later.
         const encryptedBoy = await encryptData(newBoy, key);
-        
-        await addPendingWrite({ type: 'CREATE_BOY', payload: encryptedBoy, tempId, section });
+        await addPendingWrite({ type: 'CREATE_BOY', payload: encryptedBoy, section });
         await saveBoyToDB(newBoy.id!, encryptedBoy, section);
         return newBoy;
     }
