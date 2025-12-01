@@ -1,32 +1,15 @@
 {
-  "name": "boys'-brigade-manager",
-  "private": true,
-  "version": "0.0.0",
+  "name": "firebase-to-supabase-migration",
+  "version": "1.0.0",
+  "description": "Migration scripts for moving from Firebase to Supabase",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "node server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.4",
-    "@capacitor/cli": "^7.4.4",
-    "@capacitor/core": "^7.4.4",
-    "@capacitor/ios": "^7.4.4",
-    "express": "^4.18.2",
-    "firebase": "^12.4.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
-  },
-  "devDependencies": {
-    "@dyad-sh/react-vite-component-tagger": "^0.8.0",
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.4",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1",
+    "firebase-admin": "^11.11.1"
   }
 }
