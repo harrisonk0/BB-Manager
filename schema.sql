@@ -1,83 +1,109 @@
--- Enable UUID extension just in case
+-- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
+-- DROP existing tables to ensure clean recreation with correct columns
+drop table if exists audit_logs;
+drop table if exists boys;
+drop table if exists company_audit_logs;
+drop table if exists company_boys;
+drop table if exists invites;
+drop table if exists junior_audit_logs;
+drop table if exists junior_boys;
+drop table if exists settings;
+drop table if exists user_activity;
+drop table if exists user_roles;
+
 -- 1. audit_logs
-create table if not exists audit_logs (
+create table audit_logs (
     id text primary key,
-    action text,
-    target_collection text,
+    user_email text,
+    action_type text,
+    description text,
+    revert_data jsonb,
     timestamp timestamptz,
-    details jsonb,
-    performed_by text,
-    target_id text
+    reverted boolean
 );
 
 -- 2. boys
-create table if not exists boys (
+create table boys (
     id text primary key,
     name text,
-    payments jsonb
+    squad numeric,
+    year numeric,
+    marks jsonb,
+    is_squad_leader boolean
 );
 
 -- 3. company_audit_logs
-create table if not exists company_audit_logs (
+create table company_audit_logs (
     id text primary key,
-    action text,
-    target_id text,
-    timestamp timestamptz,
-    performed_by text
-);
-
--- 4. company_boys
-create table if not exists company_boys (
-    id text primary key,
-    name text,
-    rank text
-);
-
--- 5. invites
-create table if not exists invites (
-    id text primary key,
-    email text,
-    role text,
-    invited_by text
-);
-
--- 6. junior_audit_logs
-create table if not exists junior_audit_logs (
-    id text primary key,
-    action text,
+    user_email text,
+    action_type text,
+    description text,
+    revert_data jsonb,
     timestamp timestamptz
 );
 
--- 7. junior_boys
-create table if not exists junior_boys (
+-- 4. company_boys
+create table company_boys (
     id text primary key,
-    name text
+    name text,
+    squad numeric,
+    year numeric,
+    marks jsonb,
+    is_squad_leader boolean
+);
+
+-- 5. invites
+create table invites (
+    id text primary key,
+    email text,
+    invited_by text,
+    invited_at timestamptz,
+    is_used boolean
+);
+
+-- 6. junior_audit_logs
+create table junior_audit_logs (
+    id text primary key,
+    user_email text,
+    action_type text,
+    description text,
+    revert_data jsonb,
+    timestamp timestamptz,
+    reverted_log_id text
+);
+
+-- 7. junior_boys
+create table junior_boys (
+    id text primary key,
+    name text,
+    squad numeric,
+    year text, -- Note: Text type detected for junior years
+    marks jsonb,
+    is_squad_leader boolean
 );
 
 -- 8. settings
-create table if not exists settings (
+create table settings (
     id text primary key,
-    theme text,
-    notifications_enabled boolean
+    meeting_day numeric
 );
 
 -- 9. user_activity
-create table if not exists user_activity (
+create table user_activity (
     id text primary key,
-    user_id text,
-    last_login timestamptz
+    last_active timestamptz
 );
 
 -- 10. user_roles
-create table if not exists user_roles (
+create table user_roles (
     id text primary key,
-    role text,
-    permissions jsonb
+    email text,
+    role text
 );
 
--- Enable Row Level Security (RLS) on all tables (Best Practice)
+-- Enable Row Level Security (RLS)
 alter table audit_logs enable row level security;
 alter table boys enable row level security;
 alter table company_audit_logs enable row level security;
@@ -89,7 +115,7 @@ alter table settings enable row level security;
 alter table user_activity enable row level security;
 alter table user_roles enable row level security;
 
--- Create a basic policy to allow authenticated users to read everything (Adjust this later for production security!)
+-- Create default read policies (Adjust for production!)
 create policy "Allow all for authenticated" on audit_logs for all using (auth.role() = 'authenticated');
 create policy "Allow all for authenticated" on boys for all using (auth.role() = 'authenticated');
 create policy "Allow all for authenticated" on company_audit_logs for all using (auth.role() = 'authenticated');
