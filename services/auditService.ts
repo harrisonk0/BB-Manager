@@ -3,7 +3,7 @@ import { AuditLog, Section } from '../types';
 import { encryptData, decryptData } from './crypto';
 import { Logger } from './logger';
 import { openDB, getLogsFromDB, saveLogsToDB, saveLogToDB, deleteLogFromDB, addPendingWrite } from './offlineDb';
-import { mapLogToDB, mapLogFromDB, getTableName } from './mappers';
+import { mapLogToDB, mapLogFromDB, getTableName, deepEqual } from './mappers';
 
 export const createAuditLog = async (
     log: Omit<AuditLog, 'id' | 'timestamp' | 'userEmail'> & { userEmail?: string }, 
@@ -42,6 +42,7 @@ export const createAuditLog = async (
 
 export const fetchAuditLogs = async (section: Section | null, key: CryptoKey): Promise<AuditLog[]> => {
     await openDB();
+    // Fetch all cached logs (both section-specific and global)
     const cached = [...await getLogsFromDB(section), ...await getLogsFromDB(null)];
     const decryptedLogs: AuditLog[] = [];
     
@@ -56,11 +57,28 @@ export const fetchAuditLogs = async (section: Section | null, key: CryptoKey): P
             const { data } = await supabase.from(tbl).select('*').order('timestamp', { ascending: false }).range(0, 49);
             const freshLogs = await Promise.all((data || []).map(async row => {
                 const log = mapLogFromDB(row);
+                // Decrypt revertData if present
                 if (log.revertData?.ciphertext) log.revertData = await decryptData(log.revertData, key);
                 return log;
             }));
-            const encrypted = await Promise.all(freshLogs.map(async log => ({ id: log.id!, encryptedData: await encryptData(log, key) })));
-            await saveLogsToDB(encrypted, sec);
+            
+            // Compare fresh logs against cached logs for this section/global
+            const cachedForSection = decryptedLogs.filter(log => log.section === sec);
+            
+            const isDataDifferent = freshLogs.length !== cachedForSection.length || 
+                                    !freshLogs.every(freshLog => 
+                                        cachedForSection.some(cachedLog => 
+                                            cachedLog.id === freshLog.id && deepEqual(cachedLog, freshLog)
+                                        )
+                                    );
+
+            if (isDataDifferent) {
+                Logger.info(`Audit log data change detected in ${sec || 'global'}. Updating cache.`);
+                const encrypted = await Promise.all(freshLogs.map(async log => ({ id: log.id!, encryptedData: await encryptData(log, key) })));
+                await saveLogsToDB(encrypted, sec);
+                window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section: sec } }));
+            }
+            
             return freshLogs;
         };
 

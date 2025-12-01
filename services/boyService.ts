@@ -3,7 +3,7 @@ import { Boy, Section } from '../types';
 import { encryptData, decryptData } from './crypto';
 import { Logger } from './logger';
 import { openDB, getBoysFromDB, saveBoysToDB, getBoyFromDB, saveBoyToDB, addPendingWrite, deleteBoyFromDB } from './offlineDb';
-import { validateBoyMarks, mapBoyToDB, mapBoyFromDB, getTableName } from './mappers';
+import { validateBoyMarks, mapBoyToDB, mapBoyFromDB, getTableName, deepEqual } from './mappers';
 import { createAuditLog } from './auditService'; // Circular dep avoided by using separate file
 
 export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section, key: CryptoKey): Promise<Boy> => {
@@ -42,12 +42,24 @@ export const fetchBoys = async (section: Section, key: CryptoKey): Promise<Boy[]
         // Background update
         supabase.from(getTableName(section, 'boys')).select('*').then(async ({ data }) => {
             if (!data) return;
-            const freshEncrypted = await Promise.all(data.map(mapBoyFromDB).map(async b => ({
-                id: b.id!, encryptedData: await encryptData(b, key)
-            })));
+            const freshBoys = data.map(mapBoyFromDB);
             
-            // Simple length check for change detection optimization
-            if (freshEncrypted.length !== cachedEncryptedBoys.length || JSON.stringify(freshEncrypted) !== JSON.stringify(cachedEncryptedBoys)) {
+            // Check if the data has actually changed by comparing decrypted lists
+            const isDataDifferent = freshBoys.length !== cachedBoys.length || 
+                                    !freshBoys.every(freshBoy => 
+                                        cachedBoys.some(cachedBoy => 
+                                            cachedBoy.id === freshBoy.id && deepEqual(cachedBoy, freshBoy)
+                                        )
+                                    );
+
+            if (isDataDifferent) {
+                Logger.info(`Data change detected in ${section}. Updating cache.`);
+                
+                // Encrypt fresh data and save to cache
+                const freshEncrypted = await Promise.all(freshBoys.map(async b => ({
+                    id: b.id!, encryptedData: await encryptData(b, key)
+                })));
+                
                 await saveBoysToDB(freshEncrypted, section);
                 window.dispatchEvent(new CustomEvent('datarefreshed', { detail: { section } }));
             }
