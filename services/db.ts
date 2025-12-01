@@ -161,13 +161,33 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
                 }
                 case 'UPDATE_BOY': {
                     const decryptedBoy = await decryptData(write.payload as EncryptedPayload, key) as Boy;
+                    // For syncing offline updates, we use the same smart RPC logic if it involves marks
+                    // However, to keep sync logic simple for now, we use standard update for offline syncs
+                    // or ideally call updateBoy logic. But here we have the payload.
+                    // To strictly follow the fix: we should use RPC even for sync to be safe.
                     
-                    // Simple merge strategy: if record exists, update it.
-                    const { error } = await supabase
+                    const rpcName = write.section === 'company' ? 'upsert_company_marks' : 'upsert_junior_marks';
+                    const dbPayload = mapBoyToDB(decryptedBoy);
+                    
+                    // 1. Update scalars
+                    const { error: scalarError } = await supabase
                         .from(table)
-                        .update(mapBoyToDB(decryptedBoy))
+                        .update({
+                            name: dbPayload.name,
+                            squad: dbPayload.squad,
+                            year: dbPayload.year,
+                            is_squad_leader: dbPayload.is_squad_leader
+                        })
                         .eq('id', decryptedBoy.id);
-                    if (error) throw error;
+                    if (scalarError) throw scalarError;
+
+                    // 2. Smart merge marks
+                    const { error: rpcError } = await supabase.rpc(rpcName, { 
+                        p_boy_id: decryptedBoy.id, 
+                        p_new_marks: dbPayload.marks 
+                    });
+                    if (rpcError) throw rpcError;
+
                     break;
                 }
                 case 'DELETE_BOY': {
@@ -254,27 +274,17 @@ export const syncPendingWrites = async (key: CryptoKey): Promise<boolean> => {
     }
 
     // Clean up processed writes
-    // Since IndexedDB doesn't support "delete multiple by key list" easily in basic API,
-    // we just clear all and re-add any that failed due to network if we wanted robust partial sync.
-    // Simpler strategy: clearPendingWrites() then re-add pending ones? 
-    // No, risk of data loss. 
-    // Current strategy: If no network error, we assume all valid writes were processed or moved to DLQ.
-    
     if (!hasNetworkError) {
         await clearPendingWrites();
         Logger.info('Sync queue cleared.');
         return true;
     } else {
-        // If network error, we can't easily remove just the successful ones without a more complex IDB wrapper.
-        // We will leave them in the queue. They will be retried (and idempotent operations will just overwrite).
-        // CREATE operations might fail uniqueness checks next time, but we handle 23505.
         Logger.info('Sync paused due to network error.');
         return false;
     }
 };
 
-// --- User Role Functions (Unencrypted) ---
-
+// ... (User Role Functions preserved) ...
 export const fetchUserRole = async (uid: string): Promise<UserRoleInfo | null> => {
     await openDB();
     const cachedRoleInfo = await getUserRoleFromDB(uid);
@@ -522,14 +532,10 @@ export const updateBoy = async (boy: Boy, section: Section, key: CryptoKey, shou
                 const remoteBoy = mapBoyFromDB(remoteData);
                 oldBoy = remoteBoy;
 
-                // Merge Marks:
-                // We want to keep marks from 'boy' (local changes) but preserve marks from 'remoteBoy' that we didn't touch.
-                // This naive merge prioritizes the local state for any conflicting dates,
-                // but crucially, it keeps dates that exist in remote but NOT in local.
+                // Merge Marks client-side for UI/Encryption consistency
                 const localDates = new Set(boy.marks.map(m => m.date));
                 const remoteMarksToKeep = remoteBoy.marks.filter(m => !localDates.has(m.date));
                 
-                // New marks list = (Local Marks) + (Remote Marks that weren't in local)
                 boyToSave = {
                     ...boy,
                     marks: [...boy.marks, ...remoteMarksToKeep].sort((a,b) => b.date.localeCompare(a.date))
@@ -540,11 +546,26 @@ export const updateBoy = async (boy: Boy, section: Section, key: CryptoKey, shou
         }
 
         const dbPayload = mapBoyToDB(boyToSave);
-        const { error } = await supabase
+        
+        // 1. Update Scalar Fields
+        const { error: scalarError } = await supabase
             .from(getTableName(section, 'boys'))
-            .update(dbPayload)
+            .update({
+                name: dbPayload.name,
+                squad: dbPayload.squad,
+                year: dbPayload.year,
+                is_squad_leader: dbPayload.is_squad_leader
+            })
             .eq('id', boy.id);
-        if (error) throw error;
+        if (scalarError) throw scalarError;
+
+        // 2. Use Smart RPC for Marks to handle race conditions
+        const rpcName = section === 'company' ? 'upsert_company_marks' : 'upsert_junior_marks';
+        const { error: rpcError } = await supabase.rpc(rpcName, { 
+            p_boy_id: boy.id, 
+            p_new_marks: dbPayload.marks 
+        });
+        if (rpcError) throw rpcError;
         
         const encryptedBoy = await encryptData(boyToSave, key);
         await saveBoyToDB(boy.id, encryptedBoy, section);
@@ -628,8 +649,7 @@ export const fetchBoyById = async (id: string, section: Section, key: CryptoKey)
     return undefined;
 };
 
-// --- Audit Log Functions (Encrypted) ---
-
+// ... (Audit Log Functions preserved) ...
 export const createAuditLog = async (
     log: Omit<AuditLog, 'id' | 'timestamp' | 'userEmail'> & { userEmail?: string }, 
     section: Section | null, 
