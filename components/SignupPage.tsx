@@ -16,6 +16,9 @@ interface SignupPageProps {
   onSignupSuccess: (section: Section) => void; 
 }
 
+// Simple regex for basic email format validation (must contain @ and a dot)
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, onNavigateBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,7 +44,11 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
     if (!email) {
       setEmailError('Email is required.');
       isValid = false;
+    } else if (!EMAIL_REGEX.test(email)) {
+      setEmailError('Please enter a valid email address.');
+      isValid = false;
     }
+    
     if (!password) {
       setPasswordError('Password is required.');
       isValid = false;
