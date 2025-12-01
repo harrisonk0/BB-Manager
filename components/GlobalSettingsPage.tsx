@@ -135,6 +135,11 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       if (!userToActOn) return;
       setIsSaving(true);
       const sectionsToSave = approveRole === 'officer' ? approveSections : [];
+      if (approveRole === 'officer' && sectionsToSave.length === 0) {
+          showToast('Officers must be assigned to at least one section.', 'error');
+          setIsSaving(false);
+          return;
+      }
       try {
           await approveUser(userToActOn.uid, userToActOn.email, approveRole, sectionsToSave, userRole);
           showToast(`User ${userToActOn.email} approved.`, 'success');
@@ -176,8 +181,12 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const handleSaveUser = async () => {
     if (!userToEdit || !selectedNewRole) return;
     setRoleEditError(null);
-    setIsSaving(true);
     const sectionsToSave = ['admin', 'captain'].includes(selectedNewRole) ? [] : selectedNewSections;
+    if (selectedNewRole === 'officer' && sectionsToSave.length === 0) {
+        setRoleEditError('Officers must be assigned to at least one section.');
+        return;
+    }
+    setIsSaving(true);
     try {
       await updateUserRole(userToEdit.uid, selectedNewRole, sectionsToSave, userRole);
       showToast(`User ${userToEdit.email} updated successfully.`, 'success');

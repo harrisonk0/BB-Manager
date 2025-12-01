@@ -77,7 +77,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
 
     // Permission checks
     const canAccessSectionSettings = userRole && ['admin', 'captain'].includes(userRole);
-    const canAccessAuditLog = userRole && ['admin', 'captain', 'officer'].includes(userRole);
+    const canAccessAuditLog = userRole && ['admin', 'captain'].includes(userRole);
 
     return (
         <header className={`${bgColor} text-white shadow-md sticky top-0 z-20`}>
