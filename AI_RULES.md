@@ -8,14 +8,14 @@ The BB Manager is a Progressive Web App (PWA) built with a strong emphasis on of
 
 *   **Frontend Framework**: React (using TypeScript for type safety).
 *   **Styling**: Tailwind CSS (integrated via CDN for a utility-first approach).
-*   **Backend & Database**: Firebase (Firestore for the primary database and Firebase Authentication for user management).
+*   **Backend & Database**: Supabase (PostgreSQL for the primary database, Supabase Authentication for user management, and Supabase Edge Functions for secure server-side logic).
 *   **Offline Capabilities**: Service Workers for app shell caching and IndexedDB for robust local data storage.
-*   **Data Abstraction Layer**: A custom `services/db.ts` module that unifies interactions with both Firestore and IndexedDB.
+*   **Data Abstraction Layer**: A custom `services/db.ts` module that unifies interactions with both Supabase and IndexedDB.
 *   **Build Tool**: Vite (used for development and bundling).
 *   **Package Management**: npm.
 *   **Icons**: Custom SVG icons (defined in `components/Icons.tsx`).
 *   **Routing**: Currently uses a custom state-based routing system.
-*   **Hosting**: Designed for static hosting, with Firebase Hosting being the recommended deployment platform.
+*   **Hosting**: Designed for static hosting.
 
 ## Library Usage Rules
 
@@ -30,9 +30,9 @@ To maintain a consistent and efficient codebase, please adhere to the following 
 *   **State Management**:
     *   Utilize **React's built-in hooks** (`useState`, `useEffect`, `useCallback`, `useMemo`) for managing both component-level and global application state.
 *   **Data Persistence & API Calls**:
-    *   All interactions with the database (Firestore and IndexedDB) **must** be routed through the abstraction layer in `services/db.ts`. Do not directly call Firebase SDK or IndexedDB API methods from UI components.
+    *   All interactions with the database (Supabase/Postgres and IndexedDB) **must** be routed through the abstraction layer in `services/db.ts`. Do not directly call Supabase SDK or IndexedDB API methods from UI components.
 *   **Authentication**:
-    *   **Firebase Authentication** (`firebase/auth`) is the sole authentication provider. All authentication logic should be handled via `services/firebase.ts`.
+    *   **Supabase Authentication** is the sole authentication provider. All authentication logic should be handled via the Supabase client in `src/integrations/supabase/client.ts` and managed by the `useAuthAndRole` hook.
 *   **Routing**:
     *   The application currently employs a custom state-based routing system managed within `App.tsx`. For any future extensions or refactoring of routing, **React Router** should be used as per project guidelines, with routes defined in `App.tsx`.
 *   **Notifications**:

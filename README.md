@@ -22,19 +22,18 @@ This documentation provides a complete guide to the application's architecture, 
 -   **Visual Dashboard & Reporting**: At-a-glance dashboard with leaderboards, squad performance charts, attendance heatmaps, and monthly marks breakdown.
 -   **Advanced Roster Filtering**: Instantly search, sort, and filter members by squad, year, and performance metrics.
 -   **100% Offline Functionality**: All changes are saved locally and synced automatically when the user goes online. User roles are also cached for offline access.
--   **Audit Logging & Reversion**: Every significant action is logged and can be easily reverted. Old audit logs and invite codes are automatically cleaned up after 14 days.
--   **Secure Authentication**: User access is managed through Firebase Authentication.
--   **User Role Management**: Assign and manage roles (Admin, Captain, Officer) for users, controlling access to sensitive features. Users cannot change their own role.
--   **Invite Code System**: Administrators and Captains can generate one-time-use codes for new user sign-ups. Each code specifies a default user role and has an expiration time.
+-   **Audit Logging & Reversion**: Every significant action is logged and can be easily reverted. Old audit logs are automatically cleaned up after 14 days.
+-   **Secure Authentication**: User access is managed through **Supabase Authentication**.
+-   **User Role Management**: Assign and manage roles (Admin, Captain, Officer) for users, controlling access to sensitive features and specific sections (Company/Junior). Users cannot change their own role.
+-   **Pending User Approval System**: New users sign up and are placed in a 'pending' state until an Administrator or Captain approves or denies their access.
 -   **Account Settings**: Users can change their password.
--   **Development Controls**: Admin-only tools for clearing audit logs, invite codes, and local data for testing and development.
 
 ## Tech Stack
 
 -   **UI Framework**: [React](https://reactjs.org/)
 -   **Language**: [TypeScript](https://www.typescriptlang.org/)
 -   **Styling**: [Tailwind CSS](https://tailwindcss.com/) (via CDN)
--   **Backend & Database**: [Firebase](https://firebase.google.com/) (Firestore & Authentication)
+-   **Backend & Database**: [Supabase](https://supabase.com/) (PostgreSQL, Auth, Edge Functions)
 -   **Offline Storage**: [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
 -   **PWA Functionality**: [Service Workers](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
 -   **Module Loading**: [Import Maps](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/importmap) (for a buildless development environment)
@@ -49,10 +48,10 @@ This project is documented across several files to provide a comprehensive under
 | --------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | **[1. Project Structure](./docs/01-project-structure.md)** | A detailed breakdown of every file and folder in the project.                                           |
 | **[2. Architecture](./docs/02-architecture.md)**           | An in-depth guide to the core architectural principles, including offline-first and data sync.      |
-| **[3. Getting Started](./docs/03-getting-started.md)**     | A step-by-step guide for new developers to set up and run the project locally.                      |
+| **[3. Getting Started](./docs/03-getting-started.md)**     | A step-by-step guide for new developers to set up and run the project locally with Supabase.        |
 | **[4. Deployment](./docs/04-deployment.md)**               | Instructions for deploying the application to a static hosting provider.                                |
 | **[5. Component Library](./docs/05-component-library.md)** | A complete reference for all React components, their props, and their responsibilities.               |
-| **[6. Data & Services](./docs/06-data-and-services.md)**   | An explanation of the business logic and data layer, including Firestore and IndexedDB interaction. |
+| **[6. Data & Services](./docs/06-data-and-services.md)**   | An explanation of the business logic and data layer, including Supabase and IndexedDB interaction. |
 | **[7. PWA & Offline](./docs/07-pwa-and-offline.md)**       | A deep dive into the Service Worker and offline storage implementation.                                 |
 | **[8. Data Types](./docs/08-types.md)**                    | A dictionary of all core TypeScript types, defining the application's data model.                   |
 | **[AI Rules](./AI_RULES.md)**                              | Guidelines for AI development within the project.                                                       |

@@ -4,70 +4,40 @@ This application is a fully static Progressive Web App (PWA). This means it cons
 
 You can deploy this project to any static hosting provider. Some popular choices include:
 
--   **Firebase Hosting** (Recommended, as the project already uses Firebase)
 -   Vercel
 -   Netlify
 -   GitHub Pages
+-   Supabase Hosting (via Storage)
 
-This guide will focus on deploying with Firebase Hosting.
-
----
-
-### Deploying with Firebase Hosting
-
-Firebase Hosting is a production-grade hosting service for static assets. It's fast, secure, and integrates seamlessly with the other Firebase services used in this project.
+This guide will focus on deploying with a generic static hosting provider.
 
 #### Prerequisites
 
-1.  **Node.js and npm**: Unlike for local development, you will need Node.js and npm installed to use the Firebase Command Line Interface (CLI). You can download them from [nodejs.org](https://nodejs.org/).
-2.  **Firebase CLI**: Once npm is installed, install the Firebase CLI globally by running the following command in your terminal:
-    ```bash
-    npm install -g firebase-tools
-    ```
+1.  **Node.js and npm**: You will need Node.js and npm installed to run the build process.
+2.  **Supabase Project**: Your Supabase project must be set up and configured with the correct database schema and RLS policies.
 
-#### Step 1: Log in to Firebase
+#### Step 1: Build the Application
 
-In your terminal, run the following command to log in to your Google account and connect it with the Firebase CLI:
+In your terminal, run the build command:
 
 ```bash
-firebase login
+npm run build
 ```
 
-This will open a browser window for you to authenticate.
+This command compiles the TypeScript, bundles the JavaScript, and places all static assets (HTML, JS, manifest, etc.) into the `dist` directory.
 
-#### Step 2: Initialize Firebase for Deployment
+#### Step 2: Deploy the `dist` Folder
 
-1.  Navigate to the root directory of your project in the terminal.
-2.  Run the initialization command:
-    ```bash
-    firebase init
-    ```
-3.  The CLI will ask which features you want to set up. Use the arrow keys and spacebar to select **Firestore** and **Hosting**. Press Enter.
-4.  Follow the prompts:
-    -   **Project Setup**: Select "Use an existing project" and choose your Firebase project.
-    -   **Firestore Setup**:
-        -   **What file should be used for Firestore Rules?** Press Enter to accept the default `firestore.rules`.
-    -   **Hosting Setup**:
-        -   **What do you want to use as your public directory?** Type `.` and press Enter.
-        -   **Configure as a single-page app (rewrite all urls to /index.html)?** Type `y` and press Enter.
-        -   **Set up automatic builds and deploys with GitHub?** Type `n` and press Enter.
+Upload the entire contents of the newly created `dist` folder to your chosen static hosting provider.
 
-This process will create the necessary configuration files, including `firebase.json`, which will now be set up to deploy both your app and your security rules.
+**Note on Supabase:** If you are using Supabase for hosting, you would typically upload the contents of the `dist` folder to a Storage Bucket and configure it for static web hosting.
 
-#### Step 3: Deploy
+#### Step 3: Configure Routing
 
-Once initialization is complete, you can deploy your application *and* your security rules with a single command:
-
-```bash
-firebase deploy
-```
-
-The CLI will upload your project files to Firebase Hosting and your rules to Firestore. When it's finished, it will provide you with a **Hosting URL** (e.g., `https://your-project-id.web.app`).
-
-You can visit this URL to see your live application.
+Since this is a Single Page Application (SPA), you must configure your hosting provider to redirect all unknown paths (e.g., `/dashboard`, `/weeklyMarks`) back to `/index.html`. This allows the client-side routing logic in `App.tsx` to take over.
 
 ---
 
 ### Subsequent Deployments
 
-Any time you make changes to the code and want to update the live application, simply run the `firebase deploy` command again from your project's root directory. Firebase will upload only the changed files, making updates very fast.
+Any time you make changes to the code and want to update the live application, simply run `npm run build` followed by uploading the new contents of the `dist` folder.

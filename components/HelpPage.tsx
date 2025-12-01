@@ -305,7 +305,7 @@ const HelpPage: React.FC = () => {
             { id: 'audit-log', title: 'The Audit Log' },
             { id: 'reverting-actions', title: 'How to Revert an Action' },
             { id: 'section-settings', title: 'Section Settings' },
-            { id: 'global-settings', title: 'Global Settings' },
+            { id: 'global-settings', title: 'Global Settings (User Management)' },
             { id: 'account-settings', title: 'Account Settings' },
             { id: 'sign-out', title: 'Signing Out' },
         ]},
@@ -359,13 +359,13 @@ const HelpPage: React.FC = () => {
                         
                         <div id="login" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">How to Log In</h3>
-                            <p>You will be given a unique email and password to access the app. Simply enter these credentials on the login screen to get started. If you don't have an account, you can sign up using an invite code provided by an administrator.</p>
+                            <p>You will be given a unique email and password to access the app. If you are a new user, you must first sign up and wait for an Administrator or Captain to approve your account before you can log in.</p>
                             <LoginPreview />
                         </div>
 
                         <div id="section-select" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Choosing Your Section</h3>
-                            <p>After logging in, you'll be asked to choose between the <strong className="text-company-blue">Company Section</strong> and the <strong className="text-junior-blue">Junior Section</strong>. All data is kept separate for each section. Simply tap on the section you wish to manage.</p>
+                            <p>After logging in, you'll be asked to choose between the <strong className="text-company-blue">Company Section</strong> and the <strong className="text-junior-blue">Junior Section</strong>. All data is kept separate for each section. If you are an Officer, you may only have access to the sections assigned to you by an Administrator.</p>
                             <SectionSelectPreview />
                         </div>
                         
@@ -374,7 +374,7 @@ const HelpPage: React.FC = () => {
                             <p>The header at the top of the page is your main navigation tool. It allows you to switch between different pages, manage settings, and sign out. Its key areas are:</p>
                             <ul className="list-disc list-inside space-y-1 pl-4">
                                 <li><strong>App & Section Logos:</strong> Click the main BB logo to always return to the Home page.</li>
-                                <li><strong>Navigation Links:</strong> (e.g., Home, Dashboard, Weekly Marks, Audit Log) Quickly jump to the main pages of the app. The Audit Log is visible to Admins, Captains, and Officers.</li>
+                                <li><strong>Navigation Links:</strong> (e.g., Home, Dashboard, Weekly Marks, Audit Log) Quickly jump to the main pages of the app. The Audit Log is visible only to Admins and Captains.</li>
                                 <li><strong>Tools & Actions:</strong> Icons for Help (<QuestionMarkCircleIcon className="inline h-4 w-4 align-text-bottom"/>), Section Settings (<CogIcon className="inline h-4 w-4 align-text-bottom"/>), and a User Profile icon (<UserCircleIcon className="inline h-4 w-4 align-text-bottom"/>) which opens a dropdown for Account Settings, Switching Sections, and Logging Out.</li>
                             </ul>
                             <HeaderAnatomy />
@@ -510,12 +510,12 @@ const HelpPage: React.FC = () => {
                         
                         <div id="audit-log" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">The Audit Log</h3>
-                            <p>The Audit Log is a complete history of every action taken in the app, such as creating a member, updating marks, or deleting a boy. It shows what the action was, who did it, and when. This provides accountability and makes it easy to track changes.</p>
+                            <p>The Audit Log is a complete history of every action taken in the app, such as creating a member, updating marks, or deleting a boy. It shows what the action was, who did it, and when. This provides accountability and makes it easy to track changes. Access is restricted to Administrators and Captains.</p>
                         </div>
                         
                         <div id="reverting-actions" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">How to Revert an Action</h3>
-                            <p>Made a mistake? No problem. In the Audit Log, most actions have a <strong className={`${accentTextColor}`}>Revert</strong> button (<UndoIcon className="inline h-4 w-4 align-text-bottom"/>). Clicking this will undo the action. For example, if you accidentally delete a member, reverting the action will restore them with all their previous marks intact. If you revert the generation of an invite code, that code will be marked as revoked.</p>
+                            <p>Made a mistake? No problem. In the Audit Log, most actions have a <strong className={`${accentTextColor}`}>Revert</strong> button (<UndoIcon className="inline h-4 w-4 align-text-bottom"/>). Clicking this will undo the action. For example, if you accidentally delete a member, reverting the action will restore them with all their previous marks intact. If you revert a user role change, the user's previous role and section access will be restored.</p>
                         </div>
                         
                         <div id="section-settings" className="space-y-4 scroll-mt-24">
@@ -525,10 +525,15 @@ const HelpPage: React.FC = () => {
                         </div>
 
                         <div id="global-settings" className="space-y-4 scroll-mt-24">
-                            <h3 className="text-2xl font-semibold text-slate-700">Global Settings</h3>
-                            <p>The Global Settings page (accessed via the User Profile dropdown in the header, then "Global Settings" from the Section Select page) contains settings that affect the entire application, regardless of the active section. Here, administrators and captains can approve pending access requests and manage user roles.</p>
+                            <h3 className="text-2xl font-semibold text-slate-700">Global Settings (User Management)</h3>
+                            <p>The Global Settings page (accessed via the User Profile dropdown in the header, then "Global Settings" from the Section Select page) contains controls for managing user access across the entire application. Here, Administrators and Captains can:</p>
+                            <ul className="list-disc list-inside space-y-1 pl-4">
+                                <li>**Approve/Deny Users:** Review new sign-up requests and assign roles and section access.</li>
+                                <li>**Manage Roles:** Change the role (Admin, Captain, Officer) and section access for existing users.</li>
+                                <li>**Delete Users:** Permanently remove a user account.</li>
+                            </ul>
                             <GlobalSettingsPreview />
-                            <Callout>To keep the database tidy, all used or revoked invite codes, as well as audit logs, are automatically deleted after 14 days.</Callout>
+                            <Callout>Audit logs are automatically deleted after 14 days to manage database storage.</Callout>
                         </div>
 
                         <div id="account-settings" className="space-y-4 scroll-mt-24">
