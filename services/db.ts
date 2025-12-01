@@ -213,6 +213,8 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                     break;
                 }
                 case 'DELETE_USER_ROLE': {
+                    // This case is now handled by the Edge Function when online, 
+                    // but kept here for potential offline queueing if needed.
                     const { error } = await supabase
                         .from(rolesTable)
                         .delete()
@@ -307,14 +309,30 @@ export const updateUserRole = async (uid: string, newRole: UserRole, actingUserR
     }, null);
 };
 
-export const deleteUserRole = async (uid: string, actingUserRole: UserRole | null): Promise<void> => {
+export const deleteUserRole = async (uid: string, email: string, actingUserRole: UserRole | null): Promise<void> => {
     if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) throw new Error("Permission denied");
     
-    const { error } = await supabase.from('user_roles').delete().eq('id', uid);
-    if (error) throw error;
+    // SECURITY: Use Edge Function to delete user from Auth and cleanup user_roles table.
+    const { error } = await supabase.functions.invoke('delete-user', {
+        body: { uid }
+    });
 
+    if (error) {
+        console.error("Edge function error:", error);
+        throw new Error(`Failed to delete user: ${error.message}`);
+    }
+
+    // Cleanup local state
     await deleteUserRoleFromDB(uid);
     window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
+
+    const { data: { user } } = await supabase.auth.getUser();
+    await createAuditLog({
+        userEmail: user?.email || 'Unknown',
+        actionType: 'DELETE_USER_ROLE',
+        description: `Permanently deleted user ${email} and their account.`,
+        revertData: { uid, email } 
+    }, null);
 };
 
 export const approveUser = async (uid: string, email: string, newRole: UserRole, actingUserRole: UserRole | null): Promise<void> => {

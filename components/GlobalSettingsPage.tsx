@@ -197,13 +197,13 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     if (!userToDelete) return;
     setIsDeletingUser(true);
     try {
-      await deleteUserRole(userToDelete.uid, userRole);
-      // Manually log this since deleteUserRole doesn't auto-log
-      showToast(`User '${userToDelete.email}' role deleted successfully.`, 'success');
+      // Use the updated service function for permanent deletion
+      await deleteUserRole(userToDelete.uid, userToDelete.email, userRole); 
+      showToast(`User '${userToDelete.email}' and their account were permanently deleted.`, 'success');
       loadUsersWithRoles();
       setIsDeleteUserModalOpen(false);
     } catch (err: any) {
-      showToast(`Failed to delete user role: ${err.message}`, 'error');
+      showToast(`Failed to permanently delete user: ${err.message}`, 'error');
     } finally {
       setIsDeletingUser(false);
     }
@@ -452,14 +452,18 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       </Modal>
 
       {/* Delete User Confirmation Modal */}
-      <Modal isOpen={isDeleteUserModalOpen} onClose={() => setIsDeleteUserModalOpen(false)} title="Confirm User Deletion">
+      <Modal isOpen={isDeleteUserModalOpen} onClose={() => setIsDeleteUserModalOpen(false)} title="Confirm Permanent User Deletion">
         {userToDelete && (
           <div className="space-y-4">
-            <p className="text-red-600 font-semibold">Are you sure you want to delete the role for user <strong className="text-slate-800">{userToDelete.email}</strong>?</p>
-            <p className="text-slate-600">This will remove their assigned role. They will essentially be denied access.</p>
+            <p className="text-red-600 font-semibold">
+                <span className="font-bold">SECURITY WARNING:</span> Are you sure you want to permanently delete the user account for <strong className="text-slate-800">{userToDelete.email}</strong>?
+            </p>
+            <p className="text-slate-600">This action will remove the user from Supabase Authentication and delete their role record. This cannot be undone.</p>
             <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
               <button onClick={() => setIsDeleteUserModalOpen(false)} className="px-4 py-2 text-sm text-slate-700 bg-slate-100 rounded-md">Cancel</button>
-              <button onClick={confirmDeleteUser} disabled={isDeletingUser} className="px-4 py-2 text-sm text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700">Delete</button>
+              <button onClick={confirmDeleteUser} disabled={isDeletingUser} className="px-4 py-2 text-sm text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700">
+                {isDeletingUser ? 'Deleting...' : 'Permanently Delete'}
+              </button>
             </div>
           </div>
         )}
