@@ -55,6 +55,24 @@ serve(async (req) => {
     const { uid } = await req.json()
     if (!uid) throw new Error('Missing uid to delete')
 
+    // --- SECURITY CHECK START ---
+    // Fetch the target user's role to prevent privilege escalation.
+    // We assume if the fetch fails (user has no role/doesn't exist), they are not an admin.
+    const { data: targetRoleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('id', uid)
+      .single()
+
+    // If the target user is an Admin, the requester MUST also be an Admin.
+    if (targetRoleData && targetRoleData.role === 'admin' && roleData.role !== 'admin') {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Captains cannot delete Administrators' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    // --- SECURITY CHECK END ---
+
     // 4. Perform the deletion from Supabase Auth
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(uid)
     
