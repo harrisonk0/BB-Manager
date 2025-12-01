@@ -100,15 +100,24 @@ const mapBoyFromDB = (data: any): Boy => ({
     isSquadLeader: data.is_squad_leader
 });
 
-const mapLogToDB = (log: AuditLog) => ({
-    id: log.id, // Keep ID for upsert/update, but omit for initial insert if null/undefined
-    timestamp: toISO(log.timestamp),
-    user_email: log.userEmail,
-    action_type: log.actionType,
-    description: log.description,
-    revert_data: log.revertData,
-    reverted_log_id: log.revertedLogId
-});
+const mapLogToDB = (log: AuditLog) => {
+    const payload: any = {
+        timestamp: toISO(log.timestamp),
+        user_email: log.userEmail,
+        action_type: log.actionType,
+        description: log.description,
+        revert_data: log.revertData,
+        reverted_log_id: log.revertedLogId
+    };
+    
+    // Only include ID if it exists (for updates/reverts of existing logs)
+    // If log.id is undefined, we omit the property, allowing Supabase to use the default UUID.
+    if (log.id) {
+        payload.id = log.id;
+    }
+    
+    return payload;
+};
 
 const mapLogFromDB = (data: any): AuditLog => ({
     id: data.id,
@@ -184,14 +193,13 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                 }
                 case 'CREATE_AUDIT_LOG': {
                     const { id, timestamp, ...payload } = write.payload as AuditLog;
-                    const dbPayload = mapLogToDB({ ...payload } as AuditLog);
+                    // Reconstruct the log object without the temporary ID, but with the correct timestamp
+                    const logForMapping = { ...payload, timestamp, id: undefined } as AuditLog; 
+                    const dbPayload = mapLogToDB(logForMapping);
                     
-                    // Omit ID for initial insert to let Supabase generate it
-                    delete dbPayload.id; 
-
                     const { data, error } = await supabase
                         .from(logsTable)
-                        .insert({ ...dbPayload, timestamp: toISO(timestamp) })
+                        .insert(dbPayload)
                         .select('id')
                         .single();
                     
@@ -510,18 +518,18 @@ export const createAuditLog = async (
     }
 
     const timestamp = Date.now();
-    const logData = { ...log, userEmail, timestamp } as AuditLog;
+    // Ensure logData.id is undefined if it's a new log, so mapLogToDB omits it.
+    const logData = { ...log, userEmail, timestamp, id: undefined } as AuditLog; 
     const table = getTableName(section, 'audit_logs');
 
     if (navigator.onLine) {
         const dbPayload = mapLogToDB(logData);
         
-        // Omit ID for initial insert to let Supabase generate it
-        delete dbPayload.id; 
+        // We rely on mapLogToDB to omit the ID, allowing Supabase to use the default UUID.
 
         const { data, error } = await supabase
             .from(table)
-            .insert({ ...dbPayload, timestamp: toISO(timestamp) })
+            .insert(dbPayload)
             .select('id')
             .single();
         
