@@ -133,9 +133,8 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
         case 'UPDATE_USER_ROLE':
             await updateUserRole(revertData.uid, revertData.oldRole as UserRole, userRole); // Revert role update
             break;
-        case 'DELETE_USER_ROLE':
-            // Re-assign previous role
-            await updateUserRole(revertData.uid, revertData.role as UserRole, userRole);
+        case 'APPROVE_USER':
+            await updateUserRole(revertData.uid, revertData.role as UserRole, userRole); // Reverts to 'pending'
             break;
         default:
           throw new Error('This action cannot be reverted.');
@@ -175,7 +174,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     'UPDATE_BOY',
     'UPDATE_SETTINGS',
     'UPDATE_USER_ROLE',
-    'DELETE_USER_ROLE',
+    'APPROVE_USER',
   ];
 
   if (loading) return <div className="text-center p-8">Loading audit trail...</div>;
