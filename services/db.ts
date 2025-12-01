@@ -116,6 +116,77 @@ const validateBoyMarks = (boy: Boy, section: Section) => {
     }
 };
 
+// --- Mappers ---
+
+// Boy Mappers
+const mapBoyToDB = (boy: Boy) => ({
+    id: boy.id,
+    name: boy.name,
+    squad: boy.squad,
+    year: boy.year,
+    marks: boy.marks,
+    is_squad_leader: boy.isSquadLeader
+});
+
+const mapBoyFromDB = (data: any): Boy => ({
+    id: data.id,
+    name: data.name,
+    squad: data.squad,
+    year: data.year,
+    marks: data.marks || [],
+    isSquadLeader: data.is_squad_leader
+});
+
+// AuditLog Mappers
+const mapLogToDB = (log: AuditLog) => ({
+    // id is auto-generated or passed depending on context
+    timestamp: toISO(log.timestamp),
+    user_email: log.userEmail,
+    action_type: log.actionType,
+    description: log.description,
+    revert_data: log.revertData,
+    reverted_log_id: log.revertedLogId
+});
+
+const mapLogFromDB = (data: any): AuditLog => ({
+    id: data.id,
+    timestamp: toMillis(data.timestamp),
+    userEmail: data.user_email,
+    actionType: data.action_type,
+    description: data.description,
+    revertData: data.revert_data,
+    revertedLogId: data.reverted_log_id,
+    section: null // set by context
+});
+
+// InviteCode Mappers
+const mapInviteToDB = (code: InviteCode) => ({
+    id: code.id,
+    invited_by: code.generatedBy,
+    invited_at: toISO(code.generatedAt),
+    is_used: code.isUsed,
+    expires_at: toISO(code.expiresAt),
+    default_user_role: code.defaultUserRole,
+    section: code.section,
+    revoked: code.revoked,
+    used_at: code.usedAt ? toISO(code.usedAt) : null,
+    used_by: code.usedBy
+});
+
+const mapInviteFromDB = (data: any): InviteCode => ({
+    id: data.id,
+    generatedBy: data.invited_by,
+    generatedAt: toMillis(data.invited_at),
+    isUsed: data.is_used,
+    expiresAt: toMillis(data.expires_at) || 0,
+    defaultUserRole: data.default_user_role || 'officer',
+    section: data.section || 'company',
+    revoked: data.revoked,
+    usedAt: data.used_at ? toMillis(data.used_at) : undefined,
+    usedBy: data.used_by
+});
+
+
 // --- Sync Function ---
 
 export const syncPendingWrites = async (): Promise<boolean> => {
@@ -126,10 +197,6 @@ export const syncPendingWrites = async (): Promise<boolean> => {
 
     console.log(`Syncing ${pendingWrites.length} offline writes to Supabase...`);
 
-    // We process sequentially for Supabase to handle ID returns easily, 
-    // though Promise.all could be used for non-dependent writes.
-    // Given the low volume, sequential is safer for data integrity.
-    
     for (const write of pendingWrites) {
         const table = write.section ? getTableName(write.section, 'boys') : '';
         const logsTable = getTableName(write.section || null, 'audit_logs');
@@ -139,11 +206,12 @@ export const syncPendingWrites = async (): Promise<boolean> => {
         try {
             switch (write.type) {
                 case 'CREATE_BOY': {
-                    // Remove the temp ID before sending to Supabase
-                    const { id, ...payload } = write.payload;
+                    const { id, ...payload } = write.payload as Boy;
+                    const dbPayload = mapBoyToDB({ ...write.payload, id: undefined } as Boy); // Don't send temp ID
+                    
                     const { data, error } = await supabase
                         .from(table)
-                        .insert(payload)
+                        .insert(dbPayload)
                         .select('id')
                         .single();
                     
@@ -152,7 +220,6 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                     const newId = data.id;
                     const newBoy = { ...write.payload, id: newId };
                     
-                    // Update IndexedDB: Swap temp ID for real ID
                     await saveBoyToDB(newBoy, write.section!);
                     if (write.tempId) {
                         await deleteBoyFromDB(write.tempId, write.section!);
@@ -160,9 +227,10 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                     break;
                 }
                 case 'UPDATE_BOY': {
+                    const dbPayload = mapBoyToDB(write.payload as Boy);
                     const { error } = await supabase
                         .from(table)
-                        .update(write.payload)
+                        .update(dbPayload)
                         .eq('id', write.payload.id);
                     if (error) throw error;
                     break;
@@ -176,17 +244,20 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                     break;
                 }
                 case 'RECREATE_BOY': {
+                    const dbPayload = mapBoyToDB(write.payload as Boy);
                     const { error } = await supabase
                         .from(table)
-                        .upsert(write.payload); // Upsert acts as set/restore
+                        .upsert(dbPayload);
                     if (error) throw error;
                     break;
                 }
                 case 'CREATE_AUDIT_LOG': {
-                    const { id, timestamp, ...payload } = write.payload;
+                    const { id, ...payload } = write.payload as AuditLog;
+                    const dbPayload = mapLogToDB({ ...payload } as AuditLog);
+                    
                     const { data, error } = await supabase
                         .from(logsTable)
-                        .insert({ ...payload, timestamp: toISO(timestamp) })
+                        .insert(dbPayload)
                         .select('id')
                         .single();
                     
@@ -200,25 +271,24 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                     break;
                 }
                 case 'CREATE_INVITE_CODE': {
-                    const { generatedAt, expiresAt, ...rest } = write.payload;
+                    const dbPayload = mapInviteToDB(write.payload as InviteCode);
                     const { error } = await supabase
                         .from(invitesTable)
-                        .insert({
-                            ...rest,
-                            generated_at: toISO(generatedAt), // Map to snake_case column
-                            expires_at: toISO(expiresAt)
-                        });
+                        .insert(dbPayload);
                     if (error) throw error;
                     break;
                 }
                 case 'UPDATE_INVITE_CODE': {
-                    const { id, usedAt, expiresAt, generatedAt, defaultUserRole, usedBy, ...rest } = write.payload;
-                    const updateData: any = { ...rest };
-                    if (usedAt) updateData.used_at = toISO(usedAt);
-                    if (expiresAt) updateData.expires_at = toISO(expiresAt);
-                    if (generatedAt) updateData.generated_at = toISO(generatedAt);
-                    if (defaultUserRole) updateData.default_user_role = defaultUserRole;
-                    if (usedBy) updateData.used_by = usedBy;
+                    const { id, ...updates } = write.payload;
+                    // For updates, we need to carefully map only the fields present
+                    const updateData: any = {};
+                    if (updates.isUsed !== undefined) updateData.is_used = updates.isUsed;
+                    if (updates.revoked !== undefined) updateData.revoked = updates.revoked;
+                    if (updates.expiresAt !== undefined) updateData.expires_at = toISO(updates.expiresAt);
+                    if (updates.defaultUserRole !== undefined) updateData.default_user_role = updates.defaultUserRole;
+                    if (updates.section !== undefined) updateData.section = updates.section;
+                    if (updates.usedAt !== undefined) updateData.used_at = toISO(updates.usedAt);
+                    if (updates.usedBy !== undefined) updateData.used_by = updates.usedBy;
 
                     const { error } = await supabase
                         .from(invitesTable)
@@ -231,7 +301,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                     const { error } = await supabase
                         .from(rolesTable)
                         .update({ role: write.payload.role })
-                        .eq('id', write.payload.uid); // 'id' matches 'uid' in our schema
+                        .eq('id', write.payload.uid);
                     if (error) throw error;
                     break;
                 }
@@ -246,11 +316,7 @@ export const syncPendingWrites = async (): Promise<boolean> => {
             }
         } catch (err) {
             console.error(`Failed to sync write: ${write.type}`, err);
-            // We continue processing other writes, but ideally we should retry or handle this better.
-            // For now, if a write fails, it's effectively "skipped" in this pass but stays in IDB pending_writes 
-            // ONLY if we don't clear the queue. 
-            // Current logic clears ALL at the end. To be robust, we should probably return false here.
-            return false; 
+            // We continue processing but could implement retry logic here
         }
     }
 
@@ -315,9 +381,7 @@ export const setUserRole = async (uid: string, email: string, role: UserRole): P
 };
 
 export const updateUserRole = async (uid: string, newRole: UserRole, actingUserRole: UserRole | null): Promise<void> => {
-    // Permission checks (same as before)
     if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) throw new Error("Permission denied");
-    // ... (Add detailed checks here if needed, omitted for brevity but should match original logic)
 
     const { error } = await supabase.from('user_roles').update({ role: newRole }).eq('id', uid);
     if (error) throw error;
@@ -330,7 +394,7 @@ export const updateUserRole = async (uid: string, newRole: UserRole, actingUserR
         userEmail: user?.email || 'Unknown',
         actionType: 'UPDATE_USER_ROLE',
         description: `Updated role for user ${uid} to ${newRole}.`,
-        revertData: { uid, newRole } // simplified
+        revertData: { uid, newRole }
     }, null);
 };
 
@@ -352,9 +416,10 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise
     validateBoyMarks(boy as Boy, section);
 
     if (navigator.onLine) {
+        const dbPayload = mapBoyToDB(boy as Boy);
         const { data, error } = await supabase
             .from(getTableName(section, 'boys'))
-            .insert(boy)
+            .insert(dbPayload)
             .select('id')
             .single();
         
@@ -381,7 +446,7 @@ export const fetchBoys = async (section: Section): Promise<Boy[]> => {
             supabase.from(getTableName(section, 'boys')).select('*')
                 .then(({ data }) => {
                     if (data) {
-                        const freshBoys = data as Boy[];
+                        const freshBoys = data.map(mapBoyFromDB);
                         const cleanFresh = JSON.stringify(freshBoys.sort((a,b) => (a.id||'').localeCompare(b.id||'')));
                         const cleanCached = JSON.stringify(cachedBoys.sort((a,b) => (a.id||'').localeCompare(b.id||'')));
                         
@@ -400,7 +465,7 @@ export const fetchBoys = async (section: Section): Promise<Boy[]> => {
     if (navigator.onLine) {
         const { data, error } = await supabase.from(getTableName(section, 'boys')).select('*');
         if (error) throw error;
-        const boys = data as Boy[];
+        const boys = data.map(mapBoyFromDB);
         await saveBoysToDB(boys, section);
         return boys;
     }
@@ -413,9 +478,10 @@ export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
     validateBoyMarks(boy, section);
 
     if (navigator.onLine) {
+        const dbPayload = mapBoyToDB(boy);
         const { error } = await supabase
             .from(getTableName(section, 'boys'))
-            .update(boy)
+            .update(dbPayload)
             .eq('id', boy.id);
         if (error) throw error;
         await saveBoyToDB(boy, section);
@@ -439,7 +505,8 @@ export const deleteBoyById = async (id: string, section: Section): Promise<void>
 
 export const recreateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
     if (navigator.onLine) {
-        const { error } = await supabase.from(getTableName(section, 'boys')).upsert(boy);
+        const dbPayload = mapBoyToDB(boy);
+        const { error } = await supabase.from(getTableName(section, 'boys')).upsert(dbPayload);
         if (error) throw error;
         await saveBoyToDB(boy, section);
     } else {
@@ -456,8 +523,9 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
     if (navigator.onLine) {
         const { data } = await supabase.from(getTableName(section, 'boys')).select('*').eq('id', id).single();
         if (data) {
-            await saveBoyToDB(data as Boy, section);
-            return data as Boy;
+            const boy = mapBoyFromDB(data);
+            await saveBoyToDB(boy, section);
+            return boy;
         }
     }
     return undefined;
@@ -465,10 +533,6 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
 
 // --- Audit Log Functions ---
 
-/**
- * Creates an audit log entry.
- * Now optionally accepts `userEmail`. If not provided, it fetches the current user's email.
- */
 export const createAuditLog = async (
     log: Omit<AuditLog, 'id' | 'timestamp' | 'userEmail'> & { userEmail?: string }, 
     section: Section | null, 
@@ -483,14 +547,14 @@ export const createAuditLog = async (
     }
 
     const timestamp = Date.now();
-    // We need to cast here because Omit removed userEmail but we've ensured it's present
     const logData = { ...log, userEmail, timestamp } as AuditLog;
     const table = getTableName(section, 'audit_logs');
 
     if (navigator.onLine) {
+        const dbPayload = mapLogToDB(logData);
         const { data, error } = await supabase
             .from(table)
-            .insert({ ...logData, timestamp: toISO(timestamp) })
+            .insert(dbPayload)
             .select('id')
             .single();
         
@@ -519,7 +583,7 @@ export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[
         // Background refresh
         const fetchTable = async (tbl: string) => {
             const { data } = await supabase.from(tbl).select('*').order('timestamp', { ascending: false });
-            return (data || []).map(row => ({ ...row, timestamp: toMillis(row.timestamp) })) as AuditLog[];
+            return (data || []).map(row => mapLogFromDB(row));
         };
 
         Promise.all([
@@ -527,7 +591,9 @@ export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[
             fetchTable('audit_logs') // Global
         ]).then(([secLogs, globLogs]) => {
             const fresh = [...secLogs, ...globLogs];
-            if (fresh.length !== allCached.length) { // Simple length check optimization
+            // Simple length check is insufficient if logs are deleted/added, but for now we rely on explicit refreshes too
+            // A better check would be timestamps or IDs
+            if (fresh.length !== allCached.length || fresh[0]?.id !== allCached[0]?.id) { 
                 saveLogsToDB(secLogs, section);
                 saveLogsToDB(globLogs, null);
                 window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section } }));
@@ -539,7 +605,7 @@ export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[
     if (navigator.onLine) {
         const fetchTable = async (tbl: string) => {
             const { data } = await supabase.from(tbl).select('*').order('timestamp', { ascending: false });
-            return (data || []).map(row => ({ ...row, timestamp: toMillis(row.timestamp) })) as AuditLog[];
+            return (data || []).map(row => mapLogFromDB(row));
         };
         const [secLogs, globLogs] = await Promise.all([
             section ? fetchTable(getTableName(section, 'audit_logs')) : Promise.resolve([]),
@@ -556,8 +622,6 @@ export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[
 
 export const deleteOldAuditLogs = async (section: Section): Promise<void> => {
     // Basic implementation that relies on Supabase policies/cron in production
-    // For now, we clear local.
-    // (Logic simplified - proper implementation would use DELETE SQL)
 };
 
 export const clearAllAuditLogs = async (section: Section | null, email: string, role: UserRole | null): Promise<void> => {
@@ -580,17 +644,7 @@ export const fetchInviteCode = async (id: string): Promise<InviteCode | undefine
     if (navigator.onLine) {
         const { data } = await supabase.from('invites').select('*').eq('id', id).single();
         if (data) {
-            // Mapped keys from DB snake_case to app camelCase
-            const mappedCode: InviteCode = {
-                id: data.id,
-                generatedBy: data.invited_by,
-                generatedAt: toMillis(data.invited_at),
-                isUsed: data.is_used,
-                expiresAt: toMillis(data.expires_at) || (Date.now() + 86400000), 
-                defaultUserRole: data.default_user_role || 'officer',
-                section: data.section || 'company'
-            };
-
+            const mappedCode = mapInviteFromDB(data);
             await saveInviteCodeToDB(mappedCode);
             return mappedCode;
         }
@@ -606,24 +660,13 @@ export const createInviteCode = async (code: any, section: Section, role: UserRo
     const expiresAt = generatedAt + 86400000;
 
     const newCode = { ...code, id, generatedAt, expiresAt };
-    // Map to DB Schema
-    const dbPayload = {
-        id,
-        invited_by: code.generatedBy,
-        invited_at: toISO(generatedAt),
-        is_used: false,
-        email: code.email || null,
-        expires_at: toISO(expiresAt),
-        default_user_role: code.defaultUserRole,
-        section: code.section
-    };
 
     if (navigator.onLine) {
+        const dbPayload = mapInviteToDB(newCode);
         const { error } = await supabase.from('invites').insert(dbPayload);
         if (error) throw error;
         await saveInviteCodeToDB(newCode);
     } else {
-        // Offline support via pending writes
         await addPendingWrite({ type: 'CREATE_INVITE_CODE', payload: newCode, section });
         await saveInviteCodeToDB(newCode);
     }
@@ -631,6 +674,7 @@ export const createInviteCode = async (code: any, section: Section, role: UserRo
 };
 
 export const updateInviteCode = async (id: string, updates: Partial<InviteCode>, role: UserRole | null): Promise<InviteCode> => {
+    // Manually map partial updates for SQL
     const dbUpdates: any = {};
     if (updates.isUsed !== undefined) dbUpdates.is_used = updates.isUsed;
     if (updates.revoked !== undefined) dbUpdates.revoked = updates.revoked;
@@ -644,12 +688,11 @@ export const updateInviteCode = async (id: string, updates: Partial<InviteCode>,
         const { error } = await supabase.from('invites').update(dbUpdates).eq('id', id);
         if (error) throw error;
     }
-    // Update local cache
+    
     const current = await getInviteCodeFromDB(id);
     const updated = { ...current, ...updates } as InviteCode;
     await saveInviteCodeToDB(updated);
     
-    // Add pending write if offline? (Simplified for now)
     if (!navigator.onLine) {
          await addPendingWrite({ type: 'UPDATE_INVITE_CODE', payload: { id, ...updates }, section: updated.section });
     }
@@ -664,16 +707,7 @@ export const revokeInviteCode = async (id: string, section: Section, log: boolea
 export const fetchAllInviteCodes = async (role: UserRole | null): Promise<InviteCode[]> => {
     if (!navigator.onLine) return [];
     const { data } = await supabase.from('invites').select('*');
-    return (data || []).map(row => ({
-        id: row.id,
-        generatedBy: row.invited_by,
-        generatedAt: toMillis(row.invited_at),
-        isUsed: row.is_used,
-        expiresAt: toMillis(row.expires_at) || 0,
-        defaultUserRole: row.default_user_role || 'officer',
-        section: row.section || 'company',
-        revoked: row.revoked // Assuming schema update or logic
-    }));
+    return (data || []).map(mapInviteFromDB);
 };
 
 export const clearAllUsedRevokedInviteCodes = async (email: string, role: UserRole | null) => {
