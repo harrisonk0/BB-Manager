@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Section, ToastType, UserRole } from '../types';
 import { 
   fetchAllUserRoles, 
-  updateUser, 
+  updateUserRole, 
   approveUser,
   denyUser,
   clearAllAuditLogs,
@@ -179,7 +179,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     setIsSaving(true);
     const sectionsToSave = ['admin', 'captain'].includes(selectedNewRole) ? [] : selectedNewSections;
     try {
-      await updateUser(userToEdit.uid, selectedNewRole, sectionsToSave, userRole);
+      await updateUserRole(userToEdit.uid, selectedNewRole, sectionsToSave, userRole);
       showToast(`User ${userToEdit.email} updated successfully.`, 'success');
       loadUsersWithRoles();
       setIsEditUserModalOpen(false);

@@ -298,8 +298,19 @@ export const setUserRole = async (uid: string, email: string, role: UserRole): P
     await saveUserRoleToDB(uid, role);
 };
 
-export const updateUser = async (uid: string, newRole: UserRole, newSections: Section[], actingUserRole: UserRole | null): Promise<void> => {
+export const updateUserRole = async (uid: string, newRole: UserRole, newSections: Section[], actingUserRole: UserRole | null, shouldLog: boolean = true): Promise<void> => {
     if (!actingUserRole || !['admin', 'captain'].includes(actingUserRole)) throw new Error("Permission denied");
+
+    let oldUserData: { role: UserRole, sections: Section[] } | null = null;
+    if (shouldLog) {
+        const { data, error: fetchError } = await supabase
+            .from('user_roles')
+            .select('role, sections')
+            .eq('id', uid)
+            .single();
+        if (fetchError) throw new Error(`Failed to fetch current user role for logging: ${fetchError.message}`);
+        oldUserData = { role: data.role, sections: data.sections || [] };
+    }
 
     const { error } = await supabase.from('user_roles').update({ role: newRole, sections: newSections }).eq('id', uid);
     if (error) throw error;
@@ -307,14 +318,16 @@ export const updateUser = async (uid: string, newRole: UserRole, newSections: Se
     await saveUserRoleToDB(uid, newRole);
     window.dispatchEvent(new CustomEvent('userrolerefresh', { detail: { uid } }));
     
-    const { data: { user } } = await supabase.auth.getUser();
-    const { id, ...logData } = {
-        userEmail: user?.email || 'Unknown',
-        actionType: 'UPDATE_USER_ROLE',
-        description: `Updated user ${uid}: role to ${newRole}, sections to [${newSections.join(', ')}].`,
-        revertData: { uid, newRole, newSections }
-    } as AuditLog;
-    await createAuditLog(logData, null);
+    if (shouldLog && oldUserData) {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { id, ...logData } = {
+            userEmail: user?.email || 'Unknown',
+            actionType: 'UPDATE_USER_ROLE',
+            description: `Updated user role for UID ${uid} to ${newRole} with sections [${newSections.join(', ')}].`,
+            revertData: { uid, oldRole: oldUserData.role, oldSections: oldUserData.sections }
+        } as AuditLog;
+        await createAuditLog(logData, null);
+    }
 };
 
 export const deleteUserRole = async (uid: string, email: string, actingUserRole: UserRole | null): Promise<void> => {
@@ -346,14 +359,13 @@ export const deleteUserRole = async (uid: string, email: string, actingUserRole:
 };
 
 export const approveUser = async (uid: string, email: string, newRole: UserRole, newSections: Section[], actingUserRole: UserRole | null): Promise<void> => {
-    await updateUser(uid, newRole, newSections, actingUserRole);
+    await updateUserRole(uid, newRole, newSections, actingUserRole, false);
     const { data: { user } } = await supabase.auth.getUser();
-    // Ensure no ID is passed to createAuditLog
     const { id, ...logData } = {
         userEmail: user?.email || 'Unknown',
         actionType: 'APPROVE_USER',
         description: `Approved user ${email} with role ${newRole} and sections [${newSections.join(', ')}].`,
-        revertData: { uid, role: 'pending', sections: [] }
+        revertData: { uid, oldRole: 'pending', oldSections: [] }
     } as AuditLog;
     await createAuditLog(logData, null);
 };

@@ -131,10 +131,10 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
             await saveSettings(activeSection, revertData.settings as SectionSettings, userRole);
             break;
         case 'UPDATE_USER_ROLE':
-            await updateUserRole(revertData.uid, revertData.oldRole as UserRole, userRole); // Revert role update
+            await updateUserRole(revertData.uid, revertData.oldRole as UserRole, revertData.oldSections as Section[], userRole);
             break;
         case 'APPROVE_USER':
-            await updateUserRole(revertData.uid, revertData.role as UserRole, userRole); // Reverts to 'pending'
+            await updateUserRole(revertData.uid, revertData.oldRole as UserRole, revertData.oldSections as Section[], userRole);
             break;
         default:
           throw new Error('This action cannot be reverted.');
