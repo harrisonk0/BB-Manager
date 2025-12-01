@@ -101,6 +101,7 @@ const mapBoyFromDB = (data: any): Boy => ({
 });
 
 const mapLogToDB = (log: AuditLog) => ({
+    id: log.id, // Keep ID for upsert/update, but omit for initial insert if null/undefined
     timestamp: toISO(log.timestamp),
     user_email: log.userEmail,
     action_type: log.actionType,
@@ -185,6 +186,9 @@ export const syncPendingWrites = async (): Promise<boolean> => {
                     const { id, timestamp, ...payload } = write.payload as AuditLog;
                     const dbPayload = mapLogToDB({ ...payload } as AuditLog);
                     
+                    // Omit ID for initial insert to let Supabase generate it
+                    delete dbPayload.id; 
+
                     const { data, error } = await supabase
                         .from(logsTable)
                         .insert({ ...dbPayload, timestamp: toISO(timestamp) })
@@ -493,6 +497,10 @@ export const createAuditLog = async (
 
     if (navigator.onLine) {
         const dbPayload = mapLogToDB(logData);
+        
+        // Omit ID for initial insert to let Supabase generate it
+        delete dbPayload.id; 
+
         const { data, error } = await supabase
             .from(table)
             .insert({ ...dbPayload, timestamp: toISO(timestamp) })
