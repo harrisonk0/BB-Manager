@@ -15,6 +15,7 @@ import GlobalSettingsPage from './components/GlobalSettingsPage';
 import AccountSettingsPage from './components/AccountSettingsPage';
 import HelpPage from './components/HelpPage';
 import PendingApprovalPage from './components/PendingApprovalPage';
+import PasswordResetPage from './components/PasswordResetPage';
 import Toast from './components/Toast';
 import Modal from './components/Modal';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
@@ -32,7 +33,7 @@ const App: React.FC = () => {
   const { toasts, showToast, removeToast } = useToastNotifications();
 
   // Use auth and role hook
-  const { currentUser, userRole, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRole } = useAuthAndRole(); // Added roleLoading
+  const { currentUser, userRole, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRole, isPasswordRecovery } = useAuthAndRole();
 
   // State for unsaved changes protection
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -112,6 +113,10 @@ const App: React.FC = () => {
     // Check if we are loading auth, or if we have a user but are still loading their role or app data.
     if (authLoading || roleLoading || (currentUser && dataLoading && view.page !== 'signup' && userRole !== 'pending')) {
         return <HomePageSkeleton />;
+    }
+
+    if (isPasswordRecovery) {
+        return <PasswordResetPage showToast={showToast} />;
     }
 
     if (noRoleError) {

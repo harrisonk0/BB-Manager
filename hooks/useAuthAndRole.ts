@@ -16,6 +16,7 @@ export const useAuthAndRole = () => {
   const [noRoleError, setNoRoleError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [roleLoading, setRoleLoading] = useState(false); // New state to track role fetching
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   const performSignOut = useCallback(async () => {
     try {
@@ -66,9 +67,23 @@ export const useAuthAndRole = () => {
     // 2. Listen for changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
       
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+        if (session?.user) {
+          setCurrentUser(session.user);
+        }
+        setAuthLoading(false);
+        return;
+      }
+
+      // Reset password recovery state on other events
+      if (isPasswordRecovery) {
+        setIsPasswordRecovery(false);
+      }
+
       if (session?.user) {
         setCurrentUser(prev => {
             if (prev?.id === session.user.id) return prev;
@@ -104,7 +119,7 @@ export const useAuthAndRole = () => {
       subscription.unsubscribe();
       window.removeEventListener('userrolerefresh', handleUserRoleRefresh);
     };
-  }, [loadUserRole]); // Removed currentUser to prevent infinite loop
+  }, [loadUserRole, isPasswordRecovery]);
 
-  return { currentUser, userRole, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRole };
+  return { currentUser, userRole, noRoleError, authLoading, roleLoading, performSignOut, setCurrentUser, setUserRole, isPasswordRecovery };
 };
