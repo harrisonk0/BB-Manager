@@ -14,6 +14,7 @@ import SectionSelectPage from './components/SectionSelectPage';
 import GlobalSettingsPage from './components/GlobalSettingsPage';
 import AccountSettingsPage from './components/AccountSettingsPage';
 import HelpPage from './components/HelpPage';
+import PendingApprovalPage from './components/PendingApprovalPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { View, BoyMarksPageView } from './types';
@@ -35,12 +36,12 @@ const App: React.FC = () => {
 
   // State for unsaved changes protection
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [view, setView] = useState<View>({ page: 'home' }); // Internal view state for useUnsavedChangesProtection
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // New state for Help modal
+  const [view, setView] = useState<View>({ page: 'home' }); 
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); 
 
   // Use section management hook
   const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(
-    setView, // Pass internal setView
+    setView, 
     setHasUnsavedChanges,
     performSignOut
   );
@@ -54,7 +55,7 @@ const App: React.FC = () => {
 
   // Use unsaved changes protection hook
   const {
-    view: protectedView, // Renamed to avoid conflict with internal 'view' state
+    view: protectedView, 
     setView: navigateWithProtection,
     confirmModalType,
     confirmAction,
@@ -62,20 +63,17 @@ const App: React.FC = () => {
     handleSwitchSection: handleSwitchSectionWithProtection,
     handleSignOut: handleSignOutWithProtection,
   } = useUnsavedChangesProtection(
-    setView, // Pass internal setView
+    setView, 
     performSwitchSection,
     performSignOut
   );
 
-  // Update internal view state when protectedView changes
   useEffect(() => {
     setView(protectedView);
   }, [protectedView]);
 
-  // Handle no role error: if noRoleError is set, force sign out and clear section
   useEffect(() => {
     if (noRoleError) {
-      // Clear any active section and user role if there's a no-role error
       setActiveSection(null);
       setUserRole(null);
       localStorage.removeItem('activeSection');
@@ -83,7 +81,7 @@ const App: React.FC = () => {
   }, [noRoleError, setActiveSection, setUserRole]);
 
   const renderMainContent = () => {
-    if (!activeSection) return null; // Should not happen if logic below is correct
+    if (!activeSection) return null; 
 
     switch (view.page) {
       case 'home':
@@ -94,12 +92,11 @@ const App: React.FC = () => {
         return <DashboardPage boys={boys} activeSection={activeSection!} />;
       case 'auditLog':
         return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
-      case 'settings': // Section-specific settings
+      case 'settings': 
         return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} />;
-      case 'globalSettings': // New: Global settings
-        // Pass currentUser to GlobalSettingsPage
+      case 'globalSettings': 
         return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} currentUser={currentUser} />;
-      case 'accountSettings': // New: Account settings
+      case 'accountSettings': 
         return <AccountSettingsPage showToast={showToast} />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
@@ -112,22 +109,19 @@ const App: React.FC = () => {
   };
   
   const renderApp = () => {
-    // Handle loading state first
-    if (authLoading || (currentUser && dataLoading && view.page !== 'signup')) {
+    if (authLoading || (currentUser && dataLoading && view.page !== 'signup' && userRole !== 'pending')) {
         return <HomePageSkeleton />;
     }
 
-    // Handle no role error
     if (noRoleError) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-slate-200 p-4">
                 <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md text-center">
                     <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="The Boys' Brigade Logo" className="w-48 mx-auto mb-4" />
-                    <h2 className="2xl font-bold text-red-600">Access Denied</h2>
+                    <h2 className="text-2xl font-bold text-red-600">Access Denied</h2>
                     <p className="text-slate-700">{noRoleError}</p>
-                    <p className="text-slate-500">Please ensure your email address is registered with an administrator.</p>
                     <button
-                        onClick={() => setCurrentUser(null)} // Reset currentUser to trigger login page
+                        onClick={() => setCurrentUser(null)} 
                         className="mt-6 group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-junior-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue"
                     >
                         Return to Login
@@ -137,15 +131,18 @@ const App: React.FC = () => {
         );
     }
     
-    // Handle unauthenticated user
     if (!currentUser) {
         if (view.page === 'signup') {
             return <SignupPage onNavigateToHelp={() => setIsHelpModalOpen(true)} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => navigateWithProtection({ page: 'home' })} />;
         }
         return <LoginPage onOpenHelpModal={() => setIsHelpModalOpen(true)} showToast={showToast} onNavigateToSignup={navigateWithProtection} />;
     }
+
+    // Handle Pending Approval State
+    if (userRole === 'pending') {
+        return <PendingApprovalPage />;
+    }
     
-    // Handle authenticated user, but no active section selected yet
     if (!activeSection) {
         switch (view.page) {
             case 'globalSettings':
@@ -153,7 +150,6 @@ const App: React.FC = () => {
                     <>
                         <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
                         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            {/* Pass currentUser here as well */}
                             <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} currentUser={currentUser} />
                         </main>
                     </>
@@ -168,17 +164,14 @@ const App: React.FC = () => {
                     </>
                 );
             default:
-                // If no specific page is requested, show the section selection
                 return <SectionSelectPage onSelectSection={handleSelectSection} onOpenHelpModal={() => setIsHelpModalOpen(true)} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} userRole={userRole} onSignOut={handleSignOutWithProtection} />;
         }
     }
     
-    // Handle general errors
     if (dataError) {
         return <div className="text-center p-8 text-red-500">{dataError}</div>;
     }
 
-    // Render main app content with header
     return (
         <>
             <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
@@ -202,7 +195,6 @@ const App: React.FC = () => {
 
       {renderApp()}
       
-      {/* Help Modal */}
       <Modal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} title="User Guide" size="full">
         <HelpPage />
       </Modal>

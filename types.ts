@@ -63,15 +63,12 @@ export type AuditLogActionType =
   'DELETE_BOY' | 
   'REVERT_ACTION' | 
   'UPDATE_SETTINGS' | 
-  'GENERATE_INVITE_CODE' | 
-  'USE_INVITE_CODE' | 
-  'REVOKE_INVITE_CODE' | 
-  'UPDATE_INVITE_CODE' | // Added this type
   'UPDATE_USER_ROLE' |
-  'DELETE_USER_ROLE' | // New: For deleting user roles
-  'CLEAR_AUDIT_LOGS' | // New: For clearing all audit logs
-  'CLEAR_USED_REVOKED_INVITE_CODES' | // New: For clearing used/revoked invite codes
-  'CLEAR_LOCAL_DATA'; // New: For clearing all local data
+  'DELETE_USER_ROLE' | 
+  'APPROVE_USER' | // New: When an admin approves a pending user
+  'DENY_USER' |    // New: When an admin denies a pending user
+  'CLEAR_AUDIT_LOGS' | 
+  'CLEAR_LOCAL_DATA';
 
 /**
  * Represents a single entry in the audit log, tracking changes made in the application.
@@ -93,32 +90,6 @@ export interface AuditLog {
   revertedLogId?: string;
   /** The section this log pertains to. Null for global logs. */
   section?: Section | null;
-}
-
-/**
- * Represents a one-time-use invite code for new user sign-ups.
- */
-export interface InviteCode {
-  /** The unique invite code string itself. */
-  id: string;
-  /** The email of the user who generated this code. */
-  generatedBy: string;
-  /** The timestamp when the code was generated (Unix milliseconds). */
-  generatedAt: number;
-  /** The section this code is intended for (optional, could be 'all' or specific). */
-  section?: Section;
-  /** True if the code has been used, false otherwise. */
-  isUsed: boolean;
-  /** The email of the user who used this code (if used). */
-  usedBy?: string;
-  /** The timestamp when the code was used (if used). */
-  usedAt?: number;
-  /** True if the code has been explicitly revoked, false otherwise. */
-  revoked?: boolean;
-  /** The default role assigned to the user who uses this invite code. */
-  defaultUserRole: UserRole;
-  /** The timestamp when the code expires (Unix milliseconds). */
-  expiresAt: number;
 }
 
 /**
@@ -170,8 +141,9 @@ export type SortByType = 'name' | 'marks' | 'attendance';
 
 /**
  * Defines the possible roles a user can have in the application.
+ * 'pending' means the user has signed up but has not been approved by an admin yet.
  */
-export type UserRole = 'admin' | 'captain' | 'officer';
+export type UserRole = 'admin' | 'captain' | 'officer' | 'pending';
 
 // Import the User type from firebase/auth to extend it correctly
 import { User } from 'firebase/auth';

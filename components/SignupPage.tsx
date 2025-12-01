@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { supabase } from '@/src/integrations/supabase/client';
-import { fetchInviteCode, updateInviteCode, createAuditLog, setUserRole } from '../services/db';
+import { setUserRole } from '../services/db';
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, Section } from '../types';
 
@@ -11,24 +11,22 @@ interface SignupPageProps {
   onNavigateToHelp: () => void;
   /** Function to display a toast notification. */
   showToast: (message: string, type?: ToastType) => void;
-  /** Callback to set the active section after successful signup. */
-  onSignupSuccess: (section: Section) => void;
   /** Callback to navigate back to the login page. */
   onNavigateBack: () => void;
+  /** Not used in new flow but kept for prop compatibility if needed */
+  onSignupSuccess: (section: Section) => void; 
 }
 
-const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, onSignupSuccess, onNavigateBack }) => {
+const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, onNavigateBack }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   
   // Granular error states
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
-  const [inviteCodeError, setInviteCodeError] = useState<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,7 +36,6 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
     setEmailError(null);
     setPasswordError(null);
     setConfirmPasswordError(null);
-    setInviteCodeError(null);
 
     let isValid = true;
 
@@ -60,10 +57,6 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       setConfirmPasswordError('Passwords do not match.');
       isValid = false;
     }
-    if (!inviteCode) {
-      setInviteCodeError('Invite code is required.');
-      isValid = false;
-    }
 
     if (!isValid) {
       return;
@@ -71,15 +64,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
 
     setIsLoading(true);
     try {
-      // 1. Validate Invite Code
-      const fetchedCode = await fetchInviteCode(inviteCode);
-      if (!fetchedCode || fetchedCode.isUsed || fetchedCode.revoked || fetchedCode.expiresAt < Date.now()) {
-        setInviteCodeError('Invalid, used, revoked, or expired invite code.');
-        setIsLoading(false);
-        return;
-      }
-
-      // 2. Create User in Supabase Auth
+      // 1. Create User in Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -92,33 +77,13 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
           throw new Error("Signup successful but no user returned.");
       }
 
-      // 3. Assign Default Role to New User
-      // Note: In Supabase, the user might not be fully "confirmed" yet if you have email verification on.
-      // However, we can still set the role for the UID.
-      await setUserRole(newUser.id, newUser.email || email, fetchedCode.defaultUserRole);
+      // 2. Assign 'pending' Role to New User
+      await setUserRole(newUser.id, newUser.email || email, 'pending');
 
-      // 4. Mark Invite Code as Used
-      const updatedCode = {
-        ...fetchedCode,
-        isUsed: true,
-        usedBy: newUser.email || 'Unknown',
-        usedAt: Date.now(),
-      };
-      await updateInviteCode(updatedCode.id, updatedCode, null);
-
-      // 5. Create Audit Log Entry
-      await createAuditLog({
-        userEmail: newUser.email || 'Unknown',
-        actionType: 'USE_INVITE_CODE',
-        description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${fetchedCode.defaultUserRole}'.`,
-        revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
-      }, fetchedCode.section || null);
-
-      showToast('Account created successfully! Please select your section.', 'success');
-      onSignupSuccess(fetchedCode.section || 'company');
+      showToast('Account created! Please wait for approval.', 'success');
+      // No navigation needed, auth state change in App.tsx will redirect to Pending Page
     } catch (err: any) {
       console.error("Sign up error:", err);
-      // Map Supabase errors
       if (err.message.includes('User already registered')) {
           setEmailError('The email address is already in use by another account.');
       } else if (err.message.includes('Password should be')) {
@@ -160,6 +125,9 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
           <h2 className="text-xl text-slate-600">
             Create your account
           </h2>
+          <p className="mt-2 text-sm text-slate-500">
+              Your account will be reviewed by an administrator before you can access the system.
+          </p>
         </div>
 
         {error && (
@@ -187,7 +155,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
               />
               {emailError && <p id="email-error" className="text-red-500 text-xs mt-1">{emailError}</p>}
             </div>
-            <div className="mt-px"> {/* Added mt-px to separate from previous input */}
+            <div className="mt-px">
               <label htmlFor="password" className="sr-only">Password</label>
               <input
                 id="password"
@@ -204,7 +172,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
               />
               {passwordError && <p id="password-error" className="text-red-500 text-xs mt-1">{passwordError}</p>}
             </div>
-            <div className="mt-px"> {/* Added mt-px to separate from previous input */}
+            <div className="mt-px">
               <label htmlFor="confirm-password" className="sr-only">Confirm Password</label>
               <input
                 id="confirm-password"
@@ -212,7 +180,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
                 type="password"
                 autoComplete="new-password"
                 required
-                className={`relative block w-full px-3 py-2 border placeholder-slate-500 text-slate-900 bg-white focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm ${confirmPasswordError ? 'border-red-500' : 'border-slate-300'}`}
+                className={`relative block w-full px-3 py-2 border placeholder-slate-500 text-slate-900 bg-white rounded-b-md focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm ${confirmPasswordError ? 'border-red-500' : 'border-slate-300'}`}
                 placeholder="Confirm Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -220,22 +188,6 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
                 aria-describedby={confirmPasswordError ? "confirm-password-error" : undefined}
               />
               {confirmPasswordError && <p id="confirm-password-error" className="text-red-500 text-xs mt-1">{confirmPasswordError}</p>}
-            </div>
-            <div className="mt-px"> {/* Added mt-px to separate from previous input */}
-              <label htmlFor="invite-code" className="sr-only">Invite Code</label>
-              <input
-                id="invite-code"
-                name="invite-code"
-                type="text"
-                required
-                className={`relative block w-full px-3 py-2 border placeholder-slate-500 text-slate-900 bg-white rounded-b-md focus:outline-none focus:ring-junior-blue focus:border-junior-blue focus:z-10 sm:text-sm ${inviteCodeError ? 'border-red-500' : 'border-slate-300'}`}
-                placeholder="Invite Code"
-                value={inviteCode}
-                onChange={(e) => setInviteCode(e.target.value)}
-                aria-invalid={inviteCodeError ? "true" : "false"}
-                aria-describedby={inviteCodeError ? "invite-code-error" : undefined}
-              />
-              {inviteCodeError && <p id="invite-code-error" className="text-red-500 text-xs mt-1">{inviteCodeError}</p>}
             </div>
           </div>
 
