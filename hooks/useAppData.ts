@@ -18,12 +18,23 @@ export const useAppData = (
 ) => {
   const [boys, setBoys] = useState<Boy[]>([]);
   const [settings, setSettings] = useState<SectionSettings | null>(null);
-  const [dataLoading, setDataLoading] = useState(true); // New loading state for data
+  const [dataLoading, setDataLoading] = useState(true); // Internal loading state
   const [dataError, setDataError] = useState<string | null>(null);
   
   // Use a ref to track if we've already loaded data for a specific section/user combo
   const loadedRef = useRef<{ section: Section | null, userId: string | undefined }>({ section: null, userId: undefined });
   const syncAttempts = useRef(0);
+
+  // Derived state to prevent UI flicker: 
+  // If we have an active section and user, but the loaded reference doesn't match,
+  // we are technically "loading" (syncing) even if the effect hasn't run yet.
+  const isSyncingData = activeSection && currentUser && (
+      loadedRef.current.section !== activeSection || 
+      loadedRef.current.userId !== currentUser.id
+  );
+  
+  // The effective loading state exposed to the component
+  const isLoading = dataLoading || !!isSyncingData;
 
   const refreshData = useCallback(async () => {
     if (!activeSection || !encryptionKey) return;
@@ -127,5 +138,5 @@ export const useAppData = (
     };
   }, [activeSection, encryptionKey, refreshData]);
 
-  return { boys, settings, dataLoading, dataError, refreshData, setSettings };
+  return { boys, settings, dataLoading: isLoading, dataError, refreshData, setSettings };
 };
