@@ -7,8 +7,6 @@ import {
   updateUserRole, 
   approveUser,
   denyUser,
-  clearAllAuditLogs,
-  clearAllLocalData,
   deleteUserRole,
   createAuditLog
 } from '../services/db';
@@ -58,10 +56,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const [selectedNewSections, setSelectedNewSections] = useState<Section[]>([]);
   const [roleEditError, setRoleEditError] = useState<string | null>(null);
 
-  // Dev Control States
-  const [isClearLogsModalOpen, setIsClearLogsModalOpen] = useState(false);
-  const [isClearLocalDataModalOpen, setIsClearLocalDataModalOpen] = useState(false);
-  const [isClearingDevData, setIsClearingDevData] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const [isDeleteUserModalOpen, setIsDeleteUserModalOpen] = useState(false);
@@ -69,7 +63,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   const [isDeletingUser, setIsDeletingUser] = useState(false);
 
   const canManageUserRoles = userRole && ['admin', 'captain'].includes(userRole);
-  const isAdmin = userRole === 'admin';
   const currentAuthUserUid = currentUser?.id;
 
   const isRoleHigherOrEqual = (role1: UserRole, role2: UserRole): boolean => {
@@ -219,45 +212,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       setIsDeletingUser(false);
     }
   };
-
-  // --- Dev Handlers ---
-  const handleClearAllAuditLogs = async () => {
-    setIsClearingDevData(true);
-    try {
-      const userEmail = currentUser?.email || 'Unknown User';
-      await clearAllAuditLogs(activeSection, userEmail, userRole);
-      await clearAllAuditLogs(null, userEmail, userRole);
-      showToast('All audit logs cleared successfully!', 'success');
-      window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section: activeSection } }));
-      window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section: null } }));
-    } catch (err: any) {
-      showToast(`Failed to clear audit logs: ${err.message}`, 'error');
-    } finally {
-      setIsClearingDevData(false);
-      setIsClearLogsModalOpen(false);
-    }
-  };
-
-  const handleClearAllLocalData = async () => {
-    setIsClearingDevData(true);
-    try {
-      const userEmail = currentUser?.email || 'Unknown User';
-      await createAuditLog({
-        actionType: 'CLEAR_LOCAL_DATA',
-        description: `Cleared all local data for ${activeSection} section.`,
-        revertData: {},
-        userEmail: userEmail,
-      }, activeSection);
-      await clearAllLocalData(activeSection);
-      showToast('All local data cleared successfully! Please refresh the page.', 'success');
-      window.location.reload();
-    } catch (err: any) {
-      showToast(`Failed to clear local data: ${err.message}`, 'error');
-    } finally {
-      setIsClearingDevData(false);
-      setIsClearLocalDataModalOpen(false);
-    }
-  };
   
   const isCompany = activeSection === 'company';
   const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
@@ -354,32 +308,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 })}
               </ul>
             )}
-          </div>
-        )}
-
-        {isAdmin && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-6 sm:p-8 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-red-800 border-b border-red-300 pb-2 mb-4">Development Controls (Admin Only)</h2>
-            <div className="space-y-4">
-              <div>
-                <button
-                  onClick={() => setIsClearLogsModalOpen(true)}
-                  disabled={isClearingDevData}
-                  className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Clear All Audit Logs
-                </button>
-              </div>
-              <div>
-                <button
-                  onClick={() => setIsClearLocalDataModalOpen(true)}
-                  disabled={isClearingDevData}
-                  className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Clear All Local Data
-                </button>
-              </div>
-            </div>
           </div>
         )}
       </div>
@@ -492,26 +420,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
             </div>
           </div>
         )}
-      </Modal>
-
-      <Modal isOpen={isClearLogsModalOpen} onClose={() => setIsClearLogsModalOpen(false)} title="Confirm Clear Logs">
-        <div className="space-y-4">
-          <p className="text-slate-600">Are you sure you want to clear all audit logs?</p>
-          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button onClick={() => setIsClearLogsModalOpen(false)} className="px-4 py-2 text-sm text-slate-700 bg-slate-100 rounded-md">Cancel</button>
-            <button onClick={handleClearAllAuditLogs} className="px-4 py-2 text-sm text-white bg-red-600 rounded-md">Clear</button>
-          </div>
-        </div>
-      </Modal>
-
-      <Modal isOpen={isClearLocalDataModalOpen} onClose={() => setIsClearLocalDataModalOpen(false)} title="Confirm Clear Local Data">
-        <div className="space-y-4">
-          <p className="text-slate-600">Are you sure you want to clear all local data? This may help fix sync issues.</p>
-          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button onClick={() => setIsClearLocalDataModalOpen(false)} className="px-4 py-2 text-sm text-slate-700 bg-slate-100 rounded-md">Cancel</button>
-            <button onClick={handleClearAllLocalData} className="px-4 py-2 text-sm text-white bg-red-600 rounded-md">Clear</button>
-          </div>
-        </div>
       </Modal>
 
     </div>

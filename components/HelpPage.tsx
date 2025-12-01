@@ -222,16 +222,16 @@ const GlobalSettingsPreview: React.FC = () => {
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-md border border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-700 mb-3">Invite New Users</h3>
-            <button disabled className={`inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-md shadow-sm text-white ${accentBg} opacity-80 cursor-not-allowed`}>
-                Generate New Invite Code
-            </button>
-            <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between flex-wrap gap-2">
-                <span className="font-mono text-slate-800 text-sm break-all">ABC123DEF456</span>
-                <button disabled className="p-2 text-slate-400 rounded-md cursor-not-allowed">
-                    <ClipboardIcon className="h-5 w-5" />
-                </button>
-            </div>
+            <h3 className="text-lg font-semibold text-slate-700 mb-3">Pending Access Requests</h3>
+            <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
+                <li className="p-3 flex items-center justify-between text-sm">
+                    <span className="font-medium text-slate-800">new.user@example.com</span>
+                    <div className="flex space-x-2">
+                        <button disabled className="px-3 py-1.5 text-xs text-white bg-green-600/80 rounded-md">Approve</button>
+                        <button disabled className="px-3 py-1.5 text-xs text-white bg-red-600/80 rounded-md">Deny</button>
+                    </div>
+                </li>
+            </ul>
             <h3 className="text-lg font-semibold text-slate-700 mt-6 mb-3">User Role Management</h3>
             <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
                 <li className="p-3 flex items-center justify-between text-sm">
@@ -240,14 +240,10 @@ const GlobalSettingsPreview: React.FC = () => {
                         <p className="text-xs text-slate-500 mt-1"><span className="font-semibold">Administrator</span></p>
                     </div>
                     <button disabled className={`px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm ${accentBg} opacity-80 cursor-not-allowed`}>
-                        Edit Role
+                        Edit
                     </button>
                 </li>
             </ul>
-            <h3 className="text-lg font-semibold text-red-700 mt-6 mb-3">Development Controls (Admin Only)</h3>
-            <button disabled className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600/80 rounded-md shadow-sm cursor-not-allowed">
-                Clear All Audit Logs
-            </button>
         </div>
     );
 };
@@ -530,7 +526,7 @@ const HelpPage: React.FC = () => {
 
                         <div id="global-settings" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Global Settings</h3>
-                            <p>The Global Settings page (accessed via the User Profile dropdown in the header, then "Global Settings" from the Section Select page) contains settings that affect the entire application, regardless of the active section. Here, administrators and captains can manage invite codes for new user sign-ups, view and update user roles, and access powerful development controls (admin-only).</p>
+                            <p>The Global Settings page (accessed via the User Profile dropdown in the header, then "Global Settings" from the Section Select page) contains settings that affect the entire application, regardless of the active section. Here, administrators and captains can approve pending access requests and manage user roles.</p>
                             <GlobalSettingsPreview />
                             <Callout>To keep the database tidy, all used or revoked invite codes, as well as audit logs, are automatically deleted after 14 days.</Callout>
                         </div>
