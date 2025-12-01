@@ -73,6 +73,19 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     const index2 = ROLE_SORT_ORDER.indexOf(role2);
     return index1 <= index2;
   };
+  
+  /**
+   * Determines which roles the current user is allowed to assign.
+   */
+  const getAssignableRoles = useCallback((currentRole: UserRole | null): UserRole[] => {
+    if (currentRole === 'admin') {
+      return ['admin', 'captain', 'officer'];
+    }
+    if (currentRole === 'captain') {
+      return ['officer'];
+    }
+    return [];
+  }, []);
 
   const loadUsersWithRoles = useCallback(async () => {
     if (!canManageUserRoles) {
@@ -107,7 +120,9 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   // --- Approval Handlers ---
   const handleOpenApprove = (user: UserWithEmailAndRole) => {
       setUserToActOn(user);
-      setApproveRole('officer');
+      // Default to the lowest assignable role
+      const assignableRoles = getAssignableRoles(userRole);
+      setApproveRole(assignableRoles[assignableRoles.length - 1] || 'officer');
       setIsApproveModalOpen(true);
   };
 
@@ -362,9 +377,9 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                     onChange={(e) => setApproveRole(e.target.value as UserRole)}
                     className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
                   >
-                      <option value="officer">Officer</option>
-                      <option value="captain">Captain</option>
-                      {userRole === 'admin' && <option value="admin">Administrator</option>}
+                      {getAssignableRoles(userRole).map(role => (
+                          <option key={role} value={role}>{USER_ROLE_DISPLAY_NAMES[role]}</option>
+                      ))}
                   </select>
               </div>
               <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
@@ -403,14 +418,16 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 onChange={(e) => setSelectedNewRole(e.target.value as UserRole)}
                 className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm ${accentRing}`}
               >
-                {ROLE_SORT_ORDER.filter(roleOption => 
-                    roleOption !== 'pending' &&
-                    ((userRole === 'admin' && userToEditRole.uid !== currentAuthUserUid) || 
-                    (userRole === 'captain' && ROLE_SORT_ORDER.indexOf(roleOption) > ROLE_SORT_ORDER.indexOf('captain')) ||
-                    (userToEditRole.uid === currentAuthUserUid && roleOption === userToEditRole.role))
-                ).map(roleValue => (
-                  <option key={roleValue} value={roleValue}>{USER_ROLE_DISPLAY_NAMES[roleValue]}</option>
-                ))}
+                {getAssignableRoles(userRole)
+                    .filter(roleOption => 
+                        roleOption !== 'pending' &&
+                        // Prevent changing own role unless you are an admin changing to a lower role (which is handled by the backend service)
+                        (userToEditRole.uid !== currentAuthUserUid || roleOption === userToEditRole.role)
+                    )
+                    .map(roleValue => (
+                        <option key={roleValue} value={roleValue}>{USER_ROLE_DISPLAY_NAMES[roleValue]}</option>
+                    ))
+                }
               </select>
             </div>
             <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
