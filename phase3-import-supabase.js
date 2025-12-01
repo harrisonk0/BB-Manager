@@ -44,10 +44,28 @@ function toSnakeCase(str) {
   return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 }
 
-function mapKeysToSnakeCase(obj) {
+// Helper to sanitize data for Postgres
+function sanitizeData(obj) {
   const newObj = {};
   for (const key in obj) {
-    newObj[toSnakeCase(key)] = obj[key];
+    const snakeKey = toSnakeCase(key);
+    let value = obj[key];
+
+    // FIX: Convert Epoch timestamps (numbers or strings looking like numbers) to ISO Strings
+    // Only applies to keys that look like time/date columns
+    if ((snakeKey.includes('time') || snakeKey.includes('date') || snakeKey.includes('at')) && value) {
+      // If it's a number (milliseconds) or a string that contains only digits
+      if (typeof value === 'number' || (typeof value === 'string' && /^\d+$/.test(value))) {
+        // Assume milliseconds if the number is huge (greater than year 2000 in seconds)
+        // 946684800000 is year 2000 in ms
+        const numVal = Number(value);
+        if (numVal > 946684800000) {
+           value = new Date(numVal).toISOString();
+        }
+      }
+    }
+
+    newObj[snakeKey] = value;
   }
   return newObj;
 }
@@ -68,8 +86,8 @@ async function importToSupabase() {
       // 2. Replace IDs
       const dataWithNewIds = replaceIds(dataWithId);
 
-      // 3. Convert keys to snake_case
-      return mapKeysToSnakeCase(dataWithNewIds);
+      // 3. Convert keys to snake_case AND fix timestamps
+      return sanitizeData(dataWithNewIds);
     });
 
     // 4. Insert in batches
