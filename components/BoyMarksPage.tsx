@@ -111,12 +111,12 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
         .map(editableMark => {
             if (isCompany || editableMark.uniformScore === undefined) {
                 // An empty string for a score is treated as 0 for comparison.
-                const score = editableMark.score === '' ? 0 : parseFloat(editableMark.score as string); // Use parseFloat
+                const score = editableMark.score === '' ? 0 : editableMark.score; // Use parseFloat
                 return { date: editableMark.date, score };
             }
             // For Juniors, recalculate the total score from uniform and behaviour.
-            const uniformScore = editableMark.uniformScore === '' ? 0 : parseFloat(editableMark.uniformScore as string); // Use parseFloat
-            const behaviourScore = editableMark.behaviourScore === '' ? 0 : parseFloat(editableMark.behaviourScore as string); // Use parseFloat
+            const uniformScore = editableMark.uniformScore === '' ? 0 : editableMark.uniformScore; // Use parseFloat
+            const behaviourScore = editableMark.behaviourScore === '' ? 0 : editableMark.behaviourScore; // Use parseFloat
             const totalScore = Number(editableMark.score) < 0 ? -1 : uniformScore + behaviourScore; // Preserve absent status.
             return { date: editableMark.date, score: totalScore, uniformScore, behaviourScore };
         })
@@ -209,12 +209,12 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
       .map(editableMark => {
         if(isCompany || editableMark.uniformScore === undefined) {
              // An empty string for a score should be saved as 0.
-             const score = editableMark.score === '' ? 0 : parseFloat(editableMark.score as string); // Use parseFloat
+             const score = editableMark.score === '' ? 0 : editableMark.score; // Use parseFloat
              return { date: editableMark.date, score };
         }
         // For Juniors, recalculate the total score from uniform and behaviour.
-        const uniformScore = editableMark.uniformScore === '' ? 0 : parseFloat(editableMark.uniformScore as string); // Use parseFloat
-        const behaviourScore = editableMark.behaviourScore === '' ? 0 : parseFloat(editableMark.behaviourScore as string); // Use parseFloat
+        const uniformScore = editableMark.uniformScore === '' ? 0 : editableMark.uniformScore; // Use parseFloat
+        const behaviourScore = editableMark.behaviourScore === '' ? 0 : editableMark.behaviourScore; // Use parseFloat
         const totalScore = Number(editableMark.score) < 0 ? -1 : uniformScore + behaviourScore; // Preserve absent status.
         return { date: editableMark.date, score: totalScore, uniformScore, behaviourScore };
       });
@@ -250,8 +250,8 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
      const marksToConsider = editedMarks
       .map(m => {
           if (isCompany || m.uniformScore === undefined) return m;
-          const uniform = m.uniformScore === '' ? 0 : parseFloat(m.uniformScore as string); // Use parseFloat
-          const behaviour = m.behaviourScore === '' ? 0 : parseFloat(m.behaviourScore as string); // Use parseFloat
+          const uniform = m.uniformScore === '' ? 0 : m.uniformScore; // Use parseFloat
+          const behaviour = m.behaviourScore === '' ? 0 : m.behaviourScore; // Use parseFloat
           // FIX: Use Number() to correctly compare score which could be an empty string.
           return { ...m, score: Number(m.score) < 0 ? -1 : uniform + behaviour };
       });

@@ -147,8 +147,8 @@ export type SortByType = 'name' | 'marks' | 'attendance';
  */
 export type UserRole = 'admin' | 'captain' | 'officer' | 'pending';
 
-// Import the User type from firebase/auth to extend it correctly
-import { User } from 'firebase/auth';
+// Import the User type from @supabase/supabase-js to extend it correctly
+import { User } from '@supabase/supabase-js';
 
 /**
  * Extends the Firebase User type to include the custom role.

@@ -9,7 +9,8 @@ import {
   denyUser,
   clearAllAuditLogs,
   clearAllLocalData,
-  deleteUserRole
+  deleteUserRole,
+  createAuditLog
 } from '../services/db';
 import { TrashIcon, CheckCircleIcon, XCircleIcon } from './Icons';
 import Modal from './Modal';
@@ -231,7 +232,13 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     setIsClearingDevData(true);
     try {
       const userEmail = currentUser?.email || 'Unknown User';
-      await clearAllLocalData(activeSection, userEmail, userRole);
+      await createAuditLog({
+        actionType: 'CLEAR_LOCAL_DATA',
+        description: `Cleared all local data for ${activeSection} section.`,
+        revertData: {},
+        userEmail: userEmail,
+      }, activeSection);
+      await clearAllLocalData(activeSection);
       showToast('All local data cleared successfully! Please refresh the page.', 'success');
       window.location.reload();
     } catch (err: any) {

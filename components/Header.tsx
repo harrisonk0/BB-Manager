@@ -6,8 +6,8 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-// FIX: Use named imports for Firebase v9 compatibility.
-import { type User } from 'firebase/auth';
+// FIX: Use named imports for Supabase compatibility.
+import { type User } from '@supabase/supabase-js';
 import { MenuIcon, XIcon, CogIcon, QuestionMarkCircleIcon, UserCircleIcon, SwitchHorizontalIcon, LogOutIcon } from './Icons'; // Added LogOutIcon and SwitchHorizontalIcon
 import { Page, Section, UserRole } from '../types'; // Import UserRole
 

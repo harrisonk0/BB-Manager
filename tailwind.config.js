@@ -30,6 +30,15 @@ export default {
           '"Noto Color Emoji"'
         ],
       },
+      animation: {
+        'progress-bar': 'progressBar 5s linear forwards',
+      },
+      keyframes: {
+        progressBar: {
+          'from': { width: '100%' },
+          'to': { width: '0%' },
+        }
+      }
     },
   },
   plugins: [],
