@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Section, SectionSettings, ToastType, UserRole, Page } from '../types';
 import { saveSettings } from '../services/settings';
 import { createAuditLog } from '../services/db';
-// Removed: import { getAuthInstance } from '../services/firebase';
 
 interface SettingsPageProps {
   activeSection: Section;

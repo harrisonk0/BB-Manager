@@ -6,7 +6,6 @@ import Modal from './Modal';
 import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
 import { deleteBoyById, createAuditLog } from '../services/db';
-// Removed: import { getAuthInstance } from '../services/firebase';
 
 interface HomePageProps {
   /** The list of all boys for the active section. */
@@ -397,7 +396,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
       {/* Modals for Add/Edit Form and Delete Confirmation */}
       <Modal isOpen={isFormModalOpen} onClose={handleCloseFormModal} title={boyToEdit ? 'Edit Boy' : 'Add New Boy'}>
-        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} activeSection={activeSection} />
+        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} activeSection={activeSection} allBoys={boys} />
       </Modal>
 
       <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Confirm Deletion">

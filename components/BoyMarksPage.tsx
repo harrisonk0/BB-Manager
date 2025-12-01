@@ -9,7 +9,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchBoyById, updateBoy, createAuditLog } from '../services/db';
 import { Boy, Mark, Squad, Section, JuniorSquad, ToastType } from '../types';
 import { TrashIcon, SaveIcon } from './Icons';
-// Removed: import { getAuthInstance } from '../services/firebase';
 import { BoyMarksPageSkeleton } from './SkeletonLoaders';
 
 interface BoyMarksPageProps {
