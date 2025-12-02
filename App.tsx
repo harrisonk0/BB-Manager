@@ -27,7 +27,6 @@ import { useAuthAndRole } from '@/hooks/useAuthAndRole';
 import { useSectionManagement } from '@/hooks/useSectionManagement';
 import { useAppData } from '@/hooks/useAppData';
 import { useUnsavedChangesProtection } from '@/hooks/useUnsavedChangesProtection';
-import { Logger } from './services/logger';
 
 const App: React.FC = () => {
   // Use toast notifications hook
@@ -75,21 +74,6 @@ const App: React.FC = () => {
     currentUser,
     encryptionKey
   );
-
-  // --- DEBUG LOGGING ---
-  useEffect(() => {
-    Logger.info('App State Change Detected', {
-      authLoading,
-      currentUser: currentUser ? currentUser.email : 'null',
-      userRole: userRoleInfo?.role || 'null',
-      activeSection,
-      dataLoading,
-      viewPage: view.page,
-      hasUnsavedChanges,
-      isPasswordRecovery,
-    });
-  }, [authLoading, currentUser, userRoleInfo, activeSection, dataLoading, view.page, hasUnsavedChanges, isPasswordRecovery]);
-  // --- END DEBUG LOGGING ---
 
   useEffect(() => {
     if (noRoleError) {
