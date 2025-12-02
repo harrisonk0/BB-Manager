@@ -122,8 +122,14 @@ export const deleteLogsFromDB = async (ids: string[], section: Section | null) =
 export const saveUserRoleToDB = (uid: string, roleInfo: UserRoleInfo) => 
     putItem(USER_ROLES_STORE, { uid, ...roleInfo });
 
-export const getUserRoleFromDB = (uid: string) => 
-    getItem<UserRoleInfo>(USER_ROLES_STORE, uid);
+export const getUserRoleFromDB = (uid: string): Promise<UserRoleInfo | undefined> => 
+    getItem<{ uid: string } & UserRoleInfo>(USER_ROLES_STORE, uid).then(data => {
+        if (!data) return undefined;
+        // CRITICAL FIX: Strip the uid property before returning to ensure deepEqual comparison works correctly 
+        // in userService.ts against the Supabase result (which lacks uid).
+        const { uid: _, ...roleInfo } = data;
+        return roleInfo as UserRoleInfo;
+    });
 
 export const deleteUserRoleFromDB = (uid: string) => 
     deleteItem(USER_ROLES_STORE, uid);
