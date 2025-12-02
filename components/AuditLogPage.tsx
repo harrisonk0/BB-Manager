@@ -61,13 +61,16 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     CLEAR_LOCAL_DATA: 'bg-red-100 text-red-700',
   };
 
-  const loadLogs = useCallback(async () => {
+  const loadLogs = useCallback(async (isBackgroundRefresh = false) => {
     if (!encryptionKey) {
         setError('Encryption key missing. Cannot load audit logs.');
         setLoading(false);
         return;
     }
-    setLoading(true);
+    // Only show loading spinner if it's the initial load or an explicit user action
+    if (!isBackgroundRefresh) {
+        setLoading(true);
+    }
     setError(null);
     try {
       const fetchedLogs = await fetchAuditLogs(activeSection, encryptionKey);
@@ -76,12 +79,14 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
       Logger.error("Failed to load audit logs", err);
       setError('Failed to load audit logs.');
     } finally {
-      setLoading(false);
+      if (!isBackgroundRefresh) {
+        setLoading(false);
+      }
     }
   }, [activeSection, encryptionKey]);
 
   useEffect(() => {
-    loadLogs();
+    loadLogs(false);
   }, [loadLogs]);
 
   useEffect(() => {
@@ -89,7 +94,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
         const customEvent = event as CustomEvent;
         if (customEvent.detail.section === activeSection || customEvent.detail.section === null) {
             console.log('Audit log cache updated in background, refreshing UI...');
-            loadLogs();
+            loadLogs(true);
         }
     };
 
@@ -157,7 +162,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
       
       showToast('Action reverted successfully.', 'success');
       refreshData();
-      loadLogs();
+      loadLogs(true); // Use background refresh flag after successful revert
 
     } catch (err: any) {
       Logger.error('Failed to revert action:', err);
