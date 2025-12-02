@@ -52,7 +52,9 @@ export const useAppData = (
   }, [activeSection, encryptionKey]);
 
   const loadDataAndSettings = useCallback(async () => {
-    if (!activeSection || !currentUser || !encryptionKey) {
+    const contextValid = activeSection && currentUser && encryptionKey;
+    
+    if (!contextValid) {
         // If context is invalid, ensure we are not loading and clear data
         setDataLoading(false);
         setBoys([]);
@@ -62,15 +64,17 @@ export const useAppData = (
     
     setDataLoading(true);
     setDataError(null);
+    
     try {
       await deleteOldAuditLogs(activeSection); // Clean up old logs on load
       await refreshData();
-      // Update the loaded context ref only upon successful data fetch
-      loadedContextRef.current = { section: activeSection, userId: currentUser.id };
     } catch (err: any) {
       Logger.error("Failed to fetch data", err);
       setDataError(`Failed to connect to the database. You may not have permission. Error: ${err.message}`);
     } finally {
+      // CRITICAL FIX: Update the loaded context ref here regardless of success/failure
+      // to prevent infinite loop if data loading fails.
+      loadedContextRef.current = { section: activeSection, userId: currentUser.id };
       setDataLoading(false);
     }
   }, [activeSection, currentUser, encryptionKey, refreshData]);
