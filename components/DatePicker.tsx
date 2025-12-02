@@ -92,11 +92,6 @@ const DatePicker: React.FC<DatePickerProps> = ({
             selected={selectedDate}
             onSelect={handleDayClick}
             showOutsideDays
-            // Custom components for navigation
-            components={{
-              IconLeft: () => <ChevronLeft className="h-4 w-4" />,
-              IconRight: () => <ChevronRight className="h-4 w-4" />,
-            }}
             // Apply custom Tailwind classes to fully control styling
             classNames={{
               root: 'p-3 bg-white rounded-lg shadow-xl border border-slate-200',
