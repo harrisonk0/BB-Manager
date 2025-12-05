@@ -1,45 +1,55 @@
 const ENCRYPTION_ALGORITHM = 'AES-GCM';
-const KEY_DERIVATION_ALGORITHM = 'PBKDF2';
-const HASH_ALGORITHM = 'SHA-256';
-const ITERATIONS = 100000;
 const KEY_LENGTH = 256; // in bits
+const DEVICE_KEY_PREFIX = 'bbm_device_key_';
 
-// Use a fixed salt for key derivation. This salt is not a secret, 
-// it just ensures the PBKDF2 output is unique for the input token.
-const FIXED_SALT = new TextEncoder().encode('bb-manager-salt-v1'); 
+const base64ToBytes = (value: string): Uint8Array => {
+  return Uint8Array.from(atob(value), c => c.charCodeAt(0));
+};
+
+const bytesToBase64 = (bytes: ArrayBuffer): string => {
+  return btoa(String.fromCharCode(...new Uint8Array(bytes)));
+};
 
 /**
- * Derives a cryptographic key from the user's JWT token using PBKDF2.
- * @param token The JWT token string.
- * @returns A CryptoKey object.
+ * Creates or retrieves a stable, per-user encryption key that survives token refreshes.
+ * The raw key material is stored in localStorage (scoped by user id) to keep
+ * encrypted offline data readable across sessions on the same device.
  */
-export async function deriveKeyFromToken(token: string): Promise<CryptoKey> {
-  const tokenBytes = new TextEncoder().encode(token);
+export async function getOrCreateDeviceKey(userId: string): Promise<CryptoKey> {
+  const storageKey = `${DEVICE_KEY_PREFIX}${userId}`;
+  const cached = typeof localStorage !== 'undefined' ? localStorage.getItem(storageKey) : null;
 
-  // 1. Import the token as a raw key
-  const baseKey = await crypto.subtle.importKey(
-    'raw',
-    tokenBytes,
-    { name: KEY_DERIVATION_ALGORITHM },
-    false,
-    ['deriveKey']
-  );
+  if (cached) {
+    const raw = base64ToBytes(cached);
+    return crypto.subtle.importKey(
+      'raw',
+      raw,
+      { name: ENCRYPTION_ALGORITHM, length: KEY_LENGTH },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
 
-  // 2. Derive the final key using PBKDF2
-  const derivedKey = await crypto.subtle.deriveKey(
-    {
-      name: KEY_DERIVATION_ALGORITHM,
-      salt: FIXED_SALT,
-      iterations: ITERATIONS,
-      hash: HASH_ALGORITHM,
-    },
-    baseKey,
+  const generated = await crypto.subtle.generateKey(
     { name: ENCRYPTION_ALGORITHM, length: KEY_LENGTH },
-    true, // Extractable
+    true,
     ['encrypt', 'decrypt']
   );
 
-  return derivedKey;
+  const exported = await crypto.subtle.exportKey('raw', generated);
+  const encoded = bytesToBase64(exported);
+
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem(storageKey, encoded);
+  }
+
+  return crypto.subtle.importKey(
+    'raw',
+    exported,
+    { name: ENCRYPTION_ALGORITHM, length: KEY_LENGTH },
+    false,
+    ['encrypt', 'decrypt']
+  );
 }
 
 /**

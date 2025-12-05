@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/src/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { fetchUserRole, clearAllLocalData } from '../services/db'; // Import clearAllLocalData
-import { deriveKeyFromToken } from '../services/crypto';
+import { getOrCreateDeviceKey } from '../services/crypto';
 import { UserRole, UserRoleInfo } from '../types';
 import { Logger } from '../services/logger';
 
@@ -60,16 +60,14 @@ export const useAuthAndRole = () => {
             setCurrentUser(session.user);
             
             // --- Derive Encryption Key ---
-            if (session.access_token) {
-                try {
-                    const key = await deriveKeyFromToken(session.access_token);
-                    setEncryptionKey(key);
-                } catch (e) {
-                    Logger.error("Failed to derive encryption key:", e);
-                    // Critical failure: force sign out
-                    await performSignOut();
-                    return;
-                }
+            try {
+                const key = await getOrCreateDeviceKey(session.user.id);
+                setEncryptionKey(key);
+            } catch (e) {
+                Logger.error("Failed to derive encryption key:", e);
+                // Critical failure: force sign out
+                await performSignOut();
+                return;
             }
             // -----------------------------
 

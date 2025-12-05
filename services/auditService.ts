@@ -19,7 +19,7 @@ export const createAuditLog = async (
         userEmail = user?.email || 'Unknown User';
     }
 
-    const newLog = { ...log, userEmail, timestamp: Date.now(), id: undefined } as AuditLog; 
+    const newLog = { ...log, userEmail, timestamp: Date.now(), id: undefined, section } as AuditLog;
     const table = getTableName(section, 'audit_logs');
 
     if (navigator.onLine) {
@@ -56,7 +56,7 @@ export const fetchAuditLogs = async (section: Section | null, key: CryptoKey): P
         const fetchTable = async (tbl: string, sec: Section | null) => {
             const { data } = await supabase.from(tbl).select('*').order('timestamp', { ascending: false }).range(0, 49);
             const freshLogs = await Promise.all((data || []).map(async row => {
-                const log = mapLogFromDB(row);
+                const log = mapLogFromDB(row, sec);
                 // Decrypt revertData if present
                 if (log.revertData?.ciphertext) log.revertData = await decryptData(log.revertData, key);
                 return log;
@@ -84,7 +84,7 @@ export const fetchAuditLogs = async (section: Section | null, key: CryptoKey): P
 
         const [secLogs, globLogs] = await Promise.all([
             section ? fetchTable(getTableName(section, 'audit_logs'), section) : Promise.resolve([]),
-            fetchTable('audit_logs', null) 
+            fetchTable('audit_logs', null)
         ]);
         return [...secLogs, ...globLogs].sort((a,b) => b.timestamp - a.timestamp);
     }

@@ -66,7 +66,12 @@ export const useAppData = (
     setDataError(null);
     
     try {
-      await deleteOldAuditLogs(activeSection); // Clean up old logs on load
+      try {
+        await deleteOldAuditLogs(activeSection); // Best-effort cleanup
+      } catch (cleanupErr: any) {
+        Logger.warn("Skipping audit log cleanup", cleanupErr);
+      }
+
       await refreshData();
     } catch (err: any) {
       Logger.error("Failed to fetch data", err);

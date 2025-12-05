@@ -72,7 +72,7 @@ export const mapLogToDB = (log: AuditLog) => {
     return payload;
 };
 
-export const mapLogFromDB = (data: any): AuditLog => ({
+export const mapLogFromDB = (data: any, section: Section | null): AuditLog => ({
     id: data.id,
     timestamp: toMillis(data.timestamp),
     userEmail: data.user_email,
@@ -80,7 +80,7 @@ export const mapLogFromDB = (data: any): AuditLog => ({
     description: data.description,
     revertData: data.revert_data,
     revertedLogId: data.reverted_log_id,
-    section: null 
+    section
 });
 
 /**
