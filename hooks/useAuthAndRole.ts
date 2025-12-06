@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { subscribeToAuth, signOut as supabaseSignOut, getCurrentUser } from '../services/supabaseAuth';
 import { supabase } from '../services/supabaseClient';
 import { AppUser, UserRole } from '../types';
@@ -10,10 +10,11 @@ import { AppUser, UserRole } from '../types';
  * Handles user login/logout, fetching user roles, and error states related to roles.
  */
 export const useAuthAndRole = () => {
-  const [currentUser, setCurrentUser] = useState<AppUser | null | undefined>(undefined);
+  const [currentUser, setCurrentUserState] = useState<AppUser | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [noRoleError, setNoRoleError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const currentUserRef = useRef<AppUser | null>(null);
 
   const performSignOut = useCallback(async () => {
     try {
@@ -47,16 +48,27 @@ export const useAuthAndRole = () => {
     return { id: user.id, email: user.email } as AppUser;
   }, []);
 
+  const updateCurrentUser = useCallback((user: AppUser | null) => {
+    currentUserRef.current = user;
+    setCurrentUserState((prev) => {
+      if (prev?.id === user?.id && prev?.email === user?.email) {
+        return prev;
+      }
+      return user;
+    });
+  }, []);
+
   useEffect(() => {
     const initialize = async () => {
       try {
         const existingUser = await getCurrentUser();
         const mappedUser = existingUser ? toAppUser(existingUser) : null;
-        setCurrentUser(mappedUser);
+        const previousUser = currentUserRef.current;
+        updateCurrentUser(mappedUser);
 
-        if (mappedUser) {
+        if (mappedUser && previousUser?.id !== mappedUser.id) {
           await loadUserRole(mappedUser);
-        } else {
+        } else if (!mappedUser) {
           setUserRole(null);
           setNoRoleError(null);
         }
@@ -72,22 +84,24 @@ export const useAuthAndRole = () => {
     const subscription = subscribeToAuth(async (_event, session) => {
       const supabaseUser = session?.user ?? null;
       const mappedUser = supabaseUser ? toAppUser(supabaseUser) : null;
+      const previousUser = currentUserRef.current;
 
-      setCurrentUser(mappedUser);
+      updateCurrentUser(mappedUser);
 
-      if (mappedUser) {
+      if (mappedUser && previousUser?.id !== mappedUser.id) {
         await loadUserRole(mappedUser);
-      } else {
+      } else if (!mappedUser && previousUser) {
         setUserRole(null);
         setNoRoleError(null);
       }
+
       setAuthLoading(false);
     });
 
     const handleUserRoleRefresh = (event: Event) => {
       const customEvent = event as CustomEvent;
-      if (currentUser && customEvent.detail.uid === currentUser.id) {
-        loadUserRole(currentUser);
+      if (currentUserRef.current && customEvent.detail.uid === currentUserRef.current.id) {
+        loadUserRole(currentUserRef.current);
       }
     };
 
@@ -97,7 +111,14 @@ export const useAuthAndRole = () => {
       subscription?.unsubscribe();
       window.removeEventListener('userrolerefresh', handleUserRoleRefresh);
     };
-  }, [loadUserRole, currentUser, toAppUser]);
+  }, [loadUserRole, toAppUser, updateCurrentUser]);
 
-  return { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole };
+  const setCurrentUser = useCallback(
+    (user: AppUser | null) => {
+      updateCurrentUser(user);
+    },
+    [updateCurrentUser]
+  );
+
+  return { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole, user: currentUser };
 };
