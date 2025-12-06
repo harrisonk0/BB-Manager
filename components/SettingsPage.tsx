@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Section, SectionSettings, ToastType, UserRole, Page } from '../types';
 import { saveSettings } from '../services/settings';
 import { createAuditLog } from '../services/db';
-import { getAuthInstance } from '../services/firebase';
+import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
 interface SettingsPageProps {
   activeSection: Section;
@@ -28,6 +28,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const [meetingDay, setMeetingDay] = useState<number>(5);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { user } = useAuthAndRole();
 
   const canEditSettings = userRole && ['admin', 'captain'].includes(userRole);
   const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
@@ -53,8 +55,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     try {
       const newSettings: SectionSettings = { meetingDay };
       
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
+      const userEmail = user?.email || 'Unknown User';
       const oldDay = WEEKDAYS[currentSettings.meetingDay];
       const newDay = WEEKDAYS[meetingDay];
 

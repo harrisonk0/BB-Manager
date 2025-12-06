@@ -173,12 +173,18 @@ export type SortByType = 'name' | 'marks' | 'attendance';
  */
 export type UserRole = 'admin' | 'captain' | 'officer';
 
-// Import the User type from firebase/auth to extend it correctly
-import { User } from 'firebase/auth';
+/**
+ * Minimal authenticated user shape for Supabase auth.
+ */
+export interface AppUser {
+  id: string;
+  email: string;
+}
 
 /**
- * Extends the Firebase User type to include the custom role.
+ * Combines an authenticated user with their assigned application role.
  */
-export interface UserWithRole extends User {
-  role: UserRole | null;
+export interface UserWithRole {
+  user: AppUser;
+  role: UserRole;
 }

@@ -248,10 +248,10 @@ type View = { page: Page } | BoyMarksPageView;
 
 #### `UserWithRole`
 
-Extends the Firebase `User` type to include the custom `UserRole`. This is used internally when a user's role has been fetched.
+Represents an authenticated Supabase user combined with the app-assigned role once it has been fetched.
 
 ```typescript
-import { User } from 'firebase/auth';
+import { User } from 'Supabase Auth';
 
 export interface UserWithRole extends User {
   role: UserRole | null;

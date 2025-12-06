@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
-import { getAuthInstance } from '../services/firebase';
 import { ToastType } from '../types';
+import * as supabaseAuth from '../services/supabaseAuth';
 
 interface AccountSettingsPageProps {
   showToast: (message: string, type?: ToastType) => void;
@@ -56,41 +55,19 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
 
     setIsChangingPassword(true);
     try {
-      const auth = getAuthInstance();
-      const user = auth.currentUser;
+      const { error } = await supabaseAuth.updatePassword(newPassword);
 
-      if (!user || !user.email) {
-        throw new Error("No authenticated user found or user email is missing.");
+      if (error) {
+        throw error;
       }
-
-      const credential = EmailAuthProvider.credential(user.email, oldPassword);
-      await reauthenticateWithCredential(user, credential);
-
-      await updatePassword(user, newPassword);
 
       showToast('Password changed successfully!', 'success');
       setOldPassword('');
       setNewPassword('');
       setNewPasswordConfirm('');
     } catch (err: any) {
-      console.error("Failed to change password:", err);
-      switch (err.code) {
-        case 'auth/wrong-password':
-          setOldPasswordError('Your current password is incorrect.');
-          break;
-        case 'auth/weak-password':
-          setNewPasswordError('The new password is too weak. Please choose a stronger one.');
-          break;
-        case 'auth/requires-recent-login':
-          setGeneralError('Please log out and log back in to change your password.');
-          break;
-        case 'auth/network-request-failed':
-          setGeneralError('Network error. Please check your internet connection.');
-          break;
-        default:
-          setGeneralError('Failed to change password. Please try again.');
-          break;
-      }
+      console.error('Failed to change password:', err);
+      setGeneralError(err?.message || 'Failed to change password. Please try again.');
       showToast('Failed to change password.', 'error');
     } finally {
       setIsChangingPassword(false);

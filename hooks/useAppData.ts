@@ -12,7 +12,7 @@ import { Boy, Section, SectionSettings, ToastType } from '../types';
 export const useAppData = (
   activeSection: Section | null,
   showToast: (message: string, type?: ToastType) => void,
-  currentUser: any // User type from firebase/auth
+  currentUser: any // Supabase user type
 ) => {
   const [boys, setBoys] = useState<Boy[]>([]);
   const [settings, setSettings] = useState<SectionSettings | null>(null);
