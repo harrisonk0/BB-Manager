@@ -1,0 +1,39 @@
+# BB‑Manager – Cursor Rules
+
+## Tech Stack and Architecture
+- **Framework:** React 18 (with hooks) using TypeScript.
+- **Build Tool:** Vite for development and production builds.
+- **Styling:** Tailwind CSS for utility‑first styling; avoid inline styles.
+- **Backend:** Firebase Firestore used for data persistence and authentication. Use Firestore rules defined in `firestore.rules`.
+- **PWA:** Configured via `manifest.json` for offline support; Capacitor used to wrap the app for Android/iOS.
+- **Components:** All UI pieces live under `components/`; functional components only, no class components.
+- **Hooks:** Custom hooks are in `hooks/`; prefer using these for shared logic (e.g., Firestore access, authentication state).
+
+## Permissions Model
+- Three roles: **Admin**, **Captain**, **Officer**.
+- Permission checks must use the existing type definitions in `types.ts` (inside `src/`) and the Firebase rules; do not invent new roles.
+- Only Admins can create/edit squads or adjust weekly marks; Captains can view squads and record attendance; Officers can view but not edit sensitive data.
+
+## Naming Conventions
+- Use **camelCase** for file names and variables (e.g., `squadManager.tsx`).
+- Components should be suffixed with `Page` when they represent a route (e.g., `DashboardPage.tsx`) and `Card` or `Modal` for UI widgets.
+- Custom hooks should start with `use`, such as `useAuth` or `useSquadData`.
+- Firestore collections: `users`, `squads`, `marks`; document IDs should be UUIDs.
+
+## File Structure Overview
+- `/android` and `/ios`: Capacitor platforms; avoid editing auto‑generated files here.
+- `/components`: reusable UI components.
+- `/docs`: project documentation; keep in sync with the codebase when adding features.
+- `/services`: abstraction for backend interactions (e.g., Firestore, authentication).
+- `/src`: app entry (`App.tsx`), routing, and high‑level pages.
+- Root files like `capacitor.config.ts`, `firestore.rules`, `manifest.json`, and `Dockerfile` should remain untouched unless configuration changes are deliberate.
+
+## Non‑negotiable Patterns
+- **Type safety is mandatory**: never bypass TypeScript’s type system with `any` unless absolutely necessary.
+- **State management**: use React’s Context API defined in `src/contexts/`; do not introduce Redux or other global state libraries.
+- **Offline‑first**: ensure all Firestore reads/writes are wrapped with offline caching logic present in existing hooks.
+- **Accessibility**: all interactive elements must have aria labels and be keyboard navigable.
+
+## AI Interaction Notes
+- Cursor should not refactor or rename existing roles, collections, or types defined in `AI_RULES.md` and `types.ts`.
+- When generating new components or services, follow the patterns and folder structure above.
