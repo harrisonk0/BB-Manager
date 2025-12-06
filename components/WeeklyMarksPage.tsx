@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
-import { getAuthInstance } from '../services/firebase';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
+import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -60,6 +60,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   const [isDirty, setIsDirty] = useState(false); // Tracks if there are unsaved changes.
   const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
   const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
+  const { user } = useAuthAndRole();
 
 
   const isCompany = activeSection === 'company';
@@ -322,8 +323,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     try {
         // If any boys were changed, create a single, comprehensive audit log entry.
         if (changedBoysOldData.length > 0) {
-            const auth = getAuthInstance();
-            const userEmail = auth.currentUser?.email || 'Unknown User';
+            const userEmail = user?.email || 'Unknown User';
             await createAuditLog({
                 userEmail,
                 actionType: 'UPDATE_BOY',

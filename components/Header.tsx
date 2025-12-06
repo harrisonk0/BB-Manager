@@ -6,30 +6,25 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-// FIX: Use named imports for Firebase v9 compatibility.
-import { type User } from 'firebase/auth';
 import { MenuIcon, XIcon, CogIcon, QuestionMarkCircleIcon, UserCircleIcon, SwitchHorizontalIcon, LogOutIcon } from './Icons'; // Added LogOutIcon and SwitchHorizontalIcon
 import { Page, Section, UserRole } from '../types'; // Import UserRole
+import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
 interface HeaderProps {
     /** Function to change the current view/page. */
     setView: (view: { page: Page }) => void;
-    /** The currently authenticated Firebase user object, or null if not signed in. */
-    // FIX: Use User type from named import.
-    user: User | null;
     /** Callback function to handle the sign-out process. */
     onSignOut: () => void;
     /** The currently active section ('company' or 'junior'). */
     activeSection: Section;
     /** Callback function to handle switching between sections. */
     onSwitchSection: () => void;
-    /** The role of the currently logged-in user. */
-    userRole: UserRole | null;
     /** Callback to open the help modal. */
     onOpenHelpModal: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection, onSwitchSection, userRole, onOpenHelpModal }) => {
+const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSwitchSection, onOpenHelpModal }) => {
+    const { currentUser: user, userRole } = useAuthAndRole();
     // State to manage the visibility of the mobile menu.
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     // State to manage the visibility of the desktop profile dropdown.
@@ -141,7 +136,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                                     {isProfileMenuOpen && (
                                         <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
                                             <div className="py-1">
-                                                <p className="block px-4 py-2 text-sm text-slate-500 truncate border-b border-slate-100">{user.email}</p>
+                                                <p className="block px-4 py-2 text-sm text-slate-500 truncate border-b border-slate-100">{user?.email || user?.id}</p>
                                                 <button onClick={() => handleNavClick('accountSettings')} className={dropdownItemClasses} role="menuitem">
                                                     <CogIcon className="h-5 w-5 mr-2 text-slate-500" />
                                                     Account Settings
@@ -194,7 +189,7 @@ const Header: React.FC<HeaderProps> = ({ setView, user, onSignOut, activeSection
                         )}
                         {/* Profile-related options in mobile menu */}
                         <div className="pt-2 mt-2 border-t border-white/20">
-                            <p className="block px-3 py-2 text-base font-medium text-gray-200">{user.email}</p>
+                            <p className="block px-3 py-2 text-base font-medium text-gray-200">{user?.email || user?.id}</p>
                             <button onClick={() => handleNavClick('accountSettings')} className={mobileNavLinkClasses}>
                                 <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Account Settings</span></div>
                             </button>

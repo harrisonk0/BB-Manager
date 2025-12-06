@@ -8,10 +8,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAuditLogs, createAuditLog, deleteBoyById, recreateBoy, updateBoy, revokeInviteCode, updateUserRole, deleteUserRole, updateInviteCode } from '../services/db';
 import { saveSettings } from '../services/settings';
-import { getAuthInstance } from '../services/firebase';
 import { AuditLog, Boy, Section, SectionSettings, ToastType, UserRole, AuditLogActionType } from '../types';
 import { ClockIcon, PlusIcon, PencilIcon, TrashIcon, UndoIcon, CogIcon } from './Icons';
 import Modal from './Modal';
+import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
 interface AuditLogPageProps {
   refreshData: () => void;
@@ -46,6 +46,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
   const [error, setError] = useState<string | null>(null);
   const [isReverting, setIsReverting] = useState(false);
   const [logToRevert, setLogToRevert] = useState<AuditLog | null>(null);
+  const { user } = useAuthAndRole();
 
   const isCompany = activeSection === 'company';
   
@@ -188,8 +189,7 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
       
       // Audit logs are now immutable. Instead of marking the original log as 'reverted',
       // we create a new log entry for the revert action itself, linking it to the original.
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
+      const userEmail = user?.email || 'Unknown User';
       await createAuditLog({
         userEmail,
         actionType: 'REVERT_ACTION',

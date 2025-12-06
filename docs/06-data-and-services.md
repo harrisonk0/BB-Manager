@@ -58,19 +58,19 @@ This file is a low-level service that provides a clean, Promise-based API for in
 -   **User Role Management**: Provides `saveUserRoleToDB`, `getUserRoleFromDB`, `deleteUserRoleFromDB`, `clearAllUserRolesFromDB` for caching user roles.
 -   **Development Controls**: Provides `clearAllSectionDataFromDB` for clearing all local data for a section.
 
-#### `firebase.ts` - Firebase Initialization
+#### `supabaseClient.ts` - Supabase Initialization
 
-This file uses a singleton pattern to ensure that the Firebase SDK is only initialized once during the application's lifecycle.
+This file creates a singleton Supabase client using the project URL and anon key from environment variables.
 
 **Key Responsibilities**:
--   Defining the `initializeFirebase()` function, which takes the configuration from environment variables and initializes the Firebase app.
--   Providing getter functions, `getDb()` and `getAuthInstance()`, which allow other services to access the Firestore database and Authentication instances without needing to manage the app instance themselves.
--   Throwing errors if services are requested before initialization is complete.
+-   Reading `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from the environment.
+-   Creating a shared Supabase client instance for Auth and database calls.
+-   Surfacing configuration errors early if required env vars are missing.
 
 #### `settings.ts` - Section Settings Management
 
-This is a small, focused service for managing section-specific settings, which are stored in a separate `settings` collection in Firestore.
+This is a small, focused service for managing section-specific settings, which are stored in the `settings` table in Supabase.
 
 **Key Responsibilities**:
--   `getSettings(section)`: Fetches the settings for a given section. If no settings document exists in Firestore (e.g., for a new section), it returns a set of hard-coded default values. This ensures the app always has a valid settings object to work with.
--   `saveSettings(section, settings, userRole)`: Saves a settings object to Firestore for the specified section, including client-side permission checks based on `userRole`.
+-   `getSettings(section)`: Fetches the settings for a given section. If no settings row exists in Supabase (e.g., for a new section), it returns a set of hard-coded default values. This ensures the app always has a valid settings object to work with.
+-   `saveSettings(section, settings, userRole)`: Saves a settings object to Supabase for the specified section, including client-side permission checks based on `userRole`.

@@ -9,8 +9,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchBoyById, updateBoy, createAuditLog } from '../services/db';
 import { Boy, Mark, Squad, Section, JuniorSquad, ToastType } from '../types';
 import { TrashIcon, SaveIcon } from './Icons';
-import { getAuthInstance } from '../services/firebase';
 import { BoyMarksPageSkeleton } from './SkeletonLoaders';
+import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
 interface BoyMarksPageProps {
   boyId: string;
@@ -55,6 +55,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuthAndRole();
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
@@ -223,8 +224,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     const updatedBoyData = { ...boy, marks: validMarks };
 
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
+      const userEmail = user?.email || 'Unknown User';
       
       // Create an audit log entry for the change.
       await createAuditLog({

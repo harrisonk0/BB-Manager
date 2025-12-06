@@ -12,7 +12,7 @@ The root component of the entire application. It doesn't render much UI directly
 
 -   **Responsibilities**:
     -   Manages global state using custom hooks: `currentUser`, `userRole`, `activeSection`, `boys`, `settings`, `isLoading`, `error`, `noRoleError`, `hasUnsavedChanges`.
-    -   Initializes Firebase and listens for authentication state changes (`onAuthStateChanged`), including fetching the user's role.
+    -   Initializes Supabase and listens for authentication state changes (`onAuthStateChanged`), including fetching the user's role.
     -   Handles the main "routing" logic by deciding which page component to render based on the `view` state, including special handling for unauthenticated users (Login, Signup, Help) and users without an assigned role.
     -   Orchestrates data fetching (`refreshData`) and offline synchronization (`syncPendingWrites`).
     -   Manages the "unsaved changes" confirmation modal.
@@ -116,7 +116,7 @@ Allows the currently logged-in user to manage their personal account settings.
 
 -   **Responsibilities**:
     -   Provides a form for changing the user's password.
-    -   Handles re-authentication and password update with Firebase Authentication.
+    -   Handles re-authentication and password update with Supabase Authentication.
     -   Displays user-friendly error messages for password changes.
 -   **Key Props**: `showToast`.
 
@@ -131,7 +131,7 @@ A static user guide for the application.
 
 #### `LoginPage.tsx`
 
-Handles user authentication with Firebase.
+Handles user authentication with Supabase.
 
 -   **Responsibilities**:
     -   Provides a form for email and password sign-in.
@@ -146,7 +146,7 @@ Allows new users to sign up using an invite code.
 
 -   **Responsibilities**:
     -   Provides a form for email, password, and invite code entry.
-    -   Validates the invite code and creates a new Firebase user.
+    -   Validates the invite code and creates a new Supabase user.
     -   Assigns a default user role based on the invite code.
     -   Marks the invite code as used upon successful signup.
     -   Creates an audit log entry for the signup.

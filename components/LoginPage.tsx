@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { getAuthInstance } from '../services/firebase';
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, View } from '../types';
+import * as supabaseAuth from '../services/supabaseAuth';
 
 interface LoginPageProps {
   /** Callback to open the help modal. */
@@ -25,7 +24,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
 
   /**
    * Handles the sign-in form submission.
-   * It calls the Firebase authentication service and provides user-friendly error messages
+   * It calls the Supabase authentication service and provides user-friendly error messages
    * for common authentication failures.
    */
   const handleSignIn = async (e: React.FormEvent) => {
@@ -33,26 +32,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
     setIsLoading(true);
     setError(null);
     try {
-      const auth = getAuthInstance();
-      // FIX: Use signInWithEmailAndPassword function from named import.
-      await signInWithEmailAndPassword(auth, email, password);
-      // After successful sign-in, the onAuthStateChanged listener in App.tsx
-      // will detect the change and update the application state accordingly.
-    } catch (err: any) {
-      // Handle specific Firebase auth errors with user-friendly messages.
-      switch (err.code) {
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
-        case 'auth/invalid-credential':
-          setError('Invalid email or password.');
-          break;
-        case 'auth/invalid-email':
-          setError('Please enter a valid email address.');
-          break;
-        default:
-          setError('An unexpected error occurred. Please try again.');
-          break;
+      const { error: signInError } = await supabaseAuth.signIn(email, password);
+      if (signInError) {
+        setError(signInError.message || 'Invalid email or password.');
       }
+    } catch (err: any) {
+      setError(err?.message || 'An unexpected error occurred. Please try again.');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -71,20 +56,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
     setIsSendingResetEmail(true);
     setError(null);
     try {
-      const auth = getAuthInstance();
-      await sendPasswordResetEmail(auth, email);
-      showToast('Password reset email sent! Check your inbox.', 'success');
+      const { error: resetError } = await supabaseAuth.sendPasswordReset(email);
+      if (resetError) {
+        showToast(resetError.message || 'Failed to send password reset email. Please try again.', 'error');
+      } else {
+        showToast('Password reset email sent! Check your inbox.', 'success');
+      }
     } catch (err: any) {
       console.error("Forgot password error:", err);
-      switch (err.code) {
-        case 'auth/user-not-found':
-        case 'auth/invalid-email':
-          showToast('No user found with that email address.', 'error');
-          break;
-        default:
-          showToast('Failed to send password reset email. Please try again.', 'error');
-          break;
-      }
+      showToast(err?.message || 'Failed to send password reset email. Please try again.', 'error');
     } finally {
       setIsSendingResetEmail(false);
     }

@@ -6,7 +6,7 @@ import Modal from './Modal';
 import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
 import { deleteBoyById, createAuditLog } from '../services/db';
-import { getAuthInstance } from '../services/firebase';
+import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
 interface HomePageProps {
   /** The list of all boys for the active section. */
@@ -52,6 +52,8 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
+
+  const { user } = useAuthAndRole();
 
   // --- EFFECTS for persisting state ---
   useEffect(() => {
@@ -219,8 +221,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     if (!boyToDelete) return;
 
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
+      const userEmail = user?.email || 'Unknown User';
       
       await createAuditLog({
           userEmail,

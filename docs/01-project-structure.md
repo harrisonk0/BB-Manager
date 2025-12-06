@@ -28,9 +28,9 @@ This document provides a detailed breakdown of the file and folder structure for
 | `components/`     | Contains all React components that make up the user interface. Each component is responsible for a specific piece of the UI, such as a page, a form, or a button. See the Component Library documentation for more details. |
 | `docs/`           | Contains all markdown documentation files for the project, including this one.                                                                                                                            |
 | `hooks/`          | Contains custom React hooks (`useToastNotifications`, `useAuthAndRole`, `useSectionManagement`, `useAppData`, `useUnsavedChangesProtection`) that encapsulate reusable stateful logic. |
-| `services/`       | This directory holds the application's business logic. It handles all data fetching, manipulation, and interaction with external services like Firebase and the local IndexedDB. It also manages user roles and invite codes. See the Data & Services documentation for details. |
+| `services/`       | This directory holds the application's business logic. It handles all data fetching, manipulation, and interaction with external services like Supabase and the local IndexedDB. It also manages user roles and invite codes. See the Data & Services documentation for details. |
 | `App.tsx`         | The main entry point for the React application. It orchestrates global state (current user, user role, active section, data, settings), handles routing, initial data loading, offline synchronization, and the global toast notification system. It also integrates custom hooks for managing these concerns. |
-| `firestore.rules` | The security rules for the Firestore database. These are deployed to Firebase to protect your data from unauthorized access.                                                                               |
+| (removed) `firestore.rules` | Previously tracked Firestore security rules; Supabase now uses Row Level Security policies for protection. |
 | `index.html`      | The single HTML file for the application. It sets up the root DOM element for React, includes the Tailwind CSS CDN, defines the **Import Map** for buildless dependency management, and registers the Service Worker. |
 | `index.tsx`       | This file takes the root `App` component and renders it into the DOM.                                                                                                                                       |
 | `manifest.json`   | The Web App Manifest file. It provides the browser with metadata about the PWA, such as its name, icons, and theme colors, which is essential for the "Add to Home Screen" functionality.                 |
@@ -53,7 +53,7 @@ This directory contains all UI elements of the application.
 
 This directory contains the application's business logic and data interaction layers.
 
--   **`db.ts`**: The main data abstraction layer, unifying interactions with Firestore and IndexedDB, and handling synchronization. It also manages user roles and invite codes.
+-   **`db.ts`**: The main data abstraction layer, unifying interactions with Supabase and IndexedDB, and handling synchronization. It also manages user roles and invite codes.
 -   **`offlineDb.ts`**: A low-level wrapper for IndexedDB operations, including managing the `pending_writes` queue, and now also caching user roles.
--   **`firebase.ts`**: Handles Firebase SDK initialization and provides instances of Firestore and Auth.
+-   **`supabaseClient.ts`**: Handles Supabase client initialization and provides a shared instance for Auth and database access.
 -   **`settings.ts`**: Manages section-specific application settings.

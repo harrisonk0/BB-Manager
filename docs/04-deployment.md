@@ -1,73 +1,31 @@
 # 4. Deployment
 
-This application is a fully static Progressive Web App (PWA). This means it consists only of HTML, CSS (via CDN), and JavaScript files, with no server-side rendering or backend logic hosted with the app itself. This makes deployment incredibly simple.
+BB Manager is a static React PWA that consumes Supabase Auth and database APIs. You can deploy the built assets to any static host (e.g., Vercel, Netlify, Cloudflare Pages, or Supabase Storage + CDN) as long as the Supabase environment variables are configured at build time.
 
-You can deploy this project to any static hosting provider. Some popular choices include:
+## Prerequisites
+- Supabase project with the required tables, RLS enabled, and production credentials (Project URL and anon key).
+- Node.js/npm to run the production build (`npm run build`).
 
--   **Firebase Hosting** (Recommended, as the project already uses Firebase)
--   Vercel
--   Netlify
--   GitHub Pages
+## Build
+1. Set environment variables for the build step:
+   ```
+   VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
+   VITE_SUPABASE_ANON_KEY="<public-anon-key>"
+   ```
+2. Run `npm install` (or your preferred package manager).
+3. Run `npm run build` to produce the `dist/` folder.
 
-This guide will focus on deploying with Firebase Hosting.
+## Deploy to Vercel (example)
+1. Push your repo to GitHub.
+2. Create a new Vercel project from the repo.
+3. Add the two environment variables above in Vercel project settings (apply to Preview and Production).
+4. Trigger a deploy; Vercel will build with Vite and host the static output.
 
----
+## Other Hosts
+- **Netlify/Cloudflare Pages**: Point to `npm run build` as the build command and `dist/` as the publish directory; add the same env vars.
+- **Supabase Storage + CDN**: Upload the `dist/` contents to a public bucket and serve via the Supabase CDN; ensure service worker paths remain at the bucket root.
 
-### Deploying with Firebase Hosting
-
-Firebase Hosting is a production-grade hosting service for static assets. It's fast, secure, and integrates seamlessly with the other Firebase services used in this project.
-
-#### Prerequisites
-
-1.  **Node.js and npm**: Unlike for local development, you will need Node.js and npm installed to use the Firebase Command Line Interface (CLI). You can download them from [nodejs.org](https://nodejs.org/).
-2.  **Firebase CLI**: Once npm is installed, install the Firebase CLI globally by running the following command in your terminal:
-    ```bash
-    npm install -g firebase-tools
-    ```
-
-#### Step 1: Log in to Firebase
-
-In your terminal, run the following command to log in to your Google account and connect it with the Firebase CLI:
-
-```bash
-firebase login
-```
-
-This will open a browser window for you to authenticate.
-
-#### Step 2: Initialize Firebase for Deployment
-
-1.  Navigate to the root directory of your project in the terminal.
-2.  Run the initialization command:
-    ```bash
-    firebase init
-    ```
-3.  The CLI will ask which features you want to set up. Use the arrow keys and spacebar to select **Firestore** and **Hosting**. Press Enter.
-4.  Follow the prompts:
-    -   **Project Setup**: Select "Use an existing project" and choose your Firebase project.
-    -   **Firestore Setup**:
-        -   **What file should be used for Firestore Rules?** Press Enter to accept the default `firestore.rules`.
-    -   **Hosting Setup**:
-        -   **What do you want to use as your public directory?** Type `.` and press Enter.
-        -   **Configure as a single-page app (rewrite all urls to /index.html)?** Type `y` and press Enter.
-        -   **Set up automatic builds and deploys with GitHub?** Type `n` and press Enter.
-
-This process will create the necessary configuration files, including `firebase.json`, which will now be set up to deploy both your app and your security rules.
-
-#### Step 3: Deploy
-
-Once initialization is complete, you can deploy your application *and* your security rules with a single command:
-
-```bash
-firebase deploy
-```
-
-The CLI will upload your project files to Firebase Hosting and your rules to Firestore. When it's finished, it will provide you with a **Hosting URL** (e.g., `https://your-project-id.web.app`).
-
-You can visit this URL to see your live application.
-
----
-
-### Subsequent Deployments
-
-Any time you make changes to the code and want to update the live application, simply run the `firebase deploy` command again from your project's root directory. Firebase will upload only the changed files, making updates very fast.
+## Post-deploy Checklist
+- Confirm Supabase Auth sign-in/sign-up works in production.
+- Verify `user_roles` contains the production users and roles.
+- Test CRUD flows (boys, audit logs, invite codes, settings) against the production Supabase instance.
