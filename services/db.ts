@@ -1031,14 +1031,15 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
 
     const { data, error } = await supabase
         .from('invite_codes')
-        .select('*')
-        .order('generated_at', { ascending: false });
+        .select('*');
 
-    if (error || !data) {
-        throw new Error(error?.message || 'Failed to fetch invite codes.');
+    if (error) {
+        throw new Error(error.message || 'Failed to fetch invite codes.');
     }
 
-    const invites: InviteCode[] = data.map(code => ({
+    const safeData = Array.isArray(data) ? data : [];
+
+    const invites: InviteCode[] = safeData.map(code => ({
         id: code.id,
         generatedBy: code.generated_by,
         section: code.section,
