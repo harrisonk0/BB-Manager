@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { fetchBoys, syncPendingWrites, deleteOldAuditLogs } from '../services/db';
+import { fetchBoys, deleteOldAuditLogs } from '../services/db';
 import { getSettings } from '../services/settings';
 import { Boy, Section, SectionSettings, ToastType } from '../types';
 
@@ -68,21 +68,16 @@ export const useAppData = (
   // Handle online/offline sync and background data refresh events
   useEffect(() => {
     const handleOnline = () => {
-        console.log('App is online, attempting to sync...');
-        syncPendingWrites().then(synced => {
-            if (synced) {
-                console.log('Sync complete, refreshing data.');
-                showToast('Data synced successfully.', 'success');
-                refreshData();
-            }
-        });
+        console.log('App is online, refreshing data...');
+        showToast('Back online — refreshing data.', 'info');
+        refreshData();
     };
-    
+
     window.addEventListener('online', handleOnline);
-    // Also attempt sync on mount in case we just came online
-    syncPendingWrites().then(synced => {
-        if(synced) refreshData();
-    });
+    // Refresh on mount in case we just came online
+    if (navigator.onLine) {
+      refreshData();
+    }
 
     const handleDataRefresh = (event: Event) => {
         const customEvent = event as CustomEvent;

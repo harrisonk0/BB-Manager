@@ -202,6 +202,10 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
   };
 
   const handleSaveChanges = async () => {
+    if (isOffline) {
+      showToast('You’re offline — changes cannot be saved.', 'info');
+      return;
+    }
     if (!boy || !isDirty) return;
     setIsSaving(true);
     setError(null);
@@ -398,8 +402,8 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
        {isDirty && (
           <button
             onClick={handleSaveChanges}
-            disabled={isSaving}
-            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
+            disabled={isSaving || isOffline}
+            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg ${isOffline ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-90'} focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
             aria-label="Save Changes"
           >
             {isSaving ? (

@@ -562,7 +562,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 >
                   Clear All Local Data (Current Section & Global Invite Codes/Roles)
                 </button>
-                <p className="mt-1 text-xs text-red-700">Deletes all local data (boys, audit logs, pending writes, all invite codes, and all user roles) for the current section from your browser's IndexedDB. Requires page refresh.</p>
+                <p className="mt-1 text-xs text-red-700">Deletes all local data (boys, audit logs, invite codes, and all user roles) for the current section from your browser's IndexedDB. Requires page refresh.</p>
               </div>
             </div>
           </div>
@@ -776,7 +776,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       {/* Clear All Local Data Confirmation Modal */}
       <Modal isOpen={isClearLocalDataModalOpen} onClose={() => setIsClearLocalDataModalOpen(false)} title="Confirm Clear All Local Data">
         <div className="space-y-4">
-          <p className="text-red-600 font-semibold">This action will permanently delete ALL local data (members, audit logs, pending writes, and all invite codes) for the current section from your browser's IndexedDB.</p>
+          <p className="text-red-600 font-semibold">This action will permanently delete ALL local data (members, audit logs, and all invite codes) for the current section from your browser's IndexedDB.</p>
           <p className="text-slate-600">This will NOT affect data in Firestore. You will need to refresh the page after this action.</p>
           <p className="text-slate-600">Are you absolutely sure you want to proceed?</p>
           <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">

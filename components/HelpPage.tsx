@@ -358,7 +358,7 @@ const HelpPage: React.FC = () => {
                         
                         <div id="overview" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">App Overview</h3>
-                            <p>Welcome! This app is designed to make managing your Boys' Brigade section simple and efficient. You can add members, track weekly marks, and view performance data, all in one place. Best of all, it works offline, so you can use it on parade night even without an internet connection.</p>
+                            <p>Welcome! This app is designed to make managing your Boys' Brigade section simple and efficient. You can add members, track weekly marks, and view performance data, all in one place. When you lose internet, you can still browse your cached data, but new changes must wait until you are back online.</p>
                         </div>
                         
                         <div id="login" className="space-y-4 scroll-mt-24">
@@ -550,8 +550,8 @@ const HelpPage: React.FC = () => {
                     {/* Section 7: Offline Use */}
                     <section id="offline-use" className="space-y-4 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">7. Offline Use & Data Syncing</h2>
-                        <p>The app is designed to work without an internet connection. All your data, including user roles, is saved securely in your browser. You can add members, enter marks, and make any other changes while offline.</p>
-                        <p>When your device reconnects to the internet, the app will automatically sync all the changes you made with the central database, ensuring all officers have the most up-to-date information. A toast notification will confirm when a sync is complete.</p>
+                        <p>The app is designed to keep working without an internet connection. All your data, including user roles, is saved securely in your browser for viewing. While offline you can review existing information, but adding members, entering marks, or making changes requires being online.</p>
+                          <p>When your device reconnects to the internet, the app will refresh data from the server so you are working with the latest records. A toast notification will confirm when the refresh finishes.</p>
                     </section>
                 </main>
             </div>

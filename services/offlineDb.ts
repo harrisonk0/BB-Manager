@@ -1,28 +1,11 @@
 /**
- * Supabase-aware IndexedDB cache for offline reads and queued writes.
+ * Supabase-aware IndexedDB cache for offline reads.
  */
 
 import { AuditLog, Boy, InviteCode, Section, UserRole } from '../types';
 
-export type PendingWrite = {
-  id?: number;
-  section?: Section;
-  type:
-    | 'CREATE_BOY'
-    | 'UPDATE_BOY'
-    | 'DELETE_BOY'
-    | 'RECREATE_BOY'
-    | 'CREATE_AUDIT_LOG'
-    | 'CREATE_INVITE_CODE'
-    | 'UPDATE_INVITE_CODE'
-    | 'UPDATE_USER_ROLE'
-    | 'DELETE_USER_ROLE';
-  payload: any;
-  tempId?: string;
-};
-
 const DB_NAME = 'supabase-cache';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const STORES = {
   BOYS: 'boys',
@@ -30,7 +13,6 @@ const STORES = {
   INVITE_CODES: 'invite_codes',
   SETTINGS: 'settings',
   USER_ROLES: 'user_roles',
-  PENDING_WRITES: 'pending_writes',
 } as const;
 
 type StoreName = (typeof STORES)[keyof typeof STORES];
@@ -66,9 +48,11 @@ export const openDB = async (): Promise<IDBDatabase> => {
       if (!database.objectStoreNames.contains(STORES.USER_ROLES)) {
         database.createObjectStore(STORES.USER_ROLES, { keyPath: 'uid' });
       }
-      if (!database.objectStoreNames.contains(STORES.PENDING_WRITES)) {
-        database.createObjectStore(STORES.PENDING_WRITES, { keyPath: 'id', autoIncrement: true });
-      }
+
+      // Remove any legacy stores from Firestore/pending-write eras
+      Array.from(database.objectStoreNames)
+        .filter((name) => !Object.values(STORES).includes(name as StoreName))
+        .forEach((name) => database.deleteObjectStore(name));
     };
   });
 };
@@ -253,17 +237,6 @@ export const deleteUserRoleFromDB = async (uid: string): Promise<void> => {
 
 export const clearAllUserRolesFromDB = async (): Promise<void> => clearStore(STORES.USER_ROLES);
 
-// Pending Writes
-export const addPendingWrite = async (write: Omit<PendingWrite, 'id'>): Promise<void> => {
-  await withStore<void>(STORES.PENDING_WRITES, 'readwrite', (store) => store.add(write));
-};
-
-export const getPendingWrites = async (): Promise<PendingWrite[]> => {
-  return withStore<PendingWrite[]>(STORES.PENDING_WRITES, 'readonly', (store) => store.getAll());
-};
-
-export const clearPendingWrites = async (): Promise<void> => clearStore(STORES.PENDING_WRITES);
-
 // Clearing helpers
 const deleteBySection = async (storeName: StoreName, predicate: (value: any) => boolean) => {
   await openDB();
@@ -290,7 +263,6 @@ export const clearAllSectionDataFromDB = async (section: Section): Promise<void>
   await Promise.all([
     deleteBySection(STORES.BOYS, (value) => value.section === section),
     deleteBySection(STORES.AUDIT_LOGS, (value) => value.section === section),
-    clearPendingWrites(),
     clearAllInviteCodesFromDB(),
     clearAllUserRolesFromDB(),
   ]);

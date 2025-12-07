@@ -49,6 +49,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   const [sortBy, setSortBy] = useState<SortByType>(() => (localStorage.getItem('homePageSortBy') as SortByType) || 'name');
   const [filterSquad, setFilterSquad] = useState<string>(() => localStorage.getItem('homePageFilterSquad') || 'all');
   const [filterYear, setFilterYear] = useState<string>(() => localStorage.getItem('homePageFilterYear') || 'all');
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
@@ -72,6 +73,16 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   useEffect(() => {
     localStorage.setItem('homePageFilterYear', filterYear);
   }, [filterYear]);
+
+  useEffect(() => {
+    const updateOnline = () => setIsOffline(!navigator.onLine);
+    window.addEventListener('online', updateOnline);
+    window.addEventListener('offline', updateOnline);
+    return () => {
+      window.removeEventListener('online', updateOnline);
+      window.removeEventListener('offline', updateOnline);
+    };
+  }, []);
 
   // --- UTILITY FUNCTIONS ---
   const calculateTotalMarks = (boy: Boy) => {
@@ -193,6 +204,10 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
   // --- EVENT HANDLERS ---
   const handleAddBoy = () => {
+    if (isOffline) {
+      showToast('You’re offline — changes cannot be saved.', 'info');
+      return;
+    }
     setBoyToEdit(null); // Ensure form is in 'add' mode
     setIsFormModalOpen(true);
   };
@@ -208,6 +223,10 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   };
 
   const handleOpenDeleteModal = (boy: Boy) => {
+    if (isOffline) {
+      showToast('You’re offline — changes cannot be saved.', 'info');
+      return;
+    }
     setBoyToDelete(boy);
     setIsDeleteModalOpen(true);
   };
@@ -219,6 +238,10 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   
   const handleDeleteBoy = async () => {
     if (!boyToDelete) return;
+    if (isOffline) {
+      showToast('You’re offline — changes cannot be saved.', 'info');
+      return;
+    }
 
     try {
       const userEmail = user?.email || 'Unknown User';
@@ -277,13 +300,20 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
             </button>
             <button
               onClick={handleAddBoy}
-              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} ${isOffline ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-90'} focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+              disabled={isOffline}
             >
-              <PlusIcon className="h-5 w-5 mr-2 -ml-1"/>
-              Add Boy
-            </button>
+            <PlusIcon className="h-5 w-5 mr-2 -ml-1"/>
+            Add Boy
+          </button>
         </div>
       </div>
+
+      {isOffline && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          You’re offline — viewing cached data only. Add, edit, and delete actions are disabled.
+        </div>
+      )}
       
       {isSearchVisible && (
          <div className="relative">
@@ -312,7 +342,8 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
             <div className="mt-6">
                 <button
                     onClick={handleAddBoy}
-                    className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+                    className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${accentBg} ${isOffline ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-90'} focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+                    disabled={isOffline}
                 >
                     <PlusIcon className="h-5 w-5 mr-3 -ml-1"/>
                     Add your first member
@@ -382,9 +413,10 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
                           >
                             <PencilIcon />
                           </button>
-                           <button
+                          <button
                             onClick={() => handleOpenDeleteModal(boy)}
-                            className="p-3 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100"
+                            className={`p-3 text-slate-500 rounded-full hover:bg-slate-100 ${isOffline ? 'opacity-40 cursor-not-allowed' : 'hover:text-red-600'}`}
+                            disabled={isOffline}
                             aria-label={`Delete ${boy.name}`}
                           >
                             <TrashIcon />
@@ -418,7 +450,8 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
               </button>
               <button
                 onClick={handleDeleteBoy}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className={`px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md ${isOffline ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+                disabled={isOffline}
               >
                 Delete
               </button>

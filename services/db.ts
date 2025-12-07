@@ -7,9 +7,6 @@ import {
     saveBoysToDB,
     getBoyFromDB,
     saveBoyToDB,
-    addPendingWrite,
-    getPendingWrites,
-    clearPendingWrites,
     getLogsFromDB,
     saveLogsToDB,
     deleteBoyFromDB,
@@ -94,176 +91,8 @@ const validateBoyMarks = (boy: Boy, section: Section) => {
     }
 };
 
-export const syncPendingWrites = async (): Promise<boolean> => {
-    if (!navigator.onLine) return false;
+const offlineWriteError = () => new Error("You’re offline — changes cannot be saved.");
 
-    const pendingWrites = await getPendingWrites();
-    if (pendingWrites.length === 0) return true;
-
-    const authUser = await supabaseAuth.getCurrentUser();
-    if (!authUser) return false;
-
-    for (const write of pendingWrites) {
-        try {
-            switch (write.type) {
-                case 'CREATE_BOY': {
-                    const { data, error } = await supabase
-                        .from('boys')
-                        .insert([{ ...write.payload, section: write.section, is_squad_leader: write.payload.isSquadLeader ?? false }])
-                        .select()
-                        .single();
-                    if (error || !data) throw error || new Error('Failed to create boy');
-                    const boy: Boy = {
-                        id: data.id,
-                        name: data.name,
-                        squad: data.squad,
-                        year: data.year,
-                        marks: data.marks || [],
-                        isSquadLeader: data.is_squad_leader ?? false,
-                    };
-                    if (write.tempId) {
-                        await deleteBoyFromDB(write.tempId, write.section!);
-                    }
-                    await saveBoyToDB(boy, write.section!);
-                    break;
-                }
-                case 'UPDATE_BOY': {
-                    const { id, ...boyData } = write.payload;
-                    const { error } = await supabase
-                        .from('boys')
-                        .update({
-                            ...boyData,
-                            section: write.section,
-                            is_squad_leader: boyData.isSquadLeader ?? false,
-                        })
-                        .eq('id', id)
-                        .eq('section', write.section!);
-                    if (error) throw error;
-                    await saveBoyToDB(write.payload, write.section!);
-                    break;
-                }
-                case 'DELETE_BOY': {
-                    const { error } = await supabase
-                        .from('boys')
-                        .delete()
-                        .eq('id', write.payload.id)
-                        .eq('section', write.section!);
-                    if (error) throw error;
-                    await deleteBoyFromDB(write.payload.id, write.section!);
-                    break;
-                }
-                case 'RECREATE_BOY': {
-                    const { error } = await supabase
-                        .from('boys')
-                        .upsert({
-                            id: write.payload.id,
-                            section: write.section,
-                            name: write.payload.name,
-                            squad: write.payload.squad,
-                            year: write.payload.year,
-                            marks: write.payload.marks,
-                            is_squad_leader: write.payload.isSquadLeader ?? false,
-                        });
-                    if (error) throw error;
-                    await saveBoyToDB(write.payload, write.section!);
-                    break;
-                }
-                case 'CREATE_AUDIT_LOG': {
-                    const { data, error } = await supabase
-                        .from('audit_logs')
-                        .insert([
-                            {
-                                user_email: write.payload.userEmail,
-                                action_type: write.payload.actionType,
-                                description: write.payload.description,
-                                revert_data: write.payload.revertData,
-                                reverted_log_id: write.payload.revertedLogId ?? null,
-                                section: write.section ?? null,
-                                timestamp: new Date().toISOString(),
-                            },
-                        ])
-                        .select()
-                        .single();
-                    if (error || !data) throw error || new Error('Failed to create audit log');
-                    const newLog: AuditLog = {
-                        id: data.id,
-                        timestamp: data.timestamp ? new Date(data.timestamp).getTime() : Date.now(),
-                        userEmail: data.user_email,
-                        actionType: data.action_type,
-                        description: data.description,
-                        revertData: data.revert_data,
-                        revertedLogId: data.reverted_log_id ?? undefined,
-                        section: data.section ?? null,
-                    };
-                    if (write.tempId) {
-                        await deleteLogFromDB(write.tempId, write.section || null);
-                    }
-                    await saveLogToDB(newLog, write.section || null);
-                    break;
-                }
-                case 'CREATE_INVITE_CODE': {
-                    const { error } = await supabase
-                        .from('invite_codes')
-                        .insert({
-                            id: write.payload.id,
-                            generated_by: write.payload.generatedBy,
-                            section: write.payload.section ?? null,
-                            is_used: write.payload.isUsed ?? false,
-                            used_by: write.payload.usedBy ?? null,
-                            used_at: write.payload.usedAt ? new Date(write.payload.usedAt).toISOString() : null,
-                            revoked: write.payload.revoked ?? false,
-                            default_user_role: write.payload.defaultUserRole,
-                            expires_at: new Date(write.payload.expiresAt).toISOString(),
-                        });
-                    if (error) throw error;
-                    await saveInviteCodeToDB({ ...write.payload, generatedAt: write.payload.generatedAt ?? Date.now() });
-                    break;
-                }
-                case 'UPDATE_INVITE_CODE': {
-                    const { error } = await supabase
-                        .from('invite_codes')
-                        .update({
-                            is_used: write.payload.isUsed,
-                            used_by: write.payload.usedBy ?? null,
-                            used_at: write.payload.usedAt ? new Date(write.payload.usedAt).toISOString() : null,
-                            revoked: write.payload.revoked,
-                            expires_at: write.payload.expiresAt ? new Date(write.payload.expiresAt).toISOString() : undefined,
-                        })
-                        .eq('id', write.payload.id);
-                    if (error) throw error;
-                    await saveInviteCodeToDB(write.payload as InviteCode);
-                    break;
-                }
-                case 'UPDATE_USER_ROLE': {
-                    const { error } = await supabase
-                        .from('user_roles')
-                        .update({ role: write.payload.role })
-                        .eq('uid', write.payload.uid);
-                    if (error) throw error;
-                    await saveUserRoleToDB(write.payload.uid, write.payload.role);
-                    break;
-                }
-                case 'DELETE_USER_ROLE': {
-                    const { error } = await supabase
-                        .from('user_roles')
-                        .delete()
-                        .eq('uid', write.payload.uid);
-                    if (error) throw error;
-                    await deleteUserRoleFromDB(write.payload.uid);
-                    break;
-                }
-                default:
-                    break;
-            }
-        } catch (error) {
-            console.error('Failed to sync pending write', write, error);
-            return false;
-        }
-    }
-
-    await clearPendingWrites();
-    return true;
-};
 
 export const fetchUserRole = async (uid: string): Promise<UserRole | null> => {
     await openDB();
@@ -425,43 +254,37 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise
     const authUser = await supabaseAuth.getCurrentUser();
     if (!authUser) throw new Error("User not authenticated");
 
-    if (navigator.onLine) {
-        const { data, error } = await supabase
-            .from('boys')
-            .insert([
-                {
-                    name: boy.name,
-                    squad: boy.squad,
-                    year: boy.year,
-                    marks: boy.marks,
-                    is_squad_leader: boy.isSquadLeader ?? false,
-                    section,
-                },
-            ])
-            .select()
-            .single();
+    if (!navigator.onLine) throw offlineWriteError();
 
-        if (error || !data) {
-            throw new Error(error?.message || 'Failed to create boy');
-        }
+    const { data, error } = await supabase
+        .from('boys')
+        .insert([
+            {
+                name: boy.name,
+                squad: boy.squad,
+                year: boy.year,
+                marks: boy.marks,
+                is_squad_leader: boy.isSquadLeader ?? false,
+                section,
+            },
+        ])
+        .select()
+        .single();
 
-        const newBoy: Boy = {
-            id: data.id,
-            name: data.name,
-            squad: data.squad,
-            year: data.year,
-            marks: data.marks || [],
-            isSquadLeader: data.is_squad_leader ?? false,
-        };
-        await saveBoyToDB(newBoy, section);
-        return newBoy;
-    } else {
-        const tempId = `temp_${crypto.randomUUID()}`;
-        const newBoy = { ...boy, id: tempId } as Boy;
-        await addPendingWrite({ type: 'CREATE_BOY', payload: newBoy, tempId, section });
-        await saveBoyToDB(newBoy, section);
-        return newBoy;
+    if (error || !data) {
+        throw new Error(error?.message || 'Failed to create boy');
     }
+
+    const newBoy: Boy = {
+        id: data.id,
+        name: data.name,
+        squad: data.squad,
+        year: data.year,
+        marks: data.marks || [],
+        isSquadLeader: data.is_squad_leader ?? false,
+    };
+    await saveBoyToDB(newBoy, section);
+    return newBoy;
 };
 
 export const fetchBoys = async (section: Section): Promise<Boy[]> => {
@@ -551,30 +374,27 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
 const performBoyUpdate = async (boy: Boy, section: Section) => {
     validateBoyMarks(boy, section);
 
-    if (navigator.onLine) {
-        const { id, ...boyData } = boy;
-        const { error } = await supabase
-            .from('boys')
-            .update({
-                name: boyData.name,
-                squad: boyData.squad,
-                year: boyData.year,
-                marks: boyData.marks,
-                is_squad_leader: boyData.isSquadLeader ?? false,
-                section,
-            })
-            .eq('id', id!)
-            .eq('section', section);
+    if (!navigator.onLine) throw offlineWriteError();
 
-        if (error) {
-            throw new Error(error.message || 'Failed to update boy');
-        }
+    const { id, ...boyData } = boy;
+    const { error } = await supabase
+        .from('boys')
+        .update({
+            name: boyData.name,
+            squad: boyData.squad,
+            year: boyData.year,
+            marks: boyData.marks,
+            is_squad_leader: boyData.isSquadLeader ?? false,
+            section,
+        })
+        .eq('id', id!)
+        .eq('section', section);
 
-        await saveBoyToDB(boy, section);
-    } else {
-        await addPendingWrite({ type: 'UPDATE_BOY', payload: boy, section });
-        await saveBoyToDB(boy, section);
+    if (error) {
+        throw new Error(error.message || 'Failed to update boy');
     }
+
+    await saveBoyToDB(boy, section);
 };
 
 export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
@@ -592,28 +412,25 @@ export const recreateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
 
     validateBoyMarks(boy, section);
 
-    if (navigator.onLine) {
-        const { error } = await supabase
-            .from('boys')
-            .upsert({
-                id: boy.id,
-                section,
-                name: boy.name,
-                squad: boy.squad,
-                year: boy.year,
-                marks: boy.marks,
-                is_squad_leader: boy.isSquadLeader ?? false,
-            });
+    if (!navigator.onLine) throw offlineWriteError();
 
-        if (error) {
-            throw new Error(error.message || 'Failed to recreate boy');
-        }
+    const { error } = await supabase
+        .from('boys')
+        .upsert({
+            id: boy.id,
+            section,
+            name: boy.name,
+            squad: boy.squad,
+            year: boy.year,
+            marks: boy.marks,
+            is_squad_leader: boy.isSquadLeader ?? false,
+        });
 
-        await saveBoyToDB(boy, section);
-    } else {
-        await addPendingWrite({ type: 'RECREATE_BOY', payload: boy, section });
-        await saveBoyToDB(boy, section);
+    if (error) {
+        throw new Error(error.message || 'Failed to recreate boy');
     }
+
+    await saveBoyToDB(boy, section);
     return boy;
 };
 
@@ -621,22 +438,19 @@ export const deleteBoyById = async (id: string, section: Section): Promise<void>
     const authUser = await supabaseAuth.getCurrentUser();
     if (!authUser) throw new Error("User not authenticated");
 
-    if (navigator.onLine) {
-        const { error } = await supabase
-            .from('boys')
-            .delete()
-            .eq('id', id)
-            .eq('section', section);
+    if (!navigator.onLine) throw offlineWriteError();
 
-        if (error) {
-            throw new Error(error.message || 'Failed to delete boy');
-        }
+    const { error } = await supabase
+        .from('boys')
+        .delete()
+        .eq('id', id)
+        .eq('section', section);
 
-        await deleteBoyFromDB(id, section);
-    } else {
-        await addPendingWrite({ type: 'DELETE_BOY', payload: { id }, section });
-        await deleteBoyFromDB(id, section);
+    if (error) {
+        throw new Error(error.message || 'Failed to delete boy');
     }
+
+    await deleteBoyFromDB(id, section);
 };
 
 export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, section: Section | null, shouldLogAudit: boolean = true): Promise<AuditLog | null> => {
@@ -657,47 +471,41 @@ export const createAuditLog = async (log: Omit<AuditLog, 'id' | 'timestamp'>, se
         ...(log.revertedLogId && { revertedLogId: log.revertedLogId })
     };
 
-    if (navigator.onLine) {
-        const { data, error } = await supabase
-            .from('audit_logs')
-            .insert([
-                {
-                    user_email: logPayload.userEmail,
-                    action_type: logPayload.actionType,
-                    description: logPayload.description,
-                    revert_data: logPayload.revertData,
-                    reverted_log_id: logPayload.revertedLogId ?? null,
-                    section: logPayload.section,
-                    timestamp: new Date(timestamp).toISOString(),
-                },
-            ])
-            .select()
-            .single();
+    if (!navigator.onLine) throw offlineWriteError();
 
-        if (error || !data) {
-            throw new Error(error?.message || 'Failed to create audit log');
-        }
+    const { data, error } = await supabase
+        .from('audit_logs')
+        .insert([
+            {
+                user_email: logPayload.userEmail,
+                action_type: logPayload.actionType,
+                description: logPayload.description,
+                revert_data: logPayload.revertData,
+                reverted_log_id: logPayload.revertedLogId ?? null,
+                section: logPayload.section,
+                timestamp: new Date(timestamp).toISOString(),
+            },
+        ])
+        .select()
+        .single();
 
-        const newLog: AuditLog = {
-            id: data.id,
-            timestamp: data.timestamp ? new Date(data.timestamp).getTime() : timestamp,
-            userEmail: data.user_email,
-            actionType: data.action_type,
-            description: data.description,
-            revertData: data.revert_data,
-            revertedLogId: data.reverted_log_id ?? undefined,
-            section: data.section ?? null,
-        };
-
-        await saveLogToDB(newLog, section);
-        return newLog;
-    } else {
-        const tempId = `offline_${crypto.randomUUID()}`;
-        const newLog = { ...logPayload, id: tempId, timestamp } as AuditLog;
-        await addPendingWrite({ type: 'CREATE_AUDIT_LOG', payload: logPayload, tempId, section: section || undefined });
-        await saveLogToDB(newLog, section);
-        return newLog;
+    if (error || !data) {
+        throw new Error(error?.message || 'Failed to create audit log');
     }
+
+    const newLog: AuditLog = {
+        id: data.id,
+        timestamp: data.timestamp ? new Date(data.timestamp).getTime() : timestamp,
+        userEmail: data.user_email,
+        actionType: data.action_type,
+        description: data.description,
+        revertData: data.revert_data,
+        revertedLogId: data.reverted_log_id ?? undefined,
+        section: data.section ?? null,
+    };
+
+    await saveLogToDB(newLog, section);
+    return newLog;
 };
 
 export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[]> => {
@@ -1049,7 +857,7 @@ export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<In
         generatedAt: code.generated_at ? new Date(code.generated_at).getTime() : Date.now(),
     }));
 
-    await saveInviteCodeToDB(invites);
+    await Promise.all(invites.map((invite) => saveInviteCodeToDB(invite)));
     return invites;
 };
 
