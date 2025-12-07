@@ -21,7 +21,6 @@ import {
     getAllInviteCodesFromDB,
     deleteInviteCodeFromDB,
     deleteInviteCodesFromDB,
-    clearStore,
     clearAllSectionDataFromDB,
     clearUsedRevokedInviteCodesFromDB,
     clearAllInviteCodesFromDB,
@@ -849,7 +848,6 @@ export const clearAllLocalData = async (section: Section, userEmail: string, use
     const authUser = await supabaseAuth.getCurrentUser();
     if (!authUser) throw new Error('User not authenticated');
 
-    await clearStore(section);
     await clearAllSectionDataFromDB(section);
 
     await createAuditLog({
