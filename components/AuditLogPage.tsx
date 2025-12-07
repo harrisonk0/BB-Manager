@@ -36,7 +36,6 @@ const ACTION_ICONS: Record<AuditLogActionType, React.FC<{className?: string}>> =
   DELETE_USER_ROLE: TrashIcon, // New: Icon for deleting user roles
   CLEAR_AUDIT_LOGS: TrashIcon, // Using TrashIcon for clearing logs
   CLEAR_USED_REVOKED_INVITE_CODES: TrashIcon, // Using TrashIcon for clearing invite codes
-  CLEAR_LOCAL_DATA: TrashIcon, // Using TrashIcon for clearing local data
 };
 
 const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection, showToast, userRole }) => {
@@ -65,7 +64,6 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     DELETE_USER_ROLE: 'bg-red-100 text-red-700', // New: Color for deleting user roles
     CLEAR_AUDIT_LOGS: 'bg-red-100 text-red-700', // Red for destructive dev actions
     CLEAR_USED_REVOKED_INVITE_CODES: 'bg-red-100 text-red-700', // Red for destructive dev actions
-    CLEAR_LOCAL_DATA: 'bg-red-100 text-red-700', // Red for destructive dev actions
   };
 
   /**
@@ -91,27 +89,6 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
     loadLogs();
   }, [loadLogs]);
 
-  /**
-   * EFFECT: Listens for the custom 'logsrefreshed' event.
-   * This is triggered by the background sync in services/db.ts. When the local
-   * audit logs are updated, this effect triggers a refresh of the page.
-   */
-  useEffect(() => {
-    const handleLogsRefresh = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        // Refresh if the event is for the active section or for global logs (section: null)
-        if (customEvent.detail.section === activeSection || customEvent.detail.section === null) {
-            console.log('Audit log cache updated in background, refreshing UI...');
-            loadLogs();
-        }
-    };
-
-    window.addEventListener('logsrefreshed', handleLogsRefresh);
-    return () => {
-      window.removeEventListener('logsrefreshed', handleLogsRefresh);
-    };
-  }, [activeSection, loadLogs]);
-  
   // Memoized set of log IDs that have been reverted by a REVERT_ACTION log.
   const revertedLogIds = useMemo(() => {
     return new Set(logs.filter(log => log.actionType === 'REVERT_ACTION' && log.revertedLogId).map(log => log.revertedLogId));

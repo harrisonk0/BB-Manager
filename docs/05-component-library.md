@@ -14,7 +14,7 @@ The root component of the entire application. It doesn't render much UI directly
     -   Manages global state using custom hooks: `currentUser`, `userRole`, `activeSection`, `boys`, `settings`, `isLoading`, `error`, `noRoleError`, `hasUnsavedChanges`.
     -   Initializes Supabase and listens for authentication state changes (`onAuthStateChanged`), including fetching the user's role.
     -   Handles the main "routing" logic by deciding which page component to render based on the `view` state, including special handling for unauthenticated users (Login, Signup, Help) and users without an assigned role.
-    -   Orchestrates data fetching (`refreshData`) and offline synchronization (`syncPendingWrites`).
+    -   Orchestrates data fetching (`refreshData`).
     -   Manages the "unsaved changes" confirmation modal.
     -   Manages and renders the global toast notification system.
     -   Integrates custom hooks: `useToastNotifications`, `useAuthAndRole`, `useSectionManagement`, `useAppData`, `useUnsavedChangesProtection`.
