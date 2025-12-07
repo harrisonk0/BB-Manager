@@ -16,7 +16,6 @@ import AccountSettingsPage from './components/AccountSettingsPage';
 import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { initializeFirebase } from './services/firebase';
 import { View, Page, BoyMarksPageView, Section, ToastType } from './types';
 import Modal from './components/Modal';
 
@@ -28,16 +27,6 @@ import { useAppData } from '@/hooks/useAppData';
 import { useUnsavedChangesProtection } from '@/hooks/useUnsavedChangesProtection';
 
 const App: React.FC = () => {
-  // Initialize Firebase once
-  useEffect(() => {
-    try {
-      initializeFirebase();
-    } catch (err: any) {
-      console.error(`Failed to initialize Firebase: ${err.message}`);
-      // This error should ideally be handled by a global error boundary
-    }
-  }, []);
-
   // Use toast notifications hook
   const { toasts, showToast, removeToast } = useToastNotifications();
 
@@ -161,7 +150,7 @@ const App: React.FC = () => {
             case 'globalSettings':
                 return (
                     <>
-                        <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
+                        <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
                         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                             <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} />
                         </main>
@@ -170,7 +159,7 @@ const App: React.FC = () => {
             case 'accountSettings':
                 return (
                     <>
-                        <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
+                        <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
                         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                             <AccountSettingsPage showToast={showToast} />
                         </main>
@@ -190,7 +179,7 @@ const App: React.FC = () => {
     // Render main app content with header
     return (
         <>
-            <Header setView={navigateWithProtection} user={currentUser} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} userRole={userRole} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
+            <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {renderMainContent()}
             </main>

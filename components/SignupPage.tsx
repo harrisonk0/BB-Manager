@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { getAuthInstance } from '../services/firebase';
 import { fetchInviteCode, updateInviteCode, createAuditLog, setUserRole } from '../services/db';
 import { QuestionMarkCircleIcon } from './Icons';
 import { ToastType, Section } from '../types';
+import * as supabaseAuth from '../services/supabaseAuth';
 
 interface SignupPageProps {
   /** Callback to navigate to the help page. */
@@ -80,13 +79,23 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
         return;
       }
 
-      // 2. Create User in Firebase Auth
-      const auth = getAuthInstance();
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const newUser = userCredential.user;
+      // 2. Create User in Supabase Auth
+      const { error: signUpError } = await supabaseAuth.signUp(email, password);
+      if (signUpError) {
+        setError(signUpError.message || 'Unable to create account.');
+        setIsLoading(false);
+        return;
+      }
+
+      const newUser = await supabaseAuth.getCurrentUser();
+      if (!newUser) {
+        setError('Unable to load user after signup. Please try again.');
+        setIsLoading(false);
+        return;
+      }
 
       // 3. Assign Default Role to New User
-      await setUserRole(newUser.uid, newUser.email || email, fetchedCode.defaultUserRole);
+      await setUserRole(newUser.id, newUser.email || email, fetchedCode.defaultUserRole);
 
       // 4. Mark Invite Code as Used
       const updatedCode = {
@@ -102,27 +111,14 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
         userEmail: newUser.email || 'Unknown',
         actionType: 'USE_INVITE_CODE',
         description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${fetchedCode.defaultUserRole}'.`,
-        revertData: { userId: newUser.uid, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
+        revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
       }, fetchedCode.section || null);
 
       showToast('Account created successfully! Please select your section.', 'success');
       onSignupSuccess(fetchedCode.section || 'company');
     } catch (err: any) {
       console.error("Sign up error:", err);
-      switch (err.code) {
-        case 'auth/email-already-in-use':
-          setEmailError('The email address is already in use by another account.');
-          break;
-        case 'auth/invalid-email':
-          setEmailError('The email address is not valid.');
-          break;
-        case 'auth/weak-password':
-          setPasswordError('The password is too weak.');
-          break;
-        default:
-          setError('Failed to create account. Please try again.');
-          break;
-      }
+      setError(err?.message || 'Failed to create account. Please try again.');
       showToast('Failed to create account.', 'error');
     } finally {
       setIsLoading(false);

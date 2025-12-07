@@ -4,22 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="https://i.postimg.cc/SsYq7rkr/favicon-V2.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#e2e8f0" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/SsYq7rkr/favicon-V2.png">
     <title>BB Manager</title>
     <!-- 
       Import Map: This allows using bare module specifiers (e.g., "react") in JavaScript modules,
       similar to Node.js. It maps these specifiers to full URLs, enabling a build-less
-      development environment for dependencies like React and Firebase.
+      development environment for dependencies like React.
     -->
     <script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "firebase/": "https://aistudiocdn.com/firebase@^12.4.0/"
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
   }
 }
 </script>
@@ -29,21 +25,5 @@
     <div id="root"></div>
     <!-- Main application script, loaded as a module -->
     <script type="module" src="/index.tsx"></script>
-    <!-- 
-      Service Worker Registration: This script checks if the browser supports
-      service workers and registers sw.js to enable Progressive Web App (PWA)
-      features like offline caching and background sync.
-    -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').then(registration => {
-            console.log('SW registered: ', registration);
-          }).catch(registrationError => {
-            console.log('SW registration failed: ', registrationError);
-          });
-        });
-      }
-    </script>
   </body>
 </html>

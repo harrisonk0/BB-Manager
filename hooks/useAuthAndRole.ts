@@ -1,80 +1,124 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { initializeFirebase, getAuthInstance } from '../services/firebase';
-import { fetchUserRole } from '../services/db';
-import { UserRole } from '../types';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { subscribeToAuth, signOut as supabaseSignOut, getCurrentUser } from '../services/supabaseAuth';
+import { supabase } from '../services/supabaseClient';
+import { AppUser, UserRole } from '../types';
 
 /**
- * Custom hook for managing Firebase authentication state and user roles.
+ * Custom hook for managing Supabase authentication state and user roles.
  * Handles user login/logout, fetching user roles, and error states related to roles.
  */
 export const useAuthAndRole = () => {
-  const [currentUser, setCurrentUser] = useState<User | null | undefined>(undefined);
+  const [currentUser, setCurrentUserState] = useState<AppUser | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [noRoleError, setNoRoleError] = useState<string | null>(null);
-  const [authLoading, setAuthLoading] = useState(true); // New loading state for auth
+  const [authLoading, setAuthLoading] = useState(true);
+  const currentUserRef = useRef<AppUser | null>(null);
 
   const performSignOut = useCallback(async () => {
     try {
-      const auth = getAuthInstance();
-      await signOut(auth);
-      // State will be reset by the onAuthStateChanged listener
+      await supabaseSignOut();
+      // State will be reset by the auth state listener
     } catch (error) {
       console.error('Sign out failed', error);
-      // Error handling for sign out can be passed up or handled by a toast
     }
   }, []);
 
-  const loadUserRole = useCallback(async (user: User) => {
-    const role = await fetchUserRole(user.uid);
-    if (role === null) {
+  const loadUserRole = useCallback(async (user: AppUser) => {
+    const { data, error } = await supabase.from('user_roles').select('role').eq('uid', user.id).single();
+
+    if (error || !data) {
       setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
-      await signOut(getAuthInstance()); // Force sign out if no role
-      setCurrentUser(null); // Ensure currentUser is null after forced sign out
+      await supabaseSignOut();
+      setCurrentUser(null);
       setUserRole(null);
       return;
     }
-    setUserRole(role);
+
+    setUserRole(data.role as UserRole);
     setNoRoleError(null);
   }, []);
 
+  const toAppUser = useCallback((user: { id: string; email: string | null }) => {
+    if (!user) return null;
+    if (!user.email) {
+      return { id: user.id, email: '' } as AppUser;
+    }
+    return { id: user.id, email: user.email } as AppUser;
+  }, []);
+
+  const updateCurrentUser = useCallback((user: AppUser | null) => {
+    currentUserRef.current = user;
+    setCurrentUserState((prev) => {
+      if (prev?.id === user?.id && prev?.email === user?.email) {
+        return prev;
+      }
+      return user;
+    });
+  }, []);
+
   useEffect(() => {
-    try {
-      initializeFirebase();
-      const auth = getAuthInstance();
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          await loadUserRole(user);
-        } else {
+    const initialize = async () => {
+      try {
+        const existingUser = await getCurrentUser();
+        const mappedUser = existingUser ? toAppUser(existingUser) : null;
+        const previousUser = currentUserRef.current;
+        updateCurrentUser(mappedUser);
+
+        if (mappedUser && previousUser?.id !== mappedUser.id) {
+          await loadUserRole(mappedUser);
+        } else if (!mappedUser) {
           setUserRole(null);
           setNoRoleError(null);
         }
-        setCurrentUser(user);
+      } catch (err: any) {
+        console.error(`Failed to get current user: ${err.message}`);
+      } finally {
         setAuthLoading(false);
-      });
+      }
+    };
 
-      // Listen for custom userrolerefresh event
-      const handleUserRoleRefresh = (event: Event) => {
-        const customEvent = event as CustomEvent;
-        if (currentUser && customEvent.detail.uid === currentUser.uid) {
-          console.log('User role cache updated in background, refreshing UI...');
-          loadUserRole(currentUser);
-        }
-      };
-      window.addEventListener('userrolerefresh', handleUserRoleRefresh);
+    initialize();
 
-      return () => {
-        unsubscribe();
-        window.removeEventListener('userrolerefresh', handleUserRoleRefresh);
-      };
-    } catch (err: any) {
-      console.error(`Failed to initialize Firebase: ${err.message}`);
-      // This error should ideally be handled at the App.tsx level or a global error boundary
+    const subscription = subscribeToAuth(async (_event, session) => {
+      const supabaseUser = session?.user ?? null;
+      const mappedUser = supabaseUser ? toAppUser(supabaseUser) : null;
+      const previousUser = currentUserRef.current;
+
+      updateCurrentUser(mappedUser);
+
+      if (mappedUser && previousUser?.id !== mappedUser.id) {
+        await loadUserRole(mappedUser);
+      } else if (!mappedUser && previousUser) {
+        setUserRole(null);
+        setNoRoleError(null);
+      }
+
       setAuthLoading(false);
-    }
-  }, [loadUserRole, currentUser]); // Added currentUser to dependencies
+    });
 
-  return { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole };
+    const handleUserRoleRefresh = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (currentUserRef.current && customEvent.detail.uid === currentUserRef.current.id) {
+        loadUserRole(currentUserRef.current);
+      }
+    };
+
+    window.addEventListener('userrolerefresh', handleUserRoleRefresh);
+
+    return () => {
+      subscription?.unsubscribe();
+      window.removeEventListener('userrolerefresh', handleUserRoleRefresh);
+    };
+  }, [loadUserRole, toAppUser, updateCurrentUser]);
+
+  const setCurrentUser = useCallback(
+    (user: AppUser | null) => {
+      updateCurrentUser(user);
+    },
+    [updateCurrentUser]
+  );
+
+  return { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole, user: currentUser };
 };

@@ -1,0 +1,650 @@
+[
+  {
+    "id": "0CMcrYJAErhyKYLa1LDg",
+    "squad": 2,
+    "year": 8,
+    "name": "Noah Lubama",
+    "marks": [
+      {
+        "date": "2025-09-19",
+        "score": 8
+      },
+      {
+        "score": 8,
+        "date": "2025-09-26"
+      },
+      {
+        "score": 8,
+        "date": "2025-10-10"
+      },
+      {
+        "date": "2025-10-17",
+        "score": 8
+      },
+      {
+        "date": "2025-11-07",
+        "score": 8
+      },
+      {
+        "date": "2025-11-09",
+        "score": 0
+      },
+      {
+        "date": "2025-10-24",
+        "score": 0
+      },
+      {
+        "date": "2025-11-14",
+        "score": 8
+      },
+      {
+        "date": "2025-11-21",
+        "score": 8
+      },
+      {
+        "date": "2025-11-28",
+        "score": 8
+      }
+    ]
+  },
+  {
+    "id": "0hHlFBsaI0grOkrunXhh",
+    "year": 12,
+    "squad": 3,
+    "isSquadLeader": true,
+    "name": "Matthew Liu",
+    "marks": [
+      {
+        "date": "2025-09-19",
+        "score": 7
+      },
+      {
+        "score": 7,
+        "date": "2025-09-26"
+      },
+      {
+        "date": "2025-10-10",
+        "score": 8
+      },
+      {
+        "date": "2025-10-17",
+        "score": 8
+      },
+      {
+        "score": 8,
+        "date": "2025-11-07"
+      },
+      {
+        "date": "2025-11-09",
+        "score": 0
+      },
+      {
+        "score": 0,
+        "date": "2025-10-24"
+      },
+      {
+        "score": 8,
+        "date": "2025-11-14"
+      },
+      {
+        "date": "2025-11-21",
+        "score": 8
+      },
+      {
+        "date": "2025-11-28",
+        "score": 8
+      }
+    ]
+  },
+  {
+    "id": "3cjsyiS1TnjkYsA29h4z",
+    "year": 8,
+    "name": "Blake Arbuthnot",
+    "squad": 1,
+    "marks": [
+      {
+        "score": 8,
+        "date": "2025-09-19"
+      },
+      {
+        "score": 7,
+        "date": "2025-09-26"
+      },
+      {
+        "date": "2025-10-10",
+        "score": 8
+      },
+      {
+        "date": "2025-10-17",
+        "score": 8
+      },
+      {
+        "date": "2025-10-24",
+        "score": 0
+      },
+      {
+        "date": "2025-11-07",
+        "score": 8
+      },
+      {
+        "score": 0,
+        "date": "2025-11-09"
+      },
+      {
+        "date": "2025-11-14",
+        "score": 8
+      },
+      {
+        "date": "2025-11-21",
+        "score": 8
+      },
+      {
+        "date": "2025-11-28",
+        "score": 8
+      }
+    ]
+  },
+  {
+    "id": "5nx8pRvFrEEa6aBBDs9n",
+    "name": "Oscar Kowalski",
+    "squad": 3,
+    "year": 8,
+    "isSquadLeader": false,
+    "marks": [
+      {
+        "score": 8,
+        "date": "2025-11-14"
+      },
+      {
+        "date": "2025-11-21",
+        "score": 8
+      },
+      {
+        "date": "2025-11-28",
+        "score": 8
+      }
+    ]
+  },
+  {
+    "id": "Bufq1urumueOkf0kGWfH",
+    "squad": 1,
+    "year": 10,
+    "name": "William Gordon",
+    "marks": [
+      {
+        "date": "2025-09-19",
+        "score": 8
+      },
+      {
+        "date": "2025-09-26",
+        "score": 7
+      },
+      {
+        "score": 8,
+        "date": "2025-10-10"
+      },
+      {
+        "score": 8,
+        "date": "2025-10-17"
+      },
+      {
+        "date": "2025-11-07",
+        "score": 8
+      },
+      {
+        "score": 0,
+        "date": "2025-11-09"
+      },
+      {
+        "date": "2025-10-24",
+        "score": 0
+      },
+      {
+        "date": "2025-11-14",
+        "score": 8
+      },
+      {
+        "date": "2025-11-21",
+        "score": 8
+      },
+      {
+        "date": "2025-11-28",
+        "score": 8
+      }
+    ]
+  },
+  {
+    "id": "FJtTTDqXi6cbuoNsu7Tn",
+    "name": "Joshua White",
+    "year": 8,
+    "squad": 3,
+    "marks": [
+      {
+        "date": "2025-09-19",
+        "score": 7
+      },
+      {
+        "score": 8,
+        "date": "2025-09-26"
+      },
+      {
+        "date": "2025-10-10",
+        "score": 8
+      },
+      {
+        "date": "2025-10-17",
+        "score": 7
+      },
+      {
+        "score": 8,
+        "date": "2025-11-07"
+      },
+      {
+        "score": -1,
+        "date": "2025-11-09"
+      },
+      {
+        "date": "2025-10-24",
+        "score": 0
+      },
+      {
+        "date": "2025-11-14",
+        "score": 7
+      },
+      {
+        "date": "2025-11-21",
+        "score": 8
+      },
+      {
+        "date": "2025-11-28",
+        "score": 7
+      }
+    ]
+  },
+  {
+    "id": "H8HmKybPzjqXnk9bwfEp",
+    "year": 12,
+    "isSquadLeader": true,
+    "squad": 1,
+    "name": "Harrison Kerr",
+    "marks": [
+      {
+        "date": "2025-10-17",
+        "score": 8
+      },
+      {
+        "date": "2025-10-10",
+        "score": 8
+      },
+      {
+        "score": 8,
+        "date": "2025-09-26"
+      },
+      {
+        "date": "2025-09-19",
+        "score": 8
+      },
+      {
+        "score": 8,
+        "date": "2025-11-07"
+      },
+      {
+        "score": 0,
+        "date": "2025-11-09"
+      },
+      {
+        "score": 0,
+        "date": "2025-10-24"
+      },
+      {
+        "date": "2025-11-14",
+        "score": 8
+      },
+      {
+        "date": "2025-11-21",
+        "score": 8
+      },
+      {
+        "date": "2025-11-28",
+        "score": -1
+      }
+    ]
+  },
+  {
+    "id": "LgV8LrGPlJMGtg4AUHiT",
+    "name": "Rhys Milliken",
+    "year": 8,
+    "squad": 1,
+    "marks": [
+      {
+        "score": 8,
+        "date": "2025-09-19"
+      },
+      {
+        "date": "2025-09-26",
+        "score": 8
+      },
+      {
+        "date": "2025-10-10",
+        "score": 8
+      },
+      {
+        "score": 8,
+        "date": "2025-10-17"
+      },
+      {
+        "score": 8,
+        "date": "2025-11-07"
+      },
+      {
+        "score": 0,
+        "date": "2025-11-09"
+      },
+      {
+        "score": 0,
+        "date": "2025-10-24"
+      },
+      {
+        "score": -1,
+        "date": "2025-11-14"
+      },
+      {
+        "date": "2025-11-21",
+        "score": -1
+      },
+      {
+        "date": "2025-11-28",
+        "score": 8
+      }
+    ]
+  },
+  {
+    "id": "OPnzvNbjUspW0rxXsUtm",
+    "year": 10,
+    "name": "Jason White",
+    "squad": 2,
+    "marks": [
+      {
+        "date": "2025-09-19",
+        "score": 7
+      },
+      {
+        "score": 7,
+        "date": "2025-09-26"
+      },
+      {
+        "date": "2025-10-10",
+        "score": 7
+      },
+      {
+        "score": 7,
+        "date": "2025-10-17"
+      },
+      {
+        "date": "2025-11-07",
+        "score": 7
+      },
+      {
+        "score": -1,
+        "date": "2025-11-09"
+      },
+      {
+        "date": "2025-10-24",
+        "score": 0
+      },
+      {
+        "date": "2025-11-14",
+        "score": 7
+      },
+      {
+        "date": "2025-11-21",
+        "score": 8
+      },
+      {
+        "date": "2025-11-28",
+        "score": 7
+      }
+    ]
+  },
+  {
+    "id": "PAkuYREqptb5hM04aXOH",
+    "year": 9,
+    "squad": 3,
+    "name": "Dillon Berry",
+    "marks": [
+      {
+        "date": "2025-11-07",
+        "score": -1
+      },
+      {
+        "date": "2025-10-24",
+        "score": -1
+      },
+      {
+        "score": -1,
+        "date": "2025-10-17"
+      },
+      {
+        "date": "2025-10-10",
+        "score": -1
+      },
+      {
+        "date": "2025-09-26",
+        "score": 7
+      },
+      {
+        "date": "2025-09-19",
+        "score": 8
+      },
+      {
+        "score": -1,
+        "date": "2025-11-09"
+      },
+      {
+        "score": 8,
+        "date": "2025-11-14"
+      },
+      {
+        "date": "2025-11-21",
+        "score": 7.5
+      },
+      {
+        "date": "2025-11-28",
+        "score": -1
+      }
+    ]
+  },
+  {
+    "id": "dEHnroLxc8JRcMenFmBV",
+    "name": "Christian Berry",
+    "squad": 2,
+    "year": 10,
+    "marks": [
+      {
+        "date": "2025-11-07",
+        "score": -1
+      },
+      {
+        "date": "2025-10-24",
+        "score": -1
+      },
+      {
+        "date": "2025-10-17",
+        "score": 8
+      },
+      {
+        "date": "2025-10-10",
+        "score": -1
+      },
+      {
+        "date": "2025-09-26",
+        "score": 8
+      },
+      {
+        "date": "2025-09-19",
+        "score": 8
+      },
+      {
+        "score": -1,
+        "date": "2025-11-09"
+      },
+      {
+        "score": 7.5,
+        "date": "2025-11-14"
+      },
+      {
+        "date": "2025-11-21",
+        "score": 7
+      },
+      {
+        "date": "2025-11-28",
+        "score": -1
+      }
+    ]
+  },
+  {
+    "id": "dHO7Gi8GcIB1XfoXtJAL",
+    "name": "John Anderson",
+    "squad": 3,
+    "year": 8,
+    "marks": [
+      {
+        "score": 8,
+        "date": "2025-09-19"
+      },
+      {
+        "date": "2025-09-26",
+        "score": 8
+      },
+      {
+        "date": "2025-10-10",
+        "score": 8
+      },
+      {
+        "date": "2025-10-17",
+        "score": 8
+      },
+      {
+        "score": 8,
+        "date": "2025-11-07"
+      },
+      {
+        "date": "2025-11-09",
+        "score": 0
+      },
+      {
+        "date": "2025-10-24",
+        "score": 0
+      },
+      {
+        "date": "2025-11-14",
+        "score": 8
+      },
+      {
+        "date": "2025-11-21",
+        "score": 8
+      },
+      {
+        "date": "2025-11-28",
+        "score": 8.5
+      }
+    ]
+  },
+  {
+    "id": "rpx9j0qhkv7VHG277gJG",
+    "squad": 1,
+    "name": "Ewan McIlroy",
+    "year": 9,
+    "marks": [
+      {
+        "date": "2025-09-19",
+        "score": 8
+      },
+      {
+        "date": "2025-09-26",
+        "score": 6
+      },
+      {
+        "date": "2025-10-10",
+        "score": 7
+      },
+      {
+        "date": "2025-10-17",
+        "score": 7
+      },
+      {
+        "date": "2025-11-07",
+        "score": 8
+      },
+      {
+        "score": 0,
+        "date": "2025-11-09"
+      },
+      {
+        "date": "2025-10-24",
+        "score": 0
+      },
+      {
+        "date": "2025-11-14",
+        "score": 8
+      },
+      {
+        "date": "2025-11-21",
+        "score": 8
+      },
+      {
+        "date": "2025-11-28",
+        "score": 8
+      }
+    ]
+  },
+  {
+    "id": "yt62RuFCUNXl9XJRkP1Q",
+    "squad": 2,
+    "name": "Jenson Boyd",
+    "isSquadLeader": true,
+    "year": 11,
+    "marks": [
+      {
+        "score": 7,
+        "date": "2025-09-19"
+      },
+      {
+        "score": 7,
+        "date": "2025-09-26"
+      },
+      {
+        "score": 7,
+        "date": "2025-10-10"
+      },
+      {
+        "date": "2025-10-17",
+        "score": 7
+      },
+      {
+        "score": 7,
+        "date": "2025-11-07"
+      },
+      {
+        "date": "2025-11-09",
+        "score": -1
+      },
+      {
+        "score": 0,
+        "date": "2025-10-24"
+      },
+      {
+        "score": 8,
+        "date": "2025-11-14"
+      },
+      {
+        "date": "2025-11-21",
+        "score": 7.5
+      },
+      {
+        "date": "2025-11-28",
+        "score": 7
+      }
+    ]
+  }
+]

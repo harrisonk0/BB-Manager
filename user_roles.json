@@ -1,0 +1,22 @@
+[
+  {
+    "id": "6sBpmZeIy1STdmmFKp9feTFbVYZ2",
+    "email": "tjmccormick@btopenworld.com",
+    "role": "captain"
+  },
+  {
+    "id": "FfC47JPSRkPYfQOFfcKNfOkfxIw1",
+    "email": "diane.smyth50@hotmail.co.uk",
+    "role": "officer"
+  },
+  {
+    "id": "O7VHnkD0XPVjEcQqTvLhGpMw9V12",
+    "role": "admin",
+    "email": "me@harrisonk.co.uk"
+  },
+  {
+    "id": "WX6HffCswRcxGrCTfAAaRvZAGOr2",
+    "email": "alan@lsslimited.com",
+    "role": "officer"
+  }
+]

@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { Boy, Squad, SchoolYear, Section, JuniorSquad, JuniorYear } from '../types';
 import { createBoy, updateBoy, createAuditLog } from '../services/db';
-import { getAuthInstance } from '../services/firebase';
+import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
 interface BoyFormProps {
   /** If provided, the form will be in 'edit' mode, pre-filled with this boy's data. If null/undefined, it's in 'add' mode. */
@@ -22,6 +22,8 @@ interface BoyFormProps {
 
 const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSection }) => {
   const isCompany = activeSection === 'company';
+
+  const { user } = useAuthAndRole();
   
   // Set initial form state based on the active section.
   const initialSquad = isCompany ? 1 : 1;
@@ -88,8 +90,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     }
 
     try {
-      const auth = getAuthInstance();
-      const userEmail = auth.currentUser?.email || 'Unknown User';
+      const userEmail = user?.email || 'Unknown User';
 
       if (boyToEdit) {
         // --- UPDATE LOGIC ---
