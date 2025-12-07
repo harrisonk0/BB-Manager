@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { Boy, Squad, SchoolYear, Section, JuniorSquad, JuniorYear } from '../types';
 import { createBoy, updateBoy, createAuditLog } from '../services/db';
 import { useAuthAndRole } from '../hooks/useAuthAndRole';
+import { useOfflineStatus } from '../hooks/useOfflineStatus';
 
 interface BoyFormProps {
   /** If provided, the form will be in 'edit' mode, pre-filled with this boy's data. If null/undefined, it's in 'add' mode. */
@@ -39,7 +40,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
   const [nameError, setNameError] = useState<string | null>(null);
   const [squadError, setSquadError] = useState<string | null>(null);
   const [yearError, setYearError] = useState<string | null>(null);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const { isOffline } = useOfflineStatus();
 
   /**
    * EFFECT: Populates the form fields when `boyToEdit` prop changes.
@@ -64,16 +65,6 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     setSquadError(null);
     setYearError(null);
   }, [boyToEdit, activeSection]);
-
-  useEffect(() => {
-    const handleOnlineStatus = () => setIsOffline(!navigator.onLine);
-    window.addEventListener('online', handleOnlineStatus);
-    window.addEventListener('offline', handleOnlineStatus);
-    return () => {
-      window.removeEventListener('online', handleOnlineStatus);
-      window.removeEventListener('offline', handleOnlineStatus);
-    };
-  }, []);
 
   /**
    * Handles the form submission.

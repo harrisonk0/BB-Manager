@@ -6,6 +6,7 @@ import { updateBoy, createAuditLog } from '../services/db';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
 import { useAuthAndRole } from '../hooks/useAuthAndRole';
+import { useOfflineStatus } from '../hooks/useOfflineStatus';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -61,6 +62,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
   const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
   const { user } = useAuthAndRole();
+  const { isOffline } = useOfflineStatus();
 
 
   const isCompany = activeSection === 'company';

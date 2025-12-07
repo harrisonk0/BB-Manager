@@ -11,6 +11,7 @@ import { Boy, Mark, Squad, Section, JuniorSquad, ToastType } from '../types';
 import { TrashIcon, SaveIcon } from './Icons';
 import { BoyMarksPageSkeleton } from './SkeletonLoaders';
 import { useAuthAndRole } from '../hooks/useAuthAndRole';
+import { useOfflineStatus } from '../hooks/useOfflineStatus';
 
 interface BoyMarksPageProps {
   boyId: string;
@@ -56,6 +57,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuthAndRole();
+  const { isOffline } = useOfflineStatus();
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;

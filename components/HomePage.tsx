@@ -7,6 +7,7 @@ import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
 import { deleteBoyById, createAuditLog } from '../services/db';
 import { useAuthAndRole } from '../hooks/useAuthAndRole';
+import { useOfflineStatus } from '../hooks/useOfflineStatus';
 
 interface HomePageProps {
   /** The list of all boys for the active section. */
@@ -49,7 +50,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   const [sortBy, setSortBy] = useState<SortByType>(() => (localStorage.getItem('homePageSortBy') as SortByType) || 'name');
   const [filterSquad, setFilterSquad] = useState<string>(() => localStorage.getItem('homePageFilterSquad') || 'all');
   const [filterYear, setFilterYear] = useState<string>(() => localStorage.getItem('homePageFilterYear') || 'all');
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const { isOffline } = useOfflineStatus();
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
@@ -73,16 +74,6 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   useEffect(() => {
     localStorage.setItem('homePageFilterYear', filterYear);
   }, [filterYear]);
-
-  useEffect(() => {
-    const updateOnline = () => setIsOffline(!navigator.onLine);
-    window.addEventListener('online', updateOnline);
-    window.addEventListener('offline', updateOnline);
-    return () => {
-      window.removeEventListener('online', updateOnline);
-      window.removeEventListener('offline', updateOnline);
-    };
-  }, []);
 
   // --- UTILITY FUNCTIONS ---
   const calculateTotalMarks = (boy: Boy) => {
