@@ -97,14 +97,13 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       // 3. Assign Default Role to New User
       await setUserRole(newUser.id, newUser.email || email, fetchedCode.defaultUserRole);
 
-      // 4. Mark Invite Code as Used
-      const updatedCode = {
-        ...fetchedCode,
+      // 4. Mark Invite Code as Used (signup mode limits fields)
+      const usageUpdate = {
         isUsed: true,
         usedBy: newUser.email || 'Unknown',
         usedAt: Date.now(),
       };
-      await updateInviteCode(updatedCode.id, updatedCode, null, true);
+      await updateInviteCode(fetchedCode.id, usageUpdate, { signup: true });
 
       // 5. Create Audit Log Entry
       await createAuditLog({
