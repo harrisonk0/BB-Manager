@@ -547,9 +547,20 @@ export const fetchInviteCode = async (id: string): Promise<InviteCode | undefine
   };
 };
 
-export const updateInviteCode = async (id: string, updates: Partial<InviteCode>, userRole: UserRole | null): Promise<InviteCode> => {
-  if (!userRole || !['admin', 'captain'].includes(userRole)) {
-    throw new Error('Permission denied: Only Admins and Captains can update invite codes.');
+export const updateInviteCode = async (
+  id: string,
+  updates: Partial<InviteCode>,
+  userRole: UserRole | null,
+  allowSignupConsumption: boolean = false
+): Promise<InviteCode> => {
+  if (!allowSignupConsumption) {
+    if (!userRole || !['admin', 'captain'].includes(userRole)) {
+      throw new Error('Permission denied: Only Admins and Captains can update invite codes.');
+    }
+  } else {
+    if (updates.revoked !== undefined || updates.expiresAt !== undefined || updates.defaultUserRole !== undefined) {
+      throw new Error('Signup consumption can only mark invite codes as used.');
+    }
   }
 
   const authUser = await supabaseAuth.getCurrentUser();
