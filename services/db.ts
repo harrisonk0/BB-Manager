@@ -374,12 +374,16 @@ export const createAuditLog = async (
 };
 
 export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[]> => {
-  const filters = section ? [{ column: 'section', value: section }] : [{ column: 'section', value: null }];
   const query = supabase.from('audit_logs').select('*').order('timestamp', { ascending: false });
-  let { data, error } = await query.eq('section', filters[0].value as any);
+  let { data, error } =
+    section === null ? await query.is('section', null) : await query.eq('section', section as any);
 
   if (section !== null) {
-    const globalResult = await supabase.from('audit_logs').select('*').eq('section', null).order('timestamp', { ascending: false });
+    const globalResult = await supabase
+      .from('audit_logs')
+      .select('*')
+      .is('section', null)
+      .order('timestamp', { ascending: false });
     if (!globalResult.error && globalResult.data) {
       data = [...(data || []), ...globalResult.data];
     } else if (globalResult.error) {
