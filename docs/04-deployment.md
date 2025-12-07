@@ -1,6 +1,6 @@
 # 4. Deployment
 
-BB Manager is a static React PWA that consumes Supabase Auth and database APIs. You can deploy the built assets to any static host (e.g., Vercel, Netlify, Cloudflare Pages, or Supabase Storage + CDN) as long as the Supabase environment variables are configured at build time.
+BB Manager is a static React application that consumes Supabase Auth and database APIs. You can deploy the built assets to any static host (e.g., Vercel, Netlify, Cloudflare Pages, or Supabase Storage + CDN) as long as the Supabase environment variables are configured at build time.
 
 ## Prerequisites
 - Supabase project with the required tables, RLS enabled, and production credentials (Project URL and anon key).
@@ -23,7 +23,7 @@ BB Manager is a static React PWA that consumes Supabase Auth and database APIs. 
 
 ## Other Hosts
 - **Netlify/Cloudflare Pages**: Point to `npm run build` as the build command and `dist/` as the publish directory; add the same env vars.
-- **Supabase Storage + CDN**: Upload the `dist/` contents to a public bucket and serve via the Supabase CDN; ensure service worker paths remain at the bucket root.
+- **Supabase Storage + CDN**: Upload the `dist/` contents to a public bucket and serve via the Supabase CDN.
 
 ## Post-deploy Checklist
 - Confirm Supabase Auth sign-in/sign-up works in production.

@@ -1,17 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Section, ToastType, InviteCode, UserRole, AuditLogActionType } from '../types';
+import { Section, ToastType, InviteCode, UserRole } from '../types';
 import {
   createAuditLog,
   createInviteCode,
   fetchAllInviteCodes,
   fetchAllUserRoles,
-  updateUserRole, 
+  updateUserRole,
   revokeInviteCode,
   clearAllAuditLogs,
   clearAllUsedRevokedInviteCodes,
-  clearAllLocalData,
   updateInviteCode,
   deleteUserRole
 } from '../services/db';
@@ -20,7 +19,7 @@ import Modal from './Modal';
 import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
 interface GlobalSettingsPageProps {
-  activeSection: Section; // Still needed for audit logging and clear local data
+  activeSection: Section;
   showToast: (message: string, type?: ToastType) => void;
   userRole: UserRole | null;
   refreshData: () => void; // To refresh data in App.tsx after destructive actions
@@ -61,7 +60,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
 
   const [isClearLogsModalOpen, setIsClearLogsModalOpen] = useState(false);
   const [isClearInviteCodesModalOpen, setIsClearInviteCodesModalOpen] = useState(false);
-  const [isClearLocalDataModalOpen, setIsClearLocalDataModalOpen] = useState(false);
   const [isClearingDevData, setIsClearingDevData] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -108,18 +106,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
   useEffect(() => {
     loadInviteCodes();
   }, [loadInviteCodes, userRole]);
-
-  useEffect(() => {
-    const handleInviteCodesRefresh = () => {
-      console.log('Invite codes cache updated in background, refreshing UI...');
-      loadInviteCodes(false);
-    };
-
-    window.addEventListener('inviteCodesRefreshed', handleInviteCodesRefresh);
-    return () => {
-      window.removeEventListener('inviteCodesRefreshed', handleInviteCodesRefresh);
-    };
-  }, [loadInviteCodes]);
 
   const loadUsersWithRoles = useCallback(async () => {
     if (!canManageUserRoles) {
@@ -341,8 +327,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       await clearAllAuditLogs(activeSection, userEmail, userRole); // This will clear section-specific logs
       await clearAllAuditLogs(null, userEmail, userRole); // Clear global logs
       showToast('All audit logs cleared successfully!', 'success');
-      window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section: activeSection } }));
-      window.dispatchEvent(new CustomEvent('logsrefreshed', { detail: { section: null } })); // Trigger refresh for global logs
     } catch (err: any) {
       console.error("Failed to clear audit logs:", err);
       showToast(`Failed to clear audit logs: ${err.message}`, 'error');
@@ -365,22 +349,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     } finally {
       setIsClearingDevData(false);
       setIsClearInviteCodesModalOpen(false);
-    }
-  };
-
-  const handleClearAllLocalData = async () => {
-    setIsClearingDevData(true);
-    try {
-      const userEmail = user?.email || 'Unknown User';
-      await clearAllLocalData(activeSection, userEmail, userRole);
-      showToast('All local data cleared successfully! Please refresh the page.', 'success');
-      window.location.reload();
-    } catch (err: any) {
-      console.error("Failed to clear local data:", err);
-      showToast(`Failed to clear local data: ${err.message}`, 'error');
-    } finally {
-      setIsClearingDevData(false);
-      setIsClearLocalDataModalOpen(false);
     }
   };
   
@@ -553,16 +521,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                   Clear All Used/Revoked Invite Codes
                 </button>
                 <p className="mt-1 text-xs text-red-700">Deletes all used or revoked invite codes from Firestore and local storage.</p>
-              </div>
-              <div>
-                <button
-                  onClick={() => setIsClearLocalDataModalOpen(true)}
-                  disabled={isClearingDevData}
-                  className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Clear All Local Data (Current Section & Global Invite Codes/Roles)
-                </button>
-                <p className="mt-1 text-xs text-red-700">Deletes all local data (boys, audit logs, pending writes, all invite codes, and all user roles) for the current section from your browser's IndexedDB. Requires page refresh.</p>
               </div>
             </div>
           </div>
@@ -773,31 +731,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
         </div>
       </Modal>
 
-      {/* Clear All Local Data Confirmation Modal */}
-      <Modal isOpen={isClearLocalDataModalOpen} onClose={() => setIsClearLocalDataModalOpen(false)} title="Confirm Clear All Local Data">
-        <div className="space-y-4">
-          <p className="text-red-600 font-semibold">This action will permanently delete ALL local data (members, audit logs, pending writes, and all invite codes) for the current section from your browser's IndexedDB.</p>
-          <p className="text-slate-600">This will NOT affect data in Firestore. You will need to refresh the page after this action.</p>
-          <p className="text-slate-600">Are you absolutely sure you want to proceed?</p>
-          <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button
-              type="button"
-              onClick={() => setIsClearLocalDataModalOpen(false)}
-              disabled={isClearingDevData}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleClearAllLocalData}
-              disabled={isClearingDevData}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isClearingDevData ? 'Clearing...' : 'Clear Local Data'}
-            </button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };
