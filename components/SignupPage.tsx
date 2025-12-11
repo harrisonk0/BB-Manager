@@ -105,13 +105,17 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       };
       await updateInviteCode(fetchedCode.id, usageUpdate, { signup: true });
 
-      // 5. Create Audit Log Entry
-      await createAuditLog({
-        userEmail: newUser.email || 'Unknown',
-        actionType: 'USE_INVITE_CODE',
-        description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${fetchedCode.defaultUserRole}'.`,
-        revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
-      }, fetchedCode.section || null);
+      // 5. Create Audit Log Entry (best-effort so signup is not blocked)
+      try {
+        await createAuditLog({
+          userEmail: newUser.email || 'Unknown',
+          actionType: 'USE_INVITE_CODE',
+          description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${fetchedCode.defaultUserRole}'.`,
+          revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
+        }, fetchedCode.section || null);
+      } catch (logError) {
+        console.error('Failed to create signup audit log:', logError);
+      }
 
       showToast('Account created successfully! Please select your section.', 'success');
       onSignupSuccess(fetchedCode.section || 'company');

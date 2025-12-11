@@ -577,7 +577,7 @@ export const updateInviteCode = async (
   }
 
   const authUser = await supabaseAuth.getCurrentUser();
-  if (!authUser) throw new Error('User not authenticated');
+  if (!signup && !authUser) throw new Error('User not authenticated');
 
   const updatePayload: Record<string, any> = {};
 
@@ -625,15 +625,17 @@ export const updateInviteCode = async (
 
   const updated = mapInviteCodeRow(data);
 
-  await createAuditLog(
-    {
-      userEmail: authUser.email || 'Unknown User',
-      actionType: 'UPDATE_INVITE_CODE',
-      description: `Updated invite code ${id}.`,
-      revertData: { inviteCode: updated },
-    },
-    null
-  );
+  if (!signup && authUser) {
+    await createAuditLog(
+      {
+        userEmail: authUser.email || 'Unknown User',
+        actionType: 'UPDATE_INVITE_CODE',
+        description: `Updated invite code ${id}.`,
+        revertData: { inviteCode: updated },
+      },
+      null
+    );
+  }
 
   return updated;
 };
