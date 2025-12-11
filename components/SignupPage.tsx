@@ -97,22 +97,25 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       // 3. Assign Default Role to New User
       await setUserRole(newUser.id, newUser.email || email, fetchedCode.defaultUserRole);
 
-      // 4. Mark Invite Code as Used
-      const updatedCode = {
-        ...fetchedCode,
+      // 4. Mark Invite Code as Used (signup mode limits fields)
+      const usageUpdate = {
         isUsed: true,
         usedBy: newUser.email || 'Unknown',
         usedAt: Date.now(),
       };
-      await updateInviteCode(updatedCode.id, updatedCode, null);
+      await updateInviteCode(fetchedCode.id, usageUpdate, { signup: true });
 
-      // 5. Create Audit Log Entry
-      await createAuditLog({
-        userEmail: newUser.email || 'Unknown',
-        actionType: 'USE_INVITE_CODE',
-        description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${fetchedCode.defaultUserRole}'.`,
-        revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
-      }, fetchedCode.section || null);
+      // 5. Create Audit Log Entry (best-effort so signup is not blocked)
+      try {
+        await createAuditLog({
+          userEmail: newUser.email || 'Unknown',
+          actionType: 'USE_INVITE_CODE',
+          description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${fetchedCode.defaultUserRole}'.`,
+          revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
+        }, fetchedCode.section || null);
+      } catch (logError) {
+        console.error('Failed to create signup audit log:', logError);
+      }
 
       showToast('Account created successfully! Please select your section.', 'success');
       onSignupSuccess(fetchedCode.section || 'company');

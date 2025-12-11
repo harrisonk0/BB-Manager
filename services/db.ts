@@ -547,23 +547,74 @@ export const fetchInviteCode = async (id: string): Promise<InviteCode | undefine
   };
 };
 
-export const updateInviteCode = async (id: string, updates: Partial<InviteCode>, userRole: UserRole | null): Promise<InviteCode> => {
-  if (!userRole || !['admin', 'captain'].includes(userRole)) {
+type InviteCodeUpdateOptions = {
+  signup?: boolean;
+  callerRole?: UserRole | null;
+};
+
+const mapInviteCodeRow = (data: any): InviteCode => ({
+  id: data.id,
+  generatedBy: data.generated_by,
+  section: data.section,
+  isUsed: data.is_used,
+  usedBy: data.used_by,
+  usedAt: data.used_at ? new Date(data.used_at).getTime() : null,
+  revoked: data.revoked,
+  defaultUserRole: data.default_user_role,
+  expiresAt: data.expires_at ? new Date(data.expires_at).getTime() : 0,
+  generatedAt: data.generated_at ? new Date(data.generated_at).getTime() : Date.now(),
+});
+
+export const updateInviteCode = async (
+  id: string,
+  updates: Partial<InviteCode>,
+  options: InviteCodeUpdateOptions = {}
+): Promise<InviteCode> => {
+  const { signup = false, callerRole = null } = options;
+
+  if (!signup && (!callerRole || !['admin', 'captain'].includes(callerRole))) {
     throw new Error('Permission denied: Only Admins and Captains can update invite codes.');
   }
 
   const authUser = await supabaseAuth.getCurrentUser();
-  if (!authUser) throw new Error('User not authenticated');
+  if (!signup && !authUser) throw new Error('User not authenticated');
+
+  const updatePayload: Record<string, any> = {};
+
+  if (signup) {
+    const forbiddenFields: (keyof InviteCode)[] = ['generatedBy', 'revoked', 'section', 'defaultUserRole', 'expiresAt'];
+    const attemptedForbiddenUpdate = forbiddenFields.some(key => updates[key] !== undefined);
+    if (attemptedForbiddenUpdate) {
+      throw new Error('Signup updates are limited to usage fields only.');
+    }
+
+    if (updates.isUsed !== undefined) updatePayload.is_used = updates.isUsed;
+    if (updates.usedBy !== undefined) updatePayload.used_by = updates.usedBy;
+    if (updates.usedAt !== undefined) {
+      updatePayload.used_at = updates.usedAt ? new Date(updates.usedAt).toISOString() : null;
+    }
+  } else {
+    if (updates.isUsed !== undefined) updatePayload.is_used = updates.isUsed;
+    if (updates.usedBy !== undefined) updatePayload.used_by = updates.usedBy;
+    if (updates.usedAt !== undefined) {
+      updatePayload.used_at = updates.usedAt ? new Date(updates.usedAt).toISOString() : null;
+    }
+    if (updates.revoked !== undefined) updatePayload.revoked = updates.revoked;
+    if (updates.expiresAt !== undefined) {
+      updatePayload.expires_at = updates.expiresAt ? new Date(updates.expiresAt).toISOString() : null;
+    }
+    if (updates.defaultUserRole !== undefined) updatePayload.default_user_role = updates.defaultUserRole;
+    if (updates.generatedBy !== undefined) updatePayload.generated_by = updates.generatedBy;
+    if (updates.section !== undefined) updatePayload.section = updates.section;
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    throw new Error('No valid invite code updates provided.');
+  }
 
   const { data, error } = await supabase
     .from('invite_codes')
-    .update({
-      is_used: updates.isUsed,
-      used_by: updates.usedBy,
-      used_at: updates.usedAt ? new Date(updates.usedAt).toISOString() : null,
-      revoked: updates.revoked,
-      expires_at: updates.expiresAt ? new Date(updates.expiresAt).toISOString() : undefined,
-    })
+    .update(updatePayload)
     .eq('id', id)
     .select()
     .single();
@@ -572,28 +623,19 @@ export const updateInviteCode = async (id: string, updates: Partial<InviteCode>,
     throw new Error(error?.message || 'Failed to update invite code.');
   }
 
-  const updated: InviteCode = {
-    id: data.id,
-    generatedBy: data.generated_by,
-    section: data.section,
-    isUsed: data.is_used,
-    usedBy: data.used_by,
-    usedAt: data.used_at ? new Date(data.used_at).getTime() : null,
-    revoked: data.revoked,
-    defaultUserRole: data.default_user_role,
-    expiresAt: data.expires_at ? new Date(data.expires_at).getTime() : 0,
-    generatedAt: data.generated_at ? new Date(data.generated_at).getTime() : Date.now(),
-  };
+  const updated = mapInviteCodeRow(data);
 
-  await createAuditLog(
-    {
-      userEmail: authUser.email || 'Unknown User',
-      actionType: 'UPDATE_INVITE_CODE',
-      description: `Updated invite code ${id}.`,
-      revertData: { inviteCode: updated },
-    },
-    null
-  );
+  if (!signup && authUser) {
+    await createAuditLog(
+      {
+        userEmail: authUser.email || 'Unknown User',
+        actionType: 'UPDATE_INVITE_CODE',
+        description: `Updated invite code ${id}.`,
+        revertData: { inviteCode: updated },
+      },
+      null
+    );
+  }
 
   return updated;
 };
@@ -604,7 +646,7 @@ export const revokeInviteCode = async (
   createLogEntry: boolean = true,
   userRole: UserRole | null
 ): Promise<void> => {
-  await updateInviteCode(id, { revoked: true }, userRole);
+  await updateInviteCode(id, { revoked: true }, { callerRole: userRole });
 
   if (createLogEntry) {
     const authUser = await supabaseAuth.getCurrentUser();
