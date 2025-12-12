@@ -21,18 +21,40 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ showToast, onNavi
   useEffect(() => {
     const prepareSession = async () => {
       try {
-        const { data, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError || !data.session) {
-          setSessionAvailable(false);
-        } else {
-          setSessionAvailable(true);
+        const url = new URL(window.location.href);
+        const hashParams = new URLSearchParams(url.hash.replace('#', ''));
+        const searchParams = url.searchParams;
+        const hasSessionTokens = hashParams.has('access_token') && hashParams.has('refresh_token');
+        const isRecovery = hashParams.get('type') === 'recovery' || searchParams.get('type') === 'recovery';
+
+        if (hasSessionTokens) {
+          const { data, error: fromUrlError } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+          if (fromUrlError) throw fromUrlError;
+          setSessionAvailable(!!data.session);
+          window.history.replaceState({}, document.title, `${url.origin}/reset-password`);
+          return;
         }
 
-        const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
-        if (hashParams.has('access_token') || hashParams.get('type') === 'recovery') {
-          const url = new URL(window.location.href);
-          window.history.replaceState({}, document.title, `${url.origin}/reset-password`);
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (data.session) {
+          setSessionAvailable(true);
+          if (isRecovery) {
+            window.history.replaceState({}, document.title, `${url.origin}/reset-password`);
+          }
+          return;
         }
+
+        const authCode = searchParams.get('code') || searchParams.get('token');
+        if (authCode) {
+          const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(authCode);
+          if (exchangeError) throw exchangeError;
+          setSessionAvailable(!!exchangeData.session);
+          window.history.replaceState({}, document.title, `${url.origin}/reset-password`);
+          return;
+        }
+
+        setSessionAvailable(false);
       } catch (err) {
         console.error('Failed to verify recovery session', err);
         setSessionAvailable(false);
