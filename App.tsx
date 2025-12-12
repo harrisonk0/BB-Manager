@@ -18,6 +18,7 @@ import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { View, Page, BoyMarksPageView, Section, ToastType } from './types';
 import Modal from './components/Modal';
+import ResetPasswordPage from './components/ResetPasswordPage';
 
 // Import custom hooks
 import { useToastNotifications } from '@/hooks/useToastNotifications';
@@ -67,6 +68,17 @@ const App: React.FC = () => {
     performSignOut
   );
 
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const searchType = url.searchParams.get('type');
+    const hashParams = new URLSearchParams(url.hash.replace('#', ''));
+    const hashType = hashParams.get('type');
+
+    if (url.pathname === '/reset-password' || searchType === 'recovery' || hashType === 'recovery') {
+      navigateWithProtection({ page: 'resetPassword' });
+    }
+  }, [navigateWithProtection]);
+
   // Update internal view state when protectedView changes
   useEffect(() => {
     setView(protectedView);
@@ -111,6 +123,15 @@ const App: React.FC = () => {
   };
   
   const renderApp = () => {
+    const handleResetNavigation = () => {
+      window.history.replaceState({}, document.title, '/');
+      navigateWithProtection({ page: 'home' });
+    };
+
+    if (view.page === 'resetPassword') {
+      return <ResetPasswordPage showToast={showToast} onNavigateHome={handleResetNavigation} />;
+    }
+
     // Handle loading state first
     if (authLoading || (currentUser && dataLoading && view.page !== 'signup')) {
         return <HomePageSkeleton />;
