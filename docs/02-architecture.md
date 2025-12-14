@@ -10,7 +10,7 @@ offline cache.
 ## Core Principles
 
 1. **Single Source of Truth**: Supabase (PostgreSQL) stores all member, audit log, invite code, and user role data.
-2. **Role-Aware Access**: The UI and service layer enforce role checks (admin, captain, officer) before performing sensitive actions.
+2. **Role-Aware UX**: The UI and service layer perform role checks (admin, captain, officer) before performing sensitive actions. These checks are UX only; the current database access model is GRANT-based and RLS is not yet enforced (see [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md)).
 3. **Predictable Data Flows**: Components call service functions in `services/db.ts`, which wrap Supabase queries and mutations.
 4. **Auditability**: Significant changes are logged via `createAuditLog`, providing traceability for administrative actions.
 

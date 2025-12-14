@@ -7,6 +7,14 @@ This document explains how the application interacts with Supabase for data stor
 retrieval. All reads and writes happen online against Supabase tables; there is no local
 IndexedDB cache.
 
+## Database Schema & Migrations
+
+Database schema and permissions are managed via Supabase migrations in `supabase/migrations/`
+(baseline `*_remote_schema.sql` files are immutable history).
+
+Security note: the current access model is primarily GRANT-based and does not yet enforce RLS,
+so client-side role checks are UX only. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md).
+
 ## General Data Flow
 
 1. Components invoke functions in `services/db.ts`.

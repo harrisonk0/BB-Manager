@@ -22,12 +22,15 @@ small services layer, with audit logging and role-based access for sensitive ope
 - `docs/` — Project documentation (architecture, getting started, deployment, etc.).
   - `00-documentation-audit.md`, `01-project-structure.md`, `02-architecture.md`,
     `03-getting-started.md`, `04-deployment.md`, `05-component-library.md`,
-    `06-data-and-services.md`, `07-hooks-and-state.md`, `08-types.md`
+    `06-data-and-services.md`, `07-hooks-and-state.md`, `08-types.md`,
+    `09-database-and-migrations.md`
 - `hooks/` — Custom React hooks for auth, data loading, navigation protection, and toasts.
   - `useAuthAndRole.ts`, `useAppData.ts`, `useSectionManagement.ts`,
     `useToastNotifications.ts`, `useUnsavedChangesProtection.ts`
 - `services/` — Supabase client setup and data/service functions.
   - `supabaseClient.ts`, `supabaseAuth.ts`, `db.ts`, `settings.ts`
+- `supabase/` — Supabase CLI project (local config + migration history).
+  - `supabase/migrations/` — Database schema/grants history (authoritative).
 - `src/` — Global styles and shared assets (currently `src/index.css`).
 - Root files
   - `README.md` — Project overview and doc index.
@@ -92,8 +95,10 @@ npm run build
 2. Ensure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set for the build step.
 
 ### Data migration (one-off)
-> TODO: No migration script is checked into this repo. If adding one, keep service-role keys
-> out of the client bundle and document the workflow in a dedicated runbook under `docs/`.
+Database schema/grant changes are managed via Supabase migrations in `supabase/migrations/`.
+
+> TODO: Add a dedicated runbook under `docs/` for the expected Supabase CLI workflow (local dev,
+> db diff/push, and safe production rollout).
 
 ### Lint
 > TODO: No lint tooling/config found (no ESLint/Prettier configs or `npm run lint` script).
@@ -157,6 +162,13 @@ Current validation options:
   `junior_boys.json`, `user_roles.json`, `invite_codes.json`, `global_audit_logs.json`) unless a
   human explicitly requests it.
 - Never introduce new client-side secrets (`VITE_*` variables are shipped to browsers).
+- Database schema, GRANTs, and any future RLS policies are managed exclusively via Supabase
+  migrations in `supabase/migrations/` (no ad-hoc edits in the Supabase UI).
+- Baseline migrations (the `*_remote_schema.sql` files) are immutable history and must never be
+  modified, squashed, reordered, or deleted.
+- RLS is security-critical and is currently incomplete (the database relies primarily on
+  GRANT-based access today). Do not assume the database enforces per-user/per-role/per-section
+  access until RLS hardening is completed.
 - Keep changes small and localized; avoid repo-wide rewrites without explicit approval.
 - Prefer extending `services/*` for data access and keeping UI components focused on rendering.
 - If you add new env vars, update docs (and add `.env.example`) in the same change.
@@ -186,3 +198,4 @@ Current validation options:
 - [`docs/07-hooks-and-state.md`](./docs/07-hooks-and-state.md)
 - [`docs/08-types.md`](./docs/08-types.md)
 - [`docs/00-documentation-audit.md`](./docs/00-documentation-audit.md)
+- [`docs/09-database-and-migrations.md`](./docs/09-database-and-migrations.md)

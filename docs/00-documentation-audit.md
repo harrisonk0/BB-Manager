@@ -19,6 +19,7 @@ contradictions.
 - `docs/06-data-and-services.md`: services layer and Supabase operations.
 - `docs/07-hooks-and-state.md`: custom hooks and state coordination.
 - `docs/08-types.md`: `types.ts` reference.
+- `docs/09-database-and-migrations.md`: database schema, migrations, and access model.
 
 ## Drift Resolved (2025-12-14)
 
@@ -28,10 +29,12 @@ contradictions.
 - Fixed `docs/08-types.md` to match `types.ts` and repaired broken Markdown fences.
 - Removed references to a non-existent `migrate.js` script from `AGENTS.md`.
 - Added missing deep-dive coverage for custom hooks (`docs/07-hooks-and-state.md`).
+- Documented Supabase migrations (`supabase/migrations/`) as the schema/permissions source of truth and updated docs to reflect the current GRANT-based access model.
 
 ## Open TODOs
 
-> TODO: Check in (or link to) the Supabase SQL schema and RLS policies so setup is reproducible.
+> TODO: RLS hardening: add policies via `supabase/migrations/` and review/tighten GRANTs.
+> The current model is GRANT-based and does not yet enforce RLS.
 
 > TODO: Confirm whether the `index.html` import map is still required under Vite.
 
@@ -40,4 +43,3 @@ contradictions.
 
 > TODO: Resolve known inconsistencies called out in `ARCHITECTURE.md` (e.g., invite code expiry
 > copy vs implementation, audit log action type mismatches).
-

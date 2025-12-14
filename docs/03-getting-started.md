@@ -5,7 +5,7 @@ This guide walks you through setting up BB Manager locally with Supabase for aut
 ### Prerequisites
 
 - **Node.js and npm**: Install from [nodejs.org](https://nodejs.org/) to manage dependencies and run the dev server.
-- **Supabase account**: Create a project at [supabase.com](https://supabase.com/) with the SQL schema already applied.
+- **Supabase account**: Create a project at [supabase.com](https://supabase.com/) with migrations applied (see `supabase/migrations/`).
 - A modern web browser (e.g., Chrome, Firefox, Edge).
 
 ---
@@ -20,9 +20,8 @@ Clone the repository or download the source as a ZIP and extract it.
 
 1. **Create a Supabase project**
    - In the Supabase dashboard, create a new project with a strong database password.
-   - Apply the required SQL schema (tables: `boys`, `audit_logs`, `invite_codes`,
-     `user_roles`, `settings`) and enable Row Level Security on each table.
-     > TODO: The schema SQL is not checked into this repo; add it (or link to it) so setup is reproducible.
+   - Apply the SQL migrations in `supabase/migrations/` (baseline schema is captured as `*_remote_schema.sql`).
+   - Security note: the current database access model is primarily GRANT-based and does not yet enforce Row Level Security (RLS). See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md).
 
 2. **Obtain API keys**
    - In your project settings, copy the **Project URL** and **anon public key**.

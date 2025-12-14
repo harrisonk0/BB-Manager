@@ -18,14 +18,15 @@ Core responsibilities:
 Primary constraints and implications:
 - Online-only: all reads/writes happen against Supabase; no offline cache (no IndexedDB).
 - Trust boundary is the database: client-side permission checks are UX only; enforcement
-  must be done with Supabase Row Level Security (RLS) and database constraints.
+  currently relies on Postgres GRANTs and constraints. Row Level Security (RLS) is
+  security-critical and is not yet enforced for the application tables.
 - Navigation is an in-memory view state machine in `App.tsx` (no React Router), so URLs
   are not the source of truth for page state.
 - Section separation is handled by passing `section` in queries and storing the active
   section in `localStorage`.
 
-> TODO: Document the Supabase schema, RLS policies, and any DB-side jobs (e.g., retention
-> for audit logs/invite codes) in this repo.
+> TODO: RLS hardening is pending. Document/implement policies and verify table-level GRANTs
+> are least-privilege (schema and GRANTs are tracked in `supabase/migrations/`).
 
 ## Goals & Non-Goals
 
@@ -68,10 +69,10 @@ flowchart TB
     Services --> Types
   end
 
-  subgraph Supabase["Supabase (trusted enforcement boundary)"]
+  subgraph Supabase["Supabase (auth + database boundary)"]
     Auth["Supabase Auth\n(email/password, sessions)"]
-    DB["Postgres + RLS"]
-    Tables["Tables (observed in code):\n`boys`, `settings`, `user_roles`,\n`invite_codes`, `audit_logs`"]
+    DB["Postgres (GRANT-based access)\nRLS hardening pending"]
+    Tables["Application tables (see `supabase/migrations/`):\n`boys`, `settings`, `user_roles`,\n`invite_codes`, `audit_logs`"]
     DB --> Tables
   end
 
@@ -118,10 +119,12 @@ flowchart TB
    - Deep dive: [docs/06-data-and-services.md](docs/06-data-and-services.md).
 
 5. **External Backend (Supabase)**
-   - Responsibility: authentication, persistence, and the true authorization boundary via
-     RLS/constraints.
-   - Boundary: anything “security-sensitive” must be enforced here, not in UI code.
-   - Deep dive: [docs/02-architecture.md](docs/02-architecture.md).
+   - Responsibility: authentication and persistence; database schema and privileges are
+     managed via Supabase migrations (`supabase/migrations/`).
+   - Boundary: anything “security-sensitive” must be enforced in the database. Today the
+     access model is primarily GRANT-based; RLS hardening is pending.
+   - Deep dive: [docs/02-architecture.md](docs/02-architecture.md) and
+     [docs/09-database-and-migrations.md](docs/09-database-and-migrations.md).
 
 6. **Build & Deploy Tooling (Vite, `vercel.json`, `Dockerfile`, `server.js`)**
    - Responsibility: bundle the SPA (Vite), serve it via static hosting or simple servers,
@@ -191,7 +194,8 @@ flowchart TB
 - **Supabase (external)**
   - Supabase Auth: email/password signup/sign-in, session management.
   - Supabase Postgres: tables used by the app.
-  - Trust boundary: the only place authorization can be reliably enforced (RLS).
+  - Trust boundary: the only place authorization can be reliably enforced; today access is
+    primarily GRANT-based and RLS hardening is pending.
 
 - **Client libraries**
   - `@supabase/supabase-js`: HTTP client for Auth and PostgREST.
@@ -208,7 +212,7 @@ flowchart TB
   - Logos/backgrounds/icons are referenced by remote URLs (e.g., `postimg.cc`).
   - Trust boundary: requests to these hosts leak client IP and access timing.
 
-> TODO: Document expected Supabase table schemas (columns, indexes) and all RLS policies.
+> TODO: Document the current GRANT model and the planned RLS policies (RLS is not yet enforced).
 
 ## Failure Modes & Resilience
 
@@ -222,8 +226,8 @@ flowchart TB
   - Auth subscription updates state; app clears loaded data on logout.
 - **User has no role**
   - `useAuthAndRole` signs out and shows an “Access Denied” flow (`noRoleError`).
-- **Authorization denied (RLS)**
-  - Operations fail with errors; UI generally displays messages but cannot recover.
+- **Authorization denied (DB permissions)**
+  - Operations fail with errors (today: GRANTs; future: RLS); UI generally displays messages but cannot recover.
 - **Concurrent edits**
   - No conflict detection/merging; last write wins at the row level.
 - **Large payload failures**
@@ -260,8 +264,9 @@ flowchart TB
   - Application roles live in `user_roles` and are loaded client-side.
   - Some client/service functions enforce role checks (e.g., only admins/captains can manage
     invite codes and roles).
-  - **Critical**: client-side checks are bypassable; authorization must be enforced via
-    Supabase RLS (and/or DB functions) for every sensitive operation.
+  - **Critical**: client-side checks are bypassable. Today the database relies primarily on
+    table-level GRANTs (see `supabase/migrations/`) and does not enforce row-level isolation.
+    RLS hardening is pending for per-role/per-section enforcement.
 
 - **Secrets flow**
   - `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are embedded in the client bundle.
@@ -270,8 +275,8 @@ flowchart TB
 - **Sensitive data**
   - Names and marks are personal data; audit log `revertData` can store snapshots of prior
     state (potentially containing the same sensitive fields).
-  - Access to `audit_logs`, `invite_codes`, and `user_roles` should be restricted by RLS to
-    appropriate roles.
+  - Access to `audit_logs`, `invite_codes`, and `user_roles` is security-sensitive and must be
+    locked down (today: GRANTs; future: RLS).
 
 > TODO: Add a documented threat model and explicitly list which roles can read/write each
 > table (including audit logs and revert data).
@@ -306,8 +311,8 @@ flowchart TB
     > TODO: Consolidate role fetching into `services/db.ts` for consistency.
 
 - **Section isolation**
-  - Every `boys` read/write must be scoped by `section`.
-  - RLS must prevent cross-section access regardless of client input.
+  - Every `boys` read/write must be scoped by `section` (client-side today).
+  - > TODO: Enforce cross-section access controls in the database (RLS policies and/or constraints).
 
 - **Mark invariants (enforced client-side in `services/db.ts`)**
   - `Mark.date` format: `YYYY-MM-DD`.
@@ -331,10 +336,10 @@ flowchart TB
 
 ## Open Questions & TODOs
 
-> TODO: Provide SQL schema definitions (tables, columns, indexes) for:
-> `boys`, `settings`, `user_roles`, `invite_codes`, `audit_logs`.
+> TODO: RLS hardening: enable RLS and add policies via new migrations. Current access is
+> primarily GRANT-based (see `supabase/migrations/`).
 
-> TODO: Check in (or document) Supabase RLS policies that enforce:
+> TODO: Check in (or document) Supabase RLS policies (via migrations) that enforce:
 > - role-based permissions (admin/captain/officer)
 > - section-based isolation
 > - restrictions around user role assignment/changes
