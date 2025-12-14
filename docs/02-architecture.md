@@ -1,6 +1,11 @@
 # 2. Architecture
 
-BB Manager is a React + TypeScript application backed by Supabase for authentication and data storage. The client retrieves data directly from Supabase and does not maintain an offline cache.
+[`ARCHITECTURE.md`](../ARCHITECTURE.md) is the canonical system model for this repo. This document is a short,
+supplemental overview focused on how the UI integrates with Supabase.
+
+BB Manager is a React + TypeScript application backed by Supabase for authentication and
+data storage. The client retrieves data directly from Supabase and does not maintain an
+offline cache.
 
 ## Core Principles
 
@@ -22,3 +27,5 @@ BB Manager is a React + TypeScript application backed by Supabase for authentica
 ## Error Handling
 
 Errors from Supabase requests propagate to the calling components, allowing the UI to surface connection or permission issues without falling back to cached data.
+
+See also: [`docs/06-data-and-services.md`](./06-data-and-services.md).

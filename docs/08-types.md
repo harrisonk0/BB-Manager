@@ -68,6 +68,8 @@ interface AuditLog {
   revertData: any;
   /** The ID of the original audit log that this REVERT_ACTION log is reverting. */
   revertedLogId?: string;
+  /** The section this log pertains to. Null for global logs. */
+  section?: Section | null;
 }
 ```
 
@@ -161,9 +163,11 @@ type AuditLogActionType =
   | 'GENERATE_INVITE_CODE'
   | 'USE_INVITE_CODE'
   | 'REVOKE_INVITE_CODE'
-  | 'UPDATE_USER_ROLE' // New: For changes to user roles
-  | 'CLEAR_AUDIT_LOGS' // New: For clearing all audit logs
-  | 'CLEAR_USED_REVOKED_INVITE_CODES'; // New: For clearing used/revoked invite codes
+  | 'UPDATE_INVITE_CODE'
+  | 'UPDATE_USER_ROLE'
+  | 'DELETE_USER_ROLE'
+  | 'CLEAR_AUDIT_LOGS'
+  | 'CLEAR_USED_REVOKED_INVITE_CODES';
 ```
 
 ---
@@ -217,7 +221,7 @@ These types are used by the root `App.tsx` component to manage the current page 
 Represents the main pages available in the application's navigation.
 
 ```typescript
-type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'globalSettings' | 'accountSettings' | 'help' | 'signup';
+type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'globalSettings' | 'accountSettings' | 'signup';
 ```
 
 ---
@@ -245,13 +249,26 @@ type View = { page: Page } | BoyMarksPageView;
 
 ---
 
-#### `UserWithRole`
+#### `AppUser`
 
-Represents an authenticated Supabase user combined with the app-assigned role once it has been fetched.
+Minimal authenticated user shape for Supabase auth.
 
 ```typescript
-import { User } from 'Supabase Auth';
-
-export interface UserWithRole extends User {
-  role: UserRole | null;
+interface AppUser {
+  id: string;
+  email: string;
 }
+```
+
+---
+
+#### `UserWithRole`
+
+Combines an authenticated user with their assigned application role.
+
+```typescript
+interface UserWithRole {
+  user: AppUser;
+  role: UserRole;
+}
+```

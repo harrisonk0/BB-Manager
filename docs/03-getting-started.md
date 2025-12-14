@@ -20,7 +20,9 @@ Clone the repository or download the source as a ZIP and extract it.
 
 1. **Create a Supabase project**
    - In the Supabase dashboard, create a new project with a strong database password.
-   - Apply the provided SQL schema (tables: `boys`, `audit_logs`, `invite_codes`, `user_roles`, `settings`) and enable Row Level Security on each table.
+   - Apply the required SQL schema (tables: `boys`, `audit_logs`, `invite_codes`,
+     `user_roles`, `settings`) and enable Row Level Security on each table.
+     > TODO: The schema SQL is not checked into this repo; add it (or link to it) so setup is reproducible.
 
 2. **Obtain API keys**
    - In your project settings, copy the **Project URL** and **anon public key**.
@@ -32,6 +34,7 @@ Clone the repository or download the source as a ZIP and extract it.
      VITE_SUPABASE_ANON_KEY="<public-anon-key>"
      ```
    - These values are consumed by `services/supabaseClient.ts` at runtime.
+   > TODO: Ensure `.env` is ignored by git and consider checking in `.env.example`.
 
 4. **Seed roles (optional but recommended)**
    - Insert at least one admin row into `user_roles` that matches a Supabase Auth user ID and email so the first login has permissions.

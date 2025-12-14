@@ -1,6 +1,11 @@
 # 6. Data & Services
 
-This document explains how the application interacts with Supabase for data storage and retrieval. All reads and writes happen online against Supabase tables; there is no local IndexedDB cache.
+[`ARCHITECTURE.md`](../ARCHITECTURE.md) is the canonical system model for this repo. This document is a deeper
+dive into the services layer and Supabase interactions.
+
+This document explains how the application interacts with Supabase for data storage and
+retrieval. All reads and writes happen online against Supabase tables; there is no local
+IndexedDB cache.
 
 ## General Data Flow
 

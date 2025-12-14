@@ -11,9 +11,12 @@ This document serves as a reference for all the React components used in the BB 
 The root component of the entire application. It doesn't render much UI directly but is responsible for orchestrating the entire application flow.
 
 -   **Responsibilities**:
-    -   Manages global state using custom hooks: `currentUser`, `userRole`, `activeSection`, `boys`, `settings`, `isLoading`, `error`, `noRoleError`, `hasUnsavedChanges`.
-    -   Initializes Supabase and listens for authentication state changes (`onAuthStateChanged`), including fetching the user's role.
-    -   Handles the main "routing" logic by deciding which page component to render based on the `view` state, including special handling for unauthenticated users (Login, Signup, Help) and users without an assigned role.
+    -   Manages orchestration state via hooks: `currentUser`, `userRole`, `activeSection`,
+        `boys`, `settings`, `authLoading`, `dataLoading`, `dataError`, `noRoleError`, `view`.
+    -   Subscribes to Supabase auth changes via `useAuthAndRole` and loads the user's role from
+        `user_roles`.
+    -   Handles view switching by deciding which page component to render based on the `view`
+        state. Unauthenticated users see Login/Signup; the Help content is shown via a modal.
     -   Orchestrates data fetching (`refreshData`).
     -   Manages the "unsaved changes" confirmation modal.
     -   Manages and renders the global toast notification system.
@@ -94,7 +97,7 @@ Allows users to configure application settings specific to the currently active 
 
 -   **Responsibilities**:
     -   Displays form inputs for available section settings (e.g., meeting day).
-    -   Handles saving the settings to Firestore, with client-side permission checks based on `userRole`.
+    -   Handles saving the settings to Supabase, with client-side permission checks based on `userRole`.
     -   Provides links to navigate to the `GlobalSettingsPage` and `AccountSettingsPage`.
     -   Creates audit log entries for all significant changes.
 -   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToGlobalSettings`, `onNavigateToAccountSettings`.
@@ -106,7 +109,7 @@ Provides administrative controls for managing invite codes, user roles, and deve
 -   **Responsibilities**:
     -   Allows administrators and captains to generate, view, and revoke invite codes.
     -   Displays a list of all users with their assigned roles and allows administrators/captains to update roles (with restrictions, e.g., cannot change own role).
-    -   Includes admin-only development controls for clearing audit logs, used/revoked invite codes, and all local IndexedDB data.
+    -   Includes admin-only development controls for clearing audit logs and used/revoked invite codes.
     -   Creates audit log entries for all significant changes.
 -   **Key Props**: `activeSection`, `showToast`, `userRole`, `refreshData`.
 
@@ -137,8 +140,8 @@ Handles user authentication with Supabase.
     -   Provides a form for email and password sign-in.
     -   Handles password reset requests.
     -   Navigates to the `SignupPage` for new user registration.
-    -   Navigates to the `HelpPage` for unauthenticated users.
--   **Key Props**: `onNavigateToHelp`, `showToast`, `onNavigateToSignup`.
+    -   Opens the Help modal for unauthenticated users.
+-   **Key Props**: `onOpenHelpModal`, `showToast`, `onNavigateToSignup`.
 
 #### `SignupPage.tsx`
 
@@ -159,9 +162,9 @@ Allows the authenticated user to choose which section (Company or Junior) to man
 -   **Responsibilities**:
     -   Displays buttons for selecting Company or Junior sections.
     -   Persists the selected section in `localStorage`.
-    -   Provides navigation to `HelpPage`, `GlobalSettingsPage`, and a `Sign Out` button.
+    -   Provides actions for Help, Global Settings, and Sign Out.
     -   Conditionally renders "Global Settings" based on `userRole`.
--   **Key Props**: `onSelectSection`, `onNavigateToHelp`, `onNavigateToGlobalSettings`, `userRole`, `onSignOut`.
+-   **Key Props**: `onSelectSection`, `onOpenHelpModal`, `onNavigateToGlobalSettings`, `userRole`, `onSignOut`.
 
 ---
 
@@ -179,7 +182,7 @@ The main navigation bar at the top of the application.
     -   Conditionally renders navigation items based on `userRole`.
     -   Includes a profile dropdown menu for `Account Settings`, `Switch Section`, and `Log Out`.
     -   Manages its own state for the mobile menu (`isMenuOpen`).
--   **Key Props**: `setView`, `user`, `onSignOut`, `activeSection`, `onSwitchSection`, `userRole`.
+-   **Key Props**: `setView`, `onSignOut`, `activeSection`, `onSwitchSection`, `onOpenHelpModal`.
 
 #### `BoyForm.tsx`
 
@@ -255,3 +258,7 @@ A simple, reusable SVG bar chart.
     -   Includes labels for each bar and its value.
     -   Used on the Dashboard to visualize squad performance.
 -   **Key Props**: `data`.
+
+#### `LineChart.tsx`
+
+> TODO: `components/LineChart.tsx` exists but is currently empty/unused. Implement it or remove it.
