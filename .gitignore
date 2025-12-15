@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 AI_RULES.md
+
+.env
+.env.*
+!.env.example
