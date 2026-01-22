@@ -76,9 +76,11 @@
 **Agent-autonomous:** No
 
 ### Why this is Critical (evidence from repo)
-- Baseline migration grants are extremely permissive to `anon` and `authenticated` for core tables (e.g., `supabase/migrations/20251214144824_remote_schema.sql:116` and onward grants include `delete/insert/select/update/truncate/trigger` on application tables).
-- No RLS policies are present in the baseline (`supabase/migrations/20251214144824_remote_schema.sql` contains no `ENABLE ROW LEVEL SECURITY` / `CREATE POLICY` statements).
-- This makes client-side role checks non-binding and creates a direct authz gap at the database boundary.
+- ~~Baseline migration grants are extremely permissive~~ **RESOLVED (Phase 1)**: RLS policies now enforce proper access control.
+- ~~No RLS policies are present~~ **RESOLVED (Phase 1)**: All tables have RLS policies implemented via MCP Supabase tools.
+- ~~This makes client-side role checks non-binding~~ **RESOLVED (Phase 1)**: Database now enforces role-based access control.
+
+Historical reference: See `.planning/archive/migrations/20251214144824_remote_schema.sql` for baseline migration that showed these issues.
 
 ### Requires Human Input
 - Questions

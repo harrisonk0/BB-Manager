@@ -9,11 +9,11 @@ IndexedDB cache.
 
 ## Database Schema & Migrations
 
-Database schema and permissions are managed via Supabase migrations in `supabase/migrations/`
-(baseline `*_remote_schema.sql` files are immutable history).
+Database schema and permissions are managed via MCP Supabase tools. Historical migrations are
+preserved in `.planning/archive/migrations/` for reference.
 
-Security note: the current access model is primarily GRANT-based and does not yet enforce RLS,
-so client-side role checks are UX only. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md).
+Security note: the database uses RLS policies with GRANTs for access control (Phase 1 complete).
+Client-side role checks are UX only; database enforces security. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md).
 
 ## General Data Flow
 

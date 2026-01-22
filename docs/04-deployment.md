@@ -3,8 +3,8 @@
 BB Manager is a static React application that consumes Supabase Auth and database APIs. You can deploy the built assets to any static host (e.g., Vercel, Netlify, Cloudflare Pages, or Supabase Storage + CDN) as long as the Supabase environment variables are configured at build time.
 
 ## Prerequisites
-- Supabase project with the required migrations applied (`supabase/migrations/`) and production credentials (Project URL and anon key).
-- Security note: the current database access model is primarily GRANT-based and does not yet enforce RLS (see [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md)).
+- Supabase project with schema configured via MCP tools and production credentials (Project URL and anon key).
+- Security note: the database uses RLS policies with GRANTs for access control. See `.planning/archive/migrations/` for schema history and [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md) for details.
 - Node.js/npm to run the production build (`npm run build`).
 
 ## Build

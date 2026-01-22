@@ -1,11 +1,14 @@
 # 10. Database Security Model
 
-This document defines the **authoritative, design-only** database security model for BB Manager’s Supabase Postgres database.
-It is intended to be implemented via future SQL migrations under `supabase/migrations/`.
+This document defines the **authoritative, design-only** database security model for BB Manager's Supabase Postgres database.
+This security model has been implemented via MCP Supabase tools (Phase 1 - Critical Security).
 
 Current state (authoritative):
-- Baseline migrations are permissive (broad `GRANT`s) and **no Row Level Security (RLS)** is enabled.
+- **RLS policies are implemented** for all application tables (Phase 1 complete).
+- Security functions use hardened search_path to mitigate CVE-2018-1058.
 - Application tables: `boys`, `settings`, `user_roles`, `invite_codes`, `audit_logs`.
+
+See `.planning/phases/01-critical-security/` for implementation details.
 
 ## 1. Overview
 

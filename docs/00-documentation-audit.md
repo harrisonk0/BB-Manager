@@ -29,12 +29,12 @@ contradictions.
 - Fixed `docs/08-types.md` to match `types.ts` and repaired broken Markdown fences.
 - Removed references to a non-existent `migrate.js` script from `AGENTS.md`.
 - Added missing deep-dive coverage for custom hooks (`docs/07-hooks-and-state.md`).
-- Documented Supabase migrations (`supabase/migrations/`) as the schema/permissions source of truth and updated docs to reflect the current GRANT-based access model.
+- Documented MCP Supabase tools as the schema/permissions workflow and updated docs to reflect the RLS-enforced access model.
 
 ## Open TODOs
 
-> TODO: RLS hardening: add policies via `supabase/migrations/` and review/tighten GRANTs.
-> The current model is GRANT-based and does not yet enforce RLS.
+> ~~RLS hardening~~ **Complete (Phase 1)**: RLS policies implemented via MCP Supabase tools.
+> See `.planning/phases/01-critical-security/` for implementation details.
 
 > TODO: Confirm whether the `index.html` import map is still required under Vite.
 

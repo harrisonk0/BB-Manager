@@ -25,8 +25,8 @@ Primary constraints and implications:
 - Section separation is handled by passing `section` in queries and storing the active
   section in `localStorage`.
 
-> TODO: RLS hardening is pending. Document/implement policies and verify table-level GRANTs
-> are least-privilege (schema and GRANTs are tracked in `supabase/migrations/`).
+> RLS hardening is complete (Phase 1). All policies implemented via MCP Supabase tools.
+> See `.planning/archive/migrations/` for historical migration context.
 
 ## Goals & Non-Goals
 
@@ -71,8 +71,8 @@ flowchart TB
 
   subgraph Supabase["Supabase (auth + database boundary)"]
     Auth["Supabase Auth\n(email/password, sessions)"]
-    DB["Postgres (GRANT-based access)\nRLS hardening pending"]
-    Tables["Application tables (see `supabase/migrations/`):\n`boys`, `settings`, `user_roles`,\n`invite_codes`, `audit_logs`"]
+    DB["Postgres (RLS enforced)\nAll tables secured"]
+    Tables["Application tables:\n`boys`, `settings`, `user_roles`,\n`invite_codes`, `audit_logs`"]
     DB --> Tables
   end
 
@@ -120,9 +120,9 @@ flowchart TB
 
 5. **External Backend (Supabase)**
    - Responsibility: authentication and persistence; database schema and privileges are
-     managed via Supabase migrations (`supabase/migrations/`).
-   - Boundary: anything “security-sensitive” must be enforced in the database. Today the
-     access model is primarily GRANT-based; RLS hardening is pending.
+     managed via MCP Supabase tools (see `.planning/archive/migrations/` for history).
+   - Boundary: anything "security-sensitive" must be enforced in the database. The
+     access model uses RLS policies with GRANTs; RLS hardening is complete (Phase 1).
    - Deep dive: [docs/02-architecture.md](docs/02-architecture.md) and
      [docs/09-database-and-migrations.md](docs/09-database-and-migrations.md).
 
@@ -264,9 +264,9 @@ flowchart TB
   - Application roles live in `user_roles` and are loaded client-side.
   - Some client/service functions enforce role checks (e.g., only admins/captains can manage
     invite codes and roles).
-  - **Critical**: client-side checks are bypassable. Today the database relies primarily on
-    table-level GRANTs (see `supabase/migrations/`) and does not enforce row-level isolation.
-    RLS hardening is pending for per-role/per-section enforcement.
+  - **Critical**: client-side checks are bypassable. The database enforces security via
+    RLS policies (see `.planning/archive/migrations/`) and table-level GRANTs.
+    RLS hardening is complete (Phase 1).
 
 - **Secrets flow**
   - `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are embedded in the client bundle.
@@ -336,13 +336,14 @@ flowchart TB
 
 ## Open Questions & TODOs
 
-> TODO: RLS hardening: enable RLS and add policies via new migrations. Current access is
-> primarily GRANT-based (see `supabase/migrations/`).
+> ~~RLS hardening~~ **Complete (Phase 1)**: RLS policies implemented via MCP Supabase tools.
+> See `.planning/phases/01-critical-security/` for implementation details.
 
-> TODO: Check in (or document) Supabase RLS policies (via migrations) that enforce:
+> ~~Check in Supabase RLS policies~~ **Complete (Phase 1)**: All policies enforce:
 > - role-based permissions (admin/captain/officer)
 > - section-based isolation
 > - restrictions around user role assignment/changes
+> - audit log access control (Captain/Admin only)
 
 > TODO: “Cleanup after 14 days” is described in UI/docs, but no scheduler/trigger is in-repo.
 > Document where retention is enforced (DB job, Supabase scheduled function, manual only).
