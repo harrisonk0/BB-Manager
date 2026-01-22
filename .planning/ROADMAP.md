@@ -36,15 +36,15 @@ Decimal phases appear between their surrounding integers in numeric order.
 5. Leaked password protection is enabled in Supabase Auth settings
 6. Vitest is configured and can run tests successfully (npm run test executes)
 
-**Plans**: TBD
+**Plans**: 6 plans in 1 wave
 
 Plans:
-- [ ] 01-01: Fix TypeScript error in services/db.ts
-- [ ] 01-02: Harden search_path on security functions
-- [ ] 01-03: Fix audit_logs_insert RLS policy
-- [ ] 01-04: Verify service_role key isolation
-- [ ] 01-05: Enable leaked password protection
-- [ ] 01-06: Set up Vitest with TypeScript configuration
+- [ ] 01-01-PLAN.md — Fix TypeScript error in services/db.ts and enable exhaustiveness checking
+- [ ] 01-02-PLAN.md — Create security functions with hardened search_path
+- [ ] 01-03-PLAN.md — Fix audit_logs_insert RLS policy
+- [ ] 01-04-PLAN.md — Verify service_role key isolation from client code
+- [ ] 01-05-PLAN.md — Enable leaked password protection in Supabase Auth
+- [ ] 01-06-PLAN.md — Set up Vitest with TypeScript configuration
 
 ### Phase 2: Performance
 
@@ -150,7 +150,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Critical Security | 0/6 | Not started | - |
+| 1. Critical Security | 0/6 | Planning complete | - |
 | 2. Performance | 0/5 | Not started | - |
 | 3. Code Quality | 0/5 | Not started | - |
 | 4. Configuration | 0/5 | Not started | - |
