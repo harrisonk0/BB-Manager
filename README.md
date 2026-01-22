@@ -56,3 +56,16 @@ This project is documented across several files to provide a comprehensive under
 | **[7. Hooks & State](./docs/07-hooks-and-state.md)**       | Deep dive into custom hooks and how state is coordinated across the app.                               |
 | **[8. Data Types](./docs/08-types.md)**                    | A dictionary of all core TypeScript types, defining the application's data model.                   |
 | **[Documentation Audit](./docs/00-documentation-audit.md)** | Doc consistency notes, resolved drift, and open TODOs.                                                  |
+
+## Rebuild Documentation
+
+For complete documentation on rebuilding this application from scratch, including product requirements,
+technical specifications, and setup instructions, see **[rebuild/](./rebuild/)**.
+
+This directory contains everything needed to understand WHAT was built and WHY, enabling an
+independent rebuild of the BB-Manager application.
+
+- **[rebuild/PRD.md](./rebuild/PRD.md)** - Product Requirements Document
+- **[rebuild/technical-spec.md](./rebuild/technical-spec.md)** - Technical Specification
+- **[rebuild/database-schema.md](./rebuild/database-schema.md)** - Database Schema Documentation
+- **[rebuild/setup-guide.md](./rebuild/setup-guide.md)** - Setup and Rebuild Instructions
