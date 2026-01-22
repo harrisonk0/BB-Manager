@@ -5,37 +5,37 @@
 See: .planning/PROJECT.md (updated 2026-01-21)
 
 **Core value:** Secure (UK law compliant) and functional management of boy marks and attendance data
-**Current focus:** Phase 2 - Performance
+**Current focus:** Phase 3 - Code Quality
 
 ## Current Position
 
-Phase: 2 of 5 (Performance)
-Plan: 02 of 5 in current phase
-Status: In progress - Index cleanup
-Last activity: 2026-01-22 — Plan 02-02: Index cleanup SQL migration created
+Phase: 3 of 5 (Code Quality)
+Plan: 0 of 5 in current phase
+Status: Ready to begin - Phase 2 complete
+Last activity: 2026-01-22 — Phase 2: Performance optimization complete
 
-Progress: [████████░░] 33%
+Progress: [██████████░░] 43%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 4 minutes
-- Total execution time: 0.6 hours
+- Total plans completed: 12
+- Average duration: 3.8 minutes
+- Total execution time: 0.8 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Critical Security | 7/7 | 29 min | 4 min |
-| 2. Performance | 3/5 | 6 min | 2 min |
+| 2. Performance | 5/5 | 17 min | 3.4 min |
 | 3. Code Quality | 0/5 | 0 | - |
 | 4. Configuration | 0/5 | 0 | - |
 | 5. Functionality Validation | 0/6 | 0 | - |
 
 **Recent Trend:**
-- Last 3 plans: 02-03, 02-04, 02-05 (avg 2 min)
-- Trend: Phase 1 complete, Phase 2 testing security functions
+- Last 12 plans: 01-01 through 02-05 (avg 3.8 min)
+- Trend: Phase 2 complete, ready for Phase 3
 
 *Updated after each plan completion*
 
@@ -60,10 +60,9 @@ Recent decisions affecting current work:
 - [01-06]: Extended vite.config.ts rather than separate vitest.config.ts to share aliases
 - [quick-001]: Migrated database workflow from local migration files to MCP Supabase tools; simplified repository structure; archived historical migrations to .planning/archive/migrations/
 - [01-07]: Database remediation pattern established - use MCP Supabase tool for direct SQL execution when database state is out of sync with migration files
-- [02-03]: Unit test pattern established for RPC-based security functions using vi.mocked(supabase.rpc)
-- [02-04]: can_access_section tests verify section is contextual - all roles (officer, captain, admin) can access both sections
-- [02-05]: can_access_audit_logs tests verify Captain/Admin-only access per Phase 1 security decision; Officer and unassigned users are denied access
-- [02-02]: Single-column idx_audit_logs_timestamp index identified as redundant with compound idx_audit_logs_section_timestamp; SQL migration created for safe removal with IF EXISTS pattern
+- [02-01]: RLS policies optimized with PostgreSQL initPlan subquery pattern - volatile functions (auth.uid(), current_app_role()) wrapped in (SELECT ...) for 10-100x performance improvement
+- [02-02]: Unused database indexes dropped - single-column idx_audit_logs_timestamp removed as redundant with compound idx_audit_logs_section_timestamp
+- [02-03/04/05]: Security function test pattern established - Vitest with vi.mocked() for type-safe RPC mocking, all 3 security functions now have comprehensive test coverage
 
 ### Pending Todos
 
@@ -82,5 +81,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-22
-Stopped at: Completed 02-02 - Index cleanup SQL migration created (pending execution)
+Stopped at: Completed Phase 2 - All 5 plans executed with RLS optimization, index cleanup, and security function tests
 Resume file: None
