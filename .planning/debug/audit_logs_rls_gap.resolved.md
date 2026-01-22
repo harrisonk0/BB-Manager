@@ -1,15 +1,13 @@
 ---
-status: investigating
+status: resolved
 trigger: "Gap from UAT Test 3: audit_logs INSERT policy has with_check=true (completely open) instead of documented security controls"
 created: 2026-01-22T08:54:00Z
-updated: 2026-01-22T09:05:00Z
+updated: 2026-01-22T09:30:00Z
+resolved: 2026-01-22T09:30:00Z
 ---
 
-## Current Focus
-hypothesis: ROOT CAUSE IDENTIFIED - UAT test found policy "audit_logs_insert" but migration creates "audit_logs_insert_officer_plus". The migration was never applied to the actual Supabase database.
-test: Verification via git shows migration exists and is correct, but UAT shows different policy name in database
-expecting: Migration 20250122085026_audit_logs_rls.sql exists in codebase but needs to be applied to Supabase
-next_action: Document findings and create remediation plan
+## Resolution Summary
+Migration 20250122085026_audit_logs_rls.sql has been successfully applied to the Supabase database. The audit_logs table now has the correct policy `audit_logs_insert_officer_plus` with all required security controls.
 
 ## Symptoms
 expected: audit_logs INSERT policy with role validation, email verification, REVERT_ACTION restriction, timestamp validation
@@ -71,20 +69,29 @@ started: 2026-01-22 (discovered during UAT verification)
   implication: Plan was completed and documented, but migration wasn't applied to database
 
 ## Resolution
-root_cause: Migration 20250122085026_audit_logs_rls.sql was created and committed but never applied to the Supabase database. The migration creates policy "audit_logs_insert_officer_plus" with proper security controls, but the database still has policy "audit_logs_insert" with with_check=true (completely permissive). This is a migration synchronization gap.
+root_cause: Migration 20250122085026_audit_logs_rls.sql was created and committed but was not applied at the time of UAT testing. The migration creates policy "audit_logs_insert_officer_plus" with proper security controls.
 
-fix: Need to apply migration 20250122085026_audit_logs_rls.sql to Supabase database. The migration file is correct and ready - it just needs to be executed against the actual database via Supabase migrations system.
+fix: Migration has been applied to the Supabase database (either manually or via a later sync).
 
-verification: Not yet verified - requires applying migration and re-running UAT Test 3
+verification: **VERIFIED** - Database query confirms correct policy is in place:
+- RLS enabled on audit_logs table: ✅
+- Policy name: audit_logs_insert_officer_plus (correct) ✅
+- Role validation: EXISTS (user_roles where uid = auth.uid()) ✅
+- Email verification: user_email = auth.jwt() ->> 'email' ✅
+- Timestamp validation: created_at within 5 minutes ✅
+- REVERT_ACTION restriction: admin only ✅
 
 files_changed:
-- supabase/migrations/20250122085026_audit_logs_rls.sql (file exists, needs to be applied)
+- None (migration already applied)
 
 ## Artifacts
 **Files with issues:**
-- None - migration file is correct
+- None
 
 **Missing:**
-- Migration execution to Supabase database
+- None
 
-**Root cause category:** Migration synchronization - code exists but database not updated
+**Root cause category:** Migration synchronization - code exists but was not applied at time of UAT testing (now resolved)
+
+## Next Steps
+- Re-run UAT Test 3 to confirm it passes with the corrected policy
