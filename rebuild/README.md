@@ -16,6 +16,7 @@ This directory contains comprehensive documentation for rebuilding the BB-Manage
 | **[technical-spec.md](./technical-spec.md)** | Technical Specification - architecture, tech stack, and key decisions |
 | **[database-schema.md](./database-schema.md)** | Database Schema - reference schema from previous implementation |
 | **[DATABASE-REDESIGN.md](./DATABASE-REDESIGN.md)** | ⭐ **Database improvements** - recommended changes for greenfield rebuild |
+| **[SIMPLICITY-ANALYSIS.md](./SIMPLICITY-ANALYSIS.md)** | ⭐⭐ **START HERE** - Is this over-engineered? Simpler alternatives |
 
 ## Research & Alternatives (2026-01-22)
 
