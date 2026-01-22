@@ -14,7 +14,8 @@ This directory contains comprehensive documentation for rebuilding the BB-Manage
 |----------|-------------|
 | **[PRD.md](./PRD.md)** | Product Requirements Document - user needs, features, and compliance requirements |
 | **[technical-spec.md](./technical-spec.md)** | Technical Specification - architecture, tech stack, and key decisions |
-| **[database-schema.md](./database-schema.md)** | Database Schema - reference schema from previous implementation (may evolve) |
+| **[database-schema.md](./database-schema.md)** | Database Schema - reference schema from previous implementation |
+| **[DATABASE-REDESIGN.md](./DATABASE-REDESIGN.md)** | ⭐ **Database improvements** - recommended changes for greenfield rebuild |
 
 ## Research & Alternatives (2026-01-22)
 
