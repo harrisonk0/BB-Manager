@@ -18,23 +18,25 @@ The application prioritizes simplicity and minimal infrastructure over sophistic
 - **Greenfield rebuild** - No source code carried over from v1
 - **Full self-hosting required** - Must run on local infrastructure (VPS/Raspberry Pi)
 
-**Key Recommendation:** For a greenfield, self-hosted rebuild, use **React + Vite + PostgreSQL + Better Auth** with Docker + Caddy deployment.
+**Key Recommendation:** For a greenfield, self-hosted rebuild, use **Next.js + PostgreSQL + Better Auth** with Docker + Caddy deployment.
 
 ### Research Summary
 
 | Area | Finding | Recommendation |
 |------|---------|----------------|
-| **Framework** | Next.js adds complexity for auth-gated CRUD app; no SEO needs | ✅ React + Vite |
+| **Framework** | Next.js API routes provide security boundary; Better Auth first-class support | ✅ Next.js (App Router) |
 | **Backend** | Self-hosted PostgreSQL provides data sovereignty for UK GDPR | ✅ PostgreSQL + Drizzle ORM |
 | **Deployment** | Docker + Caddy provides zero-config HTTPS, simple deployment | ✅ Docker + Caddy (primary) |
-| **Auth** | Lucia deprecated (Mar 2025); Better Auth is replacement | ✅ Better Auth + argon2id |
+| **Auth** | Lucia deprecated (Mar 2025); Better Auth has excellent Next.js integration | ✅ Better Auth + argon2id |
 
-### Why Not Next.js?
+### Why Next.js?
 
-- **BB-Manager is auth-gated** - No SEO needs, no public pages
-- **Next.js designed for SSR** - Overkill for SPA CRUD app
-- **Current stack is modern** - React 19.2.0 + Vite 6.2.0 is cutting-edge
-- **Self-hosting constraint** - React SPA = static files; Next.js = server process
+- **API routes provide security boundary** - Database never exposed to client
+- **Single codebase** - Frontend and backend in one repository
+- **Better Auth integration** - Excellent Next.js support (primary use case)
+- **Simpler deployment** - One container vs React + separate backend
+- **Self-hosting is mature** - Docker Compose well-documented
+- **App Router is modern** - Server components reduce client JS
 
 ### Why Self-Hosted PostgreSQL?
 
@@ -48,6 +50,7 @@ The application prioritizes simplicity and minimal infrastructure over sophistic
 
 - **Lucia deprecated** (March 2025) - "Lucia, in the current state, is not working"
 - **Better Auth** - Framework-agnostic replacement, absorbed Auth.js
+- **Excellent Next.js support** - Middleware, server actions, App Router integration
 - **Type-safe:** Excellent TypeScript integration
 - **Feature complete:** Password reset, email verification, 2FA, OAuth
 - **Self-hosted:** Full control over user data
@@ -76,9 +79,8 @@ See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with 
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| React | 19.2.0 | UI framework |
+| Next.js | 15+ | React framework with App Router |
 | TypeScript | 5.8.2 | Type safety and developer experience |
-| Vite | 6.2.0 | Build tool and dev server |
 | Tailwind CSS | 3.4.4 | Utility-first styling |
 | PostCSS | 8.4.38 | CSS processing |
 | Autoprefixer | 10.4.19 | CSS vendor prefixing |
@@ -89,7 +91,8 @@ See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with 
 |------------|---------|---------|
 | PostgreSQL | 16+ | Data persistence with RLS |
 | Drizzle ORM | Latest | Type-safe database client |
-| Better Auth | Latest | Authentication (arg on2id) |
+| Better Auth | Latest | Authentication (argon2id) |
+| Next.js API Routes | - | Backend API endpoints |
 | Caddy | Latest | Reverse proxy with automatic HTTPS |
 
 ### Development
@@ -97,7 +100,6 @@ See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with 
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | Vitest | 4.0.17 | Test runner |
-| @vitejs/plugin-react | 5.0.0 | React JSX support |
 | Docker Compose | Latest | Container orchestration |
 | GitHub Actions | Latest | CI/CD deployment |
 
@@ -118,38 +120,37 @@ See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with 
 Browser (untrusted)
     |
     v
-React Components
+Next.js App Router
+    |
+    +-- Server Components (secure, no DB exposure)
+    +-- API Routes (security boundary)
+    |       |
+    |       v
+    |   PostgreSQL (via Drizzle ORM) with RLS
+    |       |
+    |       v
+    |   Better Auth (authentication)
     |
     v
-Custom Hooks
-    |
-    v
-Services Layer
-    |
-    v
-PostgreSQL (via Drizzle ORM) with RLS
-    |
-    v
-Better Auth (authentication)
+Client Components (React)
 ```
 
 **Deployment: Docker Compose**
 ```
 Caddy (reverse proxy, HTTPS)
     |
-    +-- React App (static files)
+    +-- Next.js App (API routes + frontend)
     +-- PostgreSQL (database)
-    +-- Better Auth (auth API)
 ```
 
 **Key Principles:**
 
-1. **Backend-light**: No custom API server; React app connects directly to PostgreSQL via Drizzle
-2. **Services boundary**: Database query details isolated in `services/*`
-3. **In-memory state**: No global state framework; React hooks manage state
-4. **Section partitioning**: Data queries always scoped by section
-5. **Database enforces security**: RLS policies provide defense-in-depth
-6. **Self-hosted**: Full control over data and infrastructure
+1. **API routes provide security boundary** - Database never exposed to client
+2. **Server components for data** - Fetch data server-side, reduce client JS
+3. **App Router organization** - File-based routing with layouts
+4. **Section partitioning** - Data queries always scoped by section
+5. **Database enforces security** - RLS policies provide defense-in-depth
+6. **Self-hosted** - Full control over data and infrastructure
 
 ### Component Structure
 

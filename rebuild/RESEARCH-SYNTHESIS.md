@@ -16,7 +16,7 @@ Four research areas were investigated to improve the BB-Manager rebuild:
 - **Full self-hosting required** - Must run on local infrastructure (VPS/Raspberry Pi)
 - **UK GDPR compliance** - Data sovereignty and children's data protection
 
-**Key Finding:** For a **greenfield, self-hosted** rebuild, the recommended stack is **React + Vite + PostgreSQL + Better Auth** with Docker + Caddy deployment.
+**Key Finding:** For a **greenfield, self-hosted** rebuild, the recommended stack is **Next.js + PostgreSQL + Better Auth** with Docker + Caddy deployment.
 
 ---
 
@@ -24,34 +24,56 @@ Four research areas were investigated to improve the BB-Manager rebuild:
 
 | Area | Recommendation | Confidence | Rationale |
 |------|---------------|------------|-----------|
-| **Framework** | ✅ React + Vite | HIGH | Next.js designed for SEO/SSR (not needed); simpler for self-hosting |
+| **Framework** | ✅ Next.js (App Router) | HIGH | API routes provide security boundary; Better Auth first-class support; simpler for self-hosting |
 | **Backend** | ✅ Self-hosted PostgreSQL | HIGH | Full data sovereignty; runs on Raspberry Pi/VPS; Drizzle ORM for type safety |
 | **Deployment** | ✅ Docker + Caddy | HIGH | Zero-config HTTPS; simple deployment; hardware-agnostic |
-| **Auth** | ✅ Better Auth + PostgreSQL | MEDIUM | Lucia deprecated (Mar 2025); Better Auth is replacement; implement RLS for defense-in-depth |
+| **Auth** | ✅ Better Auth + PostgreSQL | HIGH | Excellent Next.js integration; replaces deprecated Lucia; RLS for defense-in-depth |
 
 ---
 
 ## Detailed Findings
 
-### 1. Framework: Stay with React + Vite ✅
+### 1. Framework: Next.js (App Router) ✅
 
-**Recommendation:** Do NOT switch to Next.js
+**Recommendation:** Use Next.js with App Router
 
-**Why:**
-- **BB-Manager is an auth-gated CRUD app** - No SEO needs, no public pages, no content marketing
-- **Next.js adds complexity** - Requires Node.js server, more RAM, SSR caching, App Router learning curve
-- **Migration cost:** 2-6 weeks with zero functional benefit
-- **Current stack is modern** - React 19.2.0 + Vite 6.2.0 is cutting-edge
-- **Self-hosting constraint** - React SPA = static files; Next.js = server process
+**Why Next.js is Simpler for Self-Hosting:**
 
-**Next.js is optimal for:**
-- E-commerce sites (SEO, social sharing)
-- Marketing pages (SSR for SEO, dynamic OG images)
-- Content-heavy sites (blogging, documentation)
+**Security Architecture:**
+- **API routes provide security boundary** - Database never exposed to client
+- React + Vite requires direct DB access from browser (less secure)
+- Server-side auth with Better Auth is more robust
 
-**BB-Manager has none of these requirements.**
+**Single Codebase:**
+- Frontend and API routes in one repository
+- No need to deploy separate backend service
+- Simpler Docker setup (one container vs two)
 
-**Verdict:** Stay with React + Vite. Current architecture is appropriate.
+**Better Auth Integration:**
+- **Excellent Next.js support** (primary use case for Better Auth)
+- Middleware for route protection
+- Server actions for type-safe mutations
+- Well-documented patterns
+
+**Self-Hosting is Mature:**
+- Next.js standalone mode produces optimized builds
+- Docker Compose setups well-documented
+- Resource usage is reasonable for simple apps
+- Caddy reverse proxy handles HTTPS seamlessly
+
+**Why NOT React + Vite:**
+- Direct database access from browser is less secure
+- Need separate backend service for security
+- Better Auth React integration is less mature
+- More complex deployment (two services)
+
+**App Router Benefits:**
+- Modern, React-based architecture
+- Server components reduce client JavaScript
+- Built-in data fetching
+- Simpler than old Pages router
+
+**Verdict:** Next.js with App Router provides simpler, more secure architecture for self-hosted rebuild. API routes eliminate need to expose database directly to client.
 
 > **Research:** [001-framework-alternatives.md](./research/001-framework-alternatives.md)
 
@@ -202,17 +224,17 @@ Four research areas were investigated to improve the BB-Manager rebuild:
 **Goal:** Build BB-Manager from scratch with self-hosted architecture
 
 **Tech Stack:**
-- React 19 + Vite 6 + TypeScript
+- Next.js 15 (App Router) + TypeScript
 - PostgreSQL + Drizzle ORM
 - Better Auth (authentication)
 - Docker Compose + Caddy (deployment)
-- React Router v7
 
 **Timeline:** 6-8 weeks
 
 **Deliverables:**
 - Complete Better Auth implementation with argon2id
 - PostgreSQL schema with RLS policies
+- API routes for all data operations
 - Docker Compose configuration
 - Caddy reverse proxy with automatic HTTPS
 - Automated backup strategy
@@ -220,8 +242,8 @@ Four research areas were investigated to improve the BB-Manager rebuild:
 
 **Week Breakdown:**
 - Week 1-2: Better Auth + PostgreSQL schema + RLS policies
-- Week 3-4: Core data models (users, boys, marks, attendance)
-- Week 5-6: UI components and business logic
+- Week 3-4: API routes + core data models (users, boys, marks, attendance)
+- Week 5-6: UI components and business logic (App Router)
 - Week 7: Docker + Caddy deployment setup
 - Week 8: Testing, documentation, backup verification
 
@@ -267,23 +289,31 @@ Four research areas were investigated to improve the BB-Manager rebuild:
 
 ## Conclusion
 
-**For a greenfield, self-hosted rebuild, the recommended stack is React + Vite + PostgreSQL + Better Auth with Docker + Caddy deployment.**
+**For a greenfield, self-hosted rebuild, the recommended stack is Next.js + PostgreSQL + Better Auth with Docker + Caddy deployment.**
 
 This approach provides:
 - ✅ Full data sovereignty (UK hosting for GDPR)
 - ✅ No vendor lock-in (all open-source)
 - ✅ Low monthly costs (VPS or free on own hardware)
 - ✅ Modern, secure authentication (Better Auth + argon2id)
-- ✅ Simple deployment (Docker Compose)
+- ✅ API routes provide security boundary (no direct DB exposure)
+- ✅ Simple deployment (Docker Compose with one container)
 - ✅ Automatic HTTPS (Caddy)
+- ✅ Better Auth has excellent Next.js integration
 
 **Tradeoffs:**
 - ⚠️ Longer initial development (6-8 weeks vs 4-6 weeks with Supabase)
 - ⚠️ Must implement auth from scratch (Better Auth)
 - ⚠️ Responsible for backups, security updates, monitoring
 
+**Why Next.js is Simpler:**
+- **Single codebase** - Frontend and API routes together
+- **Security boundary** - API routes protect database from direct client access
+- **Better Auth support** - Excellent Next.js integration (primary use case)
+- **One container** - Simpler Docker deployment than React + separate backend
+
 **Recommended Path:**
-1. ✅ **v1:** Greenfield rebuild with self-hosted stack (6-8 weeks)
+1. ✅ **v1:** Greenfield rebuild with Next.js + self-hosted stack (6-8 weeks)
 2. ⚠️ **v1.1:** Production hardening with monitoring (1-2 weeks)
 3. ❓ **v2:** Advanced features based on user feedback
 

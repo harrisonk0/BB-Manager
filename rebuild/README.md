@@ -6,7 +6,7 @@ This directory contains comprehensive documentation for rebuilding the BB-Manage
 
 **⭐ Start with:** [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) - Research summary with recommended tech stack and implementation strategy
 
-**Recommended Stack:** React + Vite + PostgreSQL + Better Auth + Docker + Caddy
+**Recommended Stack:** Next.js + PostgreSQL + Better Auth + Docker + Caddy
 
 ## Core Documentation
 
@@ -21,7 +21,7 @@ This directory contains comprehensive documentation for rebuilding the BB-Manage
 | Document | Description |
 |----------|-------------|
 | **[RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md)** | ⭐ **Start here** - Research summary with recommendations for self-hosted rebuild |
-| **[research/001-framework-alternatives.md](./research/001-framework-alternatives.md)** | React vs Next.js analysis (recommendation: React + Vite) |
+| **[research/001-framework-alternatives.md](./research/001-framework-alternatives.md)** | Framework analysis (recommendation: Next.js for API routes security) |
 | **[research/002-backend-architecture.md](./research/002-backend-architecture.md)** | Self-hosted PostgreSQL analysis (recommendation: PostgreSQL + Drizzle) |
 | **[research/003-deployment-strategies.md](./research/003-deployment-strategies.md)** | Docker, Caddy, monitoring for self-hosted deployments |
 | **[research/004-authentication-patterns.md](./research/004-authentication-patterns.md)** | Self-hosted auth patterns (Better Auth, argon2, RLS) |
@@ -49,12 +49,18 @@ The BB-Manager application is a Boys' Brigade member management system for track
 
 This documentation is for a **complete rebuild from scratch** with no code migration from the previous implementation. The rebuild will use:
 
-- **React + Vite** for the frontend (modern, fast development)
+- **Next.js (App Router)** for the framework (API routes provide security boundary)
 - **PostgreSQL** for the database (self-hosted, UK GDPR compliant)
-- **Better Auth** for authentication (self-hosted, replaces deprecated Lucia)
+- **Better Auth** for authentication (self-hosted, excellent Next.js integration)
 - **Drizzle ORM** for type-safe database access
 - **Docker + Caddy** for deployment (zero-config HTTPS, simple setup)
 
 **Timeline:** 6-8 weeks for complete self-hosted implementation
+
+**Why Next.js?**
+- **API routes protect database** - No direct DB exposure to client
+- **Single codebase** - Frontend and backend in one place
+- **Better Auth support** - Excellent Next.js integration
+- **Simpler deployment** - One container vs React + separate backend
 
 See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis, decision matrix, and implementation strategy.
