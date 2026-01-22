@@ -29,3 +29,19 @@ AS $$
     WHERE uid = user_uid
   ) AS has_role;
 $$;
+
+-- Check if user can access audit logs (Captain and Admin only per security model)
+-- SET search_path = public mitigates CVE-2018-1058
+CREATE OR REPLACE FUNCTION public.can_access_audit_logs(user_uid text)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE uid = user_uid
+    AND role IN ('captain', 'admin')
+  );
+$$;
