@@ -78,6 +78,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 001 | Remove supabase/ and use MCP only for migrations etc, also edit CLAUDE.md to highlight this | 2026-01-22 | 9536022 | [001-remove-supabase-mcp-migrations](./quick/001-remove-supabase-mcp-migrations/) |
 | 002 | Create rebuild documentation (PRD, technical spec, database schema, setup guide) | 2026-01-22 | c5282b2 | [002-create-rebuild-documentation](./quick/002-create-rebuild-documentation/) |
+| 003 | Research and document alternatives for rebuild (framework, backend, deployment, auth) | 2026-01-22 | 811ee60 | [003-research-rebuild-alternatives](./quick/003-research-rebuild-alternatives/) |
 
 ## Session Continuity
 
