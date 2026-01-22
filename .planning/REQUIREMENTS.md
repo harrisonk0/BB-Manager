@@ -9,12 +9,12 @@ Requirements for operational state. Each maps to roadmap phases.
 
 ### Critical Security
 
-- [ ] **SEC-01**: Fix TypeScript error in services/db.ts line 514 (wrong action type)
-- [ ] **SEC-02**: Harden search_path on 3 security functions (get_user_role, can_access_section, can_access_audit_logs)
-- [ ] **SEC-03**: Fix audit_logs_insert RLS policy (currently allows unrestricted INSERT)
-- [ ] **SEC-04**: Verify service_role key is not exposed in client code
-- [ ] **SEC-05**: Enable leaked password protection in Supabase Auth
-- [ ] **TEST-01**: Set up Vitest testing framework with TypeScript support
+- [x] **SEC-01**: Fix TypeScript error in services/db.ts line 514 (wrong action type)
+- [x] **SEC-02**: Harden search_path on 3 security functions (get_user_role, can_access_section, can_access_audit_logs)
+- [x] **SEC-03**: Fix audit_logs_insert RLS policy (currently allows unrestricted INSERT)
+- [x] **SEC-04**: Verify service_role key is not exposed in client code
+- [~] **SEC-05**: Enable leaked password protection in Supabase Auth (DEFERRED - Pro Plan required)
+- [x] **TEST-01**: Set up Vitest testing framework with TypeScript support
 
 ### Performance
 
@@ -78,12 +78,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | Phase 1 | Pending |
-| SEC-02 | Phase 1 | Pending |
-| SEC-03 | Phase 1 | Pending |
-| SEC-04 | Phase 1 | Pending |
-| SEC-05 | Phase 1 | Pending |
-| TEST-01 | Phase 1 | Pending |
+| SEC-01 | Phase 1 | Complete ✓ |
+| SEC-02 | Phase 1 | Complete ✓ |
+| SEC-03 | Phase 1 | Complete ✓ |
+| SEC-04 | Phase 1 | Complete ✓ |
+| SEC-05 | Phase 1 | Deferred ~ |
+| TEST-01 | Phase 1 | Complete ✓ |
 | PERF-01 | Phase 2 | Pending |
 | PERF-02 | Phase 2 | Pending |
 | TEST-02 | Phase 2 | Pending |

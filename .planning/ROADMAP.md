@@ -12,7 +12,7 @@ BB-Manager is a broken Boys' Brigade member management application requiring sec
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Critical Security** - Fix critical security vulnerabilities (RLS, auth, key exposure) and set up testing foundation
+- [x] **Phase 1: Critical Security** - Fix critical security vulnerabilities (RLS, auth, key exposure) and set up testing foundation
 - [ ] **Phase 2: Performance** - Optimize RLS policies, remove unused indexes, and test security functions
 - [ ] **Phase 3: Code Quality** - Remove console statements, dead code, fix vulnerabilities, and test core services
 - [ ] **Phase 4: Configuration** - Environment setup, migration sync, and CI pipeline
@@ -39,12 +39,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 6 plans in 1 wave
 
 Plans:
-- [ ] 01-01-PLAN.md — Fix TypeScript error in services/db.ts and enable exhaustiveness checking
-- [ ] 01-02-PLAN.md — Create security functions with hardened search_path
-- [ ] 01-03-PLAN.md — Fix audit_logs_insert RLS policy
-- [ ] 01-04-PLAN.md — Verify service_role key isolation from client code
-- [ ] 01-05-PLAN.md — Enable leaked password protection in Supabase Auth
-- [ ] 01-06-PLAN.md — Set up Vitest with TypeScript configuration
+- [x] 01-01-PLAN.md — Fix TypeScript error in services/db.ts and enable exhaustiveness checking
+- [x] 01-02-PLAN.md — Create security functions with hardened search_path
+- [x] 01-03-PLAN.md — Fix audit_logs_insert RLS policy
+- [x] 01-04-PLAN.md — Verify service_role key isolation from client code
+- [x] 01-05-PLAN.md — Enable leaked password protection in Supabase Auth (DEFERRED - Pro Plan required)
+- [x] 01-06-PLAN.md — Set up Vitest with TypeScript configuration
 
 ### Phase 2: Performance
 
@@ -150,10 +150,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Critical Security | 0/6 | Planning complete | - |
+| 1. Critical Security | 6/6 | Complete ✓ | 2026-01-22 |
 | 2. Performance | 0/5 | Not started | - |
 | 3. Code Quality | 0/5 | Not started | - |
 | 4. Configuration | 0/5 | Not started | - |
 | 5. Functionality Validation | 0/6 | Not started | - |
 
-**Overall Progress:** 0/27 plans complete (0%)
+**Overall Progress:** 6/27 plans complete (22%)
