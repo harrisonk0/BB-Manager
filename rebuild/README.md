@@ -11,6 +11,16 @@ This directory contains comprehensive documentation for rebuilding the BB-Manage
 | **[database-schema.md](./database-schema.md)** | Database Schema - tables, RLS policies, and relationships |
 | **[setup-guide.md](./setup-guide.md)** | Setup Guide - step-by-step rebuild instructions |
 
+### Research & Alternatives (2026-01-22)
+
+| Document | Description |
+|----------|-------------|
+| **[RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md)** | ⭐ **Start here** - Research summary with recommendations for rebuild |
+| **[research/001-framework-alternatives.md](./research/001-framework-alternatives.md)** | React vs Next.js analysis (recommendation: stay with React) |
+| **[research/002-backend-architecture.md](./research/002-backend-architecture.md)** | Supabase vs self-hosted analysis (recommendation: keep Supabase for v1) |
+| **[research/003-deployment-strategies.md](./research/003-deployment-strategies.md)** | Docker, Caddy, monitoring for self-hosted deployments |
+| **[research/004-authentication-patterns.md](./research/004-authentication-patterns.md)** | Self-hosted auth patterns (Better Auth, argon2, RLS) |
+
 ## Purpose
 
 The BB-Manager application is a Boys' Brigade member management system for tracking member attendance, marks, and information. This rebuild documentation ensures the application could be independently recreated by capturing:

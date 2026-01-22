@@ -8,6 +8,59 @@ The application prioritizes simplicity and minimal infrastructure over sophistic
 
 **For canonical architecture documentation**, see [ARCHITECTURE.md](../ARCHITECTURE.md).
 
+---
+
+## ⚠️ Research Findings (2026-01-22)
+
+**IMPORTANT:** Comprehensive research was conducted to evaluate alternative frameworks, backend architectures, deployment strategies, and authentication patterns for the rebuild.
+
+**Key Recommendation:** The current tech stack (React + Vite + Supabase) is **optimal for v1** and should be retained.
+
+### Research Summary
+
+| Area | Finding | Recommendation |
+|------|---------|----------------|
+| **Framework** | Next.js adds complexity for auth-gated CRUD app; no SEO needs | ✅ Keep React + Vite |
+| **Backend** | Self-hosting requires 4-8 weeks auth implementation + security complexity | ✅ Keep Supabase for v1 |
+| **Deployment** | Docker + Caddy provides viable self-hosted option for v1.1 | ⚠️ Add as optional later |
+| **Auth** | Lucia deprecated (Mar 2025); Better Auth unproven; RLS provides defense-in-depth | ✅ Keep Supabase Auth |
+
+### Why Not Next.js?
+
+- **BB-Manager is auth-gated** - No SEO needs, no public pages
+- **Next.js designed for SSR** - Overkill for SPA CRUD app
+- **Migration cost:** 2-6 weeks with zero functional benefit
+- **Current stack is modern** - React 19.2.0 + Vite 6.2.0 is cutting-edge
+- **Self-hosting constraint** - React SPA = static files; Next.js = server process
+
+### Why Not Full Self-Hosting?
+
+- **Auth complexity:** Must implement auth from scratch (Lucia deprecated, Better Auth unproven)
+- **Security burden:** Application-level checks only; one bug = data leak
+- **Operations burden:** Database backups, security patches, monitoring, SSL certificates
+- **Raspberry Pi issues:** ARM64 compatibility uncertain, requires 8GB RAM recommended
+- **Cost savings minimal:** Supabase Free Tier → Pro Plan (£25/mo) vs development time
+
+### When to Consider Self-Hosting?
+
+**v1.1 Docker Option** (1-2 weeks):
+- Organizations requiring on-premise deployment
+- Still use Supabase cloud (auth complexity avoided)
+- Docker Compose + Caddy + GitHub Actions deployment
+- See [research/003-deployment-strategies.md](./research/003-deployment-strategies.md)
+
+**v2 Full Self-Host** (6-8 weeks, if needed):
+- Air-gapped networks or strict data sovereignty requirements
+- Self-hosted PostgreSQL + Better Auth
+- Only if clear requirement emerges
+- See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for decision framework
+
+### Full Research Documentation
+
+See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with sources, decision matrices, and implementation strategy.
+
+---
+
 ## Tech Stack
 
 ### Frontend
