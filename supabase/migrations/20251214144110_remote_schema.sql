@@ -13,3 +13,19 @@ SET search_path = public
 AS $$
   SELECT role FROM public.user_roles WHERE uid = user_uid LIMIT 1;
 $$;
+
+-- Check if user can access a section (all authenticated users can access both sections per security model)
+-- Section is contextual, not a security boundary
+-- SET search_path = public mitigates CVE-2018-1058
+CREATE OR REPLACE FUNCTION public.can_access_section(user_uid text, section_name text)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE uid = user_uid
+  ) AS has_role;
+$$;
