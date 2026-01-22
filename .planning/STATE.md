@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ## Current Position
 
 Phase: 2 of 5 (Performance)
-Plan: 05 of 5 in current phase
-Status: In progress - Testing security functions
-Last activity: 2026-01-22 — Plan 02-05: Unit tests for can_access_audit_logs security function
+Plan: 02 of 5 in current phase
+Status: In progress - Index cleanup
+Last activity: 2026-01-22 — Plan 02-02: Index cleanup SQL migration created
 
-Progress: [██████████] 40%
+Progress: [████████░░] 33%
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Recent decisions affecting current work:
 - [02-03]: Unit test pattern established for RPC-based security functions using vi.mocked(supabase.rpc)
 - [02-04]: can_access_section tests verify section is contextual - all roles (officer, captain, admin) can access both sections
 - [02-05]: can_access_audit_logs tests verify Captain/Admin-only access per Phase 1 security decision; Officer and unassigned users are denied access
+- [02-02]: Single-column idx_audit_logs_timestamp index identified as redundant with compound idx_audit_logs_section_timestamp; SQL migration created for safe removal with IF EXISTS pattern
 
 ### Pending Todos
 
@@ -81,5 +82,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-22
-Stopped at: Completed 02-05 - Unit tests for can_access_audit_logs security function
+Stopped at: Completed 02-02 - Index cleanup SQL migration created (pending execution)
 Resume file: None
