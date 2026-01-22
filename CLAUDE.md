@@ -2,13 +2,13 @@
 
 ## Current State
 
-**Status:** Active remediation - Critical security issues identified
+**Status:** Phase 2 ready - Performance optimization
 
-**Phase:** Phase 1 of 5 (Critical Security)
-**Progress:** 0% - Planning stage
-**Last Updated:** 2026-01-21
+**Phase:** Phase 2 of 5 (Performance)
+**Progress:** Ready to begin
+**Last Updated:** 2026-01-22
 
-The application is in a **broken state with security issues**. RLS is documented but not enforced, leaving GRANT-based access insufficient for UK GDPR compliance.
+Phase 1 (Critical Security) complete. All RLS policies enforced, security functions hardened with search_path mitigation, and audit logging properly secured.
 
 ## Core Value
 
@@ -17,9 +17,9 @@ Secure (UK law compliant) and functional management of boy marks and attendance 
 ## Critical Guardrails
 
 ### Database
-- **Migrations only:** Schema/GRANTs/RLS via `supabase/migrations/`
+- **Changes via MCP tools:** Use `mcp__supabase__executeSQL` to run DDL/DML directly on remote database
 - **No ad-hoc edits:** No Supabase UI changes
-- **Immutable history:** Never modify baseline migrations (`*_remote_schema.sql`)
+- **Document all changes:** Schema changes must be documented in `.planning/` with rationale
 
 ### Security
 - **Never client secrets:** `VITE_*` variables are browser-accessible
@@ -31,25 +31,15 @@ Secure (UK law compliant) and functional management of boy marks and attendance 
 - **Services layer first:** Extend `services/*` before UI
 - **Docs sync required:** Update docs with every change (see Maintenance section)
 
-## Critical Issues (Phase 1)
-
-| Issue | Location |
-|-------|----------|
-| RLS not enforced | Database |
-| TypeScript error | services/db.ts:514 |
-| search_path not hardened | 3 security functions |
-| audit_logs_insert RLS | Database |
-| Service role key exposure | Client code |
-
 ## Repository Structure
 
 ```
 ├── components/          # React UI components
 ├── services/           # Supabase data layer
 ├── hooks/              # Custom React hooks
-├── supabase/           # Database migrations
 ├── docs/               # Deep dives
 ├── .planning/          # Roadmap & requirements
+│   └── archive/migrations/  # Historical migration reference
 ├── ARCHITECTURE.md     # Canonical model
 ├── CLAUDE.md           # This file
 └── App.tsx             # App orchestrator
@@ -64,6 +54,19 @@ npx tsc         # Type-check
 npm run build   # Production build
 npm run start   # Serve build
 ```
+
+## Database Operations
+
+All database changes use MCP Supabase tools (not local migration files):
+
+- `mcp__supabase__executeSQL`: Run DDL/DML directly on remote database
+- `mcp__supabase__listTables`: List all tables
+- `mcp__supabase__describeTable`: Get table schema
+
+Schema reference:
+- See `.planning/archive/migrations/` for historical migration context
+- Current live schema is source of truth
+
 
 ## Documentation Maintenance
 
