@@ -5,7 +5,7 @@ contradictions.
 
 ## Canonical Sources
 
-- `AGENTS.md`: repo rules and operational guidance (the "how we work" contract).
+- `CLAUDE.md`: repo rules and operational guidance (the "how we work" contract).
 - `ARCHITECTURE.md`: canonical system model (components, data flow, invariants, trade-offs).
 - `docs/`: subordinate deep dives and runbooks (must not contradict `ARCHITECTURE.md`).
 

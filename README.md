@@ -46,7 +46,7 @@ This project is documented across several files to provide a comprehensive under
 | Document                                      | Description                                                                                             |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | **[ARCHITECTURE.md](./ARCHITECTURE.md)**                | Canonical system model: components, data flow, invariants, and trade-offs.                              |
-| **[AGENTS.md](./AGENTS.md)**                              | Repo rules and operational guidance (including security guardrails).                                    |
+| **[CLAUDE.md](./CLAUDE.md)**                              | Repo rules and operational guidance (including security guardrails).                                    |
 | **[1. Project Structure](./docs/01-project-structure.md)** | A detailed breakdown of every file and folder in the project.                                           |
 | **[2. Architecture (Deep Dive)](./docs/02-architecture.md)** | Supplemental notes on architecture and Supabase integration (see `ARCHITECTURE.md` for canonical).      |
 | **[3. Getting Started](./docs/03-getting-started.md)**     | A step-by-step guide for new developers to set up and run the project locally.                      |

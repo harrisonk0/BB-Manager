@@ -10,7 +10,7 @@ This document provides a detailed breakdown of the file and folder structure for
 ├── services/           # Supabase client + data services
 ├── src/                # Global styles/assets
 ├── supabase/           # Supabase CLI project (config + migrations)
-├── AGENTS.md           # Repo rules and operational guidance
+├── CLAUDE.md           # Repo rules and operational guidance
 ├── ARCHITECTURE.md     # Canonical system model
 ├── App.tsx             # App orchestrator / view state
 ├── index.html          # HTML shell (mounts React)
@@ -38,7 +38,7 @@ This document provides a detailed breakdown of the file and folder structure for
 | `hooks/`          | Contains custom React hooks (`useToastNotifications`, `useAuthAndRole`, `useSectionManagement`, `useAppData`, `useUnsavedChangesProtection`) that encapsulate reusable stateful logic. |
 | `services/`       | The data/service layer for Supabase access. See [`docs/06-data-and-services.md`](./06-data-and-services.md). |
 | `supabase/`       | Supabase CLI project containing `config.toml` and `migrations/` (authoritative schema/permissions history). See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md). |
-| `AGENTS.md`       | Repo rules and operational guidance (human + agent guardrails). See [`AGENTS.md`](../AGENTS.md). |
+| `CLAUDE.md`       | Repo rules and operational guidance (human + agent guardrails). See [`CLAUDE.md`](../CLAUDE.md). |
 | `ARCHITECTURE.md` | Canonical system model (components, data flow, invariants, trade-offs). See [`ARCHITECTURE.md`](../ARCHITECTURE.md). |
 | `App.tsx`         | Orchestrates auth gating, section selection, view routing, data loading, and global UI state. |
 | `index.html`      | HTML shell with the root element; loads `index.tsx`. > TODO: Confirm whether the import map is still required under Vite. |
