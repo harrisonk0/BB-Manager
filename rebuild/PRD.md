@@ -118,8 +118,8 @@ The Boys' Brigade is a UK youth organization working with children and young peo
 
 > As a user, I want to sign in securely with my email and password, so that my access is protected.
 
-- Email/password authentication via Supabase Auth
-- Session persistence
+- Email/password authentication via Better Auth (self-hosted)
+- Secure session persistence (HTTP-only cookies)
 - Password reset capability
 - Sign out functionality
 
@@ -182,7 +182,7 @@ New user signup requires an invite code:
 | Access control | RLS policies enforce role-based access |
 | Auditability | All changes logged with user identity |
 | Data retention | Audit logs automatically cleaned after 14 days |
-| Authentication | Supabase Auth with secure sessions |
+| Authentication | Better Auth with argon2id and HTTP-only cookies |
 | Minimisation | Only necessary data collected |
 | Accuracy | Users can correct their own data |
 
@@ -199,10 +199,11 @@ New user signup requires an invite code:
 
 ### Data Security
 
-- Authentication via Supabase Auth
+- Authentication via Better Auth (self-hosted)
+- Password hashing with argon2id (OWASP/NIST recommended)
 - Authorization via database RLS policies
 - Client-side checks are UX only; database enforces security
-- No service role keys in client code
+- HTTP-only, Secure, SameSite cookies prevent XSS
 - Invite code validation prevents enumeration
 
 ## Non-Functional Requirements
@@ -223,15 +224,18 @@ New user signup requires an invite code:
 ### Availability
 
 - Online-only application (no offline mode)
-- Data stored in Supabase cloud database
-- Static hosting sufficient for frontend
+- Self-hosted on VPS or Raspberry Pi
+- Docker Compose deployment with health checks
+- Automated backups via kartoza/pg-backup
+- Static frontend served via Caddy with automatic HTTPS
 
 ### Maintainability
 
 - TypeScript for type safety
 - Clear separation between UI, services, and types
 - Documented architecture and decisions
-- Services layer abstracts Supabase queries
+- Services layer abstracts database queries (Drizzle ORM)
+- Self-hosted stack with no vendor lock-in
 
 ## Out of Scope (Explicitly Excluded)
 

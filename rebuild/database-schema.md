@@ -2,11 +2,9 @@
 
 ## Overview
 
-BB-Manager uses Supabase Postgres as the system of record. The database consists of five application tables, Row Level Security (RLS) policies for access control, and security functions for authorization enforcement.
+BB-Manager uses PostgreSQL as the system of record. The database consists of application tables, Row Level Security (RLS) policies for access control, and security functions for authorization enforcement.
 
-**For the authoritative security model**, see [docs/10-database-security-model.md](../docs/10-database-security-model.md).
-
-**For historical migration context**, see [`.planning/archive/migrations/`](../.planning/archive/migrations/).
+**Note:** This schema documents the data model from the previous implementation. For a greenfield rebuild, this serves as a reference but may be evolved during development based on new requirements.
 
 ## Application Tables
 
