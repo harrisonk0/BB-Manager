@@ -511,7 +511,7 @@ export const createInviteCode = async (
   await createAuditLog(
     {
       userEmail: authUser.email || 'Unknown User',
-      actionType: 'CREATE_INVITE_CODE',
+      actionType: 'GENERATE_INVITE_CODE',
       description: `Created invite code ${newCode.id} for section ${section}.`,
       revertData: { inviteCode: newCode },
     },
