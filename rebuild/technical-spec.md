@@ -152,26 +152,37 @@ Caddy (reverse proxy, HTTPS)
 5. **Database enforces security** - RLS policies provide defense-in-depth
 6. **Self-hosted** - Full control over data and infrastructure
 
-### Component Structure
+### Component Structure (App Router)
 
 ```
-App.tsx (root orchestrator)
+app/
     |
-    +-- Header.tsx (navigation bar)
-    +-- Page Components
-        +-- HomePage.tsx (member roster)
-        +-- WeeklyMarksPage.tsx (marks entry)
-        +-- BoyMarksPage.tsx (individual history)
-        +-- DashboardPage.tsx (statistics)
-        +-- AuditLogPage.tsx (audit trail)
-        +-- SettingsPage.tsx (section config)
-        +-- GlobalSettingsPage.tsx (admin)
-        +-- AccountSettingsPage.tsx (password)
-        +-- LoginPage.tsx (auth)
-        +-- SignupPage.tsx (invite signup)
-        +-- SectionSelectPage.tsx (section choice)
-        +-- HelpPage.tsx (documentation)
-    +-- UI Components
+    +-- layout.tsx (root layout with Header)
+    +-- page.tsx (redirect to home or login)
+    +-- (auth)/
+    |   +-- login/page.tsx
+    |   +-- signup/page.tsx
+    +-- (app)/
+    |   +-- layout.tsx (authenticated layout)
+    |   +-- page.tsx (home/member roster)
+    |   +-- weekly-marks/page.tsx
+    |   +-- boy/[id]/page.tsx (individual history)
+    |   +-- dashboard/page.tsx
+    |   +-- audit-log/page.tsx
+    |   +-- settings/page.tsx
+    |   +-- admin/page.tsx
+    |   +-- account/page.tsx
+    |   +-- help/page.tsx
+    +-- api/
+        +-- auth/[...nextauth]/route.ts (Better Auth)
+        +-- boys/route.ts
+        +-- boys/[id]/route.ts
+        +-- marks/route.ts
+        +-- audit-logs/route.ts
+        +-- settings/route.ts
+components/
+    |
+    +-- ui/
         +-- BoyForm.tsx (member edit)
         +-- Modal.tsx (dialogs)
         +-- Icons.tsx (SVG icons)
@@ -179,78 +190,85 @@ App.tsx (root orchestrator)
         +-- Toast.tsx (notifications)
         +-- SkeletonLoaders.tsx (placeholders)
         +-- BarChart.tsx (visualizations)
-```
-
-### Services Layer
-
-```
-services/
+lib/
     |
-    +-- supabaseClient.ts (Supabase client initialization)
-    +-- supabaseAuth.ts (auth operations wrapper)
-    +-- db.ts (CRUD for boys, audit_logs, invite_codes, user_roles)
-    +-- settings.ts (per-section settings)
+    +-- db.ts (Drizzle client)
+    +-- auth.ts (Better Auth config)
+    +-- utils.ts (helper functions)
+```
+
+### Data Access Layer
+
+```
+lib/db.ts (Drizzle ORM client)
+    |
+    +-- schema/ (Drizzle schema definitions)
+    +-- queries/
+        +-- boys.ts (boy queries)
+        +-- marks.ts (mark queries)
+        +-- audit-logs.ts (audit trail)
+        +-- settings.ts (section settings)
 ```
 
 **Responsibilities:**
 
-- `supabaseClient.ts`: Creates Supabase client from environment variables
-- `supabaseAuth.ts`: Wraps auth operations (signIn, signUp, signOut, resetPassword)
-- `db.ts`: All data operations with validation helpers
-- `settings.ts`: Settings read/write operations
+- `lib/db.ts`: Drizzle ORM client initialization
+- `lib/auth.ts`: Better Auth configuration
+- `lib/queries/boys.ts`: Boy data operations
+- `lib/queries/marks.ts`: Mark data operations
+- `lib/queries/audit-logs.ts`: Audit trail operations
+- `lib/queries/settings.ts`: Settings operations
 
-### Custom Hooks
+### Client Components (where needed)
 
 ```
-hooks/
+components/
     |
-    +-- useAuthAndRole.ts (auth + role loading)
-    +-- useSectionManagement.ts (section persistence)
-    +-- useAppData.ts (boys + settings loading)
-    +-- useUnsavedChangesProtection.ts (dirty form guard)
-    +-- useToastNotifications.ts (notification system)
+    +-- client/
+        +-- SectionProvider.tsx (section context)
+        +-- ToastProvider.tsx (notification context)
+        +-- UnsavedChangesGuard.tsx (navigation protection)
 ```
 
 **Responsibilities:**
 
-- `useAuthAndRole`: Subscribes to auth changes; loads role from `user_roles`
-- `useSectionManagement`: Manages `localStorage['activeSection']`
-- `useAppData`: Fetches `boys` and `settings` for active section
-- `useUnsavedChangesProtection`: Blocks navigation when changes pending
-- `useToastNotifications`: Manages toast message queue
+- `SectionProvider`: Manages active section state (localStorage + context)
+- `ToastProvider`: Manages toast notification queue
+- `UnsavedChangesGuard`: Blocks navigation when form changes pending
 
 ## Data Flow Patterns
 
 ### Auth Flow
 
 ```
-1. App.tsx initializes useAuthAndRole
-2. Hook calls supabase.auth.getUser()
-3. If user exists, queries user_roles table for role
-4. If no role, signs out and shows error
-5. Hook subscribes to auth state changes
+1. Middleware checks auth status on protected routes
+2. If not authenticated, redirect to /login
+3. If authenticated, Better Auth session provides user ID
+4. Server components fetch user role from user_roles table
+5. Client components can access auth via Better Auth hooks
 ```
 
 ### Data Loading Flow
 
 ```
 1. User selects section (stored in localStorage)
-2. App.tsx calls useAppData
-3. Hook fetches boys and settings in parallel
-4. Data passed to page components via props
-5. Pages use refreshData() after writes
+2. Server component fetches boys and settings via API routes
+3. Data passed to client components via props
+4. Client components can trigger mutations via API routes
+5. Server actions or revalidation update data after mutations
 ```
 
 ### Write Flow (Member Create)
 
 ```
 1. User fills BoyForm and submits
-2. Page calls createBoy() from services/db.ts
-3. Service validates data (mark ranges, etc.)
-4. Service calls supabase.from('boys').insert()
-5. Service calls createAuditLog()
-6. Page calls refreshData()
+2. Form calls POST /api/boys (server action or fetch)
+3. API route validates data (mark ranges, etc.)
+4. API route calls Drizzle insert() to database
+5. API route creates audit log entry
+6. Response returns updated data
 7. Toast notification shown
+8. Page revalidates data (router.refresh() or revalidatePath())
 ```
 
 ## State Management
@@ -259,69 +277,58 @@ hooks/
 
 | State | Source | Scope |
 |-------|--------|-------|
-| Domain data | Supabase Postgres | Authoritative |
-| Auth session | Supabase Auth | Client-side storage |
+| Domain data | PostgreSQL | Authoritative |
+| Auth session | Better Auth | HTTP-only cookies |
 | Active section | `localStorage['activeSection']` | Browser persistence |
-| Working data | React state (hooks/components) | In-memory |
+| Working data | React state (client components) | In-memory |
 
-### No Global State Framework
+### Server Components First
 
-The app intentionally avoids Redux, Zustand, or similar. State is managed through:
+The app uses Next.js App Router with server components as default:
 
-1. **Component-level state**: `useState` for local UI state
-2. **Custom hooks**: Cross-cutting concerns (auth, section, data)
-3. **Prop drilling**: App.tsx passes data to pages
-4. **localStorage**: Section selection persistence
+1. **Server Components**: Fetch data server-side, no client JS
+2. **Client Components**: Only for interactivity (forms, modals, etc.)
+3. **API Routes**: Security boundary between client and database
+4. **Server Actions**: Type-safe mutations (optional alternative to API routes)
 
-**Trade-off**: More prop drilling vs. simpler mental model and less boilerplate.
+**Benefits**:
+- Reduced client JavaScript
+- Database never exposed to client
+- Simpler security model
+- Better performance
 
 ## Key Architectural Decisions
 
-### 1. Direct-to-Supabase Access
+### 1. API Routes as Security Boundary
 
-**Decision**: Browser talks directly to Supabase; no custom API server.
-
-**Rationale**:
-- Reduces infrastructure (no server to maintain)
-- Lower latency (no intermediate hop)
-- Supabase RLS provides security boundary
-- Simpler deployment (static hosting)
-
-**Trade-offs**:
-- No server-side business logic encapsulation
-- Business rules must be in client code or database
-- Limited ability to do background processing
-
-### 2. Services Layer as Boundary
-
-**Decision**: All Supabase queries go through `services/*` functions.
+**Decision**: All database access goes through API routes; no direct DB access from client.
 
 **Rationale**:
-- Single place for table/column knowledge
-- Easier to change schema
-- Centralized validation
-- Testable business logic
+- Database never exposed to browser
+- Single place for validation and authorization
+- Server-side business logic
+- Better security model for self-hosting
 
 **Trade-offs**:
-- More indirection than direct queries
-- Need to keep services in sync with schema
+- More code than direct DB access
+- Slightly more latency (server hop)
+- Need to implement API endpoints
 
-### 3. No React Router
+### 2. Server Components by Default
 
-**Decision**: View state managed in `App.tsx`; URL not source of truth.
+**Decision**: Use Next.js server components unless client interactivity needed.
 
 **Rationale**:
-- Simpler for single-page app
-- No deep-linking requirements
-- Easier state management
-- Avoids routing complexity
+- Reduced client JavaScript
+- Faster page loads
+- Data fetching server-side (more secure)
+- Better SEO (if needed in future)
 
 **Trade-offs**:
-- No shareable URLs for pages
-- No browser history integration
-- Can't refresh into specific views
+- Need to mark interactive components with 'use client'
+- Can't use hooks in server components
 
-### 4. Section-Based Partitioning
+### 3. Section-Based Partitioning
 
 **Decision**: Data queries always include `section` dimension.
 
@@ -448,35 +455,32 @@ PORT=3000  # For Express server
 
 ```bash
 npm install         # Install dependencies
-npm run dev         # Start Vite dev server (localhost:3000)
-npm run build       # Build production bundle to dist/
-npm run preview     # Preview production build
-npm run start       # Serve with Express (requires build first)
+npm run dev         # Start Next.js dev server (localhost:3000)
+npm run build       # Build for production
+npm run start       # Start production server
 ```
 
 ### Deployment Options
 
-1. **Static hosting** (Vercel, Netlify, etc.)
-   - Deploy `dist/` directory
-   - Configure SPA rewrites to index.html
+1. **Docker Compose** (Recommended)
+   - Single container with Next.js + PostgreSQL
+   - Caddy reverse proxy for HTTPS
+   - See deployment research for docker-compose.yml example
 
-2. **Express server** (`server.js`)
-   - Serves static files
-   - SPA fallback routing
-   - Docker image available
-
-3. **Docker**
-   - Uses `serve` package for static files
-   - Single container deployment
+2. **Standalone Build**
+   - Next.js standalone output for smaller Docker image
+   - Configure in next.config.js: `output: 'standalone'`
 
 ## Performance Considerations
 
-### Current Optimizations
+### Optimizations for Next.js
 
-1. **RLS policy optimization**: `(SELECT auth.uid())` subquery pattern
-2. **Compound indexes**: On frequently queried columns
-3. **useMemo**: For dashboard computations
-4. **Parallel queries**: Loading boys and settings simultaneously
+1. **Server Components**: Reduce client JavaScript by default
+2. **API Route caching**: Cache GET requests where appropriate
+3. **RLS policy optimization**: `(SELECT auth.uid())` subquery pattern
+4. **Compound indexes**: On frequently queried columns
+5. **useMemo**: For dashboard computations (client components)
+6. **Parallel queries**: Loading data server-side concurrently
 
 ### Known Limitations
 
