@@ -14,50 +14,59 @@ The application prioritizes simplicity and minimal infrastructure over sophistic
 
 **IMPORTANT:** Comprehensive research was conducted to evaluate alternative frameworks, backend architectures, deployment strategies, and authentication patterns for the rebuild.
 
-**Key Recommendation:** The current tech stack (React + Vite + Supabase) is **optimal for v1** and should be retained.
+**Project Context:**
+- **Greenfield rebuild** - No source code carried over from v1
+- **Full self-hosting required** - Must run on local infrastructure (VPS/Raspberry Pi)
+
+**Key Recommendation:** For a greenfield, self-hosted rebuild, use **React + Vite + PostgreSQL + Better Auth** with Docker + Caddy deployment.
 
 ### Research Summary
 
 | Area | Finding | Recommendation |
 |------|---------|----------------|
-| **Framework** | Next.js adds complexity for auth-gated CRUD app; no SEO needs | ✅ Keep React + Vite |
-| **Backend** | Self-hosting requires 4-8 weeks auth implementation + security complexity | ✅ Keep Supabase for v1 |
-| **Deployment** | Docker + Caddy provides viable self-hosted option for v1.1 | ⚠️ Add as optional later |
-| **Auth** | Lucia deprecated (Mar 2025); Better Auth unproven; RLS provides defense-in-depth | ✅ Keep Supabase Auth |
+| **Framework** | Next.js adds complexity for auth-gated CRUD app; no SEO needs | ✅ React + Vite |
+| **Backend** | Self-hosted PostgreSQL provides data sovereignty for UK GDPR | ✅ PostgreSQL + Drizzle ORM |
+| **Deployment** | Docker + Caddy provides zero-config HTTPS, simple deployment | ✅ Docker + Caddy (primary) |
+| **Auth** | Lucia deprecated (Mar 2025); Better Auth is replacement | ✅ Better Auth + argon2id |
 
 ### Why Not Next.js?
 
 - **BB-Manager is auth-gated** - No SEO needs, no public pages
 - **Next.js designed for SSR** - Overkill for SPA CRUD app
-- **Migration cost:** 2-6 weeks with zero functional benefit
 - **Current stack is modern** - React 19.2.0 + Vite 6.2.0 is cutting-edge
 - **Self-hosting constraint** - React SPA = static files; Next.js = server process
 
-### Why Not Full Self-Hosting?
+### Why Self-Hosted PostgreSQL?
 
-- **Auth complexity:** Must implement auth from scratch (Lucia deprecated, Better Auth unproven)
-- **Security burden:** Application-level checks only; one bug = data leak
-- **Operations burden:** Database backups, security patches, monitoring, SSL certificates
-- **Raspberry Pi issues:** ARM64 compatibility uncertain, requires 8GB RAM recommended
-- **Cost savings minimal:** Supabase Free Tier → Pro Plan (£25/mo) vs development time
+- **Data sovereignty:** Full control over data location (UK hosting for GDPR)
+- **Mature & stable:** Battle-tested, excellent documentation
+- **Runs anywhere:** VPS, Raspberry Pi, ARM64, x86_64
+- **Free & open-source:** No licensing costs, no vendor lock-in
+- **Drizzle ORM:** Type-safe, lightweight, performant
 
-### When to Consider Self-Hosting?
+### Why Better Auth?
 
-**v1.1 Docker Option** (1-2 weeks):
-- Organizations requiring on-premise deployment
-- Still use Supabase cloud (auth complexity avoided)
-- Docker Compose + Caddy + GitHub Actions deployment
-- See [research/003-deployment-strategies.md](./research/003-deployment-strategies.md)
+- **Lucia deprecated** (March 2025) - "Lucia, in the current state, is not working"
+- **Better Auth** - Framework-agnostic replacement, absorbed Auth.js
+- **Type-safe:** Excellent TypeScript integration
+- **Feature complete:** Password reset, email verification, 2FA, OAuth
+- **Self-hosted:** Full control over user data
 
-**v2 Full Self-Host** (6-8 weeks, if needed):
-- Air-gapped networks or strict data sovereignty requirements
-- Self-hosted PostgreSQL + Better Auth
-- Only if clear requirement emerges
-- See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for decision framework
+### Deployment Strategy
+
+**Primary: Docker + Caddy**
+- Zero-config automatic HTTPS (Let's Encrypt)
+- Hardware agnostic (VPS, Raspberry Pi, ARM64, x86_64)
+- Simple deployment (single `docker-compose up` command)
+- Health checks and auto-restart
+
+**Hardware Options:**
+- **VPS:** 1-2GB RAM, 1 CPU core, 20GB storage (£5-10/mo)
+- **Raspberry Pi:** 4GB RAM minimum (8GB recommended)
 
 ### Full Research Documentation
 
-See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with sources, decision matrices, and implementation strategy.
+See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with sources, decision matrices, and implementation strategy (6-8 week timeline, security checklist, open questions).
 
 ---
 
@@ -78,9 +87,10 @@ See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with 
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| Supabase SDK | 2.48.0 | Auth and Postgres client |
-| Supabase Auth | - | Email/password authentication |
-| Supabase Postgres | - | Data persistence with RLS |
+| PostgreSQL | 16+ | Data persistence with RLS |
+| Drizzle ORM | Latest | Type-safe database client |
+| Better Auth | Latest | Authentication (arg on2id) |
+| Caddy | Latest | Reverse proxy with automatic HTTPS |
 
 ### Development
 
@@ -88,7 +98,17 @@ See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with 
 |------------|---------|---------|
 | Vitest | 4.0.17 | Test runner |
 | @vitejs/plugin-react | 5.0.0 | React JSX support |
-| Express | 4.18.2 | Optional static file serving |
+| Docker Compose | Latest | Container orchestration |
+| GitHub Actions | Latest | CI/CD deployment |
+
+### Deployment
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Docker | Latest | Containerization |
+| Caddy | Latest | Reverse proxy + HTTPS |
+| kartoza/pg-backup | Latest | Automated PostgreSQL backups |
+| Uptime Kuma | Latest (optional) | Self-hosted monitoring |
 
 ## Architecture
 
@@ -107,16 +127,29 @@ Custom Hooks
 Services Layer
     |
     v
-Supabase (Auth + Postgres with RLS)
+PostgreSQL (via Drizzle ORM) with RLS
+    |
+    v
+Better Auth (authentication)
+```
+
+**Deployment: Docker Compose**
+```
+Caddy (reverse proxy, HTTPS)
+    |
+    +-- React App (static files)
+    +-- PostgreSQL (database)
+    +-- Better Auth (auth API)
 ```
 
 **Key Principles:**
 
-1. **Backend-light**: No API server; browser talks directly to Supabase
-2. **Services boundary**: Supabase query details isolated in `services/*`
+1. **Backend-light**: No custom API server; React app connects directly to PostgreSQL via Drizzle
+2. **Services boundary**: Database query details isolated in `services/*`
 3. **In-memory state**: No global state framework; React hooks manage state
 4. **Section partitioning**: Data queries always scoped by section
-5. **Database enforces security**: RLS policies are the real authority
+5. **Database enforces security**: RLS policies provide defense-in-depth
+6. **Self-hosted**: Full control over data and infrastructure
 
 ### Component Structure
 

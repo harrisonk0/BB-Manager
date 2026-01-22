@@ -1,7 +1,7 @@
 # Rebuild Research Synthesis
 
-**Date:** 2026-01-22
-**Status:** Research Complete, Recommendations Ready
+**Date:** 2026-01-22 (Updated 2026-01-22 for greenfield self-hosted rebuild)
+**Status:** Research Complete, Recommendations Updated
 
 ## Executive Summary
 
@@ -11,7 +11,12 @@ Four research areas were investigated to improve the BB-Manager rebuild:
 3. Deployment strategies (VPS/Raspberry Pi)
 4. Authentication patterns (self-hosted auth)
 
-**Key Finding:** The current tech stack (React + Vite + Supabase) is **optimal for v1** and should be retained. Proposed changes introduce complexity, security risk, and development effort with minimal benefit.
+**Project Context:**
+- **Greenfield rebuild** - No source code carried over from v1
+- **Full self-hosting required** - Must run on local infrastructure (VPS/Raspberry Pi)
+- **UK GDPR compliance** - Data sovereignty and children's data protection
+
+**Key Finding:** For a **greenfield, self-hosted** rebuild, the recommended stack is **React + Vite + PostgreSQL + Better Auth** with Docker + Caddy deployment.
 
 ---
 
@@ -19,10 +24,10 @@ Four research areas were investigated to improve the BB-Manager rebuild:
 
 | Area | Recommendation | Confidence | Rationale |
 |------|---------------|------------|-----------|
-| **Framework** | ✅ Keep React + Vite | HIGH | Next.js designed for SEO/SSR (not needed); migration cost 2-6 weeks |
-| **Backend** | ✅ Keep Supabase | MEDIUM | Self-hosting requires 4-8 weeks auth implementation + security complexity |
-| **Deployment** | ⚠️ Add Docker option | MEDIUM | Keep current Vercel, add optional self-hosted Docker setup for v1.1 |
-| **Auth** | ✅ Keep Supabase Auth | HIGH | Lucia deprecated (Mar 2025); Better Auth unproven; RLS provides defense-in-depth |
+| **Framework** | ✅ React + Vite | HIGH | Next.js designed for SEO/SSR (not needed); simpler for self-hosting |
+| **Backend** | ✅ Self-hosted PostgreSQL | HIGH | Full data sovereignty; runs on Raspberry Pi/VPS; Drizzle ORM for type safety |
+| **Deployment** | ✅ Docker + Caddy | HIGH | Zero-config HTTPS; simple deployment; hardware-agnostic |
+| **Auth** | ✅ Better Auth + PostgreSQL | MEDIUM | Lucia deprecated (Mar 2025); Better Auth is replacement; implement RLS for defense-in-depth |
 
 ---
 
@@ -52,43 +57,57 @@ Four research areas were investigated to improve the BB-Manager rebuild:
 
 ---
 
-### 2. Backend: Stay with Supabase for v1 ✅
+### 2. Backend: Self-Hosted PostgreSQL ✅
 
-**Recommendation:** Keep Supabase, defer self-hosting decision until after v1
+**Recommendation:** Use self-hosted PostgreSQL with Drizzle ORM
 
-**Why Supabase for v1:**
-- **Security:** Row-Level Security (RLS) provides database-level enforcement
-- **Auth:** Complete authentication system (no implementation needed)
-- **Features:** Realtime, storage, edge functions available when needed
-- **Speed:** 4-6 weeks to launch vs 8-14 weeks for self-hosted
-- **Reliability:** Managed backups, high availability, security patches
+**Why PostgreSQL:**
+- **Data sovereignty:** Full control over data location (UK hosting for GDPR)
+- **Mature & stable:** Battle-tested, excellent documentation
+- **Runs anywhere:** VPS, Raspberry Pi, ARM64, x86_64
+- **Feature-rich:** JSON support, full-text search, excellent constraints
+- **Free & open-source:** No licensing costs, no vendor lock-in
 
-**Self-hosting tradeoffs:**
-- **Auth complexity:** Must implement auth from scratch (Lucia deprecated, Better Auth unproven)
-- **Security burden:** Application-level checks only; one bug = data leak
-- **Operations burden:** Database backups, security patches, monitoring, SSL certificates
-- **Raspberry Pi issues:** ARM64 compatibility uncertain, requires 8GB RAM recommended
-- **Cost savings minimal:** Supabase Free Tier → Pro Plan (£25/mo) vs development time
+**ORM Choice: Drizzle**
+- **Type-safe:** Excellent TypeScript integration
+- **Lightweight:** Minimal runtime overhead (unlike Prisma)
+- **SQL-like:** You write real SQL, not a custom query language
+- **Performant:** No query engine overhead, direct PostgreSQL queries
+- **Self-hosted friendly:** No separate schema engine needed
 
-**UK GDPR Note:** Hosting location (UK vs EU) doesn't automatically ensure compliance. The Children's Code requirements (data minimization, parental consent, access controls, audit logging) apply regardless of hosting.
+**Self-Hosting Considerations:**
+- **RLS required:** Must implement Row-Level Security policies for defense-in-depth
+- **Backup strategy:** Automated backups with `kartoza/pg-backup` or pg_dump cron
+- **Monitoring:** Basic health checks (connection pooling, query performance)
+- **Hardware:** PostgreSQL runs well on Raspberry Pi 4 (4GB+ RAM recommended)
 
-**Verdict:** Use Supabase for v1. Re-evaluate self-hosting after v1 based on actual hosting costs, privacy requirements, and team capacity.
+**UK GDPR Advantage:**
+- Full data sovereignty - data never leaves your infrastructure
+- UK hosting ensures compliance with data residency requirements
+- Complete control over data retention and deletion
+
+**Verdict:** Self-hosted PostgreSQL with Drizzle ORM provides optimal balance of control, performance, and compliance for self-hosted deployment.
 
 > **Research:** [002-backend-architecture.md](./research/002-backend-architecture.md)
 
 ---
 
-### 3. Deployment: Add Docker Option for v1.1 ⚠️
+### 3. Deployment: Docker + Caddy ✅
 
-**Current:** Vercel (works perfectly)
+**Recommendation:** Docker Compose + Caddy for all deployments
 
-**Proposed Addition:** Optional self-hosted Docker setup for organizations requiring on-premise deployment
+**Why Docker + Caddy:**
+- **Hardware agnostic:** Works identically on VPS, Raspberry Pi, ARM64, x86_64
+- **Zero-config HTTPS:** Caddy automatically obtains and renews Let's Encrypt certificates
+- **Simple deployment:** Single `docker-compose up` command
+- **Health checks:** Built-in container health monitoring and auto-restart
+- **Backup automation:** `kartoza/pg-backup` handles scheduled PostgreSQL backups
 
-**Recommended Stack:**
-- **Caddy** - Zero-config automatic HTTPS (better than Nginx + certbot)
+**Deployment Stack:**
+- **Caddy** - Reverse proxy with automatic HTTPS (better than Nginx + certbot)
 - **Docker Compose** - Complete orchestration with health checks
-- **kartoza/pg-backup** - Automated PostgreSQL backups with cron scheduling
-- **GitHub Actions SSH** - Simple CI/CD deployment pipeline
+- **kartoza/pg-backup** - Automated PostgreSQL backups with retention policies
+- **GitHub Actions SSH** - CI/CD pipeline for deployments
 - **Uptime Kuma** - Self-hosted monitoring (optional)
 
 **Hardware Requirements:**
@@ -98,40 +117,51 @@ Four research areas were investigated to improve the BB-Manager rebuild:
 **Deployment Scenarios:**
 | Scenario | Stack | When to Use |
 |----------|-------|-------------|
-| **Default** | Vercel + Supabase | Most users, fastest setup |
-| **Self-hosted** | Docker + Caddy + Supabase | Data sovereignty requirements |
-| **Full self-hosted** | Docker + Caddy + Postgres + Better Auth | On-premise, air-gapped networks |
+| **Self-hosted VPS** | Docker + Caddy + Postgres + Better Auth | Most deployments, UK hosting |
+| **Raspberry Pi** | Docker + Caddy + Postgres + Better Auth | On-premise, low power |
+| **Air-gapped** | Docker + Caddy + Postgres + Better Auth | Offline networks |
 
-**Verdict:** Keep Vercel as default, provide Docker Compose setup as optional alternative for v1.1.
+**Verdict:** Docker + Caddy is the recommended deployment strategy for all scenarios. Simple, secure, and hardware-agnostic.
 
 > **Research:** [003-deployment-strategies.md](./research/003-deployment-strategies.md)
 
 ---
 
-### 4. Authentication: Keep Supabase Auth ✅
+### 4. Authentication: Better Auth ✅
 
 **Critical Finding:** Lucia Auth was **deprecated March 2025** (library author announcement: "Lucia, in the current state, is not working").
 
-**Recommended Replacement (if self-hosting):**
+**Recommended Solution:**
 - **Better Auth** - Framework-agnostic, absorbed Auth.js (NextAuth v5) to prevent deprecation
 - **argon2id** - OWASP/NIST recommended password hashing
 - **HTTP-only cookies** - XSS protection prioritized over CSRF (mitigated via SameSite)
 - **Session-based auth** - Preferred over JWT for web apps (provides revocation)
 - **PostgreSQL RLS** - Database-level authorization (defense-in-depth)
 
-**Supabase Auth advantages:**
-- **Battle-tested** - Thousands of production deployments
-- **RLS integration** - Policies enforced at database level
-- **Feature complete** - Password reset, email verification, OAuth, MFA
-- **Zero maintenance** - Security patches, uptime, DDoS protection managed
+**Better Auth advantages:**
+- **Framework-agnostic:** Works with React, Next.js, vanilla JS
+- **Type-safe:** Excellent TypeScript integration
+- **Feature complete:** Password reset, email verification, 2FA, OAuth
+- **Self-hosted:** Full control over user data
+- **Active development:** Replacing Auth.js/NextAuth and Lucia
 
-**Self-hosted auth risks:**
-- **Security bugs** - Any missed authorization check = data leak
-- **Development time** - 4-6 weeks minimum
-- **Ongoing maintenance** - Security updates, vulnerability monitoring
-- **Email delivery** - Must integrate SMTP provider (Postfix, Mailgun, SendGrid)
+**Self-Hosting Considerations:**
+- **Development time:** 2-3 weeks for full implementation
+- **Email delivery:** Must integrate SMTP provider (Postfix, Mailgun, SendGrid, or local)
+- **RLS policies:** Must implement PostgreSQL Row-Level Security for defense-in-depth
+- **Security:** Application-level checks + database-level policies (defense-in-depth)
 
-**Verdict:** Use Supabase Auth for v1. Only consider Better Auth migration if full self-hosting is required.
+**Security Checklist:**
+- [ ] argon2id password hashing (minimum 19 MB memory cost)
+- [ ] HTTP-only, Secure, SameSite cookies
+- [ ] CSRF protection (SameSite cookie attribute)
+- [ ] Rate limiting on login endpoints
+- [ ] Password requirements (min 8 chars, complexity)
+- [ ] Session management (revocation, expiration)
+- [ ] PostgreSQL RLS policies on all tables
+- [ ] Audit logging for sensitive operations
+
+**Verdict:** Better Auth provides modern, secure, self-hosted authentication with excellent TypeScript support. Requires 2-3 weeks implementation but provides full data sovereignty.
 
 > **Research:** [004-authentication-patterns.md](./research/004-authentication-patterns.md)
 
@@ -139,114 +169,123 @@ Four research areas were investigated to improve the BB-Manager rebuild:
 
 ## Decision Matrix
 
-### Keep Current Stack (Recommended)
+### Self-Hosted Stack (Recommended)
 
 | Criterion | Score | Notes |
 |-----------|-------|-------|
-| Time to Launch | ⭐⭐⭐⭐⭐ | 4-6 weeks (focus on features) |
+| Time to Launch | ⭐⭐⭐⭐ | 6-8 weeks (auth + deployment setup) |
+| Security | ⭐⭐⭐⭐⭐ | RLS + argon2id + defense-in-depth |
+| Development Cost | ⭐⭐⭐ | Medium (auth implementation required) |
+| Maintenance | ⭐⭐⭐⭐ | Docker + automated backups |
+| GDPR Compliance | ⭐⭐⭐⭐⭐ | Full data sovereignty, UK hosting |
+| Data Sovereignty | ⭐⭐⭐⭐⭐ | Complete control, UK hosting possible |
+| Monthly Cost | ⭐⭐⭐⭐⭐ | VPS cost only (£5-10/mo) or free on own hardware |
+
+### Supabase Stack (Not Self-Hosted)
+
+| Criterion | Score | Notes |
+|-----------|-------|-------|
+| Time to Launch | ⭐⭐⭐⭐⭐ | 4-6 weeks (auth handled) |
 | Security | ⭐⭐⭐⭐⭐ | RLS + managed security patches |
 | Development Cost | ⭐⭐⭐⭐⭐ | Low (auth, DB, hosting handled) |
 | Maintenance | ⭐⭐⭐⭐⭐ | Managed backups, updates, monitoring |
 | GDPR Compliance | ⭐⭐⭐⭐ | Same effort regardless of hosting |
-| Data Sovereignty | ⭐⭐⭐ | EU hosting available, not UK |
+| Data Sovereignty | ⭐⭐ | EU hosting available, not UK |
 | Monthly Cost | ⭐⭐⭐ | Free tier → £25/mo (Pro) |
-
-### Full Self-Host (Not Recommended for v1)
-
-| Criterion | Score | Notes |
-|-----------|-------|-------|
-| Time to Launch | ⭐ | 8-14 weeks (auth implementation) |
-| Security | ⭐⭐ | App-level checks only, higher risk |
-| Development Cost | ⭐ | High (auth, backups, monitoring) |
-| Maintenance | ⭐⭐ | Manual backups, patches, monitoring |
-| GDPR Compliance | ⭐⭐⭐⭐ | Same effort regardless of hosting |
-| Data Sovereignty | ⭐⭐⭐⭐⭐ | Full control, UK hosting possible |
-| Monthly Cost | ⭐⭐⭐⭐ | VPS cost only (£5-10/mo) |
 
 ---
 
 ## Implementation Strategy
 
-### Phase 1: v1 Rebuild (Current Stack)
+### Phase 1: v1 Greenfield Rebuild (Self-Hosted)
 
-**Goal:** Rebuild BB-Manager with current architecture, focus on code quality and features
+**Goal:** Build BB-Manager from scratch with self-hosted architecture
 
 **Tech Stack:**
 - React 19 + Vite 6 + TypeScript
-- Supabase (Postgres + Auth + RLS)
+- PostgreSQL + Drizzle ORM
+- Better Auth (authentication)
+- Docker Compose + Caddy (deployment)
 - React Router v7
-- Vercel deployment
 
-**Timeline:** 4-6 weeks
+**Timeline:** 6-8 weeks
 
 **Deliverables:**
+- Complete Better Auth implementation with argon2id
+- PostgreSQL schema with RLS policies
+- Docker Compose configuration
+- Caddy reverse proxy with automatic HTTPS
+- Automated backup strategy
 - Clean, tested, documented codebase
-- Complete feature parity with current version
-- Comprehensive rebuild documentation
 
-### Phase 1.1: Docker Option (Add-on)
+**Week Breakdown:**
+- Week 1-2: Better Auth + PostgreSQL schema + RLS policies
+- Week 3-4: Core data models (users, boys, marks, attendance)
+- Week 5-6: UI components and business logic
+- Week 7: Docker + Caddy deployment setup
+- Week 8: Testing, documentation, backup verification
 
-**Goal:** Provide self-hosted deployment option for organizations requiring on-premise
+### Phase 1.1: Production Hardening (Optional)
 
-**Tech Stack:**
-- Docker Compose + Caddy
-- Supabase (still cloud-hosted)
-- GitHub Actions deployment
-- Optional monitoring
+**Goal:** Add monitoring, observability, and operational readiness
+
+**Additions:**
+- Uptime Kuma monitoring
+- Log aggregation (Loki or similar)
+- Backup verification tests
+- Security audit
+- Performance optimization
 
 **Timeline:** 1-2 weeks
 
-**Deliverables:**
-- `docker-compose.yml` with health checks
-- Caddyfile with automatic HTTPS
-- Deployment runbook
-- Backup/restore procedures
+### Phase 2: Advanced Features (Future)
 
-### Phase 2: Full Self-Host (Future, If Needed)
+**Goal:** Add features that were out of scope for v1
 
-**Goal:** Complete self-hosted stack for air-gapped or strict data sovereignty requirements
+**Potential Features:**
+- Analytics and reporting dashboards
+- Advanced admin features
+- Data export functionality
+- API for external integrations
+- Realtime updates (WebSocket)
 
-**Tech Stack:**
-- Docker Compose + Caddy
-- PostgreSQL + Better Auth
-- Application-level authorization
-- Self-hosted monitoring
-
-**Timeline:** 6-8 weeks (start from v1.1)
-
-**Deliverables:**
-- Migration scripts from Supabase
-- Complete auth implementation
-- Security audit
-- Operations runbook
-
-**Gate Criteria:**
-- Clear requirement for air-gapped deployment
-- Monthly hosting costs justify development effort
-- Team capacity for ongoing maintenance
+**Timeline:** TBD based on requirements
 
 ---
 
 ## Open Questions
 
-1. **UK GDPR Data Residency** - Does Supabase EU hosting vs self-hosted UK hosting materially impact compliance? **Recommendation:** Consult legal counsel; hosting location is one factor among many.
+1. **Raspberry Pi Feasibility** - Can PostgreSQL + app run reliably on Raspberry Pi 4? **Recommendation:** Prototype on target hardware (4GB+ RAM) before production deployment.
 
-2. **Raspberry Pi Feasibility** - Can full stack run reliably on Raspberry Pi 4/5? **Recommendation:** Prototype on target hardware before committing to self-hosted route.
+2. **Better Auth Long-term Viability** - Is Better Auth production-ready for the long term? **Recommendation:** Monitor project status quarterly; currently stable but newer ecosystem (2025).
 
-3. **Better Auth Viability** - Is Better Auth production-ready for the long term? **Recommendation:** Monitor project status quarterly; stable for now but newer ecosystem.
+3. **SMTP for Email** - Use transactional email service (Mailgun, SendGrid) or self-host Postfix? **Recommendation:** Start with transactional service for reliability, evaluate self-hosted Postfix later.
+
+4. **Connection Pooling** - Does Better Auth handle PostgreSQL connection pooling automatically? **Recommendation:** Verify during implementation; add PgBouncer if needed.
 
 ---
 
 ## Conclusion
 
-**The current tech stack is optimal for BB-Manager v1.**
+**For a greenfield, self-hosted rebuild, the recommended stack is React + Vite + PostgreSQL + Better Auth with Docker + Caddy deployment.**
 
-Proposed changes (Next.js, self-hosted auth, full self-hosting) introduce complexity, security risk, and development effort with minimal benefit for the current use case.
+This approach provides:
+- ✅ Full data sovereignty (UK hosting for GDPR)
+- ✅ No vendor lock-in (all open-source)
+- ✅ Low monthly costs (VPS or free on own hardware)
+- ✅ Modern, secure authentication (Better Auth + argon2id)
+- ✅ Simple deployment (Docker Compose)
+- ✅ Automatic HTTPS (Caddy)
+
+**Tradeoffs:**
+- ⚠️ Longer initial development (6-8 weeks vs 4-6 weeks with Supabase)
+- ⚠️ Must implement auth from scratch (Better Auth)
+- ⚠️ Responsible for backups, security updates, monitoring
 
 **Recommended Path:**
-1. ✅ **v1:** Rebuild with React + Vite + Supabase (4-6 weeks)
-2. ⚠️ **v1.1:** Add Docker deployment option (1-2 weeks)
-3. ❓ **v2:** Evaluate full self-hosting based on actual requirements
+1. ✅ **v1:** Greenfield rebuild with self-hosted stack (6-8 weeks)
+2. ⚠️ **v1.1:** Production hardening with monitoring (1-2 weeks)
+3. ❓ **v2:** Advanced features based on user feedback
 
 **Key Principle:** Start simple, add complexity only when clear requirement emerges.
 
