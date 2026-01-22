@@ -1,116 +1,47 @@
-# BB-Manager Technical Specification
+# BB-Manager Technical Specification (PocketBase)
+
+**Date:** 2026-01-22 (Updated from Next.js to PocketBase)
+**Status:** Ready for implementation
 
 ## Overview
 
-BB-Manager is a **backend-light** React + TypeScript single-page application that communicates directly with Supabase for authentication and data persistence. There is no custom application server for business logic; the only server code is for serving static assets with SPA fallback routing.
+BB-Manager is built with **PocketBase**, a self-hosted Backend as a Service (BaaS). PocketBase provides authentication, database, auto-generated CRUD API, and admin UI in a single Go binary.
 
-The application prioritizes simplicity and minimal infrastructure over sophisticated patterns. Data flows predictably from UI to hooks to services to Supabase.
+This approach dramatically simplifies the architecture and reduces development time from 6-8 weeks (Next.js stack) to 2-3 weeks.
 
-**For canonical architecture documentation**, see [ARCHITECTURE.md](../ARCHITECTURE.md).
-
----
-
-## ⚠️ Research Findings (2026-01-22)
-
-**IMPORTANT:** Comprehensive research was conducted to evaluate alternative frameworks, backend architectures, deployment strategies, and authentication patterns for the rebuild.
-
-**Project Context:**
-- **Greenfield rebuild** - No source code carried over from v1
-- **Full self-hosting required** - Must run on local infrastructure (VPS/Raspberry Pi)
-
-**Key Recommendation:** For a greenfield, self-hosted rebuild, use **Next.js + PostgreSQL + Better Auth** with Docker + Caddy deployment.
-
-### Research Summary
-
-| Area | Finding | Recommendation |
-|------|---------|----------------|
-| **Framework** | Next.js API routes provide security boundary; Better Auth first-class support | ✅ Next.js (App Router) |
-| **Backend** | Self-hosted PostgreSQL provides data sovereignty for UK GDPR | ✅ PostgreSQL + Drizzle ORM |
-| **Deployment** | Docker + Caddy provides zero-config HTTPS, simple deployment | ✅ Docker + Caddy (primary) |
-| **Auth** | Lucia deprecated (Mar 2025); Better Auth has excellent Next.js integration | ✅ Better Auth + argon2id |
-
-### Why Next.js?
-
-- **API routes provide security boundary** - Database never exposed to client
-- **Single codebase** - Frontend and backend in one repository
-- **Better Auth integration** - Excellent Next.js support (primary use case)
-- **Simpler deployment** - One container vs React + separate backend
-- **Self-hosting is mature** - Docker Compose well-documented
-- **App Router is modern** - Server components reduce client JS
-
-### Why Self-Hosted PostgreSQL?
-
-- **Data sovereignty:** Full control over data location (UK hosting for GDPR)
-- **Mature & stable:** Battle-tested, excellent documentation
-- **Runs anywhere:** VPS, Raspberry Pi, ARM64, x86_64
-- **Free & open-source:** No licensing costs, no vendor lock-in
-- **Drizzle ORM:** Type-safe, lightweight, performant
-
-### Why Better Auth?
-
-- **Lucia deprecated** (March 2025) - "Lucia, in the current state, is not working"
-- **Better Auth** - Framework-agnostic replacement, absorbed Auth.js
-- **Excellent Next.js support** - Middleware, server actions, App Router integration
-- **Type-safe:** Excellent TypeScript integration
-- **Feature complete:** Password reset, email verification, 2FA, OAuth
-- **Self-hosted:** Full control over user data
-
-### Deployment Strategy
-
-**Primary: Docker + Caddy**
-- Zero-config automatic HTTPS (Let's Encrypt)
-- Hardware agnostic (VPS, Raspberry Pi, ARM64, x86_64)
-- Simple deployment (single `docker-compose up` command)
-- Health checks and auto-restart
-
-**Hardware Options:**
-- **VPS:** 1-2GB RAM, 1 CPU core, 20GB storage (£5-10/mo)
-- **Raspberry Pi:** 4GB RAM minimum (8GB recommended)
-
-### Full Research Documentation
-
-See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with sources, decision matrices, and implementation strategy (6-8 week timeline, security checklist, open questions).
-
----
+**For implementation guide**, see [POCKETBASE-GUIDE.md](./POCKETBASE-GUIDE.md).
 
 ## Tech Stack
-
-### Frontend
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Next.js | 15+ | React framework with App Router |
-| TypeScript | 5.8.2 | Type safety and developer experience |
-| Tailwind CSS | 3.4.4 | Utility-first styling |
-| PostCSS | 8.4.38 | CSS processing |
-| Autoprefixer | 10.4.19 | CSS vendor prefixing |
 
 ### Backend
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| PostgreSQL | 16+ | Data persistence with RLS |
-| Drizzle ORM | Latest | Type-safe database client |
-| Better Auth | Latest | Authentication (argon2id) |
-| Next.js API Routes | - | Backend API endpoints |
-| Caddy | Latest | Reverse proxy with automatic HTTPS |
+| PocketBase | 0.23.5+ | Self-hosted BaaS (auth, DB, API, admin UI) |
+| SQLite | Embedded | Database (no separate server) |
+
+### Frontend (Optional)
+
+| Technology | Purpose |
+|------------|---------|
+| PocketBase Admin UI | Built-in admin interface |
+| Vanilla JS / HTML | Simple custom forms (if needed) |
+| SvelteKit | Lightweight framework (if custom UI needed) |
 
 ### Development
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Vitest | 4.0.17 | Test runner |
-| Docker Compose | Latest | Container orchestration |
-| GitHub Actions | Latest | CI/CD deployment |
+| Technology | Purpose |
+|------------|---------|
+| PocketBase JS SDK | Client library |
+| TypeScript | Type safety (optional) |
 
 ### Deployment
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Docker | Latest | Containerization |
-| Caddy | Latest | Reverse proxy + HTTPS |
-| kartoza/pg-backup | Latest | Automated PostgreSQL backups |
-| Uptime Kuma | Latest (optional) | Self-hosted monitoring |
+| Technology | Purpose |
+|------------|---------|
+| PocketBase Binary | Single executable, no dependencies |
+| Systemd | Service management (Linux) |
+| Caddy (optional) | HTTPS reverse proxy |
 
 ## Architecture
 
@@ -120,501 +51,568 @@ See [RESEARCH-SYNTHESIS.md](./RESEARCH-SYNTHESIS.md) for complete analysis with 
 Browser (untrusted)
     |
     v
-Next.js App Router
-    |
-    +-- Server Components (secure, no DB exposure)
-    +-- API Routes (security boundary)
-    |       |
-    |       v
-    |   PostgreSQL (via Drizzle ORM) with RLS
-    |       |
-    |       v
-    |   Better Auth (authentication)
+Frontend (Admin UI or Custom)
     |
     v
-Client Components (React)
+PocketBase (port 8090)
+    |
+    +-- Authentication (built-in)
+    +-- SQLite Database (embedded)
+    +-- CRUD API (auto-generated)
+    +-- Admin UI (built-in)
+    +-- API Rules (authorization)
 ```
 
-**Deployment: Docker Compose**
+**Deployment:**
 ```
-Caddy (reverse proxy, HTTPS)
+VPS or Raspberry Pi
     |
-    +-- Next.js App (API routes + frontend)
-    +-- PostgreSQL (database)
+    +-- pocketbase (single binary)
+    +-- pb_data/ (SQLite database + uploads)
+    |
+    +-- Optional: Caddy (HTTPS)
 ```
 
 **Key Principles:**
 
-1. **API routes provide security boundary** - Database never exposed to client
-2. **Server components for data** - Fetch data server-side, reduce client JS
-3. **App Router organization** - File-based routing with layouts
-4. **Section partitioning** - Data queries always scoped by section
-5. **Database enforces security** - RLS policies provide defense-in-depth
-6. **Self-hosted** - Full control over data and infrastructure
+1. **BaaS simplicity** - PocketBase handles auth, DB, API
+2. **Admin UI first** - Use built-in admin UI initially
+3. **Auto-generated API** - No backend code to write
+4. **API rules** - Authorization at database level
+5. **Single binary** - No Docker, no complexity
+6. **Self-hosted** - Full control, UK GDPR compliant
 
-### Component Structure (App Router)
+## Data Model
+
+### PocketBase Collections
 
 ```
-app/
+users (auth collection)
     |
-    +-- layout.tsx (root layout with Header)
-    +-- page.tsx (redirect to home or login)
-    +-- (auth)/
-    |   +-- login/page.tsx
-    |   +-- signup/page.tsx
-    +-- (app)/
-    |   +-- layout.tsx (authenticated layout)
-    |   +-- page.tsx (home/member roster)
-    |   +-- weekly-marks/page.tsx
-    |   +-- boy/[id]/page.tsx (individual history)
-    |   +-- dashboard/page.tsx
-    |   +-- audit-log/page.tsx
-    |   +-- settings/page.tsx
-    |   +-- admin/page.tsx
-    |   +-- account/page.tsx
-    |   +-- help/page.tsx
-    +-- api/
-        +-- auth/[...nextauth]/route.ts (Better Auth)
-        +-- boys/route.ts
-        +-- boys/[id]/route.ts
-        +-- marks/route.ts
-        +-- audit-logs/route.ts
-        +-- settings/route.ts
-components/
+    +-- id (UUID)
+    +-- email
+    +-- role (admin, captain, officer)
+    +-- name
+
+boys
     |
-    +-- ui/
-        +-- BoyForm.tsx (member edit)
-        +-- Modal.tsx (dialogs)
-        +-- Icons.tsx (SVG icons)
-        +-- DatePicker.tsx (date input)
-        +-- Toast.tsx (notifications)
-        +-- SkeletonLoaders.tsx (placeholders)
-        +-- BarChart.tsx (visualizations)
-lib/
+    +-- id (UUID)
+    +-- name
+    +-- squad (1-4)
+    +-- year
+    +-- section (company, junior)
+    +-- is_squad_leader
+    +-- created
+    +-- updated
+
+marks
     |
-    +-- db.ts (Drizzle client)
-    +-- auth.ts (Better Auth config)
-    +-- utils.ts (helper functions)
-```
+    +-- id (UUID)
+    +-- boy_id (relation to boys)
+    +-- date
+    +-- score
+    +-- uniform_score
+    +-- behaviour_score
+    +-- is_absent
+    +-- section
+    +-- created
+    +-- updated
 
-### Data Access Layer
-
-```
-lib/db.ts (Drizzle ORM client)
+settings
     |
-    +-- schema/ (Drizzle schema definitions)
-    +-- queries/
-        +-- boys.ts (boy queries)
-        +-- marks.ts (mark queries)
-        +-- audit-logs.ts (audit trail)
-        +-- settings.ts (section settings)
-```
+    +-- id (UUID)
+    +-- section (company, junior)
+    +-- meeting_day (0-6)
+    +-- created
+    +-- updated
 
-**Responsibilities:**
-
-- `lib/db.ts`: Drizzle ORM client initialization
-- `lib/auth.ts`: Better Auth configuration
-- `lib/queries/boys.ts`: Boy data operations
-- `lib/queries/marks.ts`: Mark data operations
-- `lib/queries/audit-logs.ts`: Audit trail operations
-- `lib/queries/settings.ts`: Settings operations
-
-### Client Components (where needed)
-
-```
-components/
+audit_logs
     |
-    +-- client/
-        +-- SectionProvider.tsx (section context)
-        +-- ToastProvider.tsx (notification context)
-        +-- UnsavedChangesGuard.tsx (navigation protection)
+    +-- id (UUID)
+    +-- user_id (relation to users)
+    +-- action (CREATE_BOY, UPDATE_BOY, etc.)
+    +-- description
+    +-- section
+    +-- created
 ```
 
-**Responsibilities:**
+## Authentication
 
-- `SectionProvider`: Manages active section state (localStorage + context)
-- `ToastProvider`: Manages toast notification queue
-- `UnsavedChangesGuard`: Blocks navigation when form changes pending
+### Built-in Auth
 
-## Data Flow Patterns
+PocketBase provides complete authentication system:
 
-### Auth Flow
+```javascript
+import PocketBase from 'pocketbase';
+const pb = new PocketBase('http://127.0.0.1:8090');
 
-```
-1. Middleware checks auth status on protected routes
-2. If not authenticated, redirect to /login
-3. If authenticated, Better Auth session provides user ID
-4. Server components fetch user role from user_roles table
-5. Client components can access auth via Better Auth hooks
-```
+// Sign up
+await pb.collection('users').create({
+  email: 'user@example.com',
+  password: 'password123',
+  passwordConfirm: 'password123',
+  role: 'officer',
+  name: 'John Doe'
+});
 
-### Data Loading Flow
+// Log in
+await pb.collection('users').authWithPassword(
+  'user@example.com',
+  'password123'
+);
 
-```
-1. User selects section (stored in localStorage)
-2. Server component fetches boys and settings via API routes
-3. Data passed to client components via props
-4. Client components can trigger mutations via API routes
-5. Server actions or revalidation update data after mutations
-```
+// Check auth
+pb.authStore.isValid; // true
 
-### Write Flow (Member Create)
-
-```
-1. User fills BoyForm and submits
-2. Form calls POST /api/boys (server action or fetch)
-3. API route validates data (mark ranges, etc.)
-4. API route calls Drizzle insert() to database
-5. API route creates audit log entry
-6. Response returns updated data
-7. Toast notification shown
-8. Page revalidates data (router.refresh() or revalidatePath())
+// Get current user
+const user = pb.authStore.model;
+console.log(user.role); // "officer"
 ```
 
-## State Management
+### Role-Based Access
 
-### State "Sources of Truth"
+Roles stored in `users` collection:
 
-| State | Source | Scope |
-|-------|--------|-------|
-| Domain data | PostgreSQL | Authoritative |
-| Auth session | Better Auth | HTTP-only cookies |
-| Active section | `localStorage['activeSection']` | Browser persistence |
-| Working data | React state (client components) | In-memory |
+| Role | Permissions |
+|------|-------------|
+| **admin** | Full access, manage users, audit logs |
+| **captain** | Manage officers, view audit logs, all data access |
+| **officer** | View/edit boys and marks, assigned section only |
 
-### Server Components First
+## API Rules (Authorization)
 
-The app uses Next.js App Router with server components as default:
+PocketBase API rules provide database-level authorization (similar to RLS).
 
-1. **Server Components**: Fetch data server-side, no client JS
-2. **Client Components**: Only for interactivity (forms, modals, etc.)
-3. **API Routes**: Security boundary between client and database
-4. **Server Actions**: Type-safe mutations (optional alternative to API routes)
+### Example Rules
 
-**Benefits**:
-- Reduced client JavaScript
-- Database never exposed to client
-- Simpler security model
-- Better performance
+**`boys` collection:**
+```
+View: @request.auth.id != "" && @request.data.section = @request.auth.role.section
+Create: @request.auth.id != "" && @request.auth.role IN ("admin", "captain", "officer")
+Update: @request.auth.id != "" && @request.auth.role IN ("admin", "captain", "officer")
+Delete: @request.auth.role IN ("admin", "captain")
+```
 
-## Key Architectural Decisions
+**`marks` collection:**
+```
+View: @request.auth.id != "" && @request.data.section = @request.auth.role.section
+Create: @request.auth.id != "" && @request.auth.role IN ("admin", "captain", "officer")
+Update: @request.auth.id != "" && @request.auth.role IN ("admin", "captain", "officer")
+Delete: @request.auth.role IN ("admin", "captain")
+```
 
-### 1. API Routes as Security Boundary
+**`audit_logs` collection:**
+```
+View: @request.auth.role IN ("admin", "captain")
+Create: @request.auth.id != "" && @request.auth.role IN ("admin", "captain", "officer")
+Delete: @request.auth.role = "admin"
+```
 
-**Decision**: All database access goes through API routes; no direct DB access from client.
+## Using the API
 
-**Rationale**:
-- Database never exposed to browser
-- Single place for validation and authorization
-- Server-side business logic
-- Better security model for self-hosting
+PocketBase auto-generates REST API from schema.
 
-**Trade-offs**:
-- More code than direct DB access
-- Slightly more latency (server hop)
-- Need to implement API endpoints
+### JavaScript SDK Examples
 
-### 2. Server Components by Default
+```javascript
+const pb = new PocketBase('http://127.0.0.1:8090');
 
-**Decision**: Use Next.js server components unless client interactivity needed.
+// List boys (with filter)
+const boys = await pb.collection('boys').getList(1, 50, {
+  filter: 'section = "company"',
+  sort: 'name'
+});
 
-**Rationale**:
-- Reduced client JavaScript
-- Faster page loads
-- Data fetching server-side (more secure)
-- Better SEO (if needed in future)
+// Create boy
+const boy = await pb.collection('boys').create({
+  name: 'John Smith',
+  squad: 2,
+  year: '9',
+  section: 'company'
+});
 
-**Trade-offs**:
-- Need to mark interactive components with 'use client'
-- Can't use hooks in server components
+// Update boy
+await pb.collection('boys').update(boy.id, {
+  name: 'John Smith Jr.'
+});
 
-### 3. Section-Based Partitioning
+// Delete boy
+await pb.collection('boys').delete(boy.id);
 
-**Decision**: Data queries always include `section` dimension.
+// Add mark
+await pb.collection('marks').create({
+  boy_id: boy.id,
+  date: '2025-01-22',
+  score: 8,
+  section: 'company'
+});
 
-**Rationale**:
-- Boys' Brigade organizes by sections
-- Different mark rules per section
-- Clean data separation
+// Get marks for boy
+const marks = await pb.collection('marks').getList(1, 50, {
+  filter: `boy_id = "${boy.id}"`,
+  sort: '-date'
+});
 
-**Trade-offs**:
-- Can't easily view cross-section data
-- Duplicate settings storage
-- Queries always filtered
+// Real-time subscription (optional)
+await pb.collection('boys').subscribe('*', (e) => {
+  console.log('Boys collection changed:', e);
+});
+```
 
-### 5. Embedded Marks Array
+## Frontend Options
 
-**Decision**: Marks stored as JSON array on each boy record.
+### Option 1: PocketBase Admin UI (Recommended for v1)
 
-**Rationale**:
-- Simple reads (one query per section)
-- No joins needed
-- Easy to understand
+**Use the built-in admin UI!**
 
-**Trade-offs**:
-- Write amplification (rewrite entire array)
-- Row size growth with history
-- Harder to query marks across boys
+Features:
+- List/add/edit/delete records
+- Search and filter
+- Role-based access
+- Mobile-friendly
+- Zero development time
 
-### 6. Audit Log Snapshot Reverts
+**Timeline:** Deploy in days
 
-**Decision**: Reverts use stored prior-state snapshots, not event replay.
+### Option 2: Simple HTML/JS
 
-**Rationale**:
-- Simpler implementation
-- No event sourcing complexity
-- Works with embedded marks
+For custom forms, vanilla JS is sufficient:
 
-**Trade-offs**:
-- Larger storage footprint
-- Can't replay from beginning
-- More complex to store for large changes
+```html
+<script type="module">
+  import PocketBase from 'https://esm.sh/pocketbase';
+  const pb = new PocketBase('http://localhost:8090');
+  // ... form handling
+</script>
+```
 
-## Security Model
+### Option 3: SvelteKit (If Custom UI Needed)
+
+If you want a custom frontend, SvelteKit is recommended:
+
+```bash
+npm create svelte@latest bb-manager
+```
+
+**Why Svelte?**
+- Lightweight (smaller bundle than React)
+- Simple syntax
+- Great PocketBase SDK
+- Compiles to vanilla JS
+
+## Deployment
+
+### Development
+
+```bash
+./pocketbase serve
+# Admin UI: http://localhost:8090/_/
+# API: http://localhost:8090/api/
+```
+
+### Production (Systemd Service)
+
+Create `/etc/systemd/system/pocketbase.service`:
+
+```ini
+[Unit]
+Description=PocketBase Server for BB-Manager
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/bb-manager
+ExecStart=/var/www/bb-manager/pocketbase serve --http=0.0.0.0:8090
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start:
+
+```bash
+sudo systemctl enable pocketbase
+sudo systemctl start pocketbase
+sudo systemctl status pocketbase
+```
+
+### HTTPS (Caddy)
+
+Optional Caddy reverse proxy:
+
+**Caddyfile:**
+
+```
+bb-manager.example.com {
+    reverse_proxy localhost:8090
+}
+```
+
+Caddy handles HTTPS automatically with Let's Encrypt.
+
+### Raspberry Pi
+
+Same deployment as VPS! Just use ARM64 binary:
+
+```bash
+wget https://github.com/pocketbase/pocketbase/releases/download/v0.23.5/pocketbase_0.23.5_linux_arm64.zip
+unzip pocketbase_0.23.5_linux_arm64.zip
+./pocketbase serve
+```
+
+## Backup Strategy
+
+### SQLite Backup
+
+PocketBase stores data in `pb_data/data.db`.
+
+```bash
+# Stop service
+systemctl stop pocketbase
+
+# Backup
+cp pb_data/data.db backups/bb-manager-$(date +%Y%m%d).db
+
+# Start service
+systemctl start pocketbase
+```
+
+### Automated Backup Script
+
+```bash
+#!/bin/bash
+# /var/www/bb-manager/backup.sh
+
+BACKUP_DIR="/var/backups/bb-manager"
+DATA_DIR="/var/www/bb-manager/pb_data"
+
+systemctl stop pocketbase
+cp $DATA_DIR/data.db "$BACKUP_DIR/bb-manager-$(date +%Y%m%d-%H%M%S).db"
+find $BACKUP_DIR -name "bb-manager-*.db" -mtime +30 -delete
+systemctl start pocketbase
+```
+
+Add to crontab:
+
+```bash
+0 2 * * * /var/www/bb-manager/backup.sh
+```
+
+## Security
 
 ### Authentication
 
-- **Provider**: Supabase Auth
-- **Method**: Email/password
-- **Session**: Managed by Supabase client
-- **Reset**: Email-based password reset
+- Email/password authentication (built-in)
+- Password hashing (handled by PocketBase)
+- Session management (handled by PocketBase)
+- Email verification (configure in PocketBase settings)
+- Password reset (configure in PocketBase settings)
 
 ### Authorization
 
-**Application Roles** (stored in `user_roles` table):
+- API rules for each collection
+- Role-based access control
+- Section-based data separation
 
-| Role | Can Read | Can Write | Special |
-|------|----------|-----------|---------|
-| officer | boys, settings | boys, marks | - |
-| captain | officer + audit_logs | officer + settings | Manage officers, create officer invites |
-| admin | all | all | Revert actions, manage captain/officer |
+### HTTPS
 
-**Enforcement**:
+- Use Caddy for automatic HTTPS (recommended)
+- Or configure manually with certbot
 
-1. **Client-side**: Role checks in UI/Services (UX only)
-2. **Server-side**: RLS policies on all tables (real security)
-3. **Critical**: Never trust client checks; database enforces
+### GDPR Compliance
 
-### Security Functions
+- Self-hosted in UK (data sovereignty)
+- Automated backups
+- Audit logging
+- User data export and deletion
 
-Database functions (SECURITY DEFINER, hardened search_path):
+## Performance
 
-- `get_user_role()`: Returns role for current user
-- `can_access_section(section)`: Checks section access
-- `can_access_audit_logs()`: Checks Captain+ status
+### SQLite Performance
 
-These functions mitigate CVE-2018-1058 by setting explicit `search_path`.
+SQLite on Raspberry Pi 4 (4GB RAM):
+- Handles hundreds of concurrent users
+- Sub-millisecond queries
+- Suitable for BB-Manager scale
 
-### Secrets Management
+### Optimization Tips
 
-**Client-side** (embedded in bundle):
-- `VITE_SUPABASE_URL`: Supabase project URL
-- `VITE_SUPABASE_ANON_KEY**: Public anon key
+1. **Use indexes** on frequently queried fields
+2. **Batch operations** when possible
+3. **Use pagination** (getList) for large datasets
+4. **Enable query cache** in PocketBase settings
 
-**Never in client code**:
-- Service role key
-- Database passwords
-- Private API keys
+## Monitoring
 
-## Build and Deployment
-
-### Build Configuration
-
-```javascript
-// vite.config.ts
-{
-  build: { outDir: 'dist' },
-  server: {
-    port: 3000,
-    host: '0.0.0.0',
-    historyApiFallback: true
-  },
-  plugins: [dyadComponentTagger(), react()],
-  resolve: {
-    alias: { '@': path.resolve(__dirname, '.') }
-  }
-}
-```
-
-### Environment Variables
-
-Required for build/dev:
+### Logs
 
 ```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+journalctl -u pocketbase -f
 ```
 
-Optional:
+### Health Check
 
 ```bash
-PORT=3000  # For Express server
+curl http://localhost:8090/api/health
+# Returns: {"health":"ok"}
 ```
 
-### Build Commands
+### Metrics
+
+PocketBase provides basic metrics in Admin UI:
+- Active connections
+- Request count
+- Response times
+
+## Development Timeline
+
+### Week 1: PocketBase Setup
+
+- Download and install PocketBase
+- Create admin account
+- Define collections (schema)
+- Configure API rules
+- Test authentication
+
+### Week 2: Data Entry
+
+- Use Admin UI for data entry
+- Test all CRUD operations
+- Validate API rules
+- Load test data
+
+### Week 3: Polish & Deploy
+
+- Custom forms (if needed)
+- Deploy to VPS/Raspberry Pi
+- Configure HTTPS (Caddy)
+- Set up backups
+- User testing
+
+**Total: 2-3 weeks** (vs 6-8 weeks with Next.js)
+
+## Advantages over Next.js Stack
+
+| Feature | PocketBase | Next.js Stack |
+|---------|-----------|--------------|
+| Auth Implementation | ✅ Built-in (0 weeks) | ❌ Better Auth (2-3 weeks) |
+| Admin UI | ✅ Built-in (0 weeks) | ❌ Custom UI (2-3 weeks) |
+| Database Management | ✅ SQLite embedded | ❌ PostgreSQL server |
+| API Development | ✅ Auto-generated | ❌ Write API routes (2 weeks) |
+| Deployment | ✅ One binary | ❌ Docker + Caddy + Postgres |
+| Development Time | ✅ 2-3 weeks | ❌ 6-8 weeks |
+| Complexity | ✅ LOW-MED | ❌ HIGH |
+| Learning Curve | ✅ Simple | ❌ Steep |
+
+## Build Commands
+
+### PocketBase
 
 ```bash
-npm install         # Install dependencies
-npm run dev         # Start Next.js dev server (localhost:3000)
-npm run build       # Build for production
-npm run start       # Start production server
+# Development
+./pocketbase serve
+
+# Production (systemd)
+sudo systemctl start pocketbase
+sudo systemctl stop pocketbase
+sudo systemctl restart pocketbase
+sudo systemctl status pocketbase
 ```
 
-### Deployment Options
+### Frontend (If Using SvelteKit)
 
-1. **Docker Compose** (Recommended)
-   - Single container with Next.js + PostgreSQL
-   - Caddy reverse proxy for HTTPS
-   - See deployment research for docker-compose.yml example
-
-2. **Standalone Build**
-   - Next.js standalone output for smaller Docker image
-   - Configure in next.config.js: `output: 'standalone'`
-
-## Performance Considerations
-
-### Optimizations for Next.js
-
-1. **Server Components**: Reduce client JavaScript by default
-2. **API Route caching**: Cache GET requests where appropriate
-3. **RLS policy optimization**: `(SELECT auth.uid())` subquery pattern
-4. **Compound indexes**: On frequently queried columns
-5. **useMemo**: For dashboard computations (client components)
-6. **Parallel queries**: Loading data server-side concurrently
-
-### Known Limitations
-
-1. **Fetch-all rosters**: Loads all members for section into memory
-2. **Inline marks**: Write amplification with mark history
-3. **Unpaginated audit logs**: Loads entire log history
-4. **Client-side dashboard**: Computation grows with roster size
-
-### Scaling Strategy
-
-If needed, consider:
-
-1. Normalize marks into separate table
-2. Add pagination for audit logs
-3. Implement server-side aggregation
-4. Add virtual scrolling for large rosters
-
-## TypeScript Configuration
-
-```json
-// tsconfig.json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false
-  }
-}
+```bash
+npm install
+npm run dev
+npm run build
+npm run preview
 ```
 
-**Key flags**:
+## Key Decisions
 
-- `strict`: All strict type checking enabled
-- `noFallthroughCasesInSwitch`: Catches missing discriminated union cases
-- `noUncheckedIndexedAccess`: Prevents undefined access on arrays/objects
+### 1. PocketBase over Custom Backend
+
+**Decision:** Use PocketBase BaaS instead of Next.js + Better Auth + PostgreSQL.
+
+**Rationale:**
+- Auth built-in (saves 2-3 weeks)
+- Admin UI built-in (saves 2-3 weeks)
+- Auto-generated API (saves 2 weeks)
+- Simpler deployment
+- Lower risk
+
+### 2. SQLite over PostgreSQL
+
+**Decision:** Use embedded SQLite instead of separate PostgreSQL server.
+
+**Rationale:**
+- Simpler deployment (no DB server)
+- Easier backups (copy file)
+- Sufficient performance for BB-Manager
+- Raspberry Pi friendly
+
+### 3. Admin UI First
+
+**Decision:** Use PocketBase Admin UI initially, add custom frontend later if needed.
+
+**Rationale:**
+- Deploy in days, not weeks
+- Validate requirements
+- Avoid over-engineering
+- Can always add custom UI later
+
+## Migration from Previous Implementation
+
+If migrating from PostgreSQL version:
+
+1. Export data from PostgreSQL
+2. Transform to PocketBase schema
+3. Import via PocketBase API
+4. Validate data integrity
+
+**Recommendation:** Start fresh for greenfield rebuild. Migrate only active data if needed.
+
+## Environment Variables
+
+```bash
+# PocketBase (optional, mostly uses defaults)
+PB_ENCRYPTION_KEY=your-encryption-key
+
+# Frontend (if using SvelteKit)
+VITE_POCKETBASE_URL=http://localhost:8090
+```
 
 ## Testing
 
-### Test Framework
+### Manual Testing
 
-- **Vitest**: 4.0.17
-- **Environment**: Node (via happy-dom for React components)
-- **Config**: Extended from vite.config.ts
+1. Test authentication flows
+2. Test CRUD operations via Admin UI
+3. Test API rules (try unauthorized access)
+4. Test on mobile devices
+5. Test backup/restore
 
-### Current Coverage
+### Automated Testing (Optional)
 
-- Security functions: Unit tests with mocked Supabase
-- Database operations: Tests pending (Phase 3)
+PocketBase doesn't include testing framework. Use Playwright or similar for E2E tests.
 
-### Test Pattern
+## Documentation
 
-```typescript
-// TDD-style test example
-describe('get_user_role', () => {
-  it('returns role for authenticated user', async () => {
-    const mock = vi.mocked(supabase.rpc)
-    mock.mockResolvedValue({ data: { role: 'captain' }, error: null })
-    const result = await get_user_role(supabase)
-    expect(result).toEqual({ role: 'captain' })
-  })
-})
-```
+See [POCKETBASE-GUIDE.md](./POCKETBASE-GUIDE.md) for complete implementation guide.
 
-## Error Handling
+## Summary
 
-### Strategy
+PocketBase provides the simplest path to a self-hosted BB-Manager:
 
-1. **Fail fast**: Throw on missing env vars
-2. **Show UI errors**: Toast notifications for user-visible failures
-3. **Log errors**: Console for development (production: consider logging service)
-4. **Graceful degradation**: Show dataError state but don't crash
+- ✅ 2-3 weeks vs 6-8 weeks
+- ✅ Auth built-in
+- ✅ Admin UI built-in
+- ✅ Auto-generated API
+- ✅ Single binary deployment
+- ✅ SQLite embedded
+- ✅ Self-hosted (UK GDPR compliant)
 
-### Error Sources
-
-- **Auth**: Expired sessions, invalid credentials
-- **Network**: Supabase outage, timeout
-- **Permissions**: RLS denial, missing role
-- **Validation**: Bad data format, range violations
-
-## Accessibility
-
-### Current Support
-
-1. **Semantic HTML**: Proper heading hierarchy
-2. **ARIA labels**: On form inputs and buttons
-3. **Keyboard navigation**: Full keyboard support
-4. **Focus management**: Modal focus trapping
-5. **Error messages**: Screen reader friendly
-
-### Known Gaps
-
-- Screen reader testing not performed
-- High contrast mode not validated
-- Touch target sizes not verified
-
-## Internationalization
-
-**Status**: Not supported (English only)
-
-**Future consideration**:
-
-- All user-facing strings are in components
-- Would need i18n library integration
-- Date/time formatting considerations
-
-## Monitoring and Observability
-
-**Current**: No production monitoring
-
-**Recommended additions**:
-
-1. **Error tracking**: Sentry or similar
-2. **Analytics**: Usage metrics (respecting privacy)
-3. **Performance**: Web Vitals tracking
-4. **Uptime**: External monitoring for Supabase/ hosting
-
-## References
-
-- [ARCHITECTURE.md](../ARCHITECTURE.md) - Canonical system model
-- [PRD.md](./PRD.md) - Product requirements
-- [database-schema.md](./database-schema.md) - Data model
-- [setup-guide.md](./setup-guide.md) - Build instructions
+**Start with PocketBase Admin UI. Add custom frontend only if needed.**
