@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 ## Current Position
 
 Phase: 1 of 5 (Critical Security)
-Plan: 1 of 6 in current phase
-Status: In progress - 5 of 6 plans executed
-Last activity: 2026-01-22 — Completed 01-01-PLAN.md: Type system fixes (audit log action type)
+Plan: 6 of 6 in current phase
+Status: In progress - 5 of 6 plans executed, 1 deferred
+Last activity: 2026-01-22 — Completed 01-05-PLAN.md: Leaked password protection (DEFERRED - requires Pro Plan)
 
 Progress: [█████░░░░░░] 20%
 
@@ -55,7 +55,7 @@ Recent decisions affecting current work:
 - [01-03]: RLS migrations are additive - new migrations for policies, not baseline modifications
 - [01-03]: audit_logs uses user_email column with auth.jwt() email verification for spoofing protection
 - [01-03]: EXISTS subqueries used for role membership checks (current_app_role() function pending)
-- [01-05]: Leaked password protection enabled via Supabase Dashboard (manual configuration)
+- [01-05]: Leaked password protection DEFERRED - requires Supabase Pro Plan or above
 - [01-06]: Node environment for service tests - will use happy-dom for React component tests in future phases
 - [01-06]: Extended vite.config.ts rather than separate vitest.config.ts to share aliases
 
@@ -65,7 +65,7 @@ None yet.
 
 ### Blockers/Concerns
 
-None yet.
+- [01-05]: Leaked password protection deferred due to Supabase Free Tier limitation. Feature requires Pro Plan or above. Revisit when considering plan upgrade.
 
 ## Session Continuity
 
