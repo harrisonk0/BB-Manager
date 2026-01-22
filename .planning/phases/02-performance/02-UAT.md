@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 02-performance
 source: 02-01-SUMMARY.md, 02-02-SUMMARY.md, 02-03-SUMMARY.md, 02-04-SUMMARY.md, 02-05-SUMMARY.md
 started: 2026-01-22T12:00:00Z
-updated: 2026-01-22T12:20:00Z
+updated: 2026-01-22T12:25:00Z
 ---
 
 ## Current Test
@@ -49,7 +49,11 @@ skipped: 0
   reason: "User reported: Um as an officer i can see the audit log screen"
   severity: major
   test: 5
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Client-side access control in Header.tsx incorrectly included 'officer' role in canAccessAuditLog permission check (line 75)"
+  artifacts:
+    - path: "components/Header.tsx"
+      issue: "Line 75 defined canAccessAuditLog with incorrect role array: ['admin', 'captain', 'officer']"
+      location: "Lines 73-75"
+  missing:
+    - "Remove 'officer' from canAccessAuditLog roles array to match database security model"
+  debug_session: ".planning/debug/resolved/officer-audit-log-access.md"
