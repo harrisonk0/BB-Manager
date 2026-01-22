@@ -68,6 +68,12 @@ None yet.
 
 - [01-05]: Leaked password protection deferred due to Supabase Free Tier limitation. Feature requires Pro Plan or above. Revisit when considering plan upgrade.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 001 | Remove supabase/ and use MCP only for migrations etc, also edit CLAUDE.md to highlight this | 2026-01-22 | 9536022 | [001-remove-supabase-mcp-migrations](./quick/001-remove-supabase-mcp-migrations/) |
+
 ## Session Continuity
 
 Last session: 2026-01-22
