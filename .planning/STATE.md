@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-01-21)
 
 Phase: 2 of 5 (Performance)
 Plan: 0 of 5 in current phase
-Status: Not started - ready for planning
-Last activity: 2026-01-22 — Phase 1 verified: 5/6 must-haves passed (SEC-05 deferred - Pro Plan required)
+Status: Ready to begin - MCP workflow established
+Last activity: 2026-01-22 — Quick task 001: Migrated to MCP-based database workflow
 
 Progress: [██████░░░░░] 22%
 
@@ -58,6 +58,7 @@ Recent decisions affecting current work:
 - [01-05]: Leaked password protection DEFERRED - requires Supabase Pro Plan or above
 - [01-06]: Node environment for service tests - will use happy-dom for React component tests in future phases
 - [01-06]: Extended vite.config.ts rather than separate vitest.config.ts to share aliases
+- [quick-001]: Migrated database workflow from local migration files to MCP Supabase tools; simplified repository structure; archived historical migrations to .planning/archive/migrations/
 
 ### Pending Todos
 
@@ -70,5 +71,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-22
-Stopped at: Phase 1 verified and complete
+Stopped at: Quick task 001 complete - MCP workflow established
 Resume file: None
