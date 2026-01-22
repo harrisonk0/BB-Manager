@@ -48,6 +48,9 @@ Recent decisions affecting current work:
 
 - [Initialization]: Comprehensive audit approach chosen to identify all issues before fixing
 - [Initialization]: Analytics/reporting, audit trails, and advanced admin features cut from v1 scope
+- [01-02]: SECURITY DEFINER functions with explicit search_path = public to mitigate CVE-2018-1058
+- [01-02]: Section is contextual (not security boundary) - all authenticated users with roles can access both sections
+- [01-02]: Audit log access restricted to Captain/Admin only via can_access_audit_logs() function
 - [01-03]: RLS migrations are additive - new migrations for policies, not baseline modifications
 - [01-03]: audit_logs uses user_email column with auth.jwt() email verification for spoofing protection
 - [01-03]: EXISTS subqueries used for role membership checks (current_app_role() function pending)
