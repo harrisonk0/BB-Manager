@@ -8,6 +8,19 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './src/index.css'; // Import the new global CSS file
+import { reportError } from './services/errorMonitoring';
+
+// Global error handler for unhandled promise rejections
+window.addEventListener('unhandledrejection', async (event) => {
+  await reportError('unhandled_promise', event.reason as Error);
+  console.error('Unhandled promise rejection:', event.reason);
+});
+
+// Global error handler for uncaught errors
+window.addEventListener('error', async (event) => {
+  await reportError('uncaught_error', event.error as Error);
+  console.error('Uncaught error:', event.error);
+});
 
 // Find the root HTML element where the React app will be mounted.
 const rootElement = document.getElementById('root');
