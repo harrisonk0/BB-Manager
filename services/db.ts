@@ -1,6 +1,7 @@
 import { Boy, AuditLog, Section, InviteCode, UserRole } from '../types';
 import { supabase } from './supabaseClient';
 import * as supabaseAuth from './supabaseAuth';
+import { reportError } from './errorMonitoring';
 
 const generateRandomCode = (length: number): string => {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -177,37 +178,42 @@ export const deleteUserRole = async (uid: string, actingUserRole: UserRole | nul
 };
 
 export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise<Boy> => {
-  validateBoyMarks(boy as Boy, section);
-  const authUser = await supabaseAuth.getCurrentUser();
-  if (!authUser) throw new Error('User not authenticated');
+  try {
+    validateBoyMarks(boy as Boy, section);
+    const authUser = await supabaseAuth.getCurrentUser();
+    if (!authUser) throw new Error('User not authenticated');
 
-  const { data, error } = await supabase
-    .from('boys')
-    .insert([
-      {
-        name: boy.name,
-        squad: boy.squad,
-        year: boy.year,
-        marks: boy.marks,
-        is_squad_leader: boy.isSquadLeader ?? false,
-        section,
-      },
-    ])
-    .select()
-    .single();
+    const { data, error } = await supabase
+      .from('boys')
+      .insert([
+        {
+          name: boy.name,
+          squad: boy.squad,
+          year: boy.year,
+          marks: boy.marks,
+          is_squad_leader: boy.isSquadLeader ?? false,
+          section,
+        },
+      ])
+      .select()
+      .single();
 
-  if (error || !data) {
-    throw new Error(error?.message || 'Failed to create boy');
+    if (error || !data) {
+      throw new Error(error?.message || 'Failed to create boy');
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      squad: data.squad,
+      year: data.year,
+      marks: data.marks || [],
+      isSquadLeader: data.is_squad_leader ?? false,
+    };
+  } catch (error) {
+    await reportError('db_createBoy', error as Error, undefined, { section });
+    throw error;
   }
-
-  return {
-    id: data.id,
-    name: data.name,
-    squad: data.squad,
-    year: data.year,
-    marks: data.marks || [],
-    isSquadLeader: data.is_squad_leader ?? false,
-  };
 };
 
 export const fetchBoys = async (section: Section): Promise<Boy[]> => {
@@ -263,35 +269,40 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
 };
 
 export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
-  validateBoyMarks(boy, section);
-  const { id, ...boyData } = boy;
-  const { data, error } = await supabase
-    .from('boys')
-    .update({
-      name: boyData.name,
-      year: boyData.year,
-      section,
-      squad: boyData.squad,
-      is_squad_leader: boyData.isSquadLeader ?? false,
-      marks: boyData.marks,
-    })
-    .eq('id', id)
-    .eq('section', section)
-    .select()
-    .single();
+  try {
+    validateBoyMarks(boy, section);
+    const { id, ...boyData } = boy;
+    const { data, error } = await supabase
+      .from('boys')
+      .update({
+        name: boyData.name,
+        year: boyData.year,
+        section,
+        squad: boyData.squad,
+        is_squad_leader: boyData.isSquadLeader ?? false,
+        marks: boyData.marks,
+      })
+      .eq('id', id)
+      .eq('section', section)
+      .select()
+      .single();
 
-  if (error || !data) {
-    throw new Error(error?.message || 'Failed to update boy');
+    if (error || !data) {
+      throw new Error(error?.message || 'Failed to update boy');
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      squad: data.squad,
+      year: data.year,
+      marks: data.marks || [],
+      isSquadLeader: data.is_squad_leader ?? false,
+    };
+  } catch (error) {
+    await reportError('db_updateBoy', error as Error, undefined, { boyId: boy.id, section });
+    throw error;
   }
-
-  return {
-    id: data.id,
-    name: data.name,
-    squad: data.squad,
-    year: data.year,
-    marks: data.marks || [],
-    isSquadLeader: data.is_squad_leader ?? false,
-  };
 };
 
 export const recreateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
@@ -325,14 +336,19 @@ export const recreateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
 };
 
 export const deleteBoyById = async (id: string, section: Section): Promise<void> => {
-  const { error } = await supabase
-    .from('boys')
-    .delete()
-    .eq('id', id)
-    .eq('section', section);
+  try {
+    const { error } = await supabase
+      .from('boys')
+      .delete()
+      .eq('id', id)
+      .eq('section', section);
 
-  if (error) {
-    throw new Error(error.message || 'Failed to delete boy');
+    if (error) {
+      throw new Error(error.message || 'Failed to delete boy');
+    }
+  } catch (error) {
+    await reportError('db_deleteBoy', error as Error, undefined, { boyId: id, section });
+    throw error;
   }
 };
 
