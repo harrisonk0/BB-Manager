@@ -11,7 +11,7 @@ describe('get_user_role security function', () => {
 
   describe('successful role lookup', () => {
     it('should return captain role for captain user', async () => {
-      const mockResult = { data: { role: 'captain' }, error: null };
+      const mockResult = { data: { role: 'captain' }, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('get_user_role', { user_uid: 'captain-uid' });
@@ -22,7 +22,7 @@ describe('get_user_role security function', () => {
     });
 
     it('should return officer role for officer user', async () => {
-      const mockResult = { data: { role: 'officer' }, error: null };
+      const mockResult = { data: { role: 'officer' }, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('get_user_role', { user_uid: 'officer-uid' });
@@ -33,7 +33,7 @@ describe('get_user_role security function', () => {
     });
 
     it('should return admin role for admin user', async () => {
-      const mockResult = { data: { role: 'admin' }, error: null };
+      const mockResult = { data: { role: 'admin' }, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('get_user_role', { user_uid: 'admin-uid' });
@@ -46,7 +46,7 @@ describe('get_user_role security function', () => {
 
   describe('edge cases and error handling', () => {
     it('should return null for user without role', async () => {
-      const mockResult = { data: null, error: null };
+      const mockResult = { data: null, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('get_user_role', { user_uid: 'no-role-uid' });
@@ -58,7 +58,7 @@ describe('get_user_role security function', () => {
 
     it('should return error on database failure', async () => {
       const mockError = { message: 'Database error', details: 'Connection failed' };
-      const mockResult = { data: null, error: mockError };
+      const mockResult = { data: null, error: mockError, count: null, status: 400, statusText: 'Bad Request' } as any;
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('get_user_role', { user_uid: 'any-uid' });

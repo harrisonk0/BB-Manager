@@ -25,7 +25,7 @@ describe('can_access_audit_logs security function', () => {
     it('should grant access to captain role', async () => {
       const captainUid = 'captain-user-uid';
 
-      const mockResult = { data: true, error: null };
+      const mockResult = { data: true, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('can_access_audit_logs', {
@@ -43,7 +43,7 @@ describe('can_access_audit_logs security function', () => {
     it('should grant access to admin role', async () => {
       const adminUid = 'admin-user-uid';
 
-      const mockResult = { data: true, error: null };
+      const mockResult = { data: true, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('can_access_audit_logs', {
@@ -65,7 +65,7 @@ describe('can_access_audit_logs security function', () => {
     it('should deny access to officer role', async () => {
       const officerUid = 'officer-user-uid';
 
-      const mockResult = { data: false, error: null };
+      const mockResult = { data: false, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('can_access_audit_logs', {
@@ -83,7 +83,7 @@ describe('can_access_audit_logs security function', () => {
     it('should deny access to user without role', async () => {
       const unassignedUid = 'unassigned-user-uid';
 
-      const mockResult = { data: false, error: null };
+      const mockResult = { data: false, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('can_access_audit_logs', {
@@ -111,7 +111,7 @@ describe('can_access_audit_logs security function', () => {
         hint: '',
         code: 'DB000'
       };
-      const mockResult = { data: null, error: mockError };
+      const mockResult = { data: null, error: mockError, count: null, status: 400, statusText: 'Bad Request' } as any;
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('can_access_audit_logs', {

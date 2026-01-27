@@ -22,7 +22,7 @@ describe('can_access_section security function', () => {
 
   describe('access granted scenarios', () => {
     it('should grant access to officer for company section', async () => {
-      const mockResult = { data: true, error: null };
+      const mockResult = { data: true, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('can_access_section', {
@@ -39,7 +39,7 @@ describe('can_access_section security function', () => {
     });
 
     it('should grant access to officer for junior section', async () => {
-      const mockResult = { data: true, error: null };
+      const mockResult = { data: true, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('can_access_section', {
@@ -62,7 +62,7 @@ describe('can_access_section security function', () => {
       for (const section of sections) {
         vi.clearAllMocks();
 
-        const mockResult = { data: true, error: null };
+        const mockResult = { data: true, error: null, count: null, status: 200, statusText: 'OK' };
         vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
         const result = await supabase.rpc('can_access_section', {
@@ -86,7 +86,7 @@ describe('can_access_section security function', () => {
       for (const section of sections) {
         vi.clearAllMocks();
 
-        const mockResult = { data: true, error: null };
+        const mockResult = { data: true, error: null, count: null, status: 200, statusText: 'OK' };
         vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
         const result = await supabase.rpc('can_access_section', {
@@ -106,7 +106,7 @@ describe('can_access_section security function', () => {
 
   describe('access denied scenarios', () => {
     it('should deny access to user without role', async () => {
-      const mockResult = { data: false, error: null };
+      const mockResult = { data: false, error: null, count: null, status: 200, statusText: 'OK' };
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('can_access_section', {
@@ -129,7 +129,7 @@ describe('can_access_section security function', () => {
         message: 'Database connection failed',
         code: 'CONNECTION_ERROR'
       };
-      const mockResult = { data: null, error: mockError };
+      const mockResult = { data: null, error: mockError, count: null, status: 400, statusText: 'Bad Request' } as any;
       vi.mocked(supabase.rpc).mockResolvedValueOnce(mockResult);
 
       const result = await supabase.rpc('can_access_section', {
