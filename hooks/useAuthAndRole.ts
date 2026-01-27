@@ -30,13 +30,22 @@ export const useAuthAndRole = () => {
 
     if (error || !data) {
       setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
-      await supabaseSignOut();
-      setCurrentUser(null);
+      // Keep user signed in so they can see the error message
       setUserRole(null);
       return;
     }
 
-    setUserRole(data.role as UserRole);
+    // Validate role value before trusting it
+    const validRoles = ['admin', 'captain', 'officer'] as const;
+    const role = data.role as UserRole;
+
+    if (!validRoles.includes(role)) {
+      setNoRoleError(`Your account has an invalid role (${role}). Please contact an administrator to gain access.`);
+      setUserRole(null);
+      return;
+    }
+
+    setUserRole(role);
     setNoRoleError(null);
   }, []);
 
