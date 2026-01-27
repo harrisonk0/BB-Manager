@@ -281,9 +281,3 @@ The product is successful when:
 8. Data is protected according to UK GDPR requirements
 9. Application is responsive and easy to use on common devices
 10. New users can be trained with minimal documentation
-
-## References
-
-- [ARCHITECTURE.md](../ARCHITECTURE.md) - System architecture and design
-- [technical-spec.md](./technical-spec.md) - Technical implementation details
-- [database-schema.md](./database-schema.md) - Data model and security
