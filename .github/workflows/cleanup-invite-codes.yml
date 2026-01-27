@@ -1,0 +1,27 @@
+name: Cleanup Invite Codes
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+  workflow_dispatch:      # Allow manual triggering
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old invite codes
+        run: |
+          response=$(curl -X POST "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/cleanup_old_invite_codes" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json")
+
+          echo "Cleanup result: $response"
+
+          # Check if any codes were deleted
+          deleted=$(echo $response | jq -r '.')
+          if [ "$deleted" != "0" ] && [ -n "$deleted" ]; then
+            echo "Deleted $deleted invite codes"
+          else
+            echo "No codes to delete"
+          fi
