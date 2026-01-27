@@ -28,3 +28,6 @@ AI_RULES.md
 .env
 .env.*
 !.env.example
+
+# Worktrees
+.worktrees/
