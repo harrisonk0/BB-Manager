@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
 import { updateBoy, createAuditLog } from '../services/db';
+import { reportError } from '../services/errorMonitoring';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
 import { useAuthAndRole } from '../hooks/useAuthAndRole';
@@ -355,6 +356,11 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         refreshData();
         setIsDirty(false);
     } catch(error) {
+        const userEmail = user?.email || 'Unknown User';
+        await reportError('marks_save', error as Error, userEmail, {
+          boyCount: boys.length,
+          section: activeSection
+        });
         console.error("Failed to save marks", error);
         showToast('Failed to save marks. Please try again.', 'error');
     } finally {
