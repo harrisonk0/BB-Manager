@@ -366,7 +366,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
         {canManageInviteCodes && (
             <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">
             <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Invite New Users</h2>
-            <p className="text-slate-600 mb-4">Generate a one-time-use code to invite new users to the app. Share this code with them so they can sign up. Codes expire after 24 hours.</p>
+            <p className="text-slate-600 mb-4">Generate a one-time-use code to invite new users to the app. Share this code with them so they can sign up. Codes expire after 3 days.</p>
             
             <button
                 onClick={handleGenerateCode}

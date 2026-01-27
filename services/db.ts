@@ -486,7 +486,7 @@ export const createInviteCode = async (
     usedAt: null,
     revoked: false,
     defaultUserRole: 'officer',
-    expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    expiresAt: Date.now() + 3 * 24 * 60 * 60 * 1000, // 3 days (3 * 24 * 60 * 60 * 1000 ms)
     generatedAt: Date.now(),
   };
 
