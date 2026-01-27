@@ -268,9 +268,12 @@ export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
   const { data, error } = await supabase
     .from('boys')
     .update({
-      ...boyData,
+      name: boyData.name,
+      year: boyData.year,
       section,
+      squad: boyData.squad,
       is_squad_leader: boyData.isSquadLeader ?? false,
+      marks: boyData.marks,
     })
     .eq('id', id)
     .eq('section', section)

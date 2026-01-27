@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { fetchInviteCode, updateInviteCode, createAuditLog, setUserRole } from '../services/db';
 import { QuestionMarkCircleIcon } from './Icons';
-import { ToastType, Section } from '../types';
+import { ToastType, Section, UserRole } from '../types';
 import * as supabaseAuth from '../services/supabaseAuth';
+import { supabase } from '../services/supabaseClient';
 
 interface SignupPageProps {
   /** Callback to navigate to the help page. */
@@ -71,10 +72,22 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
 
     setIsLoading(true);
     try {
-      // 1. Validate Invite Code
-      const fetchedCode = await fetchInviteCode(inviteCode);
-      if (!fetchedCode || fetchedCode.isUsed || fetchedCode.revoked || fetchedCode.expiresAt < Date.now()) {
+      // 1. Validate Invite Code (using RPC to bypass RLS for unauthenticated users)
+      const { data: codeData, error: codeError } = await supabase
+        .rpc('validate_invite_code', { p_code: inviteCode });
+
+      if (codeError || !codeData || !codeData[0]?.valid) {
         setInviteCodeError('Invalid, used, revoked, or expired invite code.');
+        setIsLoading(false);
+        return;
+      }
+
+      const defaultRole = codeData[0].default_role;
+
+      // Fetch full invite code details for section and audit logging
+      const fetchedCode = await fetchInviteCode(inviteCode);
+      if (!fetchedCode) {
+        setInviteCodeError('Invalid invite code.');
         setIsLoading(false);
         return;
       }
@@ -95,7 +108,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       }
 
       // 3. Assign Default Role to New User
-      await setUserRole(newUser.id, newUser.email || email, fetchedCode.defaultUserRole);
+      await setUserRole(newUser.id, newUser.email || email, defaultRole as UserRole);
 
       // 4. Mark Invite Code as Used (signup mode limits fields)
       const usageUpdate = {
@@ -110,8 +123,8 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
         await createAuditLog({
           userEmail: newUser.email || 'Unknown',
           actionType: 'USE_INVITE_CODE',
-          description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${fetchedCode.defaultUserRole}'.`,
-          revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: fetchedCode.defaultUserRole },
+          description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${defaultRole}'.`,
+          revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: defaultRole },
         }, fetchedCode.section || null);
       } catch (logError) {
         console.error('Failed to create signup audit log:', logError);
