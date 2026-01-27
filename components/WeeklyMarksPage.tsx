@@ -280,9 +280,15 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         } else { // 'present'
             if (isCompany) {
                 const newScoreRaw = marks[boy.id] as CompanyMarkState;
-                const newScore = typeof newScoreRaw === 'string' ? parseFloat(newScoreRaw) : newScoreRaw; // Use parseFloat
-                // Default empty strings to 0.
-                const finalScore = (newScoreRaw !== '' && !isNaN(newScore as number)) ? newScore : 0;
+                // Skip if user hasn't entered a score (empty string or undefined)
+                if (newScoreRaw === '' || newScoreRaw === undefined) {
+                    return Promise.resolve(null); // Don't create/update a mark
+                }
+                const newScore = typeof newScoreRaw === 'string' ? parseFloat(newScoreRaw) : newScoreRaw;
+                if (isNaN(newScore as number)) {
+                    return Promise.resolve(null); // Skip invalid scores
+                }
+                const finalScore = newScore as number;
 
                 if (markIndex > -1) {
                     if (updatedMarks[markIndex].score !== finalScore || updatedMarks[markIndex].uniformScore !== undefined) {
@@ -295,10 +301,23 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                 }
             } else { // Junior Section
                 const newScores = marks[boy.id] as JuniorMarkState;
-                const uniformScore = newScores.uniform === '' ? 0 : parseFloat(String(newScores.uniform));
-                const behaviourScore = newScores.behaviour === '' ? 0 : parseFloat(String(newScores.behaviour));
-                const finalScore = uniformScore + behaviourScore;
-                
+                // Skip if user hasn't entered ANY scores
+                if ((newScores.uniform === '' || newScores.uniform === undefined) &&
+                    (newScores.behaviour === '' || newScores.behaviour === undefined)) {
+                    return Promise.resolve(null); // Don't create/update a mark
+                }
+                const uniformScore = (newScores.uniform === '' || newScores.uniform === undefined)
+                    ? 0
+                    : parseFloat(String(newScores.uniform));
+                const behaviourScore = (newScores.behaviour === '' || newScores.behaviour === undefined)
+                    ? 0
+                    : parseFloat(String(newScores.behaviour));
+                // Validate that at least one score was entered
+                if (isNaN(uniformScore) && isNaN(behaviourScore)) {
+                    return Promise.resolve(null); // Skip if both are invalid
+                }
+                const finalScore = (isNaN(uniformScore) ? 0 : uniformScore) + (isNaN(behaviourScore) ? 0 : behaviourScore);
+
                 if (markIndex > -1) {
                     const oldMark = updatedMarks[markIndex];
                     if (oldMark.score !== finalScore || oldMark.uniformScore !== uniformScore || oldMark.behaviourScore !== behaviourScore) {
