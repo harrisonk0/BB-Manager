@@ -30,7 +30,6 @@ export const useAppData = (
         setSettings(sectionSettings);
         setDataError(null);
     } catch (err: any) {
-        console.error("Failed to refresh data:", err);
         setDataError(`Could not refresh data. Please check your connection. Error: ${err.message}`);
     }
   }, [activeSection, showToast]);
@@ -45,7 +44,6 @@ export const useAppData = (
     try {
       await refreshData();
     } catch (err: any) {
-      console.error("Failed to fetch data:", err);
       setDataError(`Failed to connect to the database. You may not have permission. Error: ${err.message}`);
     } finally {
       setDataLoading(false);

@@ -21,7 +21,7 @@ export const useAuthAndRole = () => {
       await supabaseSignOut();
       // State will be reset by the auth state listener
     } catch (error) {
-      console.error('Sign out failed', error);
+      // Sign out failed - state will be reset by auth state listener
     }
   }, []);
 
@@ -82,7 +82,7 @@ export const useAuthAndRole = () => {
           setNoRoleError(null);
         }
       } catch (err: any) {
-        console.error(`Failed to get current user: ${err.message}`);
+        // Failed to get current user - continue with loading complete
       } finally {
         setAuthLoading(false);
       }

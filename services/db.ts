@@ -76,7 +76,6 @@ export const fetchUserRole = async (uid: string): Promise<UserRole | null> => {
 
   if (error) {
     if (error.code === 'PGRST116') return null;
-    console.error('Failed to fetch user role:', error);
     return null;
   }
 
@@ -411,7 +410,6 @@ export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[
   }
 
   if (error) {
-    console.error('Failed to fetch audit logs from Supabase:', error);
     return [];
   }
 

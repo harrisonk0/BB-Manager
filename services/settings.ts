@@ -26,9 +26,6 @@ export const getSettings = async (section: Section): Promise<SectionSettings> =>
       .single();
 
     if (error) {
-      if (error.code !== 'PGRST116') {
-        console.error(`Error fetching settings for ${section}:`, error);
-      }
       return { meetingDay: DEFAULT_MEETING_DAY };
     }
 
@@ -38,7 +35,6 @@ export const getSettings = async (section: Section): Promise<SectionSettings> =>
 
     return { meetingDay: DEFAULT_MEETING_DAY };
   } catch (err) {
-    console.error(`Error fetching settings for ${section}:`, err);
     return { meetingDay: DEFAULT_MEETING_DAY };
   }
 };
@@ -66,7 +62,6 @@ export const saveSettings = async (
   });
 
   if (error) {
-    console.error(`Error saving settings for ${section}:`, error);
     throw error;
   }
 };

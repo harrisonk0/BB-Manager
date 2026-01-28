@@ -38,7 +38,6 @@ export async function reportError(
       body: JSON.stringify(report)
     });
   } catch (reportingError) {
-    // Don't let error reporting break the app
-    console.error('Failed to report error:', reportingError);
+    // Don't let error reporting break the app - silently fail
   }
 }
