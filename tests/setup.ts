@@ -2,12 +2,13 @@
 // Global mocks and test utilities go here
 
 import { vi } from 'vitest';
+import { createMockSupabaseClient } from './helpers/supabaseMock';
 
 // Mock Supabase client for service-layer tests
-// This will be expanded when actual tests are written
+const mockSupabase = createMockSupabaseClient();
+
 vi.mock('@/services/supabaseClient', () => ({
-  supabase: {
-    from: vi.fn(),
-    rpc: vi.fn(),
-  },
+  supabase: mockSupabase,
 }));
+
+export { mockSupabase };
