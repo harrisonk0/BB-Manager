@@ -64,11 +64,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Optimize RLS policies with auth.uid() subquery
-- [ ] 02-02-PLAN.md — Drop unused database indexes
-- [ ] 02-03-PLAN.md — Write unit tests for get_user_role function
-- [ ] 02-04-PLAN.md — Write unit tests for can_access_section function
-- [ ] 02-05-PLAN.md — Write unit tests for can_access_audit_logs function
+- [x] 02-01-PLAN.md — Optimize RLS policies with auth.uid() subquery
+- [x] 02-02-PLAN.md — Drop unused database indexes
+- [x] 02-03-PLAN.md — Write unit tests for get_user_role function
+- [x] 02-04-PLAN.md — Write unit tests for can_access_section function
+- [x] 02-05-PLAN.md — Write unit tests for can_access_audit_logs function
 
 ### Phase 3: Code Quality
 
