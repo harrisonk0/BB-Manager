@@ -47,7 +47,7 @@ type MockQueryBuilder = ReturnType<typeof createMockQueryBuilder> & {
 };
 
 export const createMockSupabaseClient = () => ({
-  from: vi.fn(() => createMockQueryBuilder()),
+  from: vi.fn((table: string) => createMockQueryBuilder()),
   rpc: vi.fn(),
   auth: {
     getSession: vi.fn(),
