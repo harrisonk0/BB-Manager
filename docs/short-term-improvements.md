@@ -44,16 +44,20 @@ This document describes the short-term improvements made to BB-Manager after the
 
 ---
 
-## 2. CI/CD E2E Testing
+## 2. CI/CD Infrastructure Checks
 
 ### What Was Implemented
 
 **GitHub Actions Workflow:**
-- File: `.github/workflows/e2e-tests.yml`
+- File: `.github/workflows/ci-infrastructure.yml`
 - Runs on push to `main` and pull requests
-- Type-checks code
-- Starts dev server
-- Provides test infrastructure
+- **What it validates:**
+  - ✅ TypeScript type-checking passes
+  - ✅ Dependencies install correctly
+  - ✅ Dev server starts successfully
+- **What it does NOT do:**
+  - ❌ Does NOT run automated E2E tests
+  - ⚠️ Manual E2E testing is still required
 
 **Test Helper Script:**
 - File: `scripts/run-e2e-tests.sh`
@@ -79,6 +83,27 @@ Then follow manual test steps in:
 
 - `VITE_SUPABASE_URL` - Supabase project URL
 - `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
+
+### Clarification: CI vs E2E Testing
+
+**CI Infrastructure workflow** validates code quality and app startup. It does NOT run automated E2E tests.
+
+**Why not full automation?**
+- Full E2E automation requires Playwright browser automation in CI
+- The manual E2E tests we created during the audit use Playwright MCP
+- Playwright MCP is not available in GitHub Actions
+- Setting up browser automation in CI is a separate, larger project (8-12 hours)
+
+**What this provides:**
+- Confidence that code type-checks
+- Confidence that app can start
+- Links to manual E2E test documentation
+- Foundation for future automation work
+
+**Future E2E automation** would require:
+- Writing automated Playwright test scripts
+- Setting up browser automation in GitHub Actions
+- Much more development effort
 
 ---
 
@@ -139,9 +164,9 @@ To test error monitoring:
 - Check deleted counts periodically
 - Verify cleanup is working
 
-### CI/CD E2E Tests
-- Review failed test runs
-- Update tests as features evolve
+### CI/CD Infrastructure
+- Review workflow runs for failures
+- Keep type-checking passing
 - Keep credentials in sync
 
 ### Error Monitoring
@@ -154,7 +179,7 @@ To test error monitoring:
 ## Future Improvements
 
 These improvements provide a foundation for:
-- Full E2E test automation with Playwright
+- **Full E2E test automation** - Requires Playwright browser automation in CI (8-12 hours effort)
 - Enhanced monitoring with dashboards
 - Automated recovery from failures
 - Performance monitoring
