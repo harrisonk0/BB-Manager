@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import type { Mock } from 'vitest';
 
 type SupabaseResponse<T> = {
   data: T | null;
@@ -37,6 +38,12 @@ const createMockQueryBuilder = () => {
   return mockChain;
 };
 
+type MockQueryBuilder = ReturnType<typeof createMockQueryBuilder> & {
+  single: Mock<() => Promise<any>>;
+  maybeSingle: Mock<() => Promise<any>>;
+  select: Mock<() => Promise<any>>;
+};
+
 export const createMockSupabaseClient = () => ({
   from: vi.fn(() => createMockQueryBuilder()),
   rpc: vi.fn(),
@@ -60,7 +67,7 @@ export const createMockSupabaseClient = () => ({
 });
 
 export const mockSuccessfulQuery = <T,>(
-  queryBuilder: any,
+  queryBuilder: MockQueryBuilder,
   responseData: T,
   returnType: 'single' | 'maybeSingle' | 'data' = 'single'
 ) => {
@@ -83,12 +90,12 @@ export const mockSuccessfulQuery = <T,>(
 };
 
 export const mockFailedQuery = (
-  queryBuilder: any,
+  queryBuilder: MockQueryBuilder,
   errorMessage: string,
   errorCode?: string,
   returnType: 'single' | 'maybeSingle' = 'single'
 ) => {
-  const response = {
+  const response: SupabaseResponse<null> = {
     data: null,
     error: { message: errorMessage, code: errorCode },
     count: null,
