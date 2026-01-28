@@ -27,6 +27,9 @@ jobs:
       - name: Type-check code
         run: npx tsc -p tsconfig.json --noEmit
 
+      - name: Run unit tests
+        run: npm run test:run
+
       - name: Create .env file
         run: |
           echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> .env
@@ -63,6 +66,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ✅ Checks Passed" >> $GITHUB_STEP_SUMMARY
           echo "- **Type-check:** Code is type-safe" >> $GITHUB_STEP_SUMMARY
+          echo "- **Unit Tests:** All unit tests pass" >> $GITHUB_STEP_SUMMARY
           echo "- **Dev Server:** App starts successfully" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📋 Manual E2E Testing" >> $GITHUB_STEP_SUMMARY
