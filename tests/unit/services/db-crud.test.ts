@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { supabase } from '@/services/supabaseClient';
 import * as supabaseAuth from '@/services/supabaseAuth';
 import { createBoy, updateBoy, deleteBoyById, fetchBoys, fetchBoyById } from '@/services/db';
 import type { Boy, Mark, Section } from '@/types';
 import { createMockSupabaseClient, mockSuccessfulQuery, mockFailedQuery } from '@/tests/helpers/supabaseMock';
+import * as errorMonitoring from '@/services/errorMonitoring';
 
 describe('db.ts CRUD Operations', () => {
   const mockAuthUser = { id: 'user-123', email: 'test@example.com' };
@@ -12,9 +13,11 @@ describe('db.ts CRUD Operations', () => {
     vi.clearAllMocks();
     vi.spyOn(supabaseAuth, 'getCurrentUser').mockResolvedValue(mockAuthUser as any);
     // Mock reportError to avoid actual network calls
-    vi.doMock('@/services/errorMonitoring', () => ({
-      reportError: vi.fn().mockResolvedValue(undefined)
-    }));
+    vi.spyOn(errorMonitoring, 'reportError').mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe('createBoy', () => {
@@ -97,6 +100,41 @@ describe('db.ts CRUD Operations', () => {
       await expect(
         createBoy(mockBoyData, 'company')
       ).rejects.toThrow('Invalid date format for mark: 01/15/2025');
+    });
+
+    it('should report error on database failure', async () => {
+      const mockBoyData = {
+        name: 'John Doe',
+        squad: 1,
+        year: 9,
+        marks: [],
+        isSquadLeader: false
+      };
+
+      const queryBuilder = createMockSupabaseClient().from('boys') as any;
+      const dbError = new Error('Database connection failed');
+
+      // Mock insert to throw error
+      const insertChain = {
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockRejectedValueOnce(dbError)
+        })
+      };
+
+      queryBuilder.insert.mockReturnValue(insertChain);
+      vi.mocked(supabase.from).mockReturnValue(queryBuilder);
+
+      await expect(
+        createBoy(mockBoyData, 'company')
+      ).rejects.toThrow('Database connection failed');
+
+      // Verify error was reported
+      expect(errorMonitoring.reportError).toHaveBeenCalledWith(
+        'db_createBoy',
+        dbError,
+        undefined,
+        { section: 'company' }
+      );
     });
   });
 
@@ -199,6 +237,46 @@ describe('db.ts CRUD Operations', () => {
         updateBoy(mockBoy, 'junior')
       ).rejects.toThrow('Junior section total score for Jane Doe on 2025-01-15 does not match sum of uniform and behaviour scores.');
     });
+
+    it('should report error on database failure', async () => {
+      const mockBoy: Boy = {
+        id: 'boy-123',
+        name: 'Jane Doe',
+        squad: 2,
+        year: 10,
+        marks: [],
+        isSquadLeader: false
+      };
+
+      const queryBuilder = createMockSupabaseClient().from('boys') as any;
+      const dbError = new Error('Database constraint violation');
+
+      // Mock the chain: update().eq().eq().select().single()
+      const updateChain = {
+        eq: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            select: vi.fn().mockReturnValue({
+              single: vi.fn().mockRejectedValueOnce(dbError)
+            })
+          })
+        })
+      };
+
+      queryBuilder.update.mockReturnValue(updateChain);
+      vi.mocked(supabase.from).mockReturnValue(queryBuilder);
+
+      await expect(
+        updateBoy(mockBoy, 'company')
+      ).rejects.toThrow('Database constraint violation');
+
+      // Verify error was reported
+      expect(errorMonitoring.reportError).toHaveBeenCalledWith(
+        'db_updateBoy',
+        dbError,
+        undefined,
+        { boyId: 'boy-123', section: 'company' }
+      );
+    });
   });
 
   describe('deleteBoyById', () => {
@@ -246,6 +324,14 @@ describe('db.ts CRUD Operations', () => {
       vi.mocked(supabase.from).mockReturnValue(queryBuilder);
 
       await expect(deleteBoyById('boy-999', 'company')).rejects.toThrow('Permission denied');
+
+      // Verify error was reported
+      expect(errorMonitoring.reportError).toHaveBeenCalledWith(
+        'db_deleteBoy',
+        expect.any(Error),
+        undefined,
+        { boyId: 'boy-999', section: 'company' }
+      );
     });
   });
 
@@ -337,6 +423,9 @@ describe('db.ts CRUD Operations', () => {
       vi.mocked(supabase.from).mockReturnValue(queryBuilder);
 
       await expect(fetchBoys('company')).rejects.toThrow('Database connection failed');
+
+      // Note: fetchBoys doesn't use reportError because it doesn't have a try-catch block
+      // It throws directly from Supabase error handling
     });
   });
 
@@ -427,6 +516,9 @@ describe('db.ts CRUD Operations', () => {
       vi.mocked(supabase.from).mockReturnValue(queryBuilder);
 
       await expect(fetchBoyById('boy-123', 'company')).rejects.toThrow('Connection failed');
+
+      // Note: fetchBoyById doesn't use reportError because it doesn't have a try-catch block
+      // It throws directly from Supabase error handling
     });
   });
 });
