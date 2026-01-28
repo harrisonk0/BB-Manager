@@ -38,7 +38,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
       }
     } catch (err: any) {
       setError(err?.message || 'An unexpected error occurred. Please try again.');
-      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +62,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
         showToast('Password reset email sent! Check your inbox.', 'success');
       }
     } catch (err: any) {
-      console.error("Forgot password error:", err);
       showToast(err?.message || 'Failed to send password reset email. Please try again.', 'error');
     } finally {
       setIsSendingResetEmail(false);

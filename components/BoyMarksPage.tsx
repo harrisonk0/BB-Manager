@@ -79,7 +79,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
       }
     } catch (err) {
       setError('Failed to load boy data.');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -245,7 +244,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     } catch (err) {
       showToast('Failed to save changes.', 'error');
       setError('Failed to save changes. Please try again.');
-      console.error(err);
     } finally {
       setIsSaving(false);
     }

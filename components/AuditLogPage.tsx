@@ -77,7 +77,6 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
       const fetchedLogs = await fetchAuditLogs(activeSection);
       setLogs(fetchedLogs);
     } catch (err) {
-      console.error(err);
       setError('Failed to load audit logs.');
     } finally {
       setLoading(false);
@@ -181,7 +180,6 @@ const AuditLogPage: React.FC<AuditLogPageProps> = ({ refreshData, activeSection,
       loadLogs();
 
     } catch (err: any) {
-      console.error('Failed to revert action:', err);
       showToast(`Failed to revert: ${err.message}`, 'error');
       setError(`Failed to revert: ${err.message}`);
     } finally {

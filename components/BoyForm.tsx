@@ -124,7 +124,6 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
         onSave(true, name);
       }
     } catch (err) {
-      console.error('Failed to save boy:', err);
       setNameError('Failed to save boy. Please try again.'); // Generic error for save failure
     }
   };

@@ -236,7 +236,6 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       refreshData();
       handleCloseDeleteModal();
     } catch (error) {
-        console.error("Failed to delete boy:", error);
         showToast('Failed to delete member.', 'error');
     }
   };

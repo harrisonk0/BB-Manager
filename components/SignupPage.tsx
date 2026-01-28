@@ -127,13 +127,12 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
           revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: defaultRole },
         }, fetchedCode.section || null);
       } catch (logError) {
-        console.error('Failed to create signup audit log:', logError);
+        // Audit log failure should not block signup - best-effort logging
       }
 
       showToast('Account created successfully! Please select your section.', 'success');
       onSignupSuccess(fetchedCode.section || 'company');
     } catch (err: any) {
-      console.error("Sign up error:", err);
       setError(err?.message || 'Failed to create account. Please try again.');
       showToast('Failed to create account.', 'error');
     } finally {

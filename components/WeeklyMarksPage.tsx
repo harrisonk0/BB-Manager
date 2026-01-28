@@ -361,7 +361,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
           boyCount: boys.length,
           section: activeSection
         });
-        console.error("Failed to save marks", error);
         showToast('Failed to save marks. Please try again.', 'error');
     } finally {
         setIsSaving(false);

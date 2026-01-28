@@ -70,7 +70,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
       onSettingsSaved(newSettings);
       showToast('Settings saved successfully!', 'success');
     } catch (err: any) {
-      console.error("Failed to save settings:", err);
       showToast(`Failed to save settings: ${err.message}`, 'error');
       setError("An error occurred while saving. Please try again.");
     } finally {

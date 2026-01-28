@@ -94,7 +94,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       const codes = await fetchAllInviteCodes(userRole);
       setInviteCodes(codes);
     } catch (err) {
-      console.error("Failed to load invite codes:", err);
       showToast("Failed to load invite codes.", "error");
     } finally {
       if (showSpinner) {
@@ -123,7 +122,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       });
       setUsersWithRoles(fetchedUsers);
     } catch (err: any) {
-      console.error("Failed to load users with roles:", err);
       showToast(`Failed to load user roles: ${err.message}`, 'error');
     } finally {
       setLoadingUsers(false);
@@ -162,7 +160,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       showToast('Invite code generated successfully!', 'success');
       loadInviteCodes();
     } catch (err: any) {
-      console.error("Failed to generate invite code:", err);
       showToast(`Failed to generate invite code: ${err.message}`, 'error');
     } finally {
       setIsGeneratingCode(false);
@@ -173,7 +170,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
     navigator.clipboard.writeText(code).then(() => {
       showToast('Invite code copied to clipboard!', 'info');
     }).catch(err => {
-      console.error("Failed to copy code:", err);
       showToast('Failed to copy code.', 'error');
     });
   };
@@ -192,7 +188,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       loadInviteCodes();
       setCodeToRevoke(null);
     } catch (err: any) {
-      console.error("Failed to revoke invite code:", err);
       showToast(`Failed to revoke invite code: ${err.message}`, 'error');
     } finally {
       setIsSaving(false);
@@ -252,7 +247,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       loadInviteCodes();
       setIsEditInviteCodeModalOpen(false);
     } catch (err: any) {
-      console.error("Failed to update invite code:", err);
       setInviteCodeEditError(err.message || "Failed to update invite code. Please try again.");
       showToast('Failed to update invite code.', 'error');
     } finally {
@@ -279,7 +273,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       loadUsersWithRoles();
       setIsRoleModalOpen(false);
     } catch (err: any) {
-      console.error("Failed to update user role:", err);
       setRoleEditError(err.message || "Failed to update role. Please try again.");
       showToast('Failed to update user role.', 'error');
     } finally {
@@ -312,7 +305,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       loadUsersWithRoles();
       setIsDeleteUserModalOpen(false);
     } catch (err: any) {
-      console.error("Failed to delete user role:", err);
       showToast(`Failed to delete user role: ${err.message}`, 'error');
     } finally {
       setIsDeletingUser(false);
@@ -328,7 +320,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       await clearAllAuditLogs(null, userEmail, userRole); // Clear global logs
       showToast('All audit logs cleared successfully!', 'success');
     } catch (err: any) {
-      console.error("Failed to clear audit logs:", err);
       showToast(`Failed to clear audit logs: ${err.message}`, 'error');
     } finally {
       setIsClearingDevData(false);
@@ -344,7 +335,6 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       showToast('All used/revoked invite codes cleared successfully!', 'success');
       loadInviteCodes();
     } catch (err: any) {
-      console.error("Failed to clear invite codes:", err);
       showToast(`Failed to clear invite codes: ${err.message}`, 'error');
     } finally {
       setIsClearingDevData(false);

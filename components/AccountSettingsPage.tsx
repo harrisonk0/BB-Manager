@@ -66,7 +66,6 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
       setNewPassword('');
       setNewPasswordConfirm('');
     } catch (err: any) {
-      console.error('Failed to change password:', err);
       setGeneralError(err?.message || 'Failed to change password. Please try again.');
       showToast('Failed to change password.', 'error');
     } finally {
