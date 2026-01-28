@@ -15,6 +15,7 @@ const createMockQueryBuilder = () => {
     insert: vi.fn(() => mockChain),
     update: vi.fn(() => mockChain),
     delete: vi.fn(() => mockChain),
+    upsert: vi.fn(),
     eq: vi.fn(() => mockChain),
     neq: vi.fn(() => mockChain),
     gt: vi.fn(() => mockChain),
@@ -42,6 +43,7 @@ type MockQueryBuilder = ReturnType<typeof createMockQueryBuilder> & {
   single: Mock<() => Promise<any>>;
   maybeSingle: Mock<() => Promise<any>>;
   select: Mock<() => Promise<any>>;
+  upsert: Mock<() => Promise<any>>;
 };
 
 export const createMockSupabaseClient = () => ({
