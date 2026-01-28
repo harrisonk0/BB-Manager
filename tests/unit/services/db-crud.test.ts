@@ -22,11 +22,11 @@ describe('db.ts CRUD Operations', () => {
 
   describe('createBoy', () => {
     it('should create a boy successfully', async () => {
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
-        marks: [],
+        marks: [] as Mark[],
         isSquadLeader: false
       };
 
@@ -61,11 +61,11 @@ describe('db.ts CRUD Operations', () => {
     it('should throw error when user not authenticated', async () => {
       vi.spyOn(supabaseAuth, 'getCurrentUser').mockResolvedValue(null);
 
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
-        marks: [],
+        marks: [] as Mark[],
         isSquadLeader: false
       };
 
@@ -75,7 +75,7 @@ describe('db.ts CRUD Operations', () => {
     });
 
     it('should validate marks before creation', async () => {
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
@@ -89,7 +89,7 @@ describe('db.ts CRUD Operations', () => {
     });
 
     it('should reject marks with invalid date format', async () => {
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
@@ -103,11 +103,11 @@ describe('db.ts CRUD Operations', () => {
     });
 
     it('should report error on database failure', async () => {
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
-        marks: [],
+        marks: [] as Mark[],
         isSquadLeader: false
       };
 

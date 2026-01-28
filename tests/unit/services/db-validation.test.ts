@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { supabase } from '@/services/supabaseClient';
 import * as supabaseAuth from '@/services/supabaseAuth';
 import * as dbModule from '@/services/db';
-import type { Boy } from '@/types';
+import type { Boy, Mark } from '@/types';
 
 // Mock supabaseAuth module
 vi.mock('@/services/supabaseAuth', () => ({
@@ -54,7 +54,7 @@ describe('db.ts Validation and Role Management', () => {
         marks: [
           { date: '2024-01-01', score: 5 },
           { date: '2024-01-08', score: 10 }
-        ]
+        ] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'company')).resolves.not.toThrow();
@@ -88,7 +88,7 @@ describe('db.ts Validation and Role Management', () => {
         name: 'John',
         squad: 1,
         year: 9,
-        marks: [{ date: '2024-01-01', score: -1 }]
+        marks: [{ date: '2024-01-01', score: -1 }] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'company')).resolves.not.toThrow();
@@ -104,7 +104,7 @@ describe('db.ts Validation and Role Management', () => {
         name: 'John',
         squad: 1,
         year: 9,
-        marks: [{ date: '2024-01-01', score: 11 }]
+        marks: [{ date: '2024-01-01', score: 11 }] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'company')).rejects.toThrow(
@@ -122,7 +122,7 @@ describe('db.ts Validation and Role Management', () => {
         name: 'John',
         squad: 1,
         year: 9,
-        marks: [{ date: '2024-01-01', score: -5 }]
+        marks: [{ date: '2024-01-01', score: -5 }] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'company')).rejects.toThrow(
@@ -140,7 +140,7 @@ describe('db.ts Validation and Role Management', () => {
         name: 'John',
         squad: 1,
         year: 9,
-        marks: [{ date: '01-01-2024', score: 5 }]
+        marks: [{ date: '01-01-2024', score: 5 }] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'company')).rejects.toThrow(
@@ -158,7 +158,7 @@ describe('db.ts Validation and Role Management', () => {
         name: 'John',
         squad: 1,
         year: 9,
-        marks: [{ date: '2024-01-01', score: '10' as any }]
+        marks: [{ date: '2024-01-01', score: '10' as any }] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData as Omit<Boy, 'id'>, 'company')).rejects.toThrow(
@@ -176,7 +176,7 @@ describe('db.ts Validation and Role Management', () => {
         name: 'John',
         squad: 1,
         year: 9,
-        marks: [{ date: '2024-01-01', score: 5.123 }]
+        marks: [{ date: '2024-01-01', score: 5.123 }] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'company')).rejects.toThrow(
@@ -194,7 +194,7 @@ describe('db.ts Validation and Role Management', () => {
         name: 'John',
         squad: 1,
         year: 9,
-        marks: [{ date: '2024-01-01', score: 5, uniformScore: 5 }]
+        marks: [{ date: '2024-01-01', score: 5, uniformScore: 5 }] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'company')).rejects.toThrow(
@@ -215,8 +215,8 @@ describe('db.ts Validation and Role Management', () => {
               data: {
                 id: 'boy-1',
                 name: 'John',
-                squad: 'J1',
-                year: 'P1',
+                squad: 1,
+                year: 'P4',
                 marks: [
                   { date: '2024-01-01', score: 10, uniformScore: 5, behaviourScore: 5 }
                 ],
@@ -230,11 +230,11 @@ describe('db.ts Validation and Role Management', () => {
 
       const boyData: Omit<Boy, 'id'> = {
         name: 'John',
-        squad: 'J1',
-        year: 'P1',
+        squad: 1,
+        year: 'P4',
         marks: [
           { date: '2024-01-01', score: 10, uniformScore: 5, behaviourScore: 5 }
-        ]
+        ] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'junior')).resolves.not.toThrow();
@@ -248,9 +248,9 @@ describe('db.ts Validation and Role Management', () => {
 
       const boyData: Omit<Boy, 'id'> = {
         name: 'John',
-        squad: 'J1',
-        year: 'P1',
-        marks: [{ date: '2024-01-01', score: 10, uniformScore: 11, behaviourScore: -1 }]
+        squad: 1,
+        year: 'P4',
+        marks: [{ date: '2024-01-01', score: 10, uniformScore: 11, behaviourScore: -1 }] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'junior')).rejects.toThrow(
@@ -266,9 +266,9 @@ describe('db.ts Validation and Role Management', () => {
 
       const boyData: Omit<Boy, 'id'> = {
         name: 'John',
-        squad: 'J1',
-        year: 'P1',
-        marks: [{ date: '2024-01-01', score: 10, uniformScore: 5, behaviourScore: 6 }]
+        squad: 1,
+        year: 'P4',
+        marks: [{ date: '2024-01-01', score: 10, uniformScore: 5, behaviourScore: 6 }] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'junior')).rejects.toThrow(
@@ -284,9 +284,9 @@ describe('db.ts Validation and Role Management', () => {
 
       const boyData: Omit<Boy, 'id'> = {
         name: 'John',
-        squad: 'J1',
-        year: 'P1',
-        marks: [{ date: '2024-01-01', score: 12, uniformScore: 5, behaviourScore: 5 }]
+        squad: 1,
+        year: 'P4',
+        marks: [{ date: '2024-01-01', score: 12, uniformScore: 5, behaviourScore: 5 }] as Mark[]
       };
 
       await expect(dbModule.createBoy(boyData, 'junior')).rejects.toThrow(

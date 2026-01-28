@@ -174,9 +174,9 @@ describe('settings.ts', () => {
       );
     });
 
-    it('should reject save when user role is member', async () => {
+    it('should reject save when user role is officer', async () => {
       const settings: SectionSettings = { meetingDay: 3 };
-      const userRole: UserRole = 'member';
+      const userRole: UserRole = 'officer';
 
       await expect(saveSettings('junior', settings, userRole)).rejects.toThrow(
         'Permission denied: Only Admins and Captains can save settings.'

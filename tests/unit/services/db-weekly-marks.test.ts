@@ -25,7 +25,7 @@ describe('db.ts Weekly Marks Operations', () => {
 
     describe('createBoy with weekly marks', () => {
       it('should create a boy with initial weekly marks', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
           year: 9,
@@ -59,7 +59,7 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should create a boy with absence mark (score = -1)', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
           year: 9,
@@ -91,7 +91,7 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should reject marks with score > 10 for company section', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
           year: 9,
@@ -107,7 +107,7 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should reject marks with negative score other than -1', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
           year: 9,
@@ -123,7 +123,7 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should reject marks with more than 2 decimal places', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
           year: 9,
@@ -139,7 +139,7 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should reject marks with uniformScore or behaviourScore for company section', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
           year: 9,
@@ -309,7 +309,7 @@ describe('db.ts Weekly Marks Operations', () => {
         ] as Mark[];
 
         const queryBuilder = createMockSupabaseClient().from('boys') as any;
-        mockFailedQuery(queryBuilder, new Error('Database error'));
+        mockFailedQuery(queryBuilder, 'Database error');
 
         vi.mocked(supabase.from).mockReturnValue(queryBuilder);
 
@@ -414,10 +414,10 @@ describe('db.ts Weekly Marks Operations', () => {
 
     describe('createBoy with weekly marks', () => {
       it('should create a boy with junior weekly marks (uniform + behaviour)', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: [
             { date: '2025-01-15', score: 13, uniformScore: 8, behaviourScore: 5 }
           ] as Mark[],
@@ -428,7 +428,7 @@ describe('db.ts Weekly Marks Operations', () => {
           id: 'boy-123',
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: mockBoyData.marks,
           is_squad_leader: false,
           section: 'junior'
@@ -448,10 +448,10 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should create a boy with absence mark (score = -1)', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: [
             { date: '2025-01-15', score: -1, uniformScore: -1, behaviourScore: -1 }
           ] as Mark[],
@@ -462,7 +462,7 @@ describe('db.ts Weekly Marks Operations', () => {
           id: 'boy-123',
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: mockBoyData.marks,
           is_squad_leader: false,
           section: 'junior'
@@ -480,10 +480,10 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should reject marks with uniformScore > 10', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: [
             { date: '2025-01-15', score: 15, uniformScore: 11, behaviourScore: 4 }
           ] as Mark[],
@@ -496,10 +496,10 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should reject marks with behaviourScore > 5', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: [
             { date: '2025-01-15', score: 15, uniformScore: 10, behaviourScore: 6 }
           ] as Mark[],
@@ -512,10 +512,10 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should reject marks where total does not match sum of uniform and behaviour', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: [
             { date: '2025-01-15', score: 14, uniformScore: 8, behaviourScore: 5 }
           ] as Mark[],
@@ -528,10 +528,10 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should reject marks with uniformScore having more than 2 decimal places', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: [
             { date: '2025-01-15', score: 13.5, uniformScore: 8.555, behaviourScore: 5 }
           ] as Mark[],
@@ -544,10 +544,10 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should reject marks with behaviourScore having more than 2 decimal places', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: [
             { date: '2025-01-15', score: 12.5, uniformScore: 8, behaviourScore: 4.555 }
           ] as Mark[],
@@ -560,10 +560,10 @@ describe('db.ts Weekly Marks Operations', () => {
       });
 
       it('should accept valid junior marks with decimal places', async () => {
-        const mockBoyData = {
+        const mockBoyData: Omit<Boy, 'id'> = {
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: [
             { date: '2025-01-15', score: 13.55, uniformScore: 8.55, behaviourScore: 5 }
           ] as Mark[],
@@ -574,7 +574,7 @@ describe('db.ts Weekly Marks Operations', () => {
           id: 'boy-123',
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: mockBoyData.marks,
           is_squad_leader: false,
           section: 'junior'
@@ -598,7 +598,7 @@ describe('db.ts Weekly Marks Operations', () => {
           id: 'boy-123',
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: [
             { date: '2025-01-15', score: 13, uniformScore: 8, behaviourScore: 5 }
           ] as Mark[],
@@ -613,7 +613,7 @@ describe('db.ts Weekly Marks Operations', () => {
           id: 'boy-123',
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: updatedMarks,
           is_squad_leader: false,
           section: 'junior'
@@ -635,7 +635,7 @@ describe('db.ts Weekly Marks Operations', () => {
           id: 'boy-123',
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: [
             { date: '2025-01-15', score: 13, uniformScore: 8, behaviourScore: 5 }
           ] as Mark[],
@@ -651,7 +651,7 @@ describe('db.ts Weekly Marks Operations', () => {
           id: 'boy-123',
           name: 'John Doe',
           squad: 1,
-          year: 'P1',
+          year: 'P4',
           marks: updatedMarks,
           is_squad_leader: false,
           section: 'junior'
@@ -685,7 +685,7 @@ describe('db.ts Weekly Marks Operations', () => {
         id: 'boy-456',
         name: 'Jane Smith',
         squad: 1,
-        year: 'P1',
+        year: 'P4',
         marks: [{ date: '2025-01-15', score: 13, uniformScore: 8, behaviourScore: 5 }] as Mark[],
         isSquadLeader: false
       };
@@ -704,7 +704,7 @@ describe('db.ts Weekly Marks Operations', () => {
         id: 'boy-456',
         name: 'Jane Smith',
         squad: 1,
-        year: 'P1',
+        year: 'P4',
         marks: juniorBoy.marks,
         is_squad_leader: false,
         section: 'junior'
@@ -750,7 +750,7 @@ describe('db.ts Weekly Marks Operations', () => {
 
   describe('Weekly Marks Validation Edge Cases', () => {
     it('should reject marks with non-numeric score', async () => {
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
@@ -772,7 +772,7 @@ describe('db.ts Weekly Marks Operations', () => {
         year: 9,
         marks: 'not-an-array' as any,
         isSquadLeader: false
-      };
+      } as Omit<Boy, 'id'>;
 
       await expect(
         createBoy(mockBoyData, 'company')
@@ -780,7 +780,7 @@ describe('db.ts Weekly Marks Operations', () => {
     });
 
     it('should accept zero scores', async () => {
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
@@ -811,7 +811,7 @@ describe('db.ts Weekly Marks Operations', () => {
     });
 
     it('should accept maximum boundary scores', async () => {
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
@@ -842,7 +842,7 @@ describe('db.ts Weekly Marks Operations', () => {
     });
 
     it('should handle multiple marks with different dates', async () => {
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
@@ -882,7 +882,7 @@ describe('db.ts Weekly Marks Operations', () => {
     });
 
     it('should validate date format strictly', async () => {
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
@@ -898,7 +898,7 @@ describe('db.ts Weekly Marks Operations', () => {
     });
 
     it('should reject invalid date formats', async () => {
-      const mockBoyData = {
+      const mockBoyData: Omit<Boy, 'id'> = {
         name: 'John Doe',
         squad: 1,
         year: 9,
