@@ -8,13 +8,14 @@ This document provides a detailed breakdown of the file and folder structure for
 ├── docs/               # Documentation (deep dives + runbooks)
 ├── hooks/              # Custom React hooks
 ├── services/           # Supabase client + data services
-├── src/                # Global styles/assets
-├── supabase/           # Supabase CLI project (config + migrations)
+├── tests/              # Unit and E2E tests
+├── scripts/            # Utility scripts
 ├── CLAUDE.md           # Repo rules and operational guidance
 ├── ARCHITECTURE.md     # Canonical system model
 ├── App.tsx             # App orchestrator / view state
 ├── index.html          # HTML shell (mounts React)
 ├── index.tsx           # React entry point
+├── index.css           # Global Tailwind styles
 ├── server.js           # Optional static server (SPA fallback)
 ├── Dockerfile          # Container build + static serving
 ├── vercel.json         # SPA rewrites for Vercel
@@ -37,13 +38,14 @@ This document provides a detailed breakdown of the file and folder structure for
 | `docs/`           | Contains all markdown documentation files for the project, including this one.                                                                |
 | `hooks/`          | Contains custom React hooks (`useToastNotifications`, `useAuthAndRole`, `useSectionManagement`, `useAppData`, `useUnsavedChangesProtection`) that encapsulate reusable stateful logic. |
 | `services/`       | The data/service layer for Supabase access. See [`docs/06-data-and-services.md`](./06-data-and-services.md). |
-| `supabase/`       | Supabase CLI project containing `config.toml` and `migrations/` (authoritative schema/permissions history). See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md). |
+| `tests/`          | Unit and E2E tests. |
+| `scripts/`        | Utility scripts. |
 | `CLAUDE.md`       | Repo rules and operational guidance (human + agent guardrails). See [`CLAUDE.md`](../CLAUDE.md). |
 | `ARCHITECTURE.md` | Canonical system model (components, data flow, invariants, trade-offs). See [`ARCHITECTURE.md`](../ARCHITECTURE.md). |
 | `App.tsx`         | Orchestrates auth gating, section selection, view routing, data loading, and global UI state. |
-| `index.html`      | HTML shell with the root element; loads `index.tsx`. > TODO: Confirm whether the import map is still required under Vite. |
-| `index.tsx`       | This file takes the root `App` component and renders it into the DOM.                                                                         |
-| `metadata.json`   | Tooling metadata file. > TODO: Document which tool/environment consumes this and whether it is required. |
+| `index.html`      | HTML shell with the root element; loads `index.tsx`. |
+| `index.tsx`       | React entry point - renders the `App` component into the DOM.                                                                         |
+| `index.css`       | Global Tailwind styles. |
 | `types.ts`        | Central TypeScript type definitions. See [`docs/08-types.md`](./08-types.md). |
 | `README.md`       | The main project README file, which serves as the entry point to this documentation.                                                          |
 
@@ -55,7 +57,7 @@ This directory contains all UI elements of the application.
 -   **UI Components**: `Header.tsx`, `Modal.tsx`, `Icons.tsx`, `DatePicker.tsx`. These are smaller, reusable components used across multiple pages.
 -   **Form Components**: `BoyForm.tsx`. These components are specifically for handling user input.
 -   **Feedback Components**: `SkeletonLoaders.tsx`, `Toast.tsx`. These are used to improve the user experience during data loading states and for action feedback.
--   **Visualization Components**: `BarChart.tsx`. > TODO: `LineChart.tsx` exists but is currently empty/unused.
+-   **Visualization Components**: `BarChart.tsx`, `LineChart.tsx` (placeholder for future use).
 
 ### `/services` Directory
 

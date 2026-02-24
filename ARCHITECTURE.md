@@ -26,7 +26,7 @@ Primary constraints and implications:
   section in `localStorage`.
 
 > RLS hardening is complete (Phase 1). All policies implemented via MCP Supabase tools.
-> See `.planning/archive/migrations/` for historical migration context.
+> See `docs/10-database-security-model.md` for the authoritative security model.
 
 ## Goals & Non-Goals
 
@@ -120,7 +120,7 @@ flowchart TB
 
 5. **External Backend (Supabase)**
    - Responsibility: authentication and persistence; database schema and privileges are
-     managed via MCP Supabase tools (see `.planning/archive/migrations/` for history).
+     managed via MCP Supabase tools (see `docs/09-database-and-migrations.md` and `docs/10-database-security-model.md`).
    - Boundary: anything "security-sensitive" must be enforced in the database. The
      access model uses RLS policies with GRANTs; RLS hardening is complete (Phase 1).
    - Deep dive: [docs/02-architecture.md](docs/02-architecture.md) and
@@ -202,7 +202,7 @@ flowchart TB
   - React (`react`, `react-dom`), Vite, TypeScript.
 
 - **Styling toolchain**
-  - Tailwind CSS compiled via PostCSS (`src/index.css`, `tailwind.config.js`).
+  - Tailwind CSS compiled via PostCSS (`index.css`, `tailwind.config.js`).
 
 - **Serving/runtime**
   - Optional Express server (`server.js`) for static serving + SPA fallback.
@@ -265,7 +265,7 @@ flowchart TB
   - Some client/service functions enforce role checks (e.g., only admins/captains can manage
     invite codes and roles).
   - **Critical**: client-side checks are bypassable. The database enforces security via
-    RLS policies (see `.planning/archive/migrations/`) and table-level GRANTs.
+    RLS policies (see `docs/10-database-security-model.md`) and table-level GRANTs.
     RLS hardening is complete (Phase 1).
 
 - **Secrets flow**
@@ -337,7 +337,7 @@ flowchart TB
 ## Open Questions & TODOs
 
 > ~~RLS hardening~~ **Complete (Phase 1)**: RLS policies implemented via MCP Supabase tools.
-> See `.planning/phases/01-critical-security/` for implementation details.
+> See `docs/10-database-security-model.md` for the authoritative security model design.
 
 > ~~Check in Supabase RLS policies~~ **Complete (Phase 1)**: All policies enforce:
 > - role-based permissions (admin/captain/officer)

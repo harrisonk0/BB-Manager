@@ -20,7 +20,6 @@ This documentation provides a complete guide to the application's architecture, 
 -   **Visual Dashboard & Reporting**: At-a-glance dashboard with leaderboards, squad performance charts, attendance heatmaps, and monthly marks breakdown.
 -   **Advanced Roster Filtering**: Instantly search, sort, and filter members by squad, year, and performance metrics.
 -   **Audit Logging & Reversion**: Every significant action is logged and can be easily reverted.
-    > TODO: Document retention/cleanup (14-day cleanup is referenced in UI/docs, but no mechanism is in-repo).
 -   **Secure Authentication**: User access is managed through Supabase Auth.
 -   **User Role Management**: Assign and manage roles (Admin, Captain, Officer) for users, controlling access to sensitive features. Users cannot change their own role.
 -   **Invite Code System**: Administrators and Captains can generate one-time-use codes for new user sign-ups. Each code specifies a default user role and has an expiration time.
@@ -35,7 +34,6 @@ This documentation provides a complete guide to the application's architecture, 
 -   **Styling**: [Tailwind CSS](https://tailwindcss.com/) (compiled via PostCSS)
 -   **Backend & Database**: [Supabase](https://supabase.com/) (PostgreSQL tables + Auth)
 
-> TODO: `index.html` includes an import map; confirm whether it is still required under Vite.
 
 ---
 
@@ -57,15 +55,10 @@ This project is documented across several files to provide a comprehensive under
 | **[8. Data Types](./docs/08-types.md)**                    | A dictionary of all core TypeScript types, defining the application's data model.                   |
 | **[Documentation Audit](./docs/00-documentation-audit.md)** | Doc consistency notes, resolved drift, and open TODOs.                                                  |
 
-## Rebuild Documentation
+## Additional Documentation
 
-For complete documentation on rebuilding this application from scratch, including product requirements,
-technical specifications, and setup instructions, see **[rebuild/](./rebuild/)**.
-
-This directory contains everything needed to understand WHAT was built and WHY, enabling an
-independent rebuild of the BB-Manager application.
-
-- **[rebuild/PRD.md](./rebuild/PRD.md)** - Product Requirements Document
-- **[rebuild/technical-spec.md](./rebuild/technical-spec.md)** - Technical Specification
-- **[rebuild/database-schema.md](./rebuild/database-schema.md)** - Database Schema Documentation
-- **[rebuild/setup-guide.md](./rebuild/setup-guide.md)** - Setup and Rebuild Instructions
+| Document | Description |
+|----------|-------------|
+| **[Documentation Audit](./docs/00-documentation-audit.md)** | Doc consistency notes and resolved drift |
+| **[Database Security Model](./docs/10-database-security-model.md)** | Authoritative security model and RLS policies |
+| **[Short-Term Improvements](./docs/short-term-improvements.md)** | CI/CD, cleanup, and monitoring features |

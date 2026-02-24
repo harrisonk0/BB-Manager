@@ -7,7 +7,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './src/index.css'; // Import the new global CSS file
+import './index.css'; // Global Tailwind styles
 import { reportError } from './services/errorMonitoring';
 
 // Global error handler for unhandled promise rejections

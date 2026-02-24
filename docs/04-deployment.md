@@ -4,7 +4,7 @@ BB Manager is a static React application that consumes Supabase Auth and databas
 
 ## Prerequisites
 - Supabase project with schema configured via MCP tools and production credentials (Project URL and anon key).
-- Security note: the database uses RLS policies with GRANTs for access control. See `.planning/archive/migrations/` for schema history and [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md) for details.
+- Security note: the database uses RLS policies with GRANTs for access control. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md) and [`docs/10-database-security-model.md`](./10-database-security-model.md) for details.
 - Node.js/npm to run the production build (`npm run build`).
 
 ## Build

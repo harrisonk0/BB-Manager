@@ -113,7 +113,6 @@ All authentication tests passed successfully:
 4. **E2E Test Infrastructure**: Consider using Playwright test files for automated regression testing
 
 ### Documentation Updates
-- Update `.planning/` to note `.env` requirement for worktrees
 - Consider adding `SETUP.md` for new worktree setup
 - Document Supabase MCP usage for credential retrieval
 

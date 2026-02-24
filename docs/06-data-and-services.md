@@ -9,11 +9,11 @@ IndexedDB cache.
 
 ## Database Schema & Migrations
 
-Database schema and permissions are managed via MCP Supabase tools. Historical migrations are
-preserved in `.planning/archive/migrations/` for reference.
+Database schema and permissions are managed via MCP Supabase tools.
 
 Security note: the database uses RLS policies with GRANTs for access control (Phase 1 complete).
-Client-side role checks are UX only; database enforces security. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md).
+Client-side role checks are UX only; database enforces security. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md)
+and [`docs/10-database-security-model.md`](./10-database-security-model.md) for details.
 
 ## General Data Flow
 

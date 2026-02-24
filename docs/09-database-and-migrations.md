@@ -7,9 +7,7 @@ are managed via MCP Supabase tools.
 
 - The **live database schema** is the authoritative source for database structure and permissions
   (tables, indexes, constraints, GRANTs, and RLS policies).
-- Historical migrations are preserved in `.planning/archive/migrations/` for reference.
-  - These files document the evolution of the schema and security policies.
-  - See `.planning/archive/migrations/README.md` for detailed migration history.
+- Security implementation details are documented in `docs/10-database-security-model.md`
 
 ## How Schema Changes Are Made
 
@@ -26,9 +24,8 @@ Schema changes include:
 - Security hardening (RLS policies)
 
 All schema changes must be:
-1. Documented in a plan file under `.planning/phases/`
-2. Explained with rationale in the commit message
-3. Reflected in relevant documentation (CLAUDE.md, ARCHITECTURE.md, etc.)
+1. Explained with rationale in the commit message
+2. Reflected in relevant documentation (CLAUDE.md, ARCHITECTURE.md, etc.)
 
 ## Current Access Model
 
@@ -47,5 +44,5 @@ Security implementation:
 
 Phase 1 (Critical Security) completed RLS implementation for all application tables.
 
-> ~~RLS hardening~~ **Complete (Phase 1)**: All RLS policies implemented via MCP tools.
-> See `.planning/phases/01-critical-security/` for implementation details.
+> **RLS hardening complete (Phase 1)**: All RLS policies implemented via MCP tools.
+> See `docs/10-database-security-model.md` for the authoritative security model design.

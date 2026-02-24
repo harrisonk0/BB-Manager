@@ -8,8 +8,6 @@ Current state (authoritative):
 - Security functions use hardened search_path to mitigate CVE-2018-1058.
 - Application tables: `boys`, `settings`, `user_roles`, `invite_codes`, `audit_logs`.
 
-See `.planning/phases/01-critical-security/` for implementation details.
-
 ## 1. Overview
 
 ### Purpose

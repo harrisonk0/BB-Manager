@@ -80,7 +80,7 @@
 - ~~No RLS policies are present~~ **RESOLVED (Phase 1)**: All tables have RLS policies implemented via MCP Supabase tools.
 - ~~This makes client-side role checks non-binding~~ **RESOLVED (Phase 1)**: Database now enforces role-based access control.
 
-Historical reference: See `.planning/archive/migrations/20251214144824_remote_schema.sql` for baseline migration that showed these issues.
+Historical reference: The baseline migration showed these issues have been resolved in Phase 1.
 
 ### Requires Human Input
 - Questions

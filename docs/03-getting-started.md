@@ -5,7 +5,7 @@ This guide walks you through setting up BB Manager locally with Supabase for aut
 ### Prerequisites
 
 - **Node.js and npm**: Install from [nodejs.org](https://nodejs.org/) to manage dependencies and run the dev server.
-- **Supabase account**: Create a project at [supabase.com](https://supabase.com/). Historical migrations are available in `.planning/archive/migrations/` for reference.
+- **Supabase account**: Create a project at [supabase.com](https://supabase.com/).
 - A modern web browser (e.g., Chrome, Firefox, Edge).
 
 ---
@@ -20,8 +20,8 @@ Clone the repository or download the source as a ZIP and extract it.
 
 1. **Create a Supabase project**
    - In the Supabase dashboard, create a new project with a strong database password.
-   - The database schema should be configured using MCP Supabase tools. See `.planning/archive/migrations/README.md` for historical migration context.
-   - Security note: the database uses RLS policies with GRANTs for access control. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md).
+   - The database schema should be configured using MCP Supabase tools.
+   - Security note: the database uses RLS policies with GRANTs for access control. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md) and [`docs/10-database-security-model.md`](./10-database-security-model.md).
 
 2. **Obtain API keys**
    - In your project settings, copy the **Project URL** and **anon public key**.

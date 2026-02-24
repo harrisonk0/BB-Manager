@@ -112,7 +112,7 @@ Then follow manual test steps in:
 ### What Was Implemented
 
 **Error Reporting Service:**
-- File: `src/services/errorMonitoring.ts`
+- File: `services/errorMonitoring.ts`
 - Posts errors to `https://ntfy.sh/bb-manager-ops`
 - High priority (3) notifications
 - Includes operation, error, user, timestamp, context
@@ -189,7 +189,7 @@ These improvements provide a foundation for:
 
 ## Related Documents
 
-- Audit Report: `docs/audit-2026-01-27.md`
-- Design Doc: `docs/plans/2026-01-27-short-term-improvements-design.md`
-- Implementation Plan: `docs/plans/2026-01-27-short-term-improvements.md`
+- Audit Report: `docs/archive/audit-2026-01-27.md`
+- Design Doc: `docs/archive/plans-2026-01/2026-01-27-short-term-improvements-design.md`
+- Implementation Plan: `docs/archive/plans-2026-01/2026-01-27-short-term-improvements.md`
 - E2E Tests: `tests/e2e/*.md`

@@ -21,7 +21,7 @@ contradictions.
 - `docs/08-types.md`: `types.ts` reference.
 - `docs/09-database-and-migrations.md`: database schema, migrations, and access model.
 
-## Drift Resolved (2025-12-14)
+## Drift Resolved
 
 - Removed dead link to `AI_RULES.md` from `README.md` (file is gitignored and not present).
 - Corrected Tailwind/build tooling docs (no Tailwind CDN; Vite + PostCSS build).
@@ -30,16 +30,13 @@ contradictions.
 - Removed references to a non-existent `migrate.js` script from `AGENTS.md`.
 - Added missing deep-dive coverage for custom hooks (`docs/07-hooks-and-state.md`).
 - Documented MCP Supabase tools as the schema/permissions workflow and updated docs to reflect the RLS-enforced access model.
+- Removed references to removed `.planning/` directory across all documentation.
+- Implemented `LineChart.tsx` placeholder component.
+- Archived historical audit and plan documents to `docs/archive/`.
 
 ## Open TODOs
 
-> ~~RLS hardening~~ **Complete (Phase 1)**: RLS policies implemented via MCP Supabase tools.
-> See `.planning/phases/01-critical-security/` for implementation details.
-
 > TODO: Confirm whether the `index.html` import map is still required under Vite.
-
-> TODO: Document retention/cleanup for audit logs and invite codes (14-day cleanup is referenced
-> in UI/docs, but no mechanism is in-repo).
 
 > TODO: Resolve known inconsistencies called out in `ARCHITECTURE.md` (e.g., invite code expiry
 > copy vs implementation, audit log action type mismatches).

@@ -261,4 +261,4 @@ A simple, reusable SVG bar chart.
 
 #### `LineChart.tsx`
 
-> TODO: `components/LineChart.tsx` exists but is currently empty/unused. Implement it or remove it.
+A placeholder for future line chart visualizations. Currently returns `null` and is unused.

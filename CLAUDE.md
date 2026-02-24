@@ -2,13 +2,13 @@
 
 ## Current State
 
-**Status:** Phase 2 ready - Performance optimization
+**Status:** Security implementation complete (Phase 1)
 
-**Phase:** Phase 2 of 5 (Performance)
-**Progress:** Ready to begin
-**Last Updated:** 2026-01-22
+**Phase:** Phase 1 of 5 (Critical Security)
+**Progress:** Complete
+**Last Updated:** 2026-02-24
 
-Phase 1 (Critical Security) complete. All RLS policies enforced, security functions hardened with search_path mitigation, and audit logging properly secured.
+All RLS policies enforced, security functions hardened with search_path mitigation, and audit logging properly secured.
 
 ## Core Value
 
@@ -19,7 +19,7 @@ Secure (UK law compliant) and functional management of boy marks and attendance 
 ### Database
 - **Changes via MCP tools:** Use `mcp__supabase__executeSQL` to run DDL/DML directly on remote database
 - **No ad-hoc edits:** No Supabase UI changes
-- **Document all changes:** Schema changes must be documented in `.planning/` with rationale
+- **Document all changes:** Schema changes must be documented with rationale
 
 ### Security
 - **Never client secrets:** `VITE_*` variables are browser-accessible
@@ -38,8 +38,6 @@ Secure (UK law compliant) and functional management of boy marks and attendance 
 ├── services/           # Supabase data layer
 ├── hooks/              # Custom React hooks
 ├── docs/               # Deep dives
-├── .planning/          # Roadmap & requirements
-│   └── archive/migrations/  # Historical migration reference
 ├── ARCHITECTURE.md     # Canonical model
 ├── CLAUDE.md           # This file
 └── App.tsx             # App orchestrator
@@ -52,7 +50,9 @@ npm install     # Install dependencies
 npm run dev     # Development server
 npx tsc         # Type-check
 npm run build   # Production build
-npm run start   # Serve build
+npm run preview # Serve build preview
+npm run start   # Serve with Express server.js
+npm run test    # Run tests in watch mode
 ```
 
 ## Database Operations
@@ -64,9 +64,8 @@ All database changes use MCP Supabase tools (not local migration files):
 - `mcp__supabase__describeTable`: Get table schema
 
 Schema reference:
-- See `.planning/archive/migrations/` for historical migration context
+- See `docs/09-database-and-migrations.md` and `docs/10-database-security-model.md` for security implementation details
 - Current live schema is source of truth
-
 
 ## Documentation Maintenance
 
@@ -79,7 +78,6 @@ Schema reference:
 | Type changes | `docs/08-types.md` |
 | Environment variables | `CLAUDE.md`, `.env.example` |
 | Completed issue | Remove from `CLAUDE.md` Known Issues |
-| Phase progress | Update `.planning/STATE.md` |
 
 ### Consistency Rule
 
@@ -89,13 +87,15 @@ Schema reference:
 
 | Category | Command | Purpose |
 |----------|---------|---------|
-| Testing | `npx tsc -p tsconfig.json --noEmit` | Type-checking (until tests implemented) |
+| Type-checking | `npx tsc -p tsconfig.json --noEmit` | Type-checking |
+| Testing | `npm run test` | Run tests in watch mode |
+| Testing | `npm run test:run` | Run tests once |
+| Testing | `npm run test:coverage` | Run tests with coverage |
 | Build | `npm run build && npm run preview` | Smoke-test build |
-| Manual | Verify auth, CRUD, marks, roles | Core flows (until E2E tests) |
+| Manual | Verify auth, CRUD, marks, roles | Core flows |
 
 ---
 
 **See full docs:**
 - `ARCHITECTURE.md` - System model and decisions
-- `.planning/` - Roadmap and requirements
 - `docs/` - Deep dives and runbooks
