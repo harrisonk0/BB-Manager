@@ -144,12 +144,12 @@ const mapAuditLogRow = (row: AuditLogRow): AuditLog => ({
 const normalizeInviteCodeOptions = (
   optionsOrRole: InviteCodeUpdateOptions | UserRole | null | undefined,
 ): InviteCodeUpdateOptions => {
-  if (
-    optionsOrRole === null ||
-    optionsOrRole === undefined ||
-    typeof optionsOrRole === 'string'
-  ) {
-    return { callerRole: optionsOrRole ?? null };
+  if (typeof optionsOrRole === 'string') {
+    return { callerRole: optionsOrRole };
+  }
+
+  if (optionsOrRole === null || optionsOrRole === undefined) {
+    return { callerRole: null };
   }
 
   return optionsOrRole;
