@@ -26,7 +26,7 @@ export const useAuthAndRole = () => {
   }, []);
 
   const loadUserRole = useCallback(async (user: AppUser) => {
-    const { data, error } = await supabase.from('user_roles').select('role').eq('uid', user.id).single();
+    const { data, error } = await supabase.from('profiles').select('role').eq('id', user.id).single();
 
     if (error || !data) {
       setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');

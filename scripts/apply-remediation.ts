@@ -1,10 +1,10 @@
 /**
  * Audit Logs RLS Policy Remediation Script
  *
- * Purpose: Apply the secure audit_logs INSERT policy to close security gap
+ * Purpose: Apply the secure audit_logs INSERT policy to close security gaps
  *
- * This script executes the SQL from migration 20250122085026_audit_logs_rls.sql
- * against the Supabase database using the Supabase client.
+ * This script executes the current audit_logs policy SQL against the
+ * Supabase database using the Supabase client.
  *
  * Usage:
  *   1. Ensure .env.local has VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
@@ -35,7 +35,7 @@ if (!supabaseUrl || !supabaseKey) {
 // Create Supabase client
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// SQL to execute
+// SQL to execute against the current profiles-based schema.
 const remediationSQL = `
 -- Step 1: Drop existing permissive policy
 DROP POLICY IF EXISTS audit_logs_insert ON public.audit_logs;
@@ -53,20 +53,13 @@ ON public.audit_logs
 FOR INSERT
 TO authenticated
 WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE uid = auth.uid()::text
-  )
+  public.current_app_role() IN ('officer', 'captain', 'admin')
   AND user_email = coalesce((auth.jwt() ->> 'email'), '')
   AND created_at > NOW() - INTERVAL '5 minutes'
   AND created_at <= NOW() + INTERVAL '1 minute'
   AND (
     action_type <> 'REVERT_ACTION'
-    OR EXISTS (
-      SELECT 1 FROM public.user_roles
-      WHERE uid = auth.uid()::text
-      AND role = 'admin'
-    )
+    OR public.current_app_role() = 'admin'
   )
 );
 `;
@@ -91,7 +84,7 @@ async function executeRemediation() {
       console.error('  1. Supabase Dashboard > SQL Editor');
       console.error('  2. MCP Supabase tool: mcp__supabase__executeSQL');
       console.error('  3. psql with connection string\n');
-      console.error('The SQL to execute is in: .planning/phases/01-critical-security/01-07-remediation.sql');
+      console.error('Use the SQL embedded in this script or the live migration history instead.');
       process.exit(1);
     }
 
@@ -128,19 +121,18 @@ RECOMMENDED EXECUTION METHODS:
 
 1. Supabase Dashboard SQL Editor:
    - Go to https://app.supabase.com/project/[your-project]/sql
-   - Copy and paste the contents of:
-     .planning/phases/01-critical-security/01-07-remediation.sql
+   - Copy and paste the SQL embedded in this script
    - Click "Run"
 
 2. MCP Supabase Tool (if available):
    - Use: mcp__supabase__executeSQL
-   - Execute the SQL from 01-07-remediation.sql
+   - Execute the SQL embedded in this script
 
 3. psql command line:
    - psql "postgresql://postgres:[password]@db.[project].supabase.co:5432/postgres"
-   - Then run: \\i .planning/phases/01-critical-security/01-07-remediation.sql
+   - Then paste the SQL embedded in this script
 
-The SQL file contains all necessary statements in a transaction
+The SQL in this script contains all necessary statements in a transaction
 to ensure the policy is replaced atomically.
 
 Press Ctrl+C to exit, or modify this script to use a direct

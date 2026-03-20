@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from 'react';
-import { fetchInviteCode, updateInviteCode, createAuditLog, setUserRole } from '../services/db';
+import { claimInviteCode, createAuditLog } from '../services/db';
 import { QuestionMarkCircleIcon } from './Icons';
-import { ToastType, Section, UserRole } from '../types';
+import { ToastType, Section } from '../types';
 import * as supabaseAuth from '../services/supabaseAuth';
 import { supabase } from '../services/supabaseClient';
 
@@ -83,14 +83,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
       }
 
       const defaultRole = codeData[0].default_role;
-
-      // Fetch full invite code details for section and audit logging
-      const fetchedCode = await fetchInviteCode(inviteCode);
-      if (!fetchedCode) {
-        setInviteCodeError('Invalid invite code.');
-        setIsLoading(false);
-        return;
-      }
+      const signupSection = codeData[0].section || 'company';
 
       // 2. Create User in Supabase Auth
       const { error: signUpError } = await supabaseAuth.signUp(email, password);
@@ -107,31 +100,23 @@ const SignupPage: React.FC<SignupPageProps> = ({ onNavigateToHelp, showToast, on
         return;
       }
 
-      // 3. Assign Default Role to New User
-      await setUserRole(newUser.id, newUser.email || email, defaultRole as UserRole);
+      // 3. Claim the invite code server-side so the profile role and usage state stay in sync.
+      const claim = await claimInviteCode(inviteCode);
 
-      // 4. Mark Invite Code as Used (signup mode limits fields)
-      const usageUpdate = {
-        isUsed: true,
-        usedBy: newUser.email || 'Unknown',
-        usedAt: Date.now(),
-      };
-      await updateInviteCode(fetchedCode.id, usageUpdate, { signup: true });
-
-      // 5. Create Audit Log Entry (best-effort so signup is not blocked)
+      // 4. Create Audit Log Entry (best-effort so signup is not blocked)
       try {
         await createAuditLog({
           userEmail: newUser.email || 'Unknown',
           actionType: 'USE_INVITE_CODE',
           description: `New user '${newUser.email}' signed up using invite code '${inviteCode}' and assigned role '${defaultRole}'.`,
           revertData: { userId: newUser.id, inviteCodeId: inviteCode, assignedRole: defaultRole },
-        }, fetchedCode.section || null);
+        }, claim.section || signupSection);
       } catch (logError) {
         console.error('Failed to create signup audit log:', logError);
       }
 
       showToast('Account created successfully! Please select your section.', 'success');
-      onSignupSuccess(fetchedCode.section || 'company');
+      onSignupSuccess(claim.section || signupSection);
     } catch (err: any) {
       console.error("Sign up error:", err);
       setError(err?.message || 'Failed to create account. Please try again.');
