@@ -13,6 +13,8 @@ Verified on 2026-03-21:
   - `claim_invite_code`
   - `cleanup_old_invite_codes`
 
+The active UI only relies on the first four tables. The invite-code and audit-log objects are retained in the live database for historical compatibility.
+
 ## Security Principles
 
 - Browser code only receives public client credentials.
@@ -33,7 +35,6 @@ The UI uses those roles to shape workflows, but the database remains the enforce
 ## Sensitive Areas
 
 - `profiles` controls application access
-- `invite_codes` remains in the live database for compatibility with historical data
-- `audit_logs` is legacy history data and is not written by the current app
+- `invite_codes` and `audit_logs` are legacy history data and are not written by the current app
 
 Changes that affect any of those areas should be treated as security-sensitive and reflected in both code and docs.

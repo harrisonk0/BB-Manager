@@ -38,5 +38,6 @@ There is no in-repo Express server or Docker runtime. The app is built as a stat
 - [docs/08-types.md](./docs/08-types.md): TypeScript type reference
 - [docs/09-database-and-migrations.md](./docs/09-database-and-migrations.md): live database workflow
 - [docs/10-database-security-model.md](./docs/10-database-security-model.md): current security model
+- [docs/user-guide.md](./docs/user-guide.md): handout for new users
 
 Historical material lives under [`docs/archive/`](./docs/archive/).

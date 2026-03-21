@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MenuIcon, XIcon, CogIcon, QuestionMarkCircleIcon, UserCircleIcon, SwitchHorizontalIcon, LogOutIcon } from './Icons'; // Added LogOutIcon and SwitchHorizontalIcon
+import { MenuIcon, XIcon, CogIcon, UserCircleIcon, SwitchHorizontalIcon, LogOutIcon } from './Icons';
 import { Page, Section } from '../types';
 import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
@@ -19,11 +19,9 @@ interface HeaderProps {
     activeSection: Section;
     /** Callback function to handle switching between sections. */
     onSwitchSection: () => void;
-    /** Callback to open the help modal. */
-    onOpenHelpModal: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSwitchSection, onOpenHelpModal }) => {
+const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSwitchSection }) => {
     const { currentUser: user, userRole } = useAuthAndRole();
     // State to manage the visibility of the mobile menu.
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -108,9 +106,6 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
                                 <button onClick={() => handleNavClick('weeklyMarks')} className={navLinkClasses}>Weekly Marks</button>
                                 
                                 {/* Icon-based buttons for less frequent actions */}
-                                <button onClick={() => { onOpenHelpModal(); setIsProfileMenuOpen(false); }} title="Help" aria-label="Help" className={iconButtonClasses}>
-                                    <QuestionMarkCircleIcon className="h-6 w-6"/>
-                                </button>
                                 {canAccessSectionSettings && (
                                     <button onClick={() => handleNavClick('settings')} title="Section Settings" aria-label="Section Settings" className={iconButtonClasses}>
                                         <CogIcon className="h-6 w-6"/>
@@ -171,9 +166,6 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
                         <button onClick={() => handleNavClick('home')} className={mobileNavLinkClasses}>Home</button>
                         <button onClick={() => handleNavClick('dashboard')} className={mobileNavLinkClasses}>Dashboard</button>
                         <button onClick={() => handleNavClick('weeklyMarks')} className={mobileNavLinkClasses}>Weekly Marks</button>
-                        <button onClick={() => { onOpenHelpModal(); setIsMenuOpen(false); }} className={mobileNavLinkClasses}>
-                            <div className="flex items-center"><QuestionMarkCircleIcon className="h-5 w-5 mr-3"/><span>Help</span></div>
-                        </button>
                         {canAccessSectionSettings && (
                             <button onClick={() => handleNavClick('settings')} className={mobileNavLinkClasses}>
                                 <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Section Settings</span></div>

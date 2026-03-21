@@ -6,9 +6,8 @@ This document describes how the app talks to Supabase.
 
 - `services/supabaseClient.ts`: shared Supabase client
 - `services/supabaseAuth.ts`: sign-in, sign-out, password update, auth subscription
-- `services/db.ts`: members, marks, profiles, invite codes, roles
+- `services/db.ts`: members, marks, profiles, and role-guardrail helpers
 - `services/settings.ts`: section settings
-- `services/errorMonitoring.ts`: operational error reporting
 
 ## Live Table Mapping
 
@@ -18,8 +17,8 @@ The current app talks to these tables:
 - `settings`: section-level settings
 - `members`: core member records
 - `marks`: normalized attendance and score rows
-- `invite_codes`: legacy invite-code records retained for compatibility
-- `audit_logs`: legacy table not used by the active UI
+- `invite_codes`: legacy invite-code records retained for compatibility only
+- `audit_logs`: legacy table retained for historical data only
 
 ## Data Flow
 
@@ -32,4 +31,4 @@ The current app talks to these tables:
 
 - The UI-facing `Boy` model is assembled from `members` and `marks`.
 - Role information is loaded from `profiles`, not from a separate `user_roles` table.
-- The active UI no longer writes audit-log entries.
+- The active UI no longer writes audit-log entries or uses client-side error reporting.

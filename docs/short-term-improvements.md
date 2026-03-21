@@ -1,9 +1,9 @@
 # Short-Term Improvements
 
 **Date:** 2026-01-27
-**Status:** ✅ Complete
+**Status:** Historical
 
-This document describes the short-term improvements made to BB-Manager after the comprehensive audit.
+This document describes the short-term improvements that were explored after the comprehensive audit. Several items have since been removed from the codebase as part of the lean-up branch.
 
 ---
 
@@ -83,51 +83,7 @@ Then follow manual test steps in:
 
 ## 3. Error Monitoring with ntfy.sh
 
-### What Was Implemented
-
-**Error Reporting Service:**
-- File: `services/errorMonitoring.ts`
-- Posts errors to `https://ntfy.sh/bb-manager-ops`
-- High priority (3) notifications
-- Includes operation, error, user, timestamp, context
-
-**Integration Points:**
-- Auth operations (signIn, signUp)
-- CRUD operations (createBoy, updateBoy, deleteBoyById)
-- Weekly marks save
-- Global error handlers (unhandled rejections, uncaught errors)
-
-### How to Use
-
-**Subscribe to Notifications:**
-1. Install ntfy client (https://ntfy.sh/)
-2. Subscribe to `https://ntfy.sh/bb-manager-ops`
-3. Or visit the URL in a browser
-
-**What Gets Reported:**
-- Authentication failures
-- Database operation failures
-- Marks save failures
-- Unhandled errors/rejections
-
-**Error Format:**
-```json
-{
-  "operation": "auth_signin",
-  "error": "Invalid login credentials",
-  "user": "user@example.com",
-  "timestamp": "2026-01-27T10:00:00Z",
-  "context": {}
-}
-```
-
-### Testing
-
-To test error monitoring:
-1. Start dev server
-2. Trigger an error (invalid login, failed operation, etc.)
-3. Check https://ntfy.sh/bb-manager-ops
-4. Should see notification within seconds
+This was removed from the app. The current codebase no longer ships `services/errorMonitoring.ts`, the global window error handlers, or any ntfy integration.
 
 ---
 
@@ -139,9 +95,7 @@ To test error monitoring:
 - Keep credentials in sync
 
 ### Error Monitoring
-- Subscribe to ntfy.sh topic
-- Review error patterns periodically
-- Adjust what gets reported to reduce noise
+- No longer used in the app
 
 ---
 
@@ -149,8 +103,6 @@ To test error monitoring:
 
 These improvements provide a foundation for:
 - **Full E2E test automation** - Requires Playwright browser automation in CI (8-12 hours effort)
-- Enhanced monitoring with dashboards
-- Automated recovery from failures
 - Performance monitoring
 - Usage analytics
 
@@ -162,3 +114,4 @@ These improvements provide a foundation for:
 - Design Doc: `docs/archive/plans-2026-01/2026-01-27-short-term-improvements-design.md`
 - Implementation Plan: `docs/archive/plans-2026-01/2026-01-27-short-term-improvements.md`
 - E2E Tests: `tests/e2e/*.md`
+- Current user handout: `docs/user-guide.md`

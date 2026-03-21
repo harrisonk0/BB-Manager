@@ -1,15 +1,7 @@
-"use client";
-
 import React, { useState } from 'react';
-import { QuestionMarkCircleIcon } from './Icons';
 import * as supabaseAuth from '../services/supabaseAuth';
 
-interface LoginPageProps {
-  /** Callback to open the help modal. */
-  onOpenHelpModal: () => void;
-}
-
-const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal }) => {
+const LoginPage: React.FC = () => {
   // State for form inputs, error messages, and loading status.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,14 +36,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal }) => {
       style={{ backgroundImage: 'url(https://i.postimg.cc/MKD36t18/mixed-activities.jpg)' }}
     >
       <div className="relative w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <button 
-            onClick={onOpenHelpModal}
-            className="absolute top-4 right-4 text-slate-400 hover:text-junior-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue rounded-full"
-            aria-label="Help"
-        >
-            <QuestionMarkCircleIcon className="h-7 w-7" />
-        </button>
-
         <div className="text-center">
           <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="The Boys' Brigade Logo" className="w-48 mx-auto mb-4" />
           <h2 className="text-xl text-slate-600">

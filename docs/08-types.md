@@ -48,37 +48,6 @@ interface Mark {
 
 ---
 
-#### `InviteCode`
-
-Represents a legacy invite-code record retained for database compatibility.
-
-```typescript
-export interface InviteCode {
-  /** The unique invite code string itself. */
-  id: string;
-  /** The email of the user who generated this code. */
-  generatedBy: string;
-  /** The timestamp when the code was generated (Unix milliseconds). */
-  generatedAt: number;
-  /** The section this code is intended for (optional, could be 'all' or specific). */
-  section?: Section;
-  /** True if the code has been used, false otherwise. */
-  isUsed: boolean;
-  /** The email of the user who used this code (if used). */
-  usedBy?: string;
-  /** The timestamp when the code was used (if used). */
-  usedAt?: number;
-  /** True if the code has been explicitly revoked, false otherwise. */
-  revoked?: boolean;
-  /** The default role assigned to the user who uses this invite code. */
-  defaultUserRole: UserRole;
-  /** The timestamp when the code expires (Unix milliseconds). */
-  expiresAt: number;
-}
-```
-
----
-
 #### `SectionSettings`
 
 Represents the settings specific to a section (Company or Junior).

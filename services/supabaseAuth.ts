@@ -1,23 +1,11 @@
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabaseClient';
-import { reportError } from './errorMonitoring';
 
 export async function signIn(email: string, password: string) {
-  try {
-    const result = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (result.error) {
-      await reportError('auth_signin', result.error, email);
-    }
-
-    return result;
-  } catch (error) {
-    await reportError('auth_signin', error as Error, email);
-    throw error;
-  }
+  return supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 }
 
 export async function signOut() {

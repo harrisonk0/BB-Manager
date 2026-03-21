@@ -15,8 +15,7 @@ The root component of the entire application. It doesn't render much UI directly
         `boys`, `settings`, `authLoading`, `dataLoading`, `dataError`, `noRoleError`, `view`.
     -   Subscribes to Supabase auth changes via `useAuthAndRole` and loads the user's role from
         `profiles`.
-    -   Handles view switching by deciding which page component to render based on the `view`
-        state. Unauthenticated users see Login; the Help content is shown via a modal.
+    -   Handles view switching by deciding which page component to render based on the `view` state.
     -   Orchestrates data fetching (`refreshData`).
     -   Manages the "unsaved changes" confirmation modal.
     -   Manages and renders the global toast notification system.
@@ -100,23 +99,13 @@ Allows the currently logged-in user to manage their personal account settings.
     -   Displays user-friendly error messages for password changes.
 -   **Key Props**: `showToast`, `activeSection`.
 
-#### `HelpPage.tsx`
-
-A static user guide for the application.
-
--   **Responsibilities**:
-    -   Displays a structured help document with a table of contents and detailed sections.
-    -   Uses small, non-interactive "preview" components to visually demonstrate UI elements.
--   **Key Props**: None.
-
 #### `LoginPage.tsx`
 
 Handles user authentication with Supabase.
 
 -   **Responsibilities**:
     -   Provides a form for email and password sign-in.
-    -   Opens the Help modal for unauthenticated users.
--   **Key Props**: `onOpenHelpModal`.
+-   **Key Props**: none.
 
 #### `SectionSelectPage.tsx`
 
@@ -124,8 +113,8 @@ Allows the authenticated user to choose which section (Company or Junior) to man
 
 -   **Responsibilities**:
     -   Displays buttons for selecting Company or Junior sections.
-    -   Provides actions for Help and Sign Out.
--   **Key Props**: `onSelectSection`, `onOpenHelpModal`, `onSignOut`.
+    -   Provides actions for Sign Out.
+-   **Key Props**: `onSelectSection`, `onSignOut`.
 
 ---
 
@@ -143,7 +132,7 @@ The main navigation bar at the top of the application.
     -   Conditionally renders navigation items based on `userRole`.
     -   Includes a profile dropdown menu for `Account Settings`, `Switch Section`, and `Log Out`.
     -   Manages its own state for the mobile menu (`isMenuOpen`).
--   **Key Props**: `setView`, `onSignOut`, `activeSection`, `onSwitchSection`, `onOpenHelpModal`.
+-   **Key Props**: `setView`, `onSignOut`, `activeSection`, `onSwitchSection`.
 
 #### `BoyForm.tsx`
 
@@ -173,7 +162,7 @@ A collection of simple, stateless SVG icon components.
 
 -   **Responsibilities**:
     -   Exports multiple functional components, each rendering a specific SVG icon.
-    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Question Mark Circle, Clipboard, Clipboard Document List, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
+    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Clipboard, Clipboard Document List, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
     -   Accepts an optional `className` prop for easy styling with Tailwind CSS.
 
 #### `DatePicker.tsx`

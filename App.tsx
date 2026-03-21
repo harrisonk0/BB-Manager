@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import HomePage from './components/HomePage';
 import WeeklyMarksPage from './components/WeeklyMarksPage';
 import BoyMarksPage from './components/BoyMarksPage';
@@ -10,10 +8,9 @@ import DashboardPage from './components/DashboardPage';
 import SettingsPage from './components/SettingsPage';
 import SectionSelectPage from './components/SectionSelectPage';
 import AccountSettingsPage from './components/AccountSettingsPage';
-import HelpPage from './components/HelpPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { View, BoyMarksPageView, Section } from './types';
+import { View, BoyMarksPageView } from './types';
 import Modal from './components/Modal';
 
 // Import custom hooks
@@ -40,8 +37,7 @@ const App: React.FC = () => {
 
   // State for unsaved changes protection
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [view, setView] = useState<View>({ page: 'home' }); // Internal view state for useUnsavedChangesProtection
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // New state for Help modal
+  const [view, setView] = useState<View>({ page: 'home' });
 
   // Use section management hook
   const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(
@@ -141,12 +137,12 @@ const App: React.FC = () => {
     
     // Handle unauthenticated user
     if (!currentUser) {
-        return <LoginPage onOpenHelpModal={() => setIsHelpModalOpen(true)} />;
+        return <LoginPage />;
     }
     
     // Handle authenticated user, but no active section selected yet
     if (!activeSection) {
-        return <SectionSelectPage onSelectSection={handleSelectSection} onOpenHelpModal={() => setIsHelpModalOpen(true)} onSignOut={handleSignOutWithProtection} />;
+        return <SectionSelectPage onSelectSection={handleSelectSection} onSignOut={handleSignOutWithProtection} />;
     }
     
     // Handle general errors
@@ -157,7 +153,7 @@ const App: React.FC = () => {
     // Render main app content with header
     return (
         <>
-            <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
+            <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} />
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {renderMainContent()}
             </main>
@@ -178,11 +174,6 @@ const App: React.FC = () => {
 
       {renderApp()}
       
-      {/* Help Modal */}
-      <Modal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} title="User Guide" size="full">
-        <HelpPage />
-      </Modal>
-
       <Modal isOpen={!!confirmModalType} onClose={cancelAction} title="Unsaved Changes">
         <div className="space-y-4">
             <p className="text-slate-600">You have unsaved changes. Are you sure you want to leave? Your changes will be lost.</p>

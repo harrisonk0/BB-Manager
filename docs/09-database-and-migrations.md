@@ -14,6 +14,8 @@ Verified on 2026-03-21:
   - `claim_invite_code`
   - `cleanup_old_invite_codes`
 
+The current app only depends on `profiles`, `settings`, `members`, and `marks`. The invite-code and audit-log objects remain in the live project as legacy database objects.
+
 Latest migration visible in the live project at the time of verification:
 
 - `20260320190925 repair_live_schema_for_app_compatibility_v2`
@@ -24,7 +26,7 @@ Latest migration visible in the live project at the time of verification:
 - Inspect schema and policies with Supabase MCP tools before making assumptions.
 - Apply schema changes through Supabase migrations or MCP-driven database changes, not ad-hoc dashboard edits.
 - Update app code and docs in the same change when table names, functions, or permissions change.
-- The current app no longer exposes invite-code provisioning, recovery, or audit-log flows, even though legacy invite-code objects still exist in the live project.
+- The current app no longer exposes invite-code provisioning, recovery, or audit-log flows.
 
 ## Important Historical Note
 

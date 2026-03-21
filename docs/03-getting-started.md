@@ -31,10 +31,9 @@ The live app expects these tables to exist:
 - `settings`
 - `members`
 - `marks`
-- `invite_codes`
-- `audit_logs` (legacy; no longer used by the active UI)
+- `invite_codes` and `audit_logs` still exist in the live project as legacy tables, but the active UI no longer depends on them.
 
-For local development, create users manually in Supabase Auth and make sure each user has a row in `profiles` with a valid `role` such as `admin`, `captain`, or `officer`.
+For local development, create users manually in Supabase Auth and make sure each user has a row in `profiles` with a valid `role` such as `admin`, `captain`, or `officer`. New-user handover material lives in [`docs/user-guide.md`](./user-guide.md).
 
 ## 4. Run the App
 
