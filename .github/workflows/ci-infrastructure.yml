@@ -24,6 +24,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check required Supabase client env vars
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$VITE_SUPABASE_URL"
+          test -n "$VITE_SUPABASE_ANON_KEY"
+
+      - name: Smoke-test Supabase client startup
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          node --input-type=module -e "import { createServer } from 'vite'; const server = await createServer({ server: { middlewareMode: true }, optimizeDeps: { noDiscovery: true } }); try { await server.ssrLoadModule('/services/supabaseClient.ts'); console.log('Supabase client startup smoke test passed'); } finally { await server.close(); }"
+
       - name: Type-check code
         run: npm run typecheck
 
