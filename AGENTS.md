@@ -92,7 +92,9 @@ Rules:
 ## Database Change Rules
 
 - Treat the live Supabase project as the source of truth for schema and RLS.
-- Prefer MCP Supabase migrations and inspection tools for schema work.
+- The Supabase MCP connection and the local Supabase CLI are linked to the same live project (`smjictierxsqgdmwobrj`).
+- Use MCP for inspection and verification against the live project.
+- Use the Supabase CLI for linked remote operations and migration workflows when you need a shell-driven path.
 - Document any schema or permission change in the relevant docs.
 - Keep app code and docs aligned with the live schema names (`profiles`, `members`, `marks`), not legacy names.
 

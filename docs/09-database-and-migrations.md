@@ -19,7 +19,9 @@ Latest migration visible in the live project at the time of verification:
 ## Workflow
 
 - Treat the live Supabase schema as authoritative.
-- Inspect schema and policies with Supabase MCP tools before making assumptions.
+- The Supabase MCP connection and the local Supabase CLI point at the same live project (`smjictierxsqgdmwobrj`).
+- Use MCP first for inspection and verification against the live schema and policies.
+- Use the Supabase CLI for linked remote operations and migration workflows when a shell-driven path is more practical.
 - Apply schema changes through Supabase migrations or MCP-driven database changes, not ad-hoc dashboard edits.
 - Update app code and docs in the same change when table names, functions, or permissions change.
 - The current app no longer exposes invite-code provisioning, recovery, or audit-log flows.
