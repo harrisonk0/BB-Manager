@@ -3,6 +3,12 @@ import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '..
 import { updateBoy } from '../services/db';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
+import { getNearestMeetingDay } from './weeklyMarksDates';
+import {
+  buildUpdatedMarksForBoy,
+  CompanyMarkState,
+  JuniorMarkState,
+} from './weeklyMarksSavePlan';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -26,26 +32,6 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   2: 'text-green-600',
   3: 'text-blue-600',
   4: 'text-yellow-600',
-};
-
-// Type definitions for the local state of marks, which can be partially entered.
-type JuniorMarkState = { uniform: number | '', behaviour: number | '' };
-type CompanyMarkState = number | string;
-
-/**
- * Calculates the date of the nearest upcoming meeting day based on settings.
- * @param meetingDay The day of the week for meetings (0=Sun, 1=Mon...).
- * @returns A date string in 'YYYY-MM-DD' format.
- */
-const getNearestMeetingDay = (meetingDay: number): string => {
-  const today = new Date();
-  const currentDay = today.getDay();
-  let diff = meetingDay - currentDay;
-  if (diff < 0) {
-    diff += 7; // Ensure we always find the *next* meeting day, not a past one.
-  }
-  today.setDate(today.getDate() + diff);
-  return today.toISOString().split('T')[0];
 };
 
 const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings, showToast }) => {
@@ -244,83 +230,20 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     // Map over all boys to create an array of update promises.
     const updates = boys.map(boy => {
         if (!boy.id) return Promise.resolve(null);
-        
-        const markIndex = boy.marks.findIndex(m => m.date === selectedDate);
-        let updatedMarks = [...boy.marks];
-        let hasChanged = false;
-        
-        const attendanceStatus = attendance[boy.id];
 
-        if (attendanceStatus === 'absent') {
-            const finalScore = -1;
-            if (markIndex > -1) { // A mark for this date already exists
-                if (updatedMarks[markIndex].score !== finalScore) { // It has changed
-                    updatedMarks[markIndex] = { date: selectedDate, score: finalScore };
-                    hasChanged = true;
-                }
-            } else { // No mark existed, so it's a new entry
-                updatedMarks.push({ date: selectedDate, score: finalScore });
-                hasChanged = true;
-            }
-        } else { // 'present'
-            if (isCompany) {
-                const newScoreRaw = marks[boy.id] as CompanyMarkState;
-                // Skip if user hasn't entered a score (empty string or undefined)
-                if (newScoreRaw === '' || newScoreRaw === undefined) {
-                    return Promise.resolve(null); // Don't create/update a mark
-                }
-                const newScore = typeof newScoreRaw === 'string' ? parseFloat(newScoreRaw) : newScoreRaw;
-                if (isNaN(newScore as number)) {
-                    return Promise.resolve(null); // Skip invalid scores
-                }
-                const finalScore = newScore as number;
+        const updatedMarks = buildUpdatedMarksForBoy({
+          boy,
+          selectedDate,
+          attendanceStatus: attendance[boy.id],
+          markState: marks[boy.id],
+          activeSection,
+        });
 
-                if (markIndex > -1) {
-                    if (updatedMarks[markIndex].score !== finalScore || updatedMarks[markIndex].uniformScore !== undefined) {
-                        updatedMarks[markIndex] = { date: selectedDate, score: finalScore as number };
-                        hasChanged = true;
-                    }
-                } else {
-                    updatedMarks.push({ date: selectedDate, score: finalScore as number });
-                    hasChanged = true;
-                }
-            } else { // Junior Section
-                const newScores = marks[boy.id] as JuniorMarkState;
-                // Skip if user hasn't entered ANY scores
-                if ((newScores.uniform === '' || newScores.uniform === undefined) &&
-                    (newScores.behaviour === '' || newScores.behaviour === undefined)) {
-                    return Promise.resolve(null); // Don't create/update a mark
-                }
-                const uniformScore = (newScores.uniform === '' || newScores.uniform === undefined)
-                    ? 0
-                    : parseFloat(String(newScores.uniform));
-                const behaviourScore = (newScores.behaviour === '' || newScores.behaviour === undefined)
-                    ? 0
-                    : parseFloat(String(newScores.behaviour));
-                // Validate that at least one score was entered
-                if (isNaN(uniformScore) && isNaN(behaviourScore)) {
-                    return Promise.resolve(null); // Skip if both are invalid
-                }
-                const finalScore = (isNaN(uniformScore) ? 0 : uniformScore) + (isNaN(behaviourScore) ? 0 : behaviourScore);
-
-                if (markIndex > -1) {
-                    const oldMark = updatedMarks[markIndex];
-                    if (oldMark.score !== finalScore || oldMark.uniformScore !== uniformScore || oldMark.behaviourScore !== behaviourScore) {
-                        updatedMarks[markIndex] = { date: selectedDate, score: finalScore, uniformScore, behaviourScore };
-                        hasChanged = true;
-                    }
-                } else {
-                    updatedMarks.push({ date: selectedDate, score: finalScore, uniformScore, behaviourScore });
-                    hasChanged = true;
-                }
-            }
+        if (!updatedMarks) {
+          return Promise.resolve(null);
         }
-        
-        // If this boy's marks have changed, add them to the update list.
-        if (hasChanged) {
-            return updateBoy({ ...boy, marks: updatedMarks }, activeSection);
-        }
-        return Promise.resolve(null);
+
+        return updateBoy({ ...boy, marks: updatedMarks }, activeSection);
     });
 
     try {
@@ -535,6 +458,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                   min="0"
                                   max="10"
                                   step="0.01"
+                                  aria-label={`Score for ${boy.name}`}
                                   // FIX: Use Number() to correctly compare union type with number and fix TS errors. This also fixes a parser error with operator precedence.
                                   value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
                                   onChange={e => handleCompanyMarkChange(boy.id!, e.target.value)}
