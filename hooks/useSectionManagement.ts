@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useCallback } from 'react';
 import { Section, View } from '../types';
 
@@ -8,9 +6,7 @@ import { Section, View } from '../types';
  * Handles setting, retrieving from local storage, and providing logic for switching sections.
  */
 export const useSectionManagement = (
-  setView: (view: View) => void,
-  setHasUnsavedChanges: (dirty: boolean) => void,
-  performSignOut: () => Promise<void> // Callback from useAuthAndRole
+  setView: (view: View) => void
 ) => {
   const [activeSection, setActiveSection] = useState<Section | null>(() => localStorage.getItem('activeSection') as Section | null);
 
@@ -23,9 +19,8 @@ export const useSectionManagement = (
   const performSwitchSection = useCallback(() => {
     localStorage.removeItem('activeSection');
     setActiveSection(null);
-    setView({ page: 'home' }); // Navigate to home, which will then render SectionSelectPage
-    setHasUnsavedChanges(false);
-  }, [setView, setHasUnsavedChanges]);
+    setView({ page: 'home' });
+  }, [setView]);
 
   return { activeSection, setActiveSection, handleSelectSection, performSwitchSection };
 };

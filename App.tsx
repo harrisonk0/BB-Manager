@@ -40,11 +40,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<View>({ page: 'home' });
 
   // Use section management hook
-  const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(
-    setView, // Pass internal setView
-    setHasUnsavedChanges,
-    performSignOut
-  );
+  const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(setView);
 
   // Use app data hook
   const { boys, settings, dataLoading, dataError, refreshData, setSettings } = useAppData(
@@ -55,7 +51,6 @@ const App: React.FC = () => {
 
   // Use unsaved changes protection hook
   const {
-    view: protectedView, // Renamed to avoid conflict with internal 'view' state
     setView: navigateWithProtection,
     confirmModalType,
     confirmAction,
@@ -63,15 +58,13 @@ const App: React.FC = () => {
     handleSwitchSection: handleSwitchSectionWithProtection,
     handleSignOut: handleSignOutWithProtection,
   } = useUnsavedChangesProtection(
+    view,
     setView, // Pass internal setView
+    hasUnsavedChanges,
+    setHasUnsavedChanges,
     performSwitchSection,
     performSignOut
   );
-
-  // Update internal view state when protectedView changes
-  useEffect(() => {
-    setView(protectedView);
-  }, [protectedView]);
 
   // Handle no role error: if noRoleError is set, force sign out and clear section
   useEffect(() => {

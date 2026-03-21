@@ -129,23 +129,15 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
     }
   }, [boy, editedMarks, isCompany]);
   
-  /**
-   * EFFECT: Manages the 'beforeunload' event to warn users about unsaved changes.
-   */
   useEffect(() => {
     setHasUnsavedChanges(isDirty);
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (isDirty) {
-        event.preventDefault();
-        event.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty, setHasUnsavedChanges]);
+
+  useEffect(() => {
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
       setHasUnsavedChanges(false);
     };
-  }, [isDirty, setHasUnsavedChanges]);
+  }, [setHasUnsavedChanges]);
   
   // --- EVENT HANDLERS ---
   const handleMarkChange = (date: string, type: 'score' | 'uniform' | 'behaviour', newScoreStr: string) => {

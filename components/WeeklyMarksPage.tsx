@@ -115,25 +115,15 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     setMarkErrors({}); // Clear errors on date change.
   }, [selectedDate, boys, isCompany]);
 
-  /**
-   * EFFECT: Manages the 'beforeunload' event to warn users about unsaved changes.
-   * Also communicates the dirty state to the parent App component.
-   */
   useEffect(() => {
     setHasUnsavedChanges(isDirty);
+  }, [isDirty, setHasUnsavedChanges]);
 
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (isDirty) {
-        event.preventDefault();
-        event.returnValue = ''; // Required by browsers to show the confirmation prompt.
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
+  useEffect(() => {
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
       setHasUnsavedChanges(false);
     };
-  }, [isDirty, setHasUnsavedChanges]);
+  }, [setHasUnsavedChanges]);
   
   // --- EVENT HANDLERS ---
   const validateAndSetMark = (boyId: string, type: 'score' | 'uniform' | 'behaviour', scoreStr: string, max: number) => {

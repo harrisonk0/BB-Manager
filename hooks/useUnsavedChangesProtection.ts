@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useCallback, useEffect } from 'react';
 import { View } from '../types';
 
@@ -10,25 +8,24 @@ type ConfirmationModalType = 'navigate' | 'switchSection' | 'signOut' | null;
  * Integrates with navigation, section switching, and sign-out actions.
  */
 export const useUnsavedChangesProtection = (
+  view: View,
   setView: (view: View) => void,
+  hasUnsavedChanges: boolean,
+  setHasUnsavedChanges: (dirty: boolean) => void,
   performSwitchSection: () => void, // Callback from useSectionManagement
   performSignOut: () => Promise<void> // Callback from useAuthAndRole
 ) => {
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [confirmModalType, setConfirmModalType] = useState<ConfirmationModalType>(null);
   const [nextView, setNextView] = useState<View | null>(null);
-  const [currentView, setCurrentView] = useState<View>({ page: 'home' }); // Internal state to track current view
 
-  // Update currentView when setView is called
   const navigateWithProtection = useCallback((newView: View) => {
-    if (hasUnsavedChanges && newView.page !== currentView.page) {
+    if (hasUnsavedChanges && newView.page !== view.page) {
       setNextView(newView);
       setConfirmModalType('navigate');
     } else {
       setView(newView);
-      setCurrentView(newView); // Update internal currentView
     }
-  }, [hasUnsavedChanges, currentView, setView]);
+  }, [hasUnsavedChanges, setView, view.page]);
 
   const handleSwitchSectionWithProtection = useCallback(() => {
     if (hasUnsavedChanges) {
@@ -52,32 +49,30 @@ export const useUnsavedChangesProtection = (
         if (nextView) {
           setHasUnsavedChanges(false);
           setView(nextView);
-          setCurrentView(nextView); // Update internal currentView
         }
         break;
       case 'switchSection':
-        setHasUnsavedChanges(false); // Clear unsaved changes before performing action
+        setHasUnsavedChanges(false);
         performSwitchSection();
         break;
       case 'signOut':
-        setHasUnsavedChanges(false); // Clear unsaved changes before performing action
+        setHasUnsavedChanges(false);
         performSignOut();
         break;
     }
     cancelAction();
-  }, [confirmModalType, nextView, setView, performSwitchSection, performSignOut]);
+  }, [confirmModalType, nextView, setView, performSwitchSection, performSignOut, setHasUnsavedChanges]);
 
   const cancelAction = useCallback(() => {
     setConfirmModalType(null);
     setNextView(null);
   }, []);
 
-  // Effect to handle browser's beforeunload event
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         event.preventDefault();
-        event.returnValue = ''; // Required by browsers to show the confirmation prompt.
+        event.returnValue = '';
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -87,9 +82,7 @@ export const useUnsavedChangesProtection = (
   }, [hasUnsavedChanges]);
 
   return {
-    view: currentView, // Expose currentView for App.tsx to render
-    setView: navigateWithProtection, // Expose protected navigation
-    setHasUnsavedChanges,
+    setView: navigateWithProtection,
     confirmModalType,
     confirmAction,
     cancelAction,
