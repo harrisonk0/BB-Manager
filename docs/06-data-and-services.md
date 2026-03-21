@@ -1,33 +1,36 @@
 # 6. Data & Services
 
-[`ARCHITECTURE.md`](../ARCHITECTURE.md) is the canonical system model for this repo. This document is a deeper
-dive into the services layer and Supabase interactions.
+This document describes how the app talks to Supabase.
 
-This document explains how the application interacts with Supabase for data storage and
-retrieval. All reads and writes happen online against Supabase tables; there is no local
-IndexedDB cache.
+## Service Modules
 
-## Database Schema & Migrations
+- `services/supabaseClient.ts`: shared Supabase client
+- `services/supabaseAuth.ts`: sign-in, sign-up, sign-out, password reset, auth subscription
+- `services/db.ts`: members, marks, profiles, invite codes, audit logs
+- `services/settings.ts`: section settings
+- `services/errorMonitoring.ts`: operational error reporting
 
-Database schema and permissions are managed via MCP Supabase tools.
+## Live Table Mapping
 
-Security note: the database uses RLS policies with GRANTs for access control (Phase 1 complete).
-Client-side role checks are UX only; database enforces security. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md)
-and [`docs/10-database-security-model.md`](./10-database-security-model.md) for details.
+The current app talks to these tables:
 
-## General Data Flow
+- `profiles`: email and application role
+- `settings`: section-level settings
+- `members`: core member records
+- `marks`: normalized attendance and score rows
+- `invite_codes`: role-scoped signup codes
+- `audit_logs`: append-only operational history
 
-1. Components invoke functions in `services/db.ts`.
-2. Those functions validate inputs and call Supabase.
-3. Errors propagate back to the component so the UI can show connection or permission issues.
+## Data Flow
 
-## Key Modules
+1. A component calls a service function.
+2. The service validates inputs and shapes payloads for Supabase.
+3. Supabase returns rows or errors.
+4. The component or hook updates UI state and feedback.
 
-- **`db.ts`**: Houses CRUD operations for boys, audit logs, invite codes, and user roles. Also contains validation helpers (e.g., mark validation) and audit log creation.
-- **`supabaseClient.ts`**: Initializes the Supabase client.
-- **`supabaseAuth.ts`**: Wraps Supabase Auth helpers.
-- **`settings.ts`**: Fetches section-specific settings from Supabase.
+## Important Notes
 
-## Audit Logging
-
-Important changes (role updates, invite code changes, clears) are recorded through `createAuditLog`, providing a history of administrative actions directly in Supabase.
+- The UI-facing `Boy` model is assembled from `members` and `marks`.
+- Role information is loaded from `profiles`, not from a separate `user_roles` table.
+- Invite-code signup is finalised through the `claim_invite_code` database function so role assignment and code consumption stay in sync.
+- Audit-log writes happen alongside important data mutations.

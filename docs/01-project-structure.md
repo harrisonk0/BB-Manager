@@ -1,69 +1,40 @@
 # 1. Project Structure
 
-This document provides a detailed breakdown of the file and folder structure for the BB Manager application. The project is organized to separate concerns, making it easier to navigate, understand, and maintain.
+BB Manager is organised as a Vite SPA with Supabase-facing services and a small documentation set.
 
-```
+```text
 /
-├── components/         # React components (pages + UI)
-├── docs/               # Documentation (deep dives + runbooks)
-├── hooks/              # Custom React hooks
-├── services/           # Supabase client + data services
-├── tests/              # Unit and E2E tests
-├── scripts/            # Utility scripts
-├── CLAUDE.md           # Repo rules and operational guidance
-├── ARCHITECTURE.md     # Canonical system model
-├── App.tsx             # App orchestrator / view state
-├── index.html          # HTML shell (mounts React)
-├── index.tsx           # React entry point
-├── index.css           # Global Tailwind styles
-├── server.js           # Optional static server (SPA fallback)
-├── Dockerfile          # Container build + static serving
-├── vercel.json         # SPA rewrites for Vercel
-├── vite.config.ts      # Vite config (aliases, plugins)
-├── tsconfig.json       # TypeScript config
-├── tailwind.config.js  # Tailwind config
-├── postcss.config.js   # PostCSS config
-├── package.json        # Dependencies and scripts
-├── types.ts            # Shared TypeScript types
-└── README.md           # Project overview / doc index
+├── .github/workflows/   # CI and operational workflows
+├── components/          # React UI and page components
+├── docs/                # Active docs plus archive/
+├── hooks/               # Custom React hooks
+├── scripts/             # Utility scripts
+├── services/            # Supabase client, auth, data, settings, monitoring
+├── tests/               # Unit tests and manual E2E runbooks
+├── AGENTS.md            # Contributor and agent guide
+├── ARCHITECTURE.md      # Canonical system overview
+├── App.tsx              # App shell and view orchestration
+├── index.css            # Global styles
+├── index.html           # HTML shell
+├── index.tsx            # React entrypoint
+├── package.json         # Scripts and dependencies
+├── tsconfig.json        # TypeScript config
+├── vercel.json          # SPA rewrites for Vercel
+└── vite.config.ts       # Vite config
 ```
 
----
+## Key Directories
 
-### Root Directory
+- `components/`: page-level UI and reusable presentation components
+- `hooks/`: auth, section management, data loading, unsaved-change protection, toasts
+- `services/`: Supabase integration and domain operations
+- `tests/`: Vitest coverage plus markdown E2E runbooks
+- `docs/`: active docs and historical archive
 
-| File / Folder     | Description                                                                                              |
-| ----------------- | ------------------------------------------------------------------------------------------------------- |
-| `components/`     | Contains all React components that make up the user interface. See [`docs/05-component-library.md`](./05-component-library.md). |
-| `docs/`           | Contains all markdown documentation files for the project, including this one.                                                                |
-| `hooks/`          | Contains custom React hooks (`useToastNotifications`, `useAuthAndRole`, `useSectionManagement`, `useAppData`, `useUnsavedChangesProtection`) that encapsulate reusable stateful logic. |
-| `services/`       | The data/service layer for Supabase access. See [`docs/06-data-and-services.md`](./06-data-and-services.md). |
-| `tests/`          | Unit and E2E tests. |
-| `scripts/`        | Utility scripts. |
-| `CLAUDE.md`       | Repo rules and operational guidance (human + agent guardrails). See [`CLAUDE.md`](../CLAUDE.md). |
-| `ARCHITECTURE.md` | Canonical system model (components, data flow, invariants, trade-offs). See [`ARCHITECTURE.md`](../ARCHITECTURE.md). |
-| `App.tsx`         | Orchestrates auth gating, section selection, view routing, data loading, and global UI state. |
-| `index.html`      | HTML shell with the root element; loads `index.tsx`. |
-| `index.tsx`       | React entry point - renders the `App` component into the DOM.                                                                         |
-| `index.css`       | Global Tailwind styles. |
-| `types.ts`        | Central TypeScript type definitions. See [`docs/08-types.md`](./08-types.md). |
-| `README.md`       | The main project README file, which serves as the entry point to this documentation.                                                          |
+## Key Root Files
 
-### `/components` Directory
-
-This directory contains all UI elements of the application.
-
--   **Page Components**: `HomePage.tsx`, `WeeklyMarksPage.tsx`, `DashboardPage.tsx`, `AuditLogPage.tsx`, `SettingsPage.tsx`, `GlobalSettingsPage.tsx`, `AccountSettingsPage.tsx`, `HelpPage.tsx`, `LoginPage.tsx`, `SectionSelectPage.tsx`, `SignupPage.tsx`. These are top-level components that represent a full view or "page" within the app.
--   **UI Components**: `Header.tsx`, `Modal.tsx`, `Icons.tsx`, `DatePicker.tsx`. These are smaller, reusable components used across multiple pages.
--   **Form Components**: `BoyForm.tsx`. These components are specifically for handling user input.
--   **Feedback Components**: `SkeletonLoaders.tsx`, `Toast.tsx`. These are used to improve the user experience during data loading states and for action feedback.
--   **Visualization Components**: `BarChart.tsx`, `LineChart.tsx` (placeholder for future use).
-
-### `/services` Directory
-
-This directory contains the application's business logic and data interaction layers.
-
--   **`db.ts`**: The main data abstraction layer, unifying interactions with Supabase. It also manages user roles and invite codes.
--   **`supabaseClient.ts`**: Handles Supabase client initialization and provides a shared instance for Auth and database access.
--   **`supabaseAuth.ts`**: Wraps common Supabase Auth operations (sign-in, sign-up, sign-out).
--   **`settings.ts`**: Manages section-specific application settings.
+- `AGENTS.md`: operating rules and repo-specific guidance
+- `ARCHITECTURE.md`: current runtime, schema, and deployment model
+- `App.tsx`: root app coordinator
+- `package.json`: scripts such as `dev`, `build`, `preview`, `typecheck`, and tests
+- `vercel.json`: rewrite-to-root config for SPA routing on Vercel

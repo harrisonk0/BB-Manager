@@ -450,7 +450,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
             {loadingUsers ? (
               <p className="text-slate-500">Loading users...</p>
             ) : usersWithRoles.length === 0 ? (
-              <p className="text-slate-500">No users found with assigned roles. Roles must be manually created in Firestore for new users.</p>
+              <p className="text-slate-500">No users found with assigned roles. The first privileged user may need to be provisioned directly in Supabase.</p>
             ) : (
               <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
                 {usersWithRoles.map(user => {
@@ -510,7 +510,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 >
                   Clear All Audit Logs (Current Section & Global)
                 </button>
-                <p className="mt-1 text-xs text-red-700">Deletes all audit logs for the current section AND global audit logs from Firestore and local storage.</p>
+                <p className="mt-1 text-xs text-red-700">Deletes all audit logs for the current section and any global audit logs from Supabase.</p>
               </div>
               <div>
                 <button
@@ -520,7 +520,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
                 >
                   Clear All Used/Revoked Invite Codes
                 </button>
-                <p className="mt-1 text-xs text-red-700">Deletes all used or revoked invite codes from Firestore and local storage.</p>
+                <p className="mt-1 text-xs text-red-700">Deletes all used or revoked invite codes from Supabase.</p>
               </div>
             </div>
           </div>
@@ -684,7 +684,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       {/* Clear All Audit Logs Confirmation Modal */}
       <Modal isOpen={isClearLogsModalOpen} onClose={() => setIsClearLogsModalOpen(false)} title="Confirm Clear All Audit Logs">
         <div className="space-y-4">
-          <p className="text-red-600 font-semibold">This action will permanently delete ALL audit logs for the current section AND global audit logs from both Firestore and your local browser storage.</p>
+          <p className="text-red-600 font-semibold">This action will permanently delete all audit logs for the current section and any global audit logs from Supabase.</p>
           <p className="text-slate-600">Are you absolutely sure you want to proceed?</p>
           <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
             <button
@@ -709,7 +709,7 @@ const GlobalSettingsPage: React.FC<GlobalSettingsPageProps> = ({ activeSection, 
       {/* Clear All Used/Revoked Invite Codes Confirmation Modal */}
       <Modal isOpen={isClearInviteCodesModalOpen} onClose={() => setIsClearInviteCodesModalOpen(false)} title="Confirm Clear Used/Revoked Invite Codes">
         <div className="space-y-4">
-          <p className="text-red-600 font-semibold">This action will permanently delete ALL used or revoked invite codes from both Firestore and your local browser storage.</p>
+          <p className="text-red-600 font-semibold">This action will permanently delete all used or revoked invite codes from Supabase.</p>
           <p className="text-slate-600">Are you absolutely sure you want to proceed?</p>
           <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
             <button
