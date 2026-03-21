@@ -44,7 +44,7 @@ test.describe('E2E smoke tests', () => {
     await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
 
     await page.getByRole('button', { name: 'User menu' }).click();
-    await page.getByRole('button', { name: 'Log Out' }).click();
+    await page.getByRole('menuitem', { name: 'Log Out' }).click();
 
     await expect(page.getByText('Sign in to your account')).toBeVisible();
   });
@@ -64,7 +64,7 @@ test.describe('E2E smoke tests', () => {
     await expect(scoreInput).toBeVisible();
 
     const currentValue = await scoreInput.inputValue();
-    const nextValue = currentValue === '8.75' ? '9.25' : '8.75';
+    const nextValue = currentValue === '8' ? '9' : '8';
 
     await scoreInput.fill(nextValue);
     await page.getByRole('button', { name: 'Save Marks' }).click();
