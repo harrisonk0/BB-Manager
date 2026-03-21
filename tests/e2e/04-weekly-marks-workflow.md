@@ -17,10 +17,8 @@ Use this checklist to verify weekly marks entry and historical editing.
 5. Edit a previous mark and save.
 6. Delete a historical mark entry.
 7. Review the dashboard and confirm aggregate stats still render.
-8. Review the audit log and confirm mark-related actions were recorded.
 
 ## Expected Outcome
 
 - Marks persist correctly for both create/update/delete paths.
 - Historical editing works without corrupting totals.
-- Audit logging remains intact for mark changes.

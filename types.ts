@@ -55,75 +55,9 @@ export interface Boy {
 }
 
 /**
- * Defines the types of actions that can be recorded in the audit log.
- */
-export type AuditLogActionType = 
-  'CREATE_BOY' | 
-  'UPDATE_BOY' | 
-  'DELETE_BOY' | 
-  'REVERT_ACTION' | 
-  'UPDATE_SETTINGS' | 
-  'GENERATE_INVITE_CODE' | 
-  'USE_INVITE_CODE' | 
-  'REVOKE_INVITE_CODE' | 
-  'UPDATE_INVITE_CODE' | // Added this type
-  'UPDATE_USER_ROLE' |
-  'DELETE_USER_ROLE' | // New: For deleting user roles
-  'CLEAR_AUDIT_LOGS' | // New: For clearing all audit logs
-  'CLEAR_USED_REVOKED_INVITE_CODES'; // New: For clearing used/revoked invite codes
-
-/**
- * Represents a single entry in the audit log, tracking changes made in the application.
- */
-export interface AuditLog {
-  /** A unique identifier for the log entry. */
-  id?: string;
-  /** The timestamp of when the action occurred (Unix milliseconds). */
-  timestamp: number;
-  /** The email of the user who performed the action. */
-  userEmail: string;
-  /** The type of action performed. */
-  actionType: AuditLogActionType;
-  /** A human-readable description of the action. */
-  description: string;
-  /** Data needed to revert the action (e.g., the state of an object before a change). */
-  revertData: any;
-  /** The ID of the original audit log that this REVERT_ACTION log is reverting. */
-  revertedLogId?: string;
-  /** The section this log pertains to. Null for global logs. */
-  section?: Section | null;
-}
-
-/**
- * Represents a one-time-use invite code for new user sign-ups.
- */
-export interface InviteCode {
-  /** The unique invite code string itself. */
-  id: string;
-  /** The email of the user who generated this code. */
-  generatedBy: string;
-  /** The timestamp when the code was generated (Unix milliseconds). */
-  generatedAt: number;
-  /** The section this code is intended for (optional, could be 'all' or specific). */
-  section?: Section;
-  /** True if the code has been used, false otherwise. */
-  isUsed: boolean;
-  /** The email of the user who used this code (if used). */
-  usedBy?: string;
-  /** The timestamp when the code was used (if used). */
-  usedAt?: number;
-  /** True if the code has been explicitly revoked, false otherwise. */
-  revoked?: boolean;
-  /** The default role assigned to the user who uses this invite code. */
-  defaultUserRole: UserRole;
-  /** The timestamp when the code expires (Unix milliseconds). */
-  expiresAt: number;
-}
-
-/**
  * Represents the main pages available in the application's navigation.
  */
-export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'globalSettings' | 'accountSettings' | 'signup';
+export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'settings' | 'accountSettings';
 
 /**
  * A specific view type for displaying an individual boy's marks page.

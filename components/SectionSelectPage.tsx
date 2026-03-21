@@ -6,52 +6,25 @@
  */
 
 import React from 'react';
-import { Section, Page } from '../types';
-import { QuestionMarkCircleIcon, CogIcon, LogOutIcon } from './Icons'; // Import LogOutIcon
+import { Section } from '../types';
+import { LogOutIcon } from './Icons';
 
 interface SectionSelectPageProps {
   /** Callback function to inform the parent App component of the user's selection. */
   onSelectSection: (section: Section) => void;
-  /** Callback to open the help modal. */
-  onOpenHelpModal: () => void;
-  /** Callback to navigate to the global settings page. */
-  onNavigateToGlobalSettings: () => void;
-  /** The role of the currently logged-in user. */
-  userRole: string | null;
   /** Callback to handle user sign out. */
-  onSignOut: () => void; // New prop for sign out
+  onSignOut: () => void;
 }
 
-const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, onOpenHelpModal, onNavigateToGlobalSettings, userRole, onSignOut }) => {
-  const canAccessGlobalSettings = userRole && ['admin', 'captain'].includes(userRole);
-
+const SectionSelectPage: React.FC<SectionSelectPageProps> = ({ onSelectSection, onSignOut }) => {
   return (
     <div 
       className="flex flex-col items-center justify-center min-h-screen bg-slate-200 p-4 bg-cover bg-center"
       style={{ backgroundImage: 'url(https://i.postimg.cc/MKD36t18/mixed-activities.jpg)' }}
     >
-       <button 
-        onClick={onOpenHelpModal} 
-        className={`absolute bottom-6 ${canAccessGlobalSettings ? 'right-20' : 'right-6'} text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full`}
-        aria-label="Help"
-      >
-        <QuestionMarkCircleIcon className="h-8 w-8" />
-      </button>
-
-      {canAccessGlobalSettings && (
-        <button 
-          onClick={onNavigateToGlobalSettings} 
-          className="absolute bottom-6 right-6 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full"
-          aria-label="Global Settings"
-        >
-          <CogIcon className="h-8 w-8" />
-        </button>
-      )}
-
-      {/* New Log Out button */}
       <button 
         onClick={onSignOut} 
-        className={`absolute bottom-6 ${canAccessGlobalSettings ? 'right-36' : 'right-6'} text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full`}
+        className="absolute bottom-6 right-6 text-slate-500 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 rounded-full"
         aria-label="Log Out"
       >
         <LogOutIcon className="h-8 w-8" />

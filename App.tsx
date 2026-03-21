@@ -1,23 +1,16 @@
-"use client";
-
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import HomePage from './components/HomePage';
 import WeeklyMarksPage from './components/WeeklyMarksPage';
 import BoyMarksPage from './components/BoyMarksPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
-import SignupPage from './components/SignupPage';
 import DashboardPage from './components/DashboardPage';
-import AuditLogPage from './components/AuditLogPage';
 import SettingsPage from './components/SettingsPage';
 import SectionSelectPage from './components/SectionSelectPage';
-import GlobalSettingsPage from './components/GlobalSettingsPage';
 import AccountSettingsPage from './components/AccountSettingsPage';
-import HelpPage from './components/HelpPage';
-import PasswordResetPage from './components/PasswordResetPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { View, Page, BoyMarksPageView, Section, ToastType } from './types';
+import { View, BoyMarksPageView } from './types';
 import Modal from './components/Modal';
 
 // Import custom hooks
@@ -37,24 +30,17 @@ const App: React.FC = () => {
     userRole,
     noRoleError,
     authLoading,
-    isPasswordRecovery,
     performSignOut,
     setCurrentUser,
-    setPasswordRecoveryState,
     setUserRole,
   } = useAuthAndRole();
 
   // State for unsaved changes protection
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [view, setView] = useState<View>({ page: 'home' }); // Internal view state for useUnsavedChangesProtection
-  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false); // New state for Help modal
+  const [view, setView] = useState<View>({ page: 'home' });
 
   // Use section management hook
-  const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(
-    setView, // Pass internal setView
-    setHasUnsavedChanges,
-    performSignOut
-  );
+  const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(setView);
 
   // Use app data hook
   const { boys, settings, dataLoading, dataError, refreshData, setSettings } = useAppData(
@@ -65,7 +51,6 @@ const App: React.FC = () => {
 
   // Use unsaved changes protection hook
   const {
-    view: protectedView, // Renamed to avoid conflict with internal 'view' state
     setView: navigateWithProtection,
     confirmModalType,
     confirmAction,
@@ -73,15 +58,13 @@ const App: React.FC = () => {
     handleSwitchSection: handleSwitchSectionWithProtection,
     handleSignOut: handleSignOutWithProtection,
   } = useUnsavedChangesProtection(
+    view,
     setView, // Pass internal setView
+    hasUnsavedChanges,
+    setHasUnsavedChanges,
     performSwitchSection,
     performSignOut
   );
-
-  // Update internal view state when protectedView changes
-  useEffect(() => {
-    setView(protectedView);
-  }, [protectedView]);
 
   // Handle no role error: if noRoleError is set, force sign out and clear section
   useEffect(() => {
@@ -103,19 +86,13 @@ const App: React.FC = () => {
         return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} settings={settings} showToast={showToast} />;
       case 'dashboard':
         return <DashboardPage boys={boys} activeSection={activeSection!} />;
-      case 'auditLog':
-        return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
       case 'settings': // Section-specific settings
-        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} />;
-      case 'globalSettings': // New: Global settings
-        return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} />;
+        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} />;
       case 'accountSettings': // New: Account settings
-        return <AccountSettingsPage showToast={showToast} />;
+        return <AccountSettingsPage showToast={showToast} activeSection={activeSection!} />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
         return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} showToast={showToast} />;
-      case 'signup':
-        return null;
       default:
         return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
     }
@@ -127,17 +104,7 @@ const App: React.FC = () => {
         return <HomePageSkeleton />;
     }
 
-    if (currentUser && isPasswordRecovery) {
-        return (
-            <PasswordResetPage
-              showToast={showToast}
-              onComplete={() => setPasswordRecoveryState(false)}
-              onSignOut={performSignOut}
-            />
-        );
-    }
-
-    if (currentUser && dataLoading && view.page !== 'signup') {
+    if (currentUser && dataLoading) {
         return <HomePageSkeleton />;
     }
 
@@ -163,37 +130,12 @@ const App: React.FC = () => {
     
     // Handle unauthenticated user
     if (!currentUser) {
-        if (view.page === 'signup') {
-            return <SignupPage onNavigateToHelp={() => setIsHelpModalOpen(true)} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => navigateWithProtection({ page: 'home' })} />;
-        }
-        return <LoginPage onOpenHelpModal={() => setIsHelpModalOpen(true)} showToast={showToast} onNavigateToSignup={navigateWithProtection} />;
+        return <LoginPage />;
     }
     
     // Handle authenticated user, but no active section selected yet
     if (!activeSection) {
-        switch (view.page) {
-            case 'globalSettings':
-                return (
-                    <>
-                        <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
-                        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} />
-                        </main>
-                    </>
-                );
-            case 'accountSettings':
-                return (
-                    <>
-                        <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
-                        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            <AccountSettingsPage showToast={showToast} />
-                        </main>
-                    </>
-                );
-            default:
-                // If no specific page is requested, show the section selection
-                return <SectionSelectPage onSelectSection={handleSelectSection} onOpenHelpModal={() => setIsHelpModalOpen(true)} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} userRole={userRole} onSignOut={handleSignOutWithProtection} />;
-        }
+        return <SectionSelectPage onSelectSection={handleSelectSection} onSignOut={handleSignOutWithProtection} />;
     }
     
     // Handle general errors
@@ -204,7 +146,7 @@ const App: React.FC = () => {
     // Render main app content with header
     return (
         <>
-            <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
+            <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} />
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {renderMainContent()}
             </main>
@@ -225,11 +167,6 @@ const App: React.FC = () => {
 
       {renderApp()}
       
-      {/* Help Modal */}
-      <Modal isOpen={isHelpModalOpen} onClose={() => setIsHelpModalOpen(false)} title="User Guide" size="full">
-        <HelpPage />
-      </Modal>
-
       <Modal isOpen={!!confirmModalType} onClose={cancelAction} title="Unsaved Changes">
         <div className="space-y-4">
             <p className="text-slate-600">You have unsaved changes. Are you sure you want to leave? Your changes will be lost.</p>

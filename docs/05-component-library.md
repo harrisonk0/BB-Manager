@@ -15,8 +15,7 @@ The root component of the entire application. It doesn't render much UI directly
         `boys`, `settings`, `authLoading`, `dataLoading`, `dataError`, `noRoleError`, `view`.
     -   Subscribes to Supabase auth changes via `useAuthAndRole` and loads the user's role from
         `profiles`.
-    -   Handles view switching by deciding which page component to render based on the `view`
-        state. Unauthenticated users see Login/Signup; the Help content is shown via a modal.
+    -   Handles view switching by deciding which page component to render based on the `view` state.
     -   Orchestrates data fetching (`refreshData`).
     -   Manages the "unsaved changes" confirmation modal.
     -   Manages and renders the global toast notification system.
@@ -64,7 +63,7 @@ A detailed view showing the entire mark history for a single member.
     -   Lists all historical mark entries, sorted by date.
     -   Allows for editing of past scores, changing attendance status, and deleting mark entries.
     -   Tracks unsaved changes by performing a deep comparison between the original and edited marks.
-    -   Saves all corrections and creates an audit log entry.
+    -   Saves all corrections directly through the data service layer.
 -   **Key Props**: `boyId`, `refreshData`, `setHasUnsavedChanges`, `activeSection`, `showToast`.
 
 #### `DashboardPage.tsx`
@@ -79,18 +78,6 @@ A visual summary report view of member and squad performance.
     -   Includes a detailed "Marks Breakdown by Month" table for granular reporting.
 -   **Key Props**: `boys`, `activeSection`.
 
-#### `AuditLogPage.tsx`
-
-Displays a chronological history of all actions taken in the app.
-
--   **Responsibilities**:
-    -   Fetches and displays all audit log entries.
-    -   Provides the UI for reverting actions.
-    -   Manages the state for the revert confirmation modal.
-    -   Handles the `handleRevert` logic, which calls the appropriate inverse data service functions.
-    -   Displays action-specific icons and colors for better readability.
--   **Key Props**: `refreshData`, `activeSection`, `showToast`, `userRole`.
-
 #### `SettingsPage.tsx`
 
 Allows users to configure application settings specific to the currently active section.
@@ -98,20 +85,9 @@ Allows users to configure application settings specific to the currently active 
 -   **Responsibilities**:
     -   Displays form inputs for available section settings (e.g., meeting day).
     -   Handles saving the settings to Supabase, with client-side permission checks based on `userRole`.
-    -   Provides links to navigate to the `GlobalSettingsPage` and `AccountSettingsPage`.
-    -   Creates audit log entries for all significant changes.
--   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToGlobalSettings`, `onNavigateToAccountSettings`.
-
-#### `GlobalSettingsPage.tsx`
-
-Provides administrative controls for managing invite codes, user roles, and development tools.
-
--   **Responsibilities**:
-    -   Allows administrators and captains to generate, view, and revoke invite codes.
-    -   Displays a list of all users with their assigned roles and allows administrators/captains to update roles (with restrictions, e.g., cannot change own role).
-    -   Includes admin-only development controls for clearing audit logs and used/revoked invite codes.
-    -   Creates audit log entries for all significant changes.
--   **Key Props**: `activeSection`, `showToast`, `userRole`, `refreshData`.
+    -   Provides a link to navigate to `AccountSettingsPage`.
+    -   Persists section settings through the data service layer.
+-   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToAccountSettings`.
 
 #### `AccountSettingsPage.tsx`
 
@@ -119,18 +95,9 @@ Allows the currently logged-in user to manage their personal account settings.
 
 -   **Responsibilities**:
     -   Provides a form for changing the user's password.
-    -   Handles re-authentication and password update with Supabase Authentication.
+    -   Updates the password with Supabase Authentication.
     -   Displays user-friendly error messages for password changes.
--   **Key Props**: `showToast`.
-
-#### `HelpPage.tsx`
-
-A static user guide for the application.
-
--   **Responsibilities**:
-    -   Displays a structured help document with a table of contents and detailed sections.
-    -   Uses small, non-interactive "preview" components to visually demonstrate UI elements.
--   **Key Props**: None.
+-   **Key Props**: `showToast`, `activeSection`.
 
 #### `LoginPage.tsx`
 
@@ -138,22 +105,7 @@ Handles user authentication with Supabase.
 
 -   **Responsibilities**:
     -   Provides a form for email and password sign-in.
-    -   Handles password reset requests.
-    -   Navigates to the `SignupPage` for new user registration.
-    -   Opens the Help modal for unauthenticated users.
--   **Key Props**: `onOpenHelpModal`, `showToast`, `onNavigateToSignup`.
-
-#### `SignupPage.tsx`
-
-Allows new users to sign up using an invite code.
-
--   **Responsibilities**:
-    -   Provides a form for email, password, and invite code entry.
-    -   Validates the invite code and creates a new Supabase user.
-    -   Assigns a default user role based on the invite code.
-    -   Marks the invite code as used upon successful signup.
-    -   Creates an audit log entry for the signup.
--   **Key Props**: `onNavigateToHelp`, `showToast`, `onSignupSuccess`, `onNavigateBack`.
+-   **Key Props**: none.
 
 #### `SectionSelectPage.tsx`
 
@@ -161,10 +113,8 @@ Allows the authenticated user to choose which section (Company or Junior) to man
 
 -   **Responsibilities**:
     -   Displays buttons for selecting Company or Junior sections.
-    -   Persists the selected section in `localStorage`.
-    -   Provides actions for Help, Global Settings, and Sign Out.
-    -   Conditionally renders "Global Settings" based on `userRole`.
--   **Key Props**: `onSelectSection`, `onOpenHelpModal`, `onNavigateToGlobalSettings`, `userRole`, `onSignOut`.
+    -   Provides actions for Sign Out.
+-   **Key Props**: `onSelectSection`, `onSignOut`.
 
 ---
 
@@ -182,7 +132,7 @@ The main navigation bar at the top of the application.
     -   Conditionally renders navigation items based on `userRole`.
     -   Includes a profile dropdown menu for `Account Settings`, `Switch Section`, and `Log Out`.
     -   Manages its own state for the mobile menu (`isMenuOpen`).
--   **Key Props**: `setView`, `onSignOut`, `activeSection`, `onSwitchSection`, `onOpenHelpModal`.
+-   **Key Props**: `setView`, `onSignOut`, `activeSection`, `onSwitchSection`.
 
 #### `BoyForm.tsx`
 
@@ -212,7 +162,7 @@ A collection of simple, stateless SVG icon components.
 
 -   **Responsibilities**:
     -   Exports multiple functional components, each rendering a specific SVG icon.
-    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Question Mark Circle, Clipboard, Clipboard Document List, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
+    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Clipboard, Clipboard Document List, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
     -   Accepts an optional `className` prop for easy styling with Tailwind CSS.
 
 #### `DatePicker.tsx`

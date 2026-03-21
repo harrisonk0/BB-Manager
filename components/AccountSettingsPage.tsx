@@ -1,39 +1,31 @@
 "use client";
 
 import React, { useState } from 'react';
-import { ToastType } from '../types';
+import { Section, ToastType } from '../types';
 import * as supabaseAuth from '../services/supabaseAuth';
 
 interface AccountSettingsPageProps {
   showToast: (message: string, type?: ToastType) => void;
+  activeSection: Section;
 }
 
-const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) => {
-  const [oldPassword, setOldPassword] = useState('');
+const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast, activeSection }) => {
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   
-  // Granular error states
-  const [oldPasswordError, setOldPasswordError] = useState<string | null>(null);
   const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
   const [newPasswordConfirmError, setNewPasswordConfirmError] = useState<string | null>(null);
-  const [generalError, setGeneralError] = useState<string | null>(null); // For non-field-specific errors
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Clear previous errors
-    setOldPasswordError(null);
     setNewPasswordError(null);
     setNewPasswordConfirmError(null);
     setGeneralError(null);
 
     let isValid = true;
 
-    if (!oldPassword) {
-      setOldPasswordError('Current password is required.');
-      isValid = false;
-    }
     if (!newPassword) {
       setNewPasswordError('New password is required.');
       isValid = false;
@@ -62,7 +54,6 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
       }
 
       showToast('Password changed successfully!', 'success');
-      setOldPassword('');
       setNewPassword('');
       setNewPasswordConfirm('');
     } catch (err: any) {
@@ -74,7 +65,7 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
     }
   };
   
-  const isCompany = localStorage.getItem('activeSection') === 'company'; // Assuming activeSection is in localStorage
+  const isCompany = activeSection === 'company';
   const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
   const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
   const accentText = isCompany ? 'text-company-blue' : 'text-junior-blue';
@@ -89,23 +80,6 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({ showToast }) 
           <form onSubmit={handleChangePassword} className="space-y-6">
             <h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Change Password</h2>
             {generalError && <p className="text-red-500 text-sm">{generalError}</p>}
-            
-            <div>
-              <label htmlFor="current-password" className="block text-sm font-medium text-slate-700">
-                Current Password
-              </label>
-              <input
-                type="password"
-                id="current-password"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none sm:text-sm ${oldPasswordError ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
-                required
-                aria-invalid={oldPasswordError ? "true" : "false"}
-                aria-describedby={oldPasswordError ? "current-password-error" : undefined}
-              />
-              {oldPasswordError && <p id="current-password-error" className="text-red-500 text-xs mt-1">{oldPasswordError}</p>}
-            </div>
             <div>
               <label htmlFor="new-password" className="block text-sm font-medium text-slate-700">
                 New Password

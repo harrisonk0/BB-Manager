@@ -6,8 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Boy, Squad, SchoolYear, Section, JuniorSquad, JuniorYear } from '../types';
-import { createBoy, updateBoy, createAuditLog } from '../services/db';
-import { useAuthAndRole } from '../hooks/useAuthAndRole';
+import { createBoy, updateBoy } from '../services/db';
 
 interface BoyFormProps {
   /** If provided, the form will be in 'edit' mode, pre-filled with this boy's data. If null/undefined, it's in 'add' mode. */
@@ -22,8 +21,6 @@ interface BoyFormProps {
 
 const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSection }) => {
   const isCompany = activeSection === 'company';
-
-  const { user } = useAuthAndRole();
   
   // Set initial form state based on the active section.
   const initialSquad = isCompany ? 1 : 1;
@@ -67,7 +64,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
   /**
    * Handles the form submission.
    * It performs validation, then calls the appropriate database service (create or update),
-   * creates an audit log entry for the action, and finally calls the onSave callback.
+   * and finally calls the onSave callback.
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,37 +87,13 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     }
 
     try {
-      const userEmail = user?.email || 'Unknown User';
-
       if (boyToEdit) {
         // --- UPDATE LOGIC ---
-        // Construct a description of the changes for the audit log.
-        const changes: string[] = [];
-        if (boyToEdit.name !== name) changes.push(`name to "${name}"`);
-        if (boyToEdit.squad !== squad) changes.push(`squad to ${squad}`);
-        if (boyToEdit.year !== year) changes.push(`year to ${year}`);
-        if (!!boyToEdit.isSquadLeader !== isSquadLeader) changes.push(`squad leader status to ${isSquadLeader}`);
-        
-        // Only create an audit log if something actually changed.
-        if (changes.length > 0) {
-            await createAuditLog({
-                userEmail,
-                actionType: 'UPDATE_BOY',
-                description: `Updated ${boyToEdit.name}: changed ${changes.join(', ')}.`,
-                revertData: { boyData: boyToEdit }, // Save the old data for potential revert.
-            }, activeSection);
-        }
         await updateBoy({ ...boyToEdit, name, squad, year, isSquadLeader }, activeSection);
         onSave(false, name);
       } else {
         // --- CREATE LOGIC ---
-        const newBoy = await createBoy({ name, squad, year, marks: [], isSquadLeader }, activeSection);
-        await createAuditLog({
-            userEmail,
-            actionType: 'CREATE_BOY',
-            description: `Added new boy: ${name}`,
-            revertData: { boyId: newBoy.id }, // Save the new ID for potential revert.
-        }, activeSection);
+        await createBoy({ name, squad, year, marks: [], isSquadLeader }, activeSection);
         onSave(true, name);
       }
     } catch (err) {

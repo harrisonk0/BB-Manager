@@ -15,10 +15,8 @@ Use this checklist to smoke-test the member management flow.
 4. Confirm the updated data appears in the roster and member detail view.
 5. Delete the member.
 6. Confirm the member disappears from the roster.
-7. Review the audit log and confirm create, update, and delete actions were recorded.
 
 ## Expected Outcome
 
 - Member changes persist to Supabase.
 - The roster refresh path stays consistent after each mutation.
-- Audit logging captures the lifecycle actions.

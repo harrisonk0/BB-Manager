@@ -1,26 +1,12 @@
-"use client";
-
 import React, { useState } from 'react';
-import { QuestionMarkCircleIcon } from './Icons';
-import { ToastType, View } from '../types';
 import * as supabaseAuth from '../services/supabaseAuth';
 
-interface LoginPageProps {
-  /** Callback to open the help modal. */
-  onOpenHelpModal: () => void;
-  /** Function to display a toast notification. */
-  showToast: (message: string, type?: ToastType) => void;
-  /** Callback to navigate to the signup page. */
-  onNavigateToSignup: (view: View) => void;
-}
-
-const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNavigateToSignup }) => {
+const LoginPage: React.FC = () => {
   // State for form inputs, error messages, and loading status.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
 
   /**
    * Handles the sign-in form submission.
@@ -44,46 +30,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
     }
   };
 
-  /**
-   * Handles the "Forgot Password" request.
-   * Sends a password reset email to the provided email address.
-   */
-  const handleForgotPassword = async () => {
-    if (!email.trim()) {
-      setError('Please enter your email address to reset your password.');
-      return;
-    }
-    setIsSendingResetEmail(true);
-    setError(null);
-    try {
-      const { error: resetError } = await supabaseAuth.sendPasswordReset(email);
-      if (resetError) {
-        showToast(resetError.message || 'Failed to send password reset email. Please try again.', 'error');
-      } else {
-        showToast('Password reset email sent! Check your inbox.', 'success');
-      }
-    } catch (err: any) {
-      console.error("Forgot password error:", err);
-      showToast(err?.message || 'Failed to send password reset email. Please try again.', 'error');
-    } finally {
-      setIsSendingResetEmail(false);
-    }
-  };
-
   return (
     <div 
       className="flex items-center justify-center min-h-screen bg-slate-200 bg-cover bg-center"
       style={{ backgroundImage: 'url(https://i.postimg.cc/MKD36t18/mixed-activities.jpg)' }}
     >
       <div className="relative w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
-        <button 
-            onClick={onOpenHelpModal}
-            className="absolute top-4 right-4 text-slate-400 hover:text-junior-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue rounded-full"
-            aria-label="Help"
-        >
-            <QuestionMarkCircleIcon className="h-7 w-7" />
-        </button>
-
         <div className="text-center">
           <img src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" alt="The Boys' Brigade Logo" className="w-48 mx-auto mb-4" />
           <h2 className="text-xl text-slate-600">
@@ -127,28 +79,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onOpenHelpModal, showToast, onNav
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <button
-                type="button"
-                onClick={handleForgotPassword}
-                disabled={isSendingResetEmail}
-                className="font-medium text-junior-blue hover:text-junior-blue/80 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSendingResetEmail ? 'Sending...' : 'Forgot your password?'}
-              </button>
-            </div>
-            <div className="text-sm">
-              <button
-                type="button"
-                onClick={() => onNavigateToSignup({ page: 'signup' })}
-                className="font-medium text-junior-blue hover:text-junior-blue/80"
-              >
-                Sign up with an invite code
-              </button>
             </div>
           </div>
 

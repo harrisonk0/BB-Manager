@@ -5,8 +5,7 @@ import { Boy, Squad, View, Section, JuniorSquad, ToastType, SortByType, SchoolYe
 import Modal from './Modal';
 import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
-import { deleteBoyById, createAuditLog } from '../services/db';
-import { useAuthAndRole } from '../hooks/useAuthAndRole';
+import { deleteBoyById } from '../services/db';
 
 interface HomePageProps {
   /** The list of all boys for the active section. */
@@ -42,36 +41,21 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   const [boyToEdit, setBoyToEdit] = useState<Boy | null>(null);
   const [boyToDelete, setBoyToDelete] = useState<Boy | null>(null);
   
-  // State for filtering and sorting, initialized from localStorage
-  const [searchQuery, setSearchQuery] = useState(() => localStorage.getItem('homePageSearchQuery') || '');
-  const [isSearchVisible, setIsSearchVisible] = useState(() => !!localStorage.getItem('homePageSearchQuery')); // Show search if there's a query
+  // State for filtering and sorting
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<SortByType>(() => (localStorage.getItem('homePageSortBy') as SortByType) || 'name');
-  const [filterSquad, setFilterSquad] = useState<string>(() => localStorage.getItem('homePageFilterSquad') || 'all');
-  const [filterYear, setFilterYear] = useState<string>(() => localStorage.getItem('homePageFilterYear') || 'all');
+  const [sortBy, setSortBy] = useState<SortByType>('name');
+  const [filterSquad, setFilterSquad] = useState<string>('all');
+  const [filterYear, setFilterYear] = useState<string>('all');
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
-  const { user } = useAuthAndRole();
-
-  // --- EFFECTS for persisting state ---
+  // Keep the search control visible while a query is active.
   useEffect(() => {
-    localStorage.setItem('homePageSearchQuery', searchQuery);
-    setIsSearchVisible(!!searchQuery); // Keep search visible if query exists
+    setIsSearchVisible(!!searchQuery);
   }, [searchQuery]);
-
-  useEffect(() => {
-    localStorage.setItem('homePageSortBy', sortBy);
-  }, [sortBy]);
-
-  useEffect(() => {
-    localStorage.setItem('homePageFilterSquad', filterSquad);
-  }, [filterSquad]);
-
-  useEffect(() => {
-    localStorage.setItem('homePageFilterYear', filterYear);
-  }, [filterYear]);
 
   // --- UTILITY FUNCTIONS ---
   const calculateTotalMarks = (boy: Boy) => {
@@ -221,15 +205,6 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     if (!boyToDelete) return;
 
     try {
-      const userEmail = user?.email || 'Unknown User';
-      
-      await createAuditLog({
-          userEmail,
-          actionType: 'DELETE_BOY',
-          description: `Deleted boy: ${boyToDelete.name}`,
-          revertData: { boyData: boyToDelete },
-      }, activeSection);
-      
       await deleteBoyById(boyToDelete.id!, activeSection);
       
       showToast(`'${boyToDelete.name}' was deleted.`, 'success');
@@ -407,7 +382,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Confirm Deletion">
         {boyToDelete && (
           <div className="space-y-4">
-            <p className="text-slate-600">Are you sure you want to delete <strong className="font-semibold text-slate-800">{boyToDelete.name}</strong>? This action cannot be undone directly, but can be reverted from the audit log.</p>
+            <p className="text-slate-600">Are you sure you want to delete <strong className="font-semibold text-slate-800">{boyToDelete.name}</strong>? This action cannot be undone directly.</p>
             <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
               <button
                 type="button"
