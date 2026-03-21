@@ -42,36 +42,23 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   const [boyToEdit, setBoyToEdit] = useState<Boy | null>(null);
   const [boyToDelete, setBoyToDelete] = useState<Boy | null>(null);
   
-  // State for filtering and sorting, initialized from localStorage
-  const [searchQuery, setSearchQuery] = useState(() => localStorage.getItem('homePageSearchQuery') || '');
-  const [isSearchVisible, setIsSearchVisible] = useState(() => !!localStorage.getItem('homePageSearchQuery')); // Show search if there's a query
+  // State for filtering and sorting
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<SortByType>(() => (localStorage.getItem('homePageSortBy') as SortByType) || 'name');
-  const [filterSquad, setFilterSquad] = useState<string>(() => localStorage.getItem('homePageFilterSquad') || 'all');
-  const [filterYear, setFilterYear] = useState<string>(() => localStorage.getItem('homePageFilterYear') || 'all');
+  const [sortBy, setSortBy] = useState<SortByType>('name');
+  const [filterSquad, setFilterSquad] = useState<string>('all');
+  const [filterYear, setFilterYear] = useState<string>('all');
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
   const { user } = useAuthAndRole();
 
-  // --- EFFECTS for persisting state ---
+  // Keep the search control visible while a query is active.
   useEffect(() => {
-    localStorage.setItem('homePageSearchQuery', searchQuery);
-    setIsSearchVisible(!!searchQuery); // Keep search visible if query exists
+    setIsSearchVisible(!!searchQuery);
   }, [searchQuery]);
-
-  useEffect(() => {
-    localStorage.setItem('homePageSortBy', sortBy);
-  }, [sortBy]);
-
-  useEffect(() => {
-    localStorage.setItem('homePageFilterSquad', filterSquad);
-  }, [filterSquad]);
-
-  useEffect(() => {
-    localStorage.setItem('homePageFilterYear', filterYear);
-  }, [filterYear]);
 
   // --- UTILITY FUNCTIONS ---
   const calculateTotalMarks = (boy: Boy) => {

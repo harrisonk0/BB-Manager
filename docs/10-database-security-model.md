@@ -18,7 +18,7 @@ Verified on 2026-03-21:
 - Browser code only receives public client credentials.
 - Authorization must be enforced in Supabase, not in React components.
 - App roles are derived from `profiles`.
-- Invite-code validation and claim flows should go through the database functions rather than direct client-side privilege assumptions.
+- Manual account provisioning is the supported path; the UI no longer exposes invite-code signup or recovery flows.
 
 ## Role Model
 
@@ -33,7 +33,7 @@ The UI uses those roles to shape workflows, but the database remains the enforce
 ## Sensitive Areas
 
 - `profiles` controls application access
-- `invite_codes` controls account provisioning
+- `invite_codes` remains in the live database for compatibility with historical data and audit-log paths
 - `audit_logs` stores operational history and revert payloads
 
 Changes that affect any of those areas should be treated as security-sensitive and reflected in both code and docs.

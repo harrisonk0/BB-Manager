@@ -9,7 +9,6 @@ This document summarises the app's custom hook layer.
 - Subscribes to Supabase auth changes
 - Maps the auth user into the app's `AppUser` shape
 - Loads the current role from `profiles`
-- Tracks password-recovery state
 
 ### `useSectionManagement`
 
@@ -33,6 +32,6 @@ This document summarises the app's custom hook layer.
 ## State Sources
 
 - Supabase Auth session
-- Supabase data (`profiles`, `members`, `marks`, `settings`, `invite_codes`, `audit_logs`)
+- Supabase data (`profiles`, `members`, `marks`, `settings`, `audit_logs`)
 - `localStorage['activeSection']`
 - React state held in hooks and components

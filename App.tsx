@@ -6,18 +6,15 @@ import WeeklyMarksPage from './components/WeeklyMarksPage';
 import BoyMarksPage from './components/BoyMarksPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
-import SignupPage from './components/SignupPage';
 import DashboardPage from './components/DashboardPage';
 import AuditLogPage from './components/AuditLogPage';
 import SettingsPage from './components/SettingsPage';
 import SectionSelectPage from './components/SectionSelectPage';
-import GlobalSettingsPage from './components/GlobalSettingsPage';
 import AccountSettingsPage from './components/AccountSettingsPage';
 import HelpPage from './components/HelpPage';
-import PasswordResetPage from './components/PasswordResetPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
-import { View, Page, BoyMarksPageView, Section, ToastType } from './types';
+import { View, BoyMarksPageView, Section } from './types';
 import Modal from './components/Modal';
 
 // Import custom hooks
@@ -37,10 +34,8 @@ const App: React.FC = () => {
     userRole,
     noRoleError,
     authLoading,
-    isPasswordRecovery,
     performSignOut,
     setCurrentUser,
-    setPasswordRecoveryState,
     setUserRole,
   } = useAuthAndRole();
 
@@ -106,16 +101,12 @@ const App: React.FC = () => {
       case 'auditLog':
         return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
       case 'settings': // Section-specific settings
-        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} />;
-      case 'globalSettings': // New: Global settings
-        return <GlobalSettingsPage activeSection={activeSection!} showToast={showToast} userRole={userRole} refreshData={refreshData} />;
+        return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} />;
       case 'accountSettings': // New: Account settings
-        return <AccountSettingsPage showToast={showToast} />;
+        return <AccountSettingsPage showToast={showToast} activeSection={activeSection!} />;
       case 'boyMarks':
         const boyMarksView = view as BoyMarksPageView;
         return <BoyMarksPage boyId={boyMarksView.boyId} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} showToast={showToast} />;
-      case 'signup':
-        return null;
       default:
         return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection!} showToast={showToast} />;
     }
@@ -127,17 +118,7 @@ const App: React.FC = () => {
         return <HomePageSkeleton />;
     }
 
-    if (currentUser && isPasswordRecovery) {
-        return (
-            <PasswordResetPage
-              showToast={showToast}
-              onComplete={() => setPasswordRecoveryState(false)}
-              onSignOut={performSignOut}
-            />
-        );
-    }
-
-    if (currentUser && dataLoading && view.page !== 'signup') {
+    if (currentUser && dataLoading) {
         return <HomePageSkeleton />;
     }
 
@@ -163,37 +144,12 @@ const App: React.FC = () => {
     
     // Handle unauthenticated user
     if (!currentUser) {
-        if (view.page === 'signup') {
-            return <SignupPage onNavigateToHelp={() => setIsHelpModalOpen(true)} showToast={showToast} onSignupSuccess={handleSelectSection} onNavigateBack={() => navigateWithProtection({ page: 'home' })} />;
-        }
-        return <LoginPage onOpenHelpModal={() => setIsHelpModalOpen(true)} showToast={showToast} onNavigateToSignup={navigateWithProtection} />;
+        return <LoginPage onOpenHelpModal={() => setIsHelpModalOpen(true)} />;
     }
     
     // Handle authenticated user, but no active section selected yet
     if (!activeSection) {
-        switch (view.page) {
-            case 'globalSettings':
-                return (
-                    <>
-                        <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
-                        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            <GlobalSettingsPage activeSection={'company'} showToast={showToast} userRole={userRole} refreshData={refreshData} />
-                        </main>
-                    </>
-                );
-            case 'accountSettings':
-                return (
-                    <>
-                        <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={'company'} onSwitchSection={handleSwitchSectionWithProtection} onOpenHelpModal={() => setIsHelpModalOpen(true)} />
-                        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                            <AccountSettingsPage showToast={showToast} />
-                        </main>
-                    </>
-                );
-            default:
-                // If no specific page is requested, show the section selection
-                return <SectionSelectPage onSelectSection={handleSelectSection} onOpenHelpModal={() => setIsHelpModalOpen(true)} onNavigateToGlobalSettings={() => navigateWithProtection({ page: 'globalSettings' })} userRole={userRole} onSignOut={handleSignOutWithProtection} />;
-        }
+        return <SectionSelectPage onSelectSection={handleSelectSection} onOpenHelpModal={() => setIsHelpModalOpen(true)} onSignOut={handleSignOutWithProtection} />;
     }
     
     // Handle general errors

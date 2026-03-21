@@ -21,10 +21,7 @@ Create `.env` in the repo root:
 ```bash
 VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
 VITE_SUPABASE_ANON_KEY="<your-public-anon-key>"
-VITE_APP_URL="http://localhost:5173"
 ```
-
-`VITE_APP_URL` is used when the app generates auth redirect URLs, including password reset links.
 
 ## 3. Confirm Supabase Bootstrap State
 
@@ -37,7 +34,7 @@ The live app expects these tables to exist:
 - `invite_codes`
 - `audit_logs`
 
-For local development, make sure the first privileged user has a row in `profiles` with a valid `role` such as `admin`, `captain`, or `officer`.
+For local development, create users manually in Supabase Auth and make sure each user has a row in `profiles` with a valid `role` such as `admin`, `captain`, or `officer`.
 
 ## 4. Run the App
 

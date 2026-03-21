@@ -16,7 +16,7 @@ The root component of the entire application. It doesn't render much UI directly
     -   Subscribes to Supabase auth changes via `useAuthAndRole` and loads the user's role from
         `profiles`.
     -   Handles view switching by deciding which page component to render based on the `view`
-        state. Unauthenticated users see Login/Signup; the Help content is shown via a modal.
+        state. Unauthenticated users see Login; the Help content is shown via a modal.
     -   Orchestrates data fetching (`refreshData`).
     -   Manages the "unsaved changes" confirmation modal.
     -   Manages and renders the global toast notification system.
@@ -98,20 +98,9 @@ Allows users to configure application settings specific to the currently active 
 -   **Responsibilities**:
     -   Displays form inputs for available section settings (e.g., meeting day).
     -   Handles saving the settings to Supabase, with client-side permission checks based on `userRole`.
-    -   Provides links to navigate to the `GlobalSettingsPage` and `AccountSettingsPage`.
+    -   Provides a link to navigate to `AccountSettingsPage`.
     -   Creates audit log entries for all significant changes.
--   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToGlobalSettings`, `onNavigateToAccountSettings`.
-
-#### `GlobalSettingsPage.tsx`
-
-Provides administrative controls for managing invite codes, user roles, and development tools.
-
--   **Responsibilities**:
-    -   Allows administrators and captains to generate, view, and revoke invite codes.
-    -   Displays a list of all users with their assigned roles and allows administrators/captains to update roles (with restrictions, e.g., cannot change own role).
-    -   Includes admin-only development controls for clearing audit logs and used/revoked invite codes.
-    -   Creates audit log entries for all significant changes.
--   **Key Props**: `activeSection`, `showToast`, `userRole`, `refreshData`.
+-   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToAccountSettings`.
 
 #### `AccountSettingsPage.tsx`
 
@@ -119,9 +108,9 @@ Allows the currently logged-in user to manage their personal account settings.
 
 -   **Responsibilities**:
     -   Provides a form for changing the user's password.
-    -   Handles re-authentication and password update with Supabase Authentication.
+    -   Updates the password with Supabase Authentication.
     -   Displays user-friendly error messages for password changes.
--   **Key Props**: `showToast`.
+-   **Key Props**: `showToast`, `activeSection`.
 
 #### `HelpPage.tsx`
 
@@ -138,22 +127,8 @@ Handles user authentication with Supabase.
 
 -   **Responsibilities**:
     -   Provides a form for email and password sign-in.
-    -   Handles password reset requests.
-    -   Navigates to the `SignupPage` for new user registration.
     -   Opens the Help modal for unauthenticated users.
--   **Key Props**: `onOpenHelpModal`, `showToast`, `onNavigateToSignup`.
-
-#### `SignupPage.tsx`
-
-Allows new users to sign up using an invite code.
-
--   **Responsibilities**:
-    -   Provides a form for email, password, and invite code entry.
-    -   Validates the invite code and creates a new Supabase user.
-    -   Assigns a default user role based on the invite code.
-    -   Marks the invite code as used upon successful signup.
-    -   Creates an audit log entry for the signup.
--   **Key Props**: `onNavigateToHelp`, `showToast`, `onSignupSuccess`, `onNavigateBack`.
+-   **Key Props**: `onOpenHelpModal`.
 
 #### `SectionSelectPage.tsx`
 
@@ -161,10 +136,8 @@ Allows the authenticated user to choose which section (Company or Junior) to man
 
 -   **Responsibilities**:
     -   Displays buttons for selecting Company or Junior sections.
-    -   Persists the selected section in `localStorage`.
-    -   Provides actions for Help, Global Settings, and Sign Out.
-    -   Conditionally renders "Global Settings" based on `userRole`.
--   **Key Props**: `onSelectSection`, `onOpenHelpModal`, `onNavigateToGlobalSettings`, `userRole`, `onSignOut`.
+    -   Provides actions for Help and Sign Out.
+-   **Key Props**: `onSelectSection`, `onOpenHelpModal`, `onSignOut`.
 
 ---
 

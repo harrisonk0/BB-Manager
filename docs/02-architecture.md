@@ -30,7 +30,7 @@ React component -> hook -> services/* -> Supabase
 
 - Auth flows live in `services/supabaseAuth.ts`.
 - Section settings live in `services/settings.ts`.
-- CRUD, invite-code, audit-log, and role operations live in `services/db.ts`.
+- CRUD, audit-log, and role operations live in `services/db.ts`.
 
 ## Security Notes
 

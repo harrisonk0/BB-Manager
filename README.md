@@ -1,6 +1,6 @@
 # BB Manager
 
-BB Manager is a Vite-powered React SPA for managing Boys' Brigade members, marks, settings, invite codes, and audit logs against a Supabase backend.
+BB Manager is a Vite-powered React SPA for managing Boys' Brigade members, marks, settings, and audit logs against a Supabase backend.
 
 ## Production Shape
 
@@ -23,7 +23,6 @@ There is no in-repo Express server or Docker runtime. The app is built as a stat
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
-- `VITE_APP_URL`
 
 ## Documentation
 

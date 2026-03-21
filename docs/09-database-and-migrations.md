@@ -24,6 +24,7 @@ Latest migration visible in the live project at the time of verification:
 - Inspect schema and policies with Supabase MCP tools before making assumptions.
 - Apply schema changes through Supabase migrations or MCP-driven database changes, not ad-hoc dashboard edits.
 - Update app code and docs in the same change when table names, functions, or permissions change.
+- The current app no longer exposes invite-code provisioning or recovery flows, even though legacy invite-code objects still exist in the live project.
 
 ## Important Historical Note
 

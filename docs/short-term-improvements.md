@@ -7,40 +7,15 @@ This document describes the short-term improvements made to BB-Manager after the
 
 ---
 
-## 1. Automatic Invite Code Cleanup
+## 1. Invite Code Cleanup
+
+This branch removes the invite-code cleanup workflow and the public signup flow. Manual account provisioning in Supabase is the supported path now.
 
 ### What Was Implemented
 
-**Database Function: `cleanup_old_invite_codes()`**
-- Deletes invite codes expired/used for 14+ days
-- Returns count of deleted codes
-- SECURITY DEFINER with search_path mitigation
-- Granted to service_role only
-
-**Database Trigger: `check_invite_code_expiration()`**
-- Automatically sets `revoked = true` for expired codes
-- Fires on INSERT/UPDATE to `invite_codes` table
-- Immediate feedback when code expires
-
-**GitHub Actions Workflow:**
-- File: `.github/workflows/cleanup-invite-codes.yml`
-- Runs daily at 2 AM UTC
-- Can be triggered manually
-- Calls cleanup function via Supabase REST API
-
-### How to Use
-
-**Automatic:** Nothing required - runs automatically daily
-
-**Manual Cleanup:**
-1. Go to GitHub Actions tab
-2. Select "Cleanup Invite Codes" workflow
-3. Click "Run workflow"
-
-### Required Secrets
-
-- `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY` - Service role key (from Supabase dashboard)
+- Deleted the invite-code cleanup workflow file from `.github/workflows/`
+- Removed the signup and password-recovery UI paths
+- Kept account provisioning manual in Supabase
 
 ---
 
@@ -75,7 +50,6 @@ This document describes the short-term improvements made to BB-Manager after the
 
 Then follow manual test steps in:
 - `tests/e2e/01-auth-workflow.md`
-- `tests/e2e/02-invite-code-workflow.md`
 - `tests/e2e/03-member-crud-workflow.md`
 - `tests/e2e/04-weekly-marks-workflow.md`
 
@@ -158,11 +132,6 @@ To test error monitoring:
 ---
 
 ## Maintenance
-
-### Invite Code Cleanup
-- Monitor GitHub Actions workflow runs
-- Check deleted counts periodically
-- Verify cleanup is working
 
 ### CI/CD Infrastructure
 - Review workflow runs for failures

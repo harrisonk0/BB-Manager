@@ -76,9 +76,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Test Scenarios:**" >> $GITHUB_STEP_SUMMARY
           echo "1. [Auth & Login](../tree/main/tests/e2e/01-auth-workflow.md)" >> $GITHUB_STEP_SUMMARY
-          echo "2. [Invite Code Signup](../tree/main/tests/e2e/02-invite-code-workflow.md)" >> $GITHUB_STEP_SUMMARY
-          echo "3. [Member CRUD](../tree/main/tests/e2e/03-member-crud-workflow.md)" >> $GITHUB_STEP_SUMMARY
-          echo "4. [Weekly Marks Entry](../tree/main/tests/e2e/04-weekly-marks-workflow.md)" >> $GITHUB_STEP_SUMMARY
+          echo "2. [Member CRUD](../tree/main/tests/e2e/03-member-crud-workflow.md)" >> $GITHUB_STEP_SUMMARY
+          echo "3. [Weekly Marks Entry](../tree/main/tests/e2e/04-weekly-marks-workflow.md)" >> $GITHUB_STEP_SUMMARY
 
       - name: Stop dev server
         if: always()

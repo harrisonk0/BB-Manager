@@ -21,7 +21,6 @@ import {
     StarIcon,
     FilterIcon,
     LockClosedIcon,
-    ClipboardIcon,
     UserCircleIcon,
     LogOutIcon,
 } from './Icons';
@@ -202,7 +201,6 @@ const AccountSettingsPreview: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-md border border-slate-200">
             <h3 className="text-lg font-semibold text-slate-700 mb-3">Change Password</h3>
             <div className="space-y-3">
-                <input type="password" placeholder="Current Password" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
                 <input type="password" placeholder="New Password" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
                 <input type="password" placeholder="Confirm New Password" disabled className="block w-full px-3 py-2 border border-slate-300 rounded-md bg-slate-100 cursor-not-allowed" />
             </div>
@@ -214,44 +212,6 @@ const AccountSettingsPreview: React.FC = () => {
         </div>
     );
 };
-
-const GlobalSettingsPreview: React.FC = () => {
-    const activeSection = localStorage.getItem('activeSection') as Section | null;
-    const isCompany = activeSection === 'company';
-    const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
-
-    return (
-        <div className="bg-white p-6 rounded-lg shadow-md border border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-700 mb-3">Invite New Users</h3>
-            <button disabled className={`inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-md shadow-sm text-white ${accentBg} opacity-80 cursor-not-allowed`}>
-                Generate New Invite Code
-            </button>
-            <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between flex-wrap gap-2">
-                <span className="font-mono text-slate-800 text-sm break-all">ABC123DEF456</span>
-                <button disabled className="p-2 text-slate-400 rounded-md cursor-not-allowed">
-                    <ClipboardIcon className="h-5 w-5" />
-                </button>
-            </div>
-            <h3 className="text-lg font-semibold text-slate-700 mt-6 mb-3">User Role Management</h3>
-            <ul className="divide-y divide-slate-200 border border-slate-200 rounded-md">
-                <li className="p-3 flex items-center justify-between text-sm">
-                    <div className="flex-1">
-                        <span className="font-medium text-slate-800">admin@example.com</span>
-                        <p className="text-xs text-slate-500 mt-1"><span className="font-semibold">Administrator</span></p>
-                    </div>
-                    <button disabled className={`px-3 py-1.5 text-sm font-medium text-white rounded-md shadow-sm ${accentBg} opacity-80 cursor-not-allowed`}>
-                        Edit Role
-                    </button>
-                </li>
-            </ul>
-            <h3 className="text-lg font-semibold text-red-700 mt-6 mb-3">Development Controls (Admin Only)</h3>
-            <button disabled className="w-full px-4 py-2 text-sm font-medium text-white bg-red-600/80 rounded-md shadow-sm cursor-not-allowed">
-                Clear All Audit Logs
-            </button>
-        </div>
-    );
-};
-
 
 /** A styled callout box for highlighting important notes. */
 const Callout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -309,7 +269,6 @@ const HelpPage: React.FC = () => {
             { id: 'audit-log', title: 'The Audit Log' },
             { id: 'reverting-actions', title: 'How to Revert an Action' },
             { id: 'section-settings', title: 'Section Settings' },
-            { id: 'global-settings', title: 'Global Settings' },
             { id: 'account-settings', title: 'Account Settings' },
             { id: 'sign-out', title: 'Signing Out' },
         ]},
@@ -362,7 +321,7 @@ const HelpPage: React.FC = () => {
                         
                         <div id="login" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">How to Log In</h3>
-                            <p>You will be given a unique email and password to access the app. Simply enter these credentials on the login screen to get started. If you don't have an account, you can sign up using an invite code provided by an administrator.</p>
+                            <p>You will be given a unique email and password to access the app. Simply enter these credentials on the login screen to get started. If you do not have an account yet, an administrator will provision it for you in Supabase.</p>
                             <LoginPreview />
                         </div>
 
@@ -518,20 +477,13 @@ const HelpPage: React.FC = () => {
                         
                         <div id="reverting-actions" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">How to Revert an Action</h3>
-                            <p>Made a mistake? No problem. In the Audit Log, most actions have a <strong className={`${accentTextColor}`}>Revert</strong> button (<UndoIcon className="inline h-4 w-4 align-text-bottom"/>). Clicking this will undo the action. For example, if you accidentally delete a member, reverting the action will restore them with all their previous marks intact. If you revert the generation of an invite code, that code will be marked as revoked.</p>
+                            <p>Made a mistake? No problem. In the Audit Log, most actions have a <strong className={`${accentTextColor}`}>Revert</strong> button (<UndoIcon className="inline h-4 w-4 align-text-bottom"/>). Clicking this will undo the action. For example, if you accidentally delete a member, reverting the action will restore them with all their previous marks intact.</p>
                         </div>
                         
                         <div id="section-settings" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Section Settings</h3>
                             <p>On the Section Settings page (accessed via the <CogIcon className="inline h-4 w-4 align-text-bottom"/> icon in the header), you can customize settings specific to your active section. For example, you can set your section's official meeting day, which will make the Weekly Marks page automatically select the correct date for you. Only Admins and Captains can save these settings.</p>
                             <SectionSettingsPreview />
-                        </div>
-
-                        <div id="global-settings" className="space-y-4 scroll-mt-24">
-                            <h3 className="text-2xl font-semibold text-slate-700">Global Settings</h3>
-                            <p>The Global Settings page (accessed via the User Profile dropdown in the header, then "Global Settings" from the Section Select page) contains settings that affect the entire application, regardless of the active section. Here, administrators and captains can manage invite codes for new user sign-ups, view and update user roles, and access powerful development controls (admin-only).</p>
-                            <GlobalSettingsPreview />
-                            <Callout>To keep the database tidy, all used or revoked invite codes, as well as audit logs, are automatically deleted after 14 days.</Callout>
                         </div>
 
                         <div id="account-settings" className="space-y-4 scroll-mt-24">

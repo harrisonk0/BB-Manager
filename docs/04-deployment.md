@@ -9,7 +9,6 @@ Set these in the Vercel project for Preview and Production:
 ```bash
 VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
 VITE_SUPABASE_ANON_KEY="<your-public-anon-key>"
-VITE_APP_URL="https://<your-production-domain>"
 ```
 
 ## Vercel Settings
@@ -31,6 +30,6 @@ In Supabase Auth URL configuration:
 
 1. Confirm Vercel env vars are present for the target environment.
 2. Deploy from the main branch or the intended release branch.
-3. Verify sign-in, sign-up, invite-code claim, and password reset flows.
+3. Verify sign-in works for manually provisioned users.
 4. Verify the production users have the expected roles in `profiles`.
-5. Smoke-test member CRUD, marks entry, settings, invite codes, and audit logs.
+5. Smoke-test member CRUD, marks entry, settings, dashboard, and audit logs.

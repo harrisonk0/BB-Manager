@@ -77,7 +77,7 @@ interface AuditLog {
 
 #### `InviteCode`
 
-Represents a one-time-use invite code for new user sign-ups.
+Represents a legacy invite-code record retained for database and audit-log compatibility.
 
 ```typescript
 export interface InviteCode {
@@ -221,7 +221,7 @@ These types are used by the root `App.tsx` component to manage the current page 
 Represents the main pages available in the application's navigation.
 
 ```typescript
-type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'globalSettings' | 'accountSettings' | 'signup';
+type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'accountSettings';
 ```
 
 ---
