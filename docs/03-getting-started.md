@@ -48,6 +48,8 @@ Open the printed local URL, usually `http://localhost:5173`.
 
 ```bash
 npm run typecheck
+npm run test:coverage
 npm run build
-npm run test:run
 ```
+
+`npm run test:run` is the same automated suite CI runs on each push and pull request. The suite is intentionally small and focuses on business-critical logic rather than browser automation.

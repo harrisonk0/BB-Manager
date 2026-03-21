@@ -17,7 +17,13 @@ There is no in-repo Express server or Docker runtime. The app is built as a stat
 1. Install dependencies with `npm install`.
 2. Create a local `.env` from [`.env.example`](./.env.example).
 3. Start the dev server with `npm run dev`.
-4. Run `npm run typecheck`, `npm run build`, and `npm run test:run` before shipping changes.
+4. Run `npm run typecheck`, `npm run test:run`, and `npm run build` before shipping changes.
+
+## Testing
+
+- `npm run test:run` runs the lean automated suite used by CI on every push and pull request.
+- `npm run test:coverage` reports coverage for the same suite.
+- `tests/e2e/` contains manual Supabase-backed smoke-test runbooks for auth, member CRUD, and marks workflows.
 
 ## Environment Variables
 

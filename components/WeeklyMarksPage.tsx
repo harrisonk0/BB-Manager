@@ -3,6 +3,7 @@ import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '..
 import { updateBoy } from '../services/db';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
+import { getNearestMeetingDay } from './weeklyMarksDates';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -31,22 +32,6 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
 // Type definitions for the local state of marks, which can be partially entered.
 type JuniorMarkState = { uniform: number | '', behaviour: number | '' };
 type CompanyMarkState = number | string;
-
-/**
- * Calculates the date of the nearest upcoming meeting day based on settings.
- * @param meetingDay The day of the week for meetings (0=Sun, 1=Mon...).
- * @returns A date string in 'YYYY-MM-DD' format.
- */
-const getNearestMeetingDay = (meetingDay: number): string => {
-  const today = new Date();
-  const currentDay = today.getDay();
-  let diff = meetingDay - currentDay;
-  if (diff < 0) {
-    diff += 7; // Ensure we always find the *next* meeting day, not a past one.
-  }
-  today.setDate(today.getDate() + diff);
-  return today.toISOString().split('T')[0];
-};
 
 const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings, showToast }) => {
   // --- STATE MANAGEMENT ---
