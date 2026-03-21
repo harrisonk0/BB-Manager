@@ -19,9 +19,3 @@ This file tracks the active documentation set for the current codebase.
 - `docs/06-data-and-services.md`: service layer reference
 - `docs/07-hooks-and-state.md`: hook/state coordination
 - `docs/08-types.md`: shared type reference
-
-## Archive Policy
-
-- Historical audits, plans, and one-off investigations belong in `docs/archive/`.
-- Archived material is useful context, but it is not the source of truth for the current app.
-- If an archived document conflicts with the active docs, follow the active docs.

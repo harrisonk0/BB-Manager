@@ -6,7 +6,7 @@ BB Manager is organised as a Vite SPA with Supabase-facing services and a small 
 /
 ├── .github/workflows/   # CI and operational workflows
 ├── components/          # React UI and page components
-├── docs/                # Active docs plus archive/
+├── docs/                # Active docs and runbooks
 ├── hooks/               # Custom React hooks
 ├── services/            # Supabase client, auth, data, settings
 ├── tests/               # Manual E2E runbooks
@@ -28,7 +28,7 @@ BB Manager is organised as a Vite SPA with Supabase-facing services and a small 
 - `hooks/`: auth, section management, data loading, unsaved-change protection, toasts
 - `services/`: Supabase integration and domain operations
 - `tests/`: markdown E2E runbooks
-- `docs/`: active docs and historical archive
+- `docs/`: active docs and runbooks
 
 ## Key Root Files
 

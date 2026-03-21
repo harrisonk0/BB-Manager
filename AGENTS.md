@@ -37,9 +37,9 @@ Important database functions present in the live project:
 
 - `components/`: UI and page components
 - `hooks/`: cross-cutting React hooks
-- `services/`: Supabase access, auth helpers, settings, monitoring
-- `docs/`: active documentation and historical archive
-- `tests/`: unit tests plus manual E2E runbooks
+- `services/`: Supabase access, auth helpers, and settings
+- `docs/`: active documentation and runbooks
+- `tests/`: manual E2E runbooks
 - `.github/workflows/`: CI and operational workflows
 
 ## Commands
@@ -95,7 +95,6 @@ Rules:
 - `ARCHITECTURE.md` is the canonical system overview.
 - `AGENTS.md` is the operational guide for contributors/agents.
 - `docs/` contains subordinate runbooks and references.
-- Archive historical material under `docs/archive/`; do not let archived plans drive current docs.
 
 When changing behavior:
 

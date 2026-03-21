@@ -31,5 +31,3 @@ There is no in-repo Express server or Docker runtime. The app is built as a stat
 - [docs/03-getting-started.md](./docs/03-getting-started.md): local setup
 - [docs/04-deployment.md](./docs/04-deployment.md): Vercel deployment runbook
 - [docs/user-guide.md](./docs/user-guide.md): handout for new users
-
-Historical material lives under [`docs/archive/`](./docs/archive/).
