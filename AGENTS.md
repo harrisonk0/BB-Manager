@@ -93,6 +93,8 @@ Rules:
 
 - Treat the live Supabase project as the source of truth for schema and RLS.
 - Prefer MCP Supabase migrations and inspection tools for schema work.
+- Before any database schema, RLS, function, trigger, or data migration change, create a full database dump in a local gitignored `db-backups/` folder using a timestamped filename.
+- Do not apply database changes until that dump has been tested by restoring it safely into a scratch database or disposable Supabase development branch.
 - Document any schema or permission change in the relevant docs.
 - Keep app code and docs aligned with the live schema names (`profiles`, `members`, `marks`), not legacy names.
 

@@ -19,3 +19,4 @@ This file tracks the active documentation set for the current codebase.
 - `docs/06-data-and-services.md`: service layer reference
 - `docs/07-hooks-and-state.md`: hook/state coordination
 - `docs/08-types.md`: shared type reference
+- `docs/11-session-lifecycle-plan.md`: planned session close, archive, sleeping-mode, and restart design

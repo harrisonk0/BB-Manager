@@ -34,3 +34,6 @@ AI_RULES.md
 
 # Worktrees
 .worktrees/
+
+# Local database backup dumps
+db-backups/
