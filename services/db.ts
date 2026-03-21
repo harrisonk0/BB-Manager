@@ -8,6 +8,7 @@ import {
   toStoredMark,
   validateBoyMarks,
 } from './dbModel';
+import { buildMemberMarkSyncPlan } from './dbSyncPlan';
 
 const syncMemberMarks = async (memberId: string, section: Section, marks: Mark[]) => {
   const authUser = await supabaseAuth.getCurrentUser();
@@ -22,10 +23,13 @@ const syncMemberMarks = async (memberId: string, section: Section, marks: Mark[]
     throw new Error(existingError.message || 'Failed to fetch existing marks.');
   }
 
-  const existingDates = new Set((existingData || []).map((row) => row.date as string));
-  const desiredDates = new Set(marks.map((mark) => mark.date));
-
-  const datesToDelete = [...existingDates].filter((date) => !desiredDates.has(date));
+  const { datesToDelete, markRows } = buildMemberMarkSyncPlan({
+    existingDates: (existingData || []).map((row) => row.date as string),
+    marks,
+    memberId,
+    createdBy: authUser.id,
+    section,
+  });
 
   if (datesToDelete.length > 0) {
     const { error: deleteError } = await supabase
@@ -42,12 +46,6 @@ const syncMemberMarks = async (memberId: string, section: Section, marks: Mark[]
   if (marks.length === 0) {
     return;
   }
-
-  const markRows = marks.map((mark) => ({
-    member_id: memberId,
-    created_by: authUser.id,
-    ...toStoredMark(mark, section),
-  }));
 
   const { error: upsertError } = await supabase
     .from('marks')
