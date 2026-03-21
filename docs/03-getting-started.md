@@ -23,6 +23,13 @@ VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
 VITE_SUPABASE_ANON_KEY="<your-public-anon-key>"
 ```
 
+Optional browser smoke-test credentials for `npm run test:e2e`:
+
+```bash
+E2E_TEST_EMAIL="<test-user-email>"
+E2E_TEST_PASSWORD="<test-user-password>"
+```
+
 ## 3. Confirm Supabase Bootstrap State
 
 The live app expects these tables to exist:
@@ -53,3 +60,5 @@ npm run build
 ```
 
 `npm run test:run` is the same automated suite CI runs on each push and pull request. The suite is intentionally small and focuses on business-critical logic rather than browser automation.
+
+`npm run test:e2e` runs the small Playwright smoke suite. It uses a real browser and real Supabase auth, so it requires a dedicated test user with a valid role and at least one Company-section member already present.

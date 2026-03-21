@@ -23,7 +23,10 @@ There is no in-repo Express server or Docker runtime. The app is built as a stat
 
 - `npm run test:run` runs the lean automated suite used by CI on every push and pull request.
 - `npm run test:coverage` reports coverage for the same suite.
+- `npm run test:e2e` runs the browser smoke suite against a real Supabase-backed environment. It requires `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD`.
 - `tests/e2e/` contains manual Supabase-backed smoke-test runbooks for auth, member CRUD, and marks workflows.
+
+The CI smoke suite expects the test account to have a valid app role and at least one member in the Company section so the weekly-marks save flow has real data to exercise.
 
 ## Environment Variables
 

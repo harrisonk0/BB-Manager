@@ -458,6 +458,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                                   min="0"
                                   max="10"
                                   step="0.01"
+                                  aria-label={`Score for ${boy.name}`}
                                   // FIX: Use Number() to correctly compare union type with number and fix TS errors. This also fixes a parser error with operator precedence.
                                   value={Number(marks[boy.id] as CompanyMarkState) < 0 ? '' : marks[boy.id] as CompanyMarkState ?? ''}
                                   onChange={e => handleCompanyMarkChange(boy.id!, e.target.value)}

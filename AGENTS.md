@@ -39,7 +39,7 @@ Important database functions present in the live project:
 - `hooks/`: cross-cutting React hooks
 - `services/`: Supabase access, auth helpers, and settings
 - `docs/`: active documentation and runbooks
-- `tests/`: manual E2E runbooks
+- `tests/`: Playwright smoke specs and manual E2E runbooks
 - `.github/workflows/`: CI and operational workflows
 
 ## Commands
@@ -53,6 +53,7 @@ npm run typecheck
 npm run test
 npm run test:run
 npm run test:coverage
+npm run test:e2e
 ```
 
 ## Environment Variables
@@ -62,6 +63,11 @@ Client-side variables:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_APP_URL` for auth redirect URLs in deployed environments
+
+CI/browser smoke-test variables:
+
+- `E2E_TEST_EMAIL`
+- `E2E_TEST_PASSWORD`
 
 Rules:
 
