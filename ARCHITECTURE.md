@@ -20,9 +20,8 @@ Verified on 2026-03-21:
 - `settings`
 - `members`
 - `marks`
-- `invite_codes` and `audit_logs` still exist in the live project as legacy tables, but the active UI no longer depends on them.
 
-RLS is enabled on all of those tables.
+RLS is enabled on the current app tables.
 
 ## High-Level Data Flow
 
@@ -67,7 +66,6 @@ flowchart LR
   - `members` for member records
   - `marks` for per-member attendance and scores
 - `services/settings.ts` handles section-level settings.
-- The current app no longer ships client-side error monitoring or an in-app help/manual screen.
 
 ## State Model
 
@@ -84,7 +82,7 @@ The app does not maintain an offline cache or a separate backend API.
 
 - The browser only receives public client credentials (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
 - Authorization is enforced in Supabase, not in the client.
-- Manual account provisioning is handled directly in Supabase; the app no longer exposes signup, recovery, or audit-log flows.
+- Manual account provisioning is handled directly in Supabase; the app no longer exposes signup or recovery flows.
 - New-user onboarding is documented in [`docs/user-guide.md`](docs/user-guide.md).
 - Client-side role checks remain UX guardrails only.
 

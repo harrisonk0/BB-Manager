@@ -7,13 +7,9 @@ This is the current high-level security summary for the live Supabase project us
 Verified on 2026-03-21:
 
 - RLS is enabled on `profiles`, `settings`, `members`, `marks`, `invite_codes`, and `audit_logs`.
-- The database exposes these helper functions used by the app and operations:
-  - `current_app_role`
-  - `validate_invite_code`
-  - `claim_invite_code`
-  - `cleanup_old_invite_codes`
 
-The active UI only relies on the first four tables. The invite-code and audit-log objects are retained in the live database for historical compatibility.
+The active UI only relies on `profiles`, `settings`, `members`, and `marks`.
+The live database also retains legacy invite-code and audit-log objects for compatibility.
 
 ## Security Principles
 

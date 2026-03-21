@@ -17,7 +17,6 @@ The app currently maps to these public tables:
 - `settings`
 - `members`
 - `marks`
-- `invite_codes` and `audit_logs` still exist in the live project as legacy tables, but the active UI no longer depends on them.
 
 `services/db.ts` translates between the UI-facing `Boy` model and the normalized `members` + `marks` tables used in Supabase.
 
@@ -36,4 +35,4 @@ React component -> hook -> services/* -> Supabase
 - The client uses only public Supabase credentials.
 - RLS is enabled on all live application tables.
 - Role checks in the UI are convenience checks only; enforcement lives in Supabase.
-- The app no longer includes in-app help, ntfy-style error reporting, signup, or password recovery screens.
+- Manual account provisioning lives in Supabase; the UI covers sign-in, section selection, roster management, marks entry, dashboard, settings, and account password changes.

@@ -8,9 +8,8 @@ BB Manager is organised as a Vite SPA with Supabase-facing services and a small 
 ├── components/          # React UI and page components
 ├── docs/                # Active docs plus archive/
 ├── hooks/               # Custom React hooks
-├── scripts/             # Utility scripts
-├── services/            # Supabase client, auth, data, settings, monitoring
-├── tests/               # Unit tests and manual E2E runbooks
+├── services/            # Supabase client, auth, data, settings
+├── tests/               # Manual E2E runbooks
 ├── AGENTS.md            # Contributor and agent guide
 ├── ARCHITECTURE.md      # Canonical system overview
 ├── App.tsx              # App shell and view orchestration
@@ -28,7 +27,7 @@ BB Manager is organised as a Vite SPA with Supabase-facing services and a small 
 - `components/`: page-level UI and reusable presentation components
 - `hooks/`: auth, section management, data loading, unsaved-change protection, toasts
 - `services/`: Supabase integration and domain operations
-- `tests/`: Vitest coverage plus markdown E2E runbooks
+- `tests/`: markdown E2E runbooks
 - `docs/`: active docs and historical archive
 
 ## Key Root Files

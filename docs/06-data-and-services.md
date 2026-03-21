@@ -17,8 +17,6 @@ The current app talks to these tables:
 - `settings`: section-level settings
 - `members`: core member records
 - `marks`: normalized attendance and score rows
-- `invite_codes`: legacy invite-code records retained for compatibility only
-- `audit_logs`: legacy table retained for historical data only
 
 ## Data Flow
 
@@ -31,4 +29,4 @@ The current app talks to these tables:
 
 - The UI-facing `Boy` model is assembled from `members` and `marks`.
 - Role information is loaded from `profiles`, not from a separate `user_roles` table.
-- The active UI no longer writes audit-log entries or uses client-side error reporting.
+- The active UI is limited to member management, marks entry, dashboard reporting, and section settings.

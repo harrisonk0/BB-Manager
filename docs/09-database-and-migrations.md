@@ -8,13 +8,9 @@ Verified on 2026-03-21:
 
 - Tables: `profiles`, `settings`, `members`, `marks`, `invite_codes`, `audit_logs`
 - RLS: enabled on all of them
-- Helper functions present:
-  - `current_app_role`
-  - `validate_invite_code`
-  - `claim_invite_code`
-  - `cleanup_old_invite_codes`
 
-The current app only depends on `profiles`, `settings`, `members`, and `marks`. The invite-code and audit-log objects remain in the live project as legacy database objects.
+The current app only depends on `profiles`, `settings`, `members`, and `marks`.
+The live project also contains legacy invite-code and audit-log objects, but they are outside the current app surface.
 
 Latest migration visible in the live project at the time of verification:
 
