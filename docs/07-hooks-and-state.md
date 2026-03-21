@@ -32,6 +32,6 @@ This document summarises the app's custom hook layer.
 ## State Sources
 
 - Supabase Auth session
-- Supabase data (`profiles`, `members`, `marks`, `settings`, `audit_logs`)
+- Supabase data (`profiles`, `members`, `marks`, `settings`, `invite_codes`)
 - `localStorage['activeSection']`
 - React state held in hooks and components

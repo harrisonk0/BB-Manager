@@ -7,7 +7,6 @@ import BoyMarksPage from './components/BoyMarksPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
-import AuditLogPage from './components/AuditLogPage';
 import SettingsPage from './components/SettingsPage';
 import SectionSelectPage from './components/SectionSelectPage';
 import AccountSettingsPage from './components/AccountSettingsPage';
@@ -98,8 +97,6 @@ const App: React.FC = () => {
         return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection!} settings={settings} showToast={showToast} />;
       case 'dashboard':
         return <DashboardPage boys={boys} activeSection={activeSection!} />;
-      case 'auditLog':
-        return <AuditLogPage refreshData={refreshData} activeSection={activeSection!} showToast={showToast} userRole={userRole} />;
       case 'settings': // Section-specific settings
         return <SettingsPage activeSection={activeSection!} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} />;
       case 'accountSettings': // New: Account settings

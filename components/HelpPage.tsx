@@ -11,7 +11,6 @@ import {
     ChartBarIcon,
     PencilIcon,
     TrashIcon,
-    UndoIcon,
     CogIcon,
     PlusIcon,
     QuestionMarkCircleIcon,
@@ -266,8 +265,6 @@ const HelpPage: React.FC = () => {
         ]},
         { id: 'dashboard', title: '5. Dashboard & Reporting' },
         { id: 'administration', title: '6. App Administration', subSections: [
-            { id: 'audit-log', title: 'The Audit Log' },
-            { id: 'reverting-actions', title: 'How to Revert an Action' },
             { id: 'section-settings', title: 'Section Settings' },
             { id: 'account-settings', title: 'Account Settings' },
             { id: 'sign-out', title: 'Signing Out' },
@@ -336,7 +333,7 @@ const HelpPage: React.FC = () => {
                             <p>The header at the top of the page is your main navigation tool. It allows you to switch between different pages, manage settings, and sign out. Its key areas are:</p>
                             <ul className="list-disc list-inside space-y-1 pl-4">
                                 <li><strong>App & Section Logos:</strong> Click the main BB logo to always return to the Home page.</li>
-                                <li><strong>Navigation Links:</strong> (e.g., Home, Dashboard, Weekly Marks, Audit Log) Quickly jump to the main pages of the app. The Audit Log is visible to Admins, Captains, and Officers.</li>
+                                <li><strong>Navigation Links:</strong> (e.g., Home, Dashboard, Weekly Marks) Quickly jump to the main pages of the app.</li>
                                 <li><strong>Tools & Actions:</strong> Icons for Help (<QuestionMarkCircleIcon className="inline h-4 w-4 align-text-bottom"/>), Section Settings (<CogIcon className="inline h-4 w-4 align-text-bottom"/>), and a User Profile icon (<UserCircleIcon className="inline h-4 w-4 align-text-bottom"/>) which opens a dropdown for Account Settings, Switching Sections, and Logging Out.</li>
                             </ul>
                             <HeaderAnatomy />
@@ -469,16 +466,6 @@ const HelpPage: React.FC = () => {
                     {/* Section 6: Administration */}
                     <section id="administration" className="space-y-8 scroll-mt-24">
                         <h2 className="text-3xl font-bold text-slate-800 border-b pb-2">6. App Administration</h2>
-                        
-                        <div id="audit-log" className="space-y-4 scroll-mt-24">
-                            <h3 className="text-2xl font-semibold text-slate-700">The Audit Log</h3>
-                            <p>The Audit Log is a complete history of every action taken in the app, such as creating a member, updating marks, or deleting a boy. It shows what the action was, who did it, and when. This provides accountability and makes it easy to track changes.</p>
-                        </div>
-                        
-                        <div id="reverting-actions" className="space-y-4 scroll-mt-24">
-                            <h3 className="text-2xl font-semibold text-slate-700">How to Revert an Action</h3>
-                            <p>Made a mistake? No problem. In the Audit Log, most actions have a <strong className={`${accentTextColor}`}>Revert</strong> button (<UndoIcon className="inline h-4 w-4 align-text-bottom"/>). Clicking this will undo the action. For example, if you accidentally delete a member, reverting the action will restore them with all their previous marks intact.</p>
-                        </div>
                         
                         <div id="section-settings" className="space-y-4 scroll-mt-24">
                             <h3 className="text-2xl font-semibold text-slate-700">Section Settings</h3>

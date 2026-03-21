@@ -1,6 +1,6 @@
 # Architecture Overview
 
-BB Manager is a client-side React + TypeScript single-page app for managing Boys' Brigade members, marks, settings, and audit logs across the `company` and `junior` sections.
+BB Manager is a client-side React + TypeScript single-page app for managing Boys' Brigade members, marks, and settings across the `company` and `junior` sections.
 
 The app is deployed as a static SPA on Vercel. The browser talks directly to Supabase for authentication and data access. There is no custom application server in this repo.
 
@@ -21,7 +21,6 @@ Verified on 2026-03-21:
 - `members`
 - `marks`
 - `invite_codes`
-- `audit_logs`
 
 RLS is enabled on all of those tables.
 
@@ -67,7 +66,6 @@ flowchart LR
   - `profiles` for app roles and user metadata
   - `members` for member records
   - `marks` for per-member attendance and scores
-  - `audit_logs` for operational history
 - `services/settings.ts` handles section-level settings.
 - `services/errorMonitoring.ts` reports operational failures to `ntfy.sh`.
 
@@ -86,7 +84,7 @@ The app does not maintain an offline cache or a separate backend API.
 
 - The browser only receives public client credentials (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
 - Authorization is enforced in Supabase, not in the client.
-- Manual account provisioning is handled directly in Supabase; the app no longer exposes signup or recovery flows.
+- Manual account provisioning is handled directly in Supabase; the app no longer exposes signup, recovery, or audit-log flows.
 - Client-side role checks remain UX guardrails only.
 
 See [docs/10-database-security-model.md](docs/10-database-security-model.md) for the current security summary.

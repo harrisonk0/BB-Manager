@@ -32,4 +32,4 @@ In Supabase Auth URL configuration:
 2. Deploy from the main branch or the intended release branch.
 3. Verify sign-in works for manually provisioned users.
 4. Verify the production users have the expected roles in `profiles`.
-5. Smoke-test member CRUD, marks entry, settings, dashboard, and audit logs.
+5. Smoke-test member CRUD, marks entry, settings, and dashboard.

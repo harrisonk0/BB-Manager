@@ -33,7 +33,7 @@ The UI uses those roles to shape workflows, but the database remains the enforce
 ## Sensitive Areas
 
 - `profiles` controls application access
-- `invite_codes` remains in the live database for compatibility with historical data and audit-log paths
-- `audit_logs` stores operational history and revert payloads
+- `invite_codes` remains in the live database for compatibility with historical data
+- `audit_logs` is legacy history data and is not written by the current app
 
 Changes that affect any of those areas should be treated as security-sensitive and reflected in both code and docs.

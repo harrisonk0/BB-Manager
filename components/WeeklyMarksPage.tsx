@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
-import { updateBoy, createAuditLog } from '../services/db';
+import { updateBoy } from '../services/db';
 import { reportError } from '../services/errorMonitoring';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
-import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -61,7 +60,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   const [isDirty, setIsDirty] = useState(false); // Tracks if there are unsaved changes.
   const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
   const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
-  const { user } = useAuthAndRole();
 
 
   const isCompany = activeSection === 'company';
@@ -241,7 +239,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
 
   /**
    * Core save logic. This function processes all local state changes, determines which boys
-   * need updating, bundles these updates into a single transaction, and creates a single audit log entry.
+   * need updating, and bundles these updates into a single transaction.
    */
   const handleSaveMarks = async () => {
     // Check for any active errors before saving
@@ -256,7 +254,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
 
     setIsSaving(true);
     
-    const changedBoysOldData: Boy[] = [];
     // Map over all boys to create an array of update promises.
     const updates = boys.map(boy => {
         if (!boy.id) return Promise.resolve(null);
@@ -334,30 +331,18 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         
         // If this boy's marks have changed, add them to the update list.
         if (hasChanged) {
-            changedBoysOldData.push(JSON.parse(JSON.stringify(boy))); // Deep copy for revert data.
             return updateBoy({ ...boy, marks: updatedMarks }, activeSection);
         }
         return Promise.resolve(null);
     });
 
     try {
-        // If any boys were changed, create a single, comprehensive audit log entry.
-        if (changedBoysOldData.length > 0) {
-            const userEmail = user?.email || 'Unknown User';
-            await createAuditLog({
-                userEmail,
-                actionType: 'UPDATE_BOY',
-                description: `Updated weekly marks for ${selectedDate} for ${changedBoysOldData.length} boys.`,
-                revertData: { boysData: changedBoysOldData }, // Save all old boy objects for potential revert.
-            }, activeSection);
-        }
         await Promise.all(updates);
         showToast('Marks saved successfully!', 'success');
         refreshData();
         setIsDirty(false);
     } catch(error) {
-        const userEmail = user?.email || 'Unknown User';
-        await reportError('marks_save', error as Error, userEmail, {
+        await reportError('marks_save', error as Error, undefined, {
           boyCount: boys.length,
           section: activeSection
         });

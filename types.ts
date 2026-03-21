@@ -55,46 +55,6 @@ export interface Boy {
 }
 
 /**
- * Defines the types of actions that can be recorded in the audit log.
- */
-export type AuditLogActionType = 
-  'CREATE_BOY' | 
-  'UPDATE_BOY' | 
-  'DELETE_BOY' | 
-  'REVERT_ACTION' | 
-  'UPDATE_SETTINGS' | 
-  'GENERATE_INVITE_CODE' | 
-  'USE_INVITE_CODE' | 
-  'REVOKE_INVITE_CODE' | 
-  'UPDATE_INVITE_CODE' | // Added this type
-  'UPDATE_USER_ROLE' |
-  'DELETE_USER_ROLE' | // New: For deleting user roles
-  'CLEAR_AUDIT_LOGS' | // New: For clearing all audit logs
-  'CLEAR_USED_REVOKED_INVITE_CODES'; // New: For clearing used/revoked invite codes
-
-/**
- * Represents a single entry in the audit log, tracking changes made in the application.
- */
-export interface AuditLog {
-  /** A unique identifier for the log entry. */
-  id?: string;
-  /** The timestamp of when the action occurred (Unix milliseconds). */
-  timestamp: number;
-  /** The email of the user who performed the action. */
-  userEmail: string;
-  /** The type of action performed. */
-  actionType: AuditLogActionType;
-  /** A human-readable description of the action. */
-  description: string;
-  /** Data needed to revert the action (e.g., the state of an object before a change). */
-  revertData: any;
-  /** The ID of the original audit log that this REVERT_ACTION log is reverting. */
-  revertedLogId?: string;
-  /** The section this log pertains to. Null for global logs. */
-  section?: Section | null;
-}
-
-/**
  * Represents a one-time-use invite code for new user sign-ups.
  */
 export interface InviteCode {
@@ -123,7 +83,7 @@ export interface InviteCode {
 /**
  * Represents the main pages available in the application's navigation.
  */
-export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'accountSettings';
+export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'settings' | 'accountSettings';
 
 /**
  * A specific view type for displaying an individual boy's marks page.

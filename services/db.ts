@@ -1,4 +1,4 @@
-import { Boy, AuditLog, Section, InviteCode, UserRole, Mark } from '../types';
+import { Boy, Section, InviteCode, UserRole, Mark } from '../types';
 import { supabase } from './supabaseClient';
 import * as supabaseAuth from './supabaseAuth';
 import { reportError } from './errorMonitoring';
@@ -39,17 +39,6 @@ type InviteCodeRow = {
   revoked_at: string | null;
   created_at: string | null;
   expires_at: string | null;
-  section: Section | null;
-};
-
-type AuditLogRow = {
-  id: string;
-  timestamp: string | null;
-  user_email: string;
-  action_type: string;
-  description: string;
-  revert_data: any;
-  reverted_log_id: string | null;
   section: Section | null;
 };
 
@@ -128,17 +117,6 @@ const mapBoyRow = (member: MemberRow, marks: MarkRow[]): Boy => ({
     .sort((a, b) => a.date.localeCompare(b.date))
     .map(mapMarkRow),
   isSquadLeader: member.is_squad_leader ?? false,
-});
-
-const mapAuditLogRow = (row: AuditLogRow): AuditLog => ({
-  id: row.id,
-  timestamp: row.timestamp ? new Date(row.timestamp).getTime() : Date.now(),
-  userEmail: row.user_email,
-  actionType: row.action_type as AuditLog['actionType'],
-  description: row.description,
-  revertData: row.revert_data,
-  revertedLogId: row.reverted_log_id ?? undefined,
-  section: row.section ?? null,
 });
 
 const normalizeInviteCodeOptions = (
@@ -379,16 +357,6 @@ export const updateUserRole = async (
   if (error) {
     throw new Error(error.message || 'Failed to update role. Please try again.');
   }
-
-  await createAuditLog(
-    {
-      userEmail: authUser.email || 'Unknown User',
-      actionType: 'UPDATE_USER_ROLE',
-      description: `Updated role for user ${uid} from ${targetUserRole} to ${newRole}.`,
-      revertData: { uid, oldRole: targetUserRole, newRole },
-    },
-    null,
-  );
 };
 
 export const deleteUserRole = async (uid: string, actingUserRole: UserRole | null): Promise<void> => {
@@ -411,16 +379,6 @@ export const deleteUserRole = async (uid: string, actingUserRole: UserRole | nul
   if (error) {
     throw new Error(error.message || 'Failed to delete user role. Please try again.');
   }
-
-  await createAuditLog(
-    {
-      userEmail: authUser.email || 'Unknown User',
-      actionType: 'DELETE_USER_ROLE',
-      description: `Deleted role for user ${uid}.`,
-      revertData: { uid },
-    },
-    null,
-  );
 };
 
 export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise<Boy> => {
@@ -566,37 +524,6 @@ export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
   }
 };
 
-export const recreateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
-  validateBoyMarks(boy, section);
-  if (!boy.id) {
-    throw new Error('Boy ID is required to recreate a member.');
-  }
-
-  const { error } = await supabase
-    .from('members')
-    .upsert({
-      id: boy.id,
-      section,
-      name: boy.name,
-      squad: boy.squad,
-      school_year: String(boy.year),
-      is_squad_leader: boy.isSquadLeader ?? false,
-    });
-
-  if (error) {
-    throw new Error(error.message || 'Failed to recreate boy');
-  }
-
-  await syncMemberMarks(boy.id, section, boy.marks);
-
-  const recreatedBoy = await fetchBoyById(boy.id, section);
-  if (!recreatedBoy) {
-    throw new Error('Failed to reload recreated boy.');
-  }
-
-  return recreatedBoy;
-};
-
 export const deleteBoyById = async (id: string, section: Section): Promise<void> => {
   try {
     const { error: marksError } = await supabase
@@ -622,138 +549,6 @@ export const deleteBoyById = async (id: string, section: Section): Promise<void>
     await reportError('db_deleteBoy', error as Error, undefined, { boyId: id, section });
     throw error;
   }
-};
-
-export const createAuditLog = async (
-  log: Omit<AuditLog, 'id' | 'timestamp'>,
-  section: Section | null,
-  shouldLogAudit: boolean = true,
-): Promise<AuditLog | null> => {
-  if (!shouldLogAudit) return null;
-
-  const timestamp = Date.now();
-  const { data, error } = await supabase
-    .from('audit_logs')
-    .insert([
-      {
-        user_email: log.userEmail,
-        action_type: log.actionType,
-        description: log.description,
-        revert_data: log.revertData,
-        reverted_log_id: log.revertedLogId ?? null,
-        section: section ?? null,
-        timestamp: new Date(timestamp).toISOString(),
-      },
-    ])
-    .select('id,timestamp,user_email,action_type,description,revert_data,reverted_log_id,section')
-    .single();
-
-  if (error || !data) {
-    throw new Error(error?.message || 'Failed to create audit log');
-  }
-
-  return mapAuditLogRow(data as AuditLogRow);
-};
-
-export const fetchAuditLogs = async (section: Section | null): Promise<AuditLog[]> => {
-  const query = supabase
-    .from('audit_logs')
-    .select('id,timestamp,user_email,action_type,description,revert_data,reverted_log_id,section')
-    .order('timestamp', { ascending: false });
-
-  let result =
-    section === null ? await query.is('section', null) : await query.eq('section', section);
-
-  let data = (result.data || []) as AuditLogRow[];
-  let error = result.error;
-
-  if (section !== null) {
-    const globalResult = await supabase
-      .from('audit_logs')
-      .select('id,timestamp,user_email,action_type,description,revert_data,reverted_log_id,section')
-      .is('section', null)
-      .order('timestamp', { ascending: false });
-
-    if (!globalResult.error && globalResult.data) {
-      data = [...data, ...(globalResult.data as AuditLogRow[])];
-    } else if (globalResult.error) {
-      error = error || globalResult.error;
-    }
-  }
-
-  if (error) {
-    console.error('Failed to fetch audit logs from Supabase:', error);
-    return [];
-  }
-
-  return data.map(mapAuditLogRow).sort((a, b) => b.timestamp - a.timestamp);
-};
-
-export const clearAllAuditLogs = async (
-  section: Section | null,
-  userEmail: string,
-  userRole: UserRole | null,
-): Promise<void> => {
-  if (!userRole || !['admin', 'captain'].includes(userRole)) {
-    throw new Error('Permission denied: Only Admins and Captains can clear audit logs.');
-  }
-
-  const authUser = await supabaseAuth.getCurrentUser();
-  if (!authUser) throw new Error('User not authenticated');
-
-  const query = supabase.from('audit_logs').delete();
-  const { error } =
-    section === null
-      ? await query.is('section', null)
-      : await query.eq('section', section);
-
-  if (error) {
-    throw new Error(error.message || 'Failed to clear audit logs.');
-  }
-
-  const logDescription = section ? `Cleared audit logs for ${section} section.` : 'Cleared global audit logs.';
-
-  await createAuditLog(
-    {
-      userEmail,
-      actionType: 'CLEAR_AUDIT_LOGS',
-      description: logDescription,
-      revertData: {},
-    },
-    section,
-  );
-};
-
-export const clearAllUsedRevokedInviteCodes = async (
-  userEmail: string,
-  userRole: UserRole | null,
-): Promise<void> => {
-  if (!userRole || !['admin', 'captain'].includes(userRole)) {
-    throw new Error('Permission denied: Only Admins and Captains can clear invite codes.');
-  }
-
-  const authUser = await supabaseAuth.getCurrentUser();
-  if (!authUser) throw new Error('User not authenticated');
-
-  const { data, error } = await supabase
-    .from('invite_codes')
-    .delete()
-    .or('used_at.not.is.null,revoked_at.not.is.null')
-    .select('code,role,created_by,used_at,used_by,revoked_at,created_at,expires_at,section,id');
-
-  if (error) {
-    throw new Error(error.message || 'Failed to clear invite codes.');
-  }
-
-  await createAuditLog(
-    {
-      userEmail,
-      actionType: 'CLEAR_USED_REVOKED_INVITE_CODES',
-      description: 'Cleared used and revoked invite codes.',
-      revertData: { deletedCodes: data },
-    },
-    null,
-  );
 };
 
 export const createInviteCode = async (
@@ -785,7 +580,7 @@ export const createInviteCode = async (
     throw new Error(error.message || 'Failed to create invite code.');
   }
 
-  const newCode: InviteCode = {
+  return {
     id: code,
     generatedBy: authUser.email || 'unknown',
     section,
@@ -797,18 +592,6 @@ export const createInviteCode = async (
     expiresAt,
     generatedAt: Date.now(),
   };
-
-  await createAuditLog(
-    {
-      userEmail: authUser.email || 'Unknown User',
-      actionType: 'GENERATE_INVITE_CODE',
-      description: `Created invite code ${newCode.id} for section ${section}.`,
-      revertData: { inviteCode: newCode, inviteCodeId: newCode.id },
-    },
-    null,
-  );
-
-  return newCode;
 };
 
 const mapInviteCodeRow = (
@@ -884,9 +667,6 @@ export const updateInviteCode = async (
     throw new Error('Permission denied: Only Admins and Captains can update invite codes.');
   }
 
-  const authUser = await supabaseAuth.getCurrentUser();
-  if (!authUser) throw new Error('User not authenticated');
-
   const updatePayload: Record<string, any> = {};
 
   if (updates.usedAt !== undefined) {
@@ -934,43 +714,11 @@ export const updateInviteCode = async (
 
   const row = data as InviteCodeRow;
   const emailMap = await fetchProfileEmailMap([row.created_by || '', row.used_by || '']);
-  const updated = mapInviteCodeRow(row, emailMap);
-
-  await createAuditLog(
-    {
-      userEmail: authUser.email || 'Unknown User',
-      actionType: 'UPDATE_INVITE_CODE',
-      description: `Updated invite code ${id}.`,
-      revertData: { inviteCode: updated, inviteCodeId: id },
-    },
-    null,
-  );
-
-  return updated;
+  return mapInviteCodeRow(row, emailMap);
 };
 
-export const revokeInviteCode = async (
-  id: string,
-  section: Section,
-  createLogEntry: boolean = true,
-  userRole: UserRole | null,
-): Promise<void> => {
+export const revokeInviteCode = async (id: string, userRole: UserRole | null): Promise<void> => {
   await updateInviteCode(id, { revoked: true }, { callerRole: userRole });
-
-  if (createLogEntry) {
-    const authUser = await supabaseAuth.getCurrentUser();
-    if (authUser) {
-      await createAuditLog(
-        {
-          userEmail: authUser.email || 'Unknown User',
-          actionType: 'REVOKE_INVITE_CODE',
-          description: `Revoked invite code ${id} for section ${section}.`,
-          revertData: { inviteCodeId: id },
-        },
-        null,
-      );
-    }
-  }
 };
 
 export const fetchAllInviteCodes = async (userRole: UserRole | null): Promise<InviteCode[]> => {

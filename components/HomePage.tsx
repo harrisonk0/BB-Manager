@@ -5,8 +5,7 @@ import { Boy, Squad, View, Section, JuniorSquad, ToastType, SortByType, SchoolYe
 import Modal from './Modal';
 import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
-import { deleteBoyById, createAuditLog } from '../services/db';
-import { useAuthAndRole } from '../hooks/useAuthAndRole';
+import { deleteBoyById } from '../services/db';
 
 interface HomePageProps {
   /** The list of all boys for the active section. */
@@ -52,8 +51,6 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
-
-  const { user } = useAuthAndRole();
 
   // Keep the search control visible while a query is active.
   useEffect(() => {
@@ -208,15 +205,6 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     if (!boyToDelete) return;
 
     try {
-      const userEmail = user?.email || 'Unknown User';
-      
-      await createAuditLog({
-          userEmail,
-          actionType: 'DELETE_BOY',
-          description: `Deleted boy: ${boyToDelete.name}`,
-          revertData: { boyData: boyToDelete },
-      }, activeSection);
-      
       await deleteBoyById(boyToDelete.id!, activeSection);
       
       showToast(`'${boyToDelete.name}' was deleted.`, 'success');
@@ -394,7 +382,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Confirm Deletion">
         {boyToDelete && (
           <div className="space-y-4">
-            <p className="text-slate-600">Are you sure you want to delete <strong className="font-semibold text-slate-800">{boyToDelete.name}</strong>? This action cannot be undone directly, but can be reverted from the audit log.</p>
+            <p className="text-slate-600">Are you sure you want to delete <strong className="font-semibold text-slate-800">{boyToDelete.name}</strong>? This action cannot be undone directly.</p>
             <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
               <button
                 type="button"

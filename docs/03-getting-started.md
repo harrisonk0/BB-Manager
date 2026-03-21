@@ -32,7 +32,7 @@ The live app expects these tables to exist:
 - `members`
 - `marks`
 - `invite_codes`
-- `audit_logs`
+- `audit_logs` (legacy; no longer used by the active UI)
 
 For local development, create users manually in Supabase Auth and make sure each user has a row in `profiles` with a valid `role` such as `admin`, `captain`, or `officer`.
 

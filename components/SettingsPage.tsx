@@ -3,8 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { Section, SectionSettings, ToastType, UserRole } from '../types';
 import { saveSettings } from '../services/settings';
-import { createAuditLog } from '../services/db';
-import { useAuthAndRole } from '../hooks/useAuthAndRole';
 
 interface SettingsPageProps {
   activeSection: Section;
@@ -27,8 +25,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { user } = useAuthAndRole();
-
   const canEditSettings = userRole && ['admin', 'captain'].includes(userRole);
   useEffect(() => {
     if (currentSettings) {
@@ -50,18 +46,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ activeSection, currentSetti
     setError(null);
     try {
       const newSettings: SectionSettings = { meetingDay };
-      
-      const userEmail = user?.email || 'Unknown User';
-      const oldDay = WEEKDAYS[currentSettings.meetingDay];
-      const newDay = WEEKDAYS[meetingDay];
-
-      await createAuditLog({
-        userEmail,
-        actionType: 'UPDATE_SETTINGS',
-        description: `Updated meeting day from ${oldDay} to ${newDay}.`,
-        revertData: { settings: currentSettings },
-      }, activeSection);
-
       await saveSettings(activeSection, newSettings, userRole);
       onSettingsSaved(newSettings);
       showToast('Settings saved successfully!', 'success');

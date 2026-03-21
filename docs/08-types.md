@@ -48,36 +48,9 @@ interface Mark {
 
 ---
 
-#### `AuditLog`
-
-Represents a single entry in the audit log, tracking a change made in the application.
-
-```typescript
-interface AuditLog {
-  /** A unique identifier for the log entry. */
-  id?: string;
-  /** The timestamp of when the action occurred (Unix milliseconds). */
-  timestamp: number;
-  /** The email of the user who performed the action. */
-  userEmail: string;
-  /** The type of action performed. */
-  actionType: AuditLogActionType;
-  /** A human-readable description of the action. */
-  description: string;
-  /** Data needed to revert the action (e.g., the state of an object before a change). */
-  revertData: any;
-  /** The ID of the original audit log that this REVERT_ACTION log is reverting. */
-  revertedLogId?: string;
-  /** The section this log pertains to. Null for global logs. */
-  section?: Section | null;
-}
-```
-
----
-
 #### `InviteCode`
 
-Represents a legacy invite-code record retained for database and audit-log compatibility.
+Represents a legacy invite-code record retained for database compatibility.
 
 ```typescript
 export interface InviteCode {
@@ -149,29 +122,6 @@ type JuniorYear = 'P4' | 'P5' | 'P6' | 'P7';
 
 ---
 
-#### `AuditLogActionType`
-
-Defines the types of actions that can be recorded in the audit log.
-
-```typescript
-type AuditLogActionType = 
-  | 'CREATE_BOY' 
-  | 'UPDATE_BOY' 
-  | 'DELETE_BOY' 
-  | 'REVERT_ACTION' 
-  | 'UPDATE_SETTINGS'
-  | 'GENERATE_INVITE_CODE'
-  | 'USE_INVITE_CODE'
-  | 'REVOKE_INVITE_CODE'
-  | 'UPDATE_INVITE_CODE'
-  | 'UPDATE_USER_ROLE'
-  | 'DELETE_USER_ROLE'
-  | 'CLEAR_AUDIT_LOGS'
-  | 'CLEAR_USED_REVOKED_INVITE_CODES';
-```
-
----
-
 #### `UserRole`
 
 Defines the possible roles a user can have in the application, influencing their permissions.
@@ -221,7 +171,7 @@ These types are used by the root `App.tsx` component to manage the current page 
 Represents the main pages available in the application's navigation.
 
 ```typescript
-type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'auditLog' | 'settings' | 'accountSettings';
+type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'settings' | 'accountSettings';
 ```
 
 ---

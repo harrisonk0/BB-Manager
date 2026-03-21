@@ -64,7 +64,7 @@ A detailed view showing the entire mark history for a single member.
     -   Lists all historical mark entries, sorted by date.
     -   Allows for editing of past scores, changing attendance status, and deleting mark entries.
     -   Tracks unsaved changes by performing a deep comparison between the original and edited marks.
-    -   Saves all corrections and creates an audit log entry.
+    -   Saves all corrections directly through the data service layer.
 -   **Key Props**: `boyId`, `refreshData`, `setHasUnsavedChanges`, `activeSection`, `showToast`.
 
 #### `DashboardPage.tsx`
@@ -79,18 +79,6 @@ A visual summary report view of member and squad performance.
     -   Includes a detailed "Marks Breakdown by Month" table for granular reporting.
 -   **Key Props**: `boys`, `activeSection`.
 
-#### `AuditLogPage.tsx`
-
-Displays a chronological history of all actions taken in the app.
-
--   **Responsibilities**:
-    -   Fetches and displays all audit log entries.
-    -   Provides the UI for reverting actions.
-    -   Manages the state for the revert confirmation modal.
-    -   Handles the `handleRevert` logic, which calls the appropriate inverse data service functions.
-    -   Displays action-specific icons and colors for better readability.
--   **Key Props**: `refreshData`, `activeSection`, `showToast`, `userRole`.
-
 #### `SettingsPage.tsx`
 
 Allows users to configure application settings specific to the currently active section.
@@ -99,7 +87,7 @@ Allows users to configure application settings specific to the currently active 
     -   Displays form inputs for available section settings (e.g., meeting day).
     -   Handles saving the settings to Supabase, with client-side permission checks based on `userRole`.
     -   Provides a link to navigate to `AccountSettingsPage`.
-    -   Creates audit log entries for all significant changes.
+    -   Persists section settings through the data service layer.
 -   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToAccountSettings`.
 
 #### `AccountSettingsPage.tsx`
