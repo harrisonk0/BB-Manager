@@ -2,6 +2,15 @@ import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabaseClient';
 import { reportError } from './errorMonitoring';
 
+const PASSWORD_RESET_PATH = '/?reset-password=1';
+
+function getPasswordResetRedirectUrl() {
+  const configuredAppUrl = import.meta.env.VITE_APP_URL?.trim();
+  const baseUrl = configuredAppUrl || window.location.origin;
+
+  return new URL(PASSWORD_RESET_PATH, baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`).toString();
+}
+
 export async function signIn(email: string, password: string) {
   try {
     const result = await supabase.auth.signInWithPassword({
@@ -43,7 +52,9 @@ export async function signOut() {
 }
 
 export async function sendPasswordReset(email: string) {
-  return supabase.auth.resetPasswordForEmail(email);
+  return supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: getPasswordResetRedirectUrl(),
+  });
 }
 
 export async function updatePassword(newPassword: string) {

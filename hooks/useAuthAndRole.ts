@@ -5,6 +5,8 @@ import { subscribeToAuth, signOut as supabaseSignOut, getCurrentUser } from '../
 import { supabase } from '../services/supabaseClient';
 import { AppUser, UserRole } from '../types';
 
+const PASSWORD_RECOVERY_STORAGE_KEY = 'bb_manager_password_recovery';
+
 /**
  * Custom hook for managing Supabase authentication state and user roles.
  * Handles user login/logout, fetching user roles, and error states related to roles.
@@ -14,7 +16,18 @@ export const useAuthAndRole = () => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [noRoleError, setNoRoleError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const currentUserRef = useRef<AppUser | null>(null);
+
+  const setPasswordRecoveryState = useCallback((enabled: boolean) => {
+    setIsPasswordRecovery(enabled);
+
+    if (enabled) {
+      sessionStorage.setItem(PASSWORD_RECOVERY_STORAGE_KEY, 'true');
+    } else {
+      sessionStorage.removeItem(PASSWORD_RECOVERY_STORAGE_KEY);
+    }
+  }, []);
 
   const performSignOut = useCallback(async () => {
     try {
@@ -77,9 +90,11 @@ export const useAuthAndRole = () => {
 
         if (mappedUser && previousUser?.id !== mappedUser.id) {
           await loadUserRole(mappedUser);
+          setPasswordRecoveryState(sessionStorage.getItem(PASSWORD_RECOVERY_STORAGE_KEY) === 'true');
         } else if (!mappedUser) {
           setUserRole(null);
           setNoRoleError(null);
+          setPasswordRecoveryState(false);
         }
       } catch (err: any) {
         console.error(`Failed to get current user: ${err.message}`);
@@ -90,18 +105,23 @@ export const useAuthAndRole = () => {
 
     initialize();
 
-    const subscription = subscribeToAuth(async (_event, session) => {
+    const subscription = subscribeToAuth(async (event, session) => {
       const supabaseUser = session?.user ?? null;
       const mappedUser = supabaseUser ? toAppUser(supabaseUser) : null;
       const previousUser = currentUserRef.current;
 
       updateCurrentUser(mappedUser);
 
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecoveryState(true);
+      }
+
       if (mappedUser && previousUser?.id !== mappedUser.id) {
         await loadUserRole(mappedUser);
       } else if (!mappedUser && previousUser) {
         setUserRole(null);
         setNoRoleError(null);
+        setPasswordRecoveryState(false);
       }
 
       setAuthLoading(false);
@@ -116,11 +136,11 @@ export const useAuthAndRole = () => {
 
     window.addEventListener('userrolerefresh', handleUserRoleRefresh);
 
-    return () => {
-      subscription?.unsubscribe();
-      window.removeEventListener('userrolerefresh', handleUserRoleRefresh);
-    };
-  }, [loadUserRole, toAppUser, updateCurrentUser]);
+      return () => {
+        subscription?.unsubscribe();
+        window.removeEventListener('userrolerefresh', handleUserRoleRefresh);
+      };
+  }, [loadUserRole, setPasswordRecoveryState, toAppUser, updateCurrentUser]);
 
   const setCurrentUser = useCallback(
     (user: AppUser | null) => {
@@ -129,5 +149,16 @@ export const useAuthAndRole = () => {
     [updateCurrentUser]
   );
 
-  return { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole, user: currentUser };
+  return {
+    currentUser,
+    userRole,
+    noRoleError,
+    authLoading,
+    isPasswordRecovery,
+    performSignOut,
+    setCurrentUser,
+    setPasswordRecoveryState,
+    setUserRole,
+    user: currentUser,
+  };
 };

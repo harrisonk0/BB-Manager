@@ -14,6 +14,7 @@ import SectionSelectPage from './components/SectionSelectPage';
 import GlobalSettingsPage from './components/GlobalSettingsPage';
 import AccountSettingsPage from './components/AccountSettingsPage';
 import HelpPage from './components/HelpPage';
+import PasswordResetPage from './components/PasswordResetPage';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { View, Page, BoyMarksPageView, Section, ToastType } from './types';
@@ -31,7 +32,17 @@ const App: React.FC = () => {
   const { toasts, showToast, removeToast } = useToastNotifications();
 
   // Use auth and role hook
-  const { currentUser, userRole, noRoleError, authLoading, performSignOut, setCurrentUser, setUserRole } = useAuthAndRole();
+  const {
+    currentUser,
+    userRole,
+    noRoleError,
+    authLoading,
+    isPasswordRecovery,
+    performSignOut,
+    setCurrentUser,
+    setPasswordRecoveryState,
+    setUserRole,
+  } = useAuthAndRole();
 
   // State for unsaved changes protection
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -112,7 +123,21 @@ const App: React.FC = () => {
   
   const renderApp = () => {
     // Handle loading state first
-    if (authLoading || (currentUser && dataLoading && view.page !== 'signup')) {
+    if (authLoading) {
+        return <HomePageSkeleton />;
+    }
+
+    if (currentUser && isPasswordRecovery) {
+        return (
+            <PasswordResetPage
+              showToast={showToast}
+              onComplete={() => setPasswordRecoveryState(false)}
+              onSignOut={performSignOut}
+            />
+        );
+    }
+
+    if (currentUser && dataLoading && view.page !== 'signup') {
         return <HomePageSkeleton />;
     }
 

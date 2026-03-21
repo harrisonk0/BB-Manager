@@ -12,6 +12,7 @@ BB Manager is a static React application that consumes Supabase Auth and databas
    ```
    VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
    VITE_SUPABASE_ANON_KEY="<public-anon-key>"
+   VITE_APP_URL="https://<your-production-domain>"
    ```
 2. Run `npm install` (or your preferred package manager).
 3. Run `npm run build` to produce the `dist/` folder.
@@ -20,7 +21,11 @@ BB Manager is a static React application that consumes Supabase Auth and databas
 1. Push your repo to GitHub.
 2. Create a new Vercel project from the repo.
 3. Add the two environment variables above in Vercel project settings (apply to Preview and Production).
+   If you use `VITE_APP_URL`, set it to your canonical production URL.
 4. Trigger a deploy; Vercel will build with Vite and host the static output.
+5. In Supabase Dashboard, open `Authentication -> URL Configuration` and ensure:
+   - `Site URL` is your production app URL, not localhost.
+   - `Additional Redirect URLs` includes your production URL and any local development URL you use (for example `http://localhost:5173`).
 
 ## Other Hosts
 - **Netlify/Cloudflare Pages**: Point to `npm run build` as the build command and `dist/` as the publish directory; add the same env vars.
@@ -28,5 +33,6 @@ BB Manager is a static React application that consumes Supabase Auth and databas
 
 ## Post-deploy Checklist
 - Confirm Supabase Auth sign-in/sign-up works in production.
+- Trigger a password reset email and confirm the link returns to the production deployment.
 - Verify `user_roles` contains the production users and roles.
 - Test CRUD flows (boys, audit logs, invite codes, settings) against the production Supabase instance.
