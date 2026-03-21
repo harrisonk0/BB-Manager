@@ -187,7 +187,6 @@ Responsibilities:
 - copy live `settings` into `session_settings_snapshots`
 - set current session status to `closed`
 - set `closed_at` and `closed_by`
-- write an `audit_logs` entry
 
 Behavior rules:
 
@@ -205,7 +204,6 @@ Responsibilities:
 - set any current closed session to `is_current = false`
 - create the new `bb_sessions` row as `status = 'active'` and `is_current = true`
 - delete all rows from live `marks`
-- write an `audit_logs` entry
 
 Behavior rules:
 

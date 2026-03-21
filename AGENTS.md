@@ -17,21 +17,35 @@ Keep it aligned with the actual codebase, deployment model, and live Supabase sh
 
 Verified against Supabase on 2026-03-21:
 
+Active app tables:
+
 - `profiles`
 - `settings`
 - `members`
 - `marks`
+
+Legacy retained database objects from the pre-PR-13 system:
+
 - `invite_codes`
 - `audit_logs`
 
 RLS is enabled on all of those tables.
 
-Important database functions present in the live project:
+Active database functions used by the current app:
+
+- `current_app_role`
+
+Legacy retained database functions from the pre-PR-13 system:
 
 - `claim_invite_code`
 - `cleanup_old_invite_codes`
-- `current_app_role`
 - `validate_invite_code`
+
+Rules for legacy retained objects:
+
+- Do not build new features on `invite_codes`, `audit_logs`, or legacy invite-code functions.
+- Do not treat legacy retained objects as part of the active app surface, even if they still exist in the live Supabase project.
+- Keep new schema, RLS, documentation, and app code focused on the active app tables (`profiles`, `settings`, `members`, `marks`) unless the operator explicitly requests legacy cleanup work.
 
 ## Key Repository Areas
 
@@ -97,6 +111,7 @@ Rules:
 - Do not apply database changes until that dump has been tested by restoring it safely into a scratch database or disposable Supabase development branch.
 - Document any schema or permission change in the relevant docs.
 - Keep app code and docs aligned with the live schema names (`profiles`, `members`, `marks`), not legacy names.
+- Do not reintroduce or depend on legacy database objects removed from the active app surface in merged PR 13.
 
 ## Documentation Rules
 
