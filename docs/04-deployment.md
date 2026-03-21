@@ -1,38 +1,36 @@
 # 4. Deployment
 
-BB Manager is a static React application that consumes Supabase Auth and database APIs. You can deploy the built assets to any static host (e.g., Vercel, Netlify, Cloudflare Pages, or Supabase Storage + CDN) as long as the Supabase environment variables are configured at build time.
+BB Manager is deployed as a static SPA on Vercel.
 
-## Prerequisites
-- Supabase project with schema configured via MCP tools and production credentials (Project URL and anon key).
-- Security note: the database uses RLS policies with GRANTs for access control. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md) and [`docs/10-database-security-model.md`](./10-database-security-model.md) for details.
-- Node.js/npm to run the production build (`npm run build`).
+## Required Environment Variables
 
-## Build
-1. Set environment variables for the build step:
-   ```
-   VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
-   VITE_SUPABASE_ANON_KEY="<public-anon-key>"
-   VITE_APP_URL="https://<your-production-domain>"
-   ```
-2. Run `npm install` (or your preferred package manager).
-3. Run `npm run build` to produce the `dist/` folder.
+Set these in the Vercel project for Preview and Production:
 
-## Deploy to Vercel (example)
-1. Push your repo to GitHub.
-2. Create a new Vercel project from the repo.
-3. Add the two environment variables above in Vercel project settings (apply to Preview and Production).
-   If you use `VITE_APP_URL`, set it to your canonical production URL.
-4. Trigger a deploy; Vercel will build with Vite and host the static output.
-5. In Supabase Dashboard, open `Authentication -> URL Configuration` and ensure:
-   - `Site URL` is your production app URL, not localhost.
-   - `Additional Redirect URLs` includes your production URL and any local development URL you use (for example `http://localhost:5173`).
+```bash
+VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
+VITE_SUPABASE_ANON_KEY="<your-public-anon-key>"
+VITE_APP_URL="https://<your-production-domain>"
+```
 
-## Other Hosts
-- **Netlify/Cloudflare Pages**: Point to `npm run build` as the build command and `dist/` as the publish directory; add the same env vars.
-- **Supabase Storage + CDN**: Upload the `dist/` contents to a public bucket and serve via the Supabase CDN.
+## Vercel Settings
 
-## Post-deploy Checklist
-- Confirm Supabase Auth sign-in/sign-up works in production.
-- Trigger a password reset email and confirm the link returns to the production deployment.
-- Verify `user_roles` contains the production users and roles.
-- Test CRUD flows (boys, audit logs, invite codes, settings) against the production Supabase instance.
+- Framework preset: `Vite`
+- Build command: `npm run build`
+- Output directory: `dist`
+
+`vercel.json` already rewrites all routes to `/` so the SPA can handle navigation client-side.
+
+## Supabase Auth Settings
+
+In Supabase Auth URL configuration:
+
+- Set `Site URL` to the canonical production URL.
+- Add local development and preview URLs to `Additional Redirect URLs` as needed.
+
+## Deployment Checklist
+
+1. Confirm Vercel env vars are present for the target environment.
+2. Deploy from the main branch or the intended release branch.
+3. Verify sign-in, sign-up, invite-code claim, and password reset flows.
+4. Verify the production users have the expected roles in `profiles`.
+5. Smoke-test member CRUD, marks entry, settings, invite codes, and audit logs.

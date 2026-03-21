@@ -1,31 +1,39 @@
 # 2. Architecture
 
-[`ARCHITECTURE.md`](../ARCHITECTURE.md) is the canonical system model for this repo. This document is a short,
-supplemental overview focused on how the UI integrates with Supabase.
+[`ARCHITECTURE.md`](../ARCHITECTURE.md) is the canonical system overview. This document is the shorter companion focused on how the client integrates with Supabase.
 
-BB Manager is a React + TypeScript application backed by Supabase for authentication and
-data storage. The client retrieves data directly from Supabase and does not maintain an
-offline cache.
+## Summary
 
-## Core Principles
+- BB Manager is a browser-only React SPA.
+- Vercel serves the static assets.
+- Supabase handles auth, storage, and authorization.
+- There is no in-repo Express backend or API layer.
 
-1. **Single Source of Truth**: Supabase (PostgreSQL) stores all member, audit log, invite code, and user role data.
-2. **Role-Aware UX**: The UI and service layer perform role checks (admin, captain, officer) before performing sensitive actions. These checks are UX only; the current database access model is GRANT-based and RLS is not yet enforced (see [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md)).
-3. **Predictable Data Flows**: Components call service functions in `services/db.ts`, which wrap Supabase queries and mutations.
-4. **Auditability**: Significant changes are logged via `createAuditLog`, providing traceability for administrative actions.
+## Live Data Model
 
-## High-Level Flow
+The app currently maps to these public tables:
 
+- `profiles`
+- `settings`
+- `members`
+- `marks`
+- `invite_codes`
+- `audit_logs`
+
+`services/db.ts` translates between the UI-facing `Boy` model and the normalized `members` + `marks` tables used in Supabase.
+
+## Integration Pattern
+
+```text
+React component -> hook -> services/* -> Supabase
 ```
-[ User Action ] -> [ React Component ] -> [ services/db.ts ] -> [ Supabase ]
-```
 
-- **Authentication**: Managed via Supabase Auth (see `services/supabaseAuth.ts`).
-- **Data Access**: CRUD operations live in `services/db.ts` and operate directly against Supabase tables.
-- **Settings**: Section-level settings are fetched from Supabase through `services/settings.ts`.
+- Auth flows live in `services/supabaseAuth.ts`.
+- Section settings live in `services/settings.ts`.
+- CRUD, invite-code, audit-log, and role operations live in `services/db.ts`.
 
-## Error Handling
+## Security Notes
 
-Errors from Supabase requests propagate to the calling components, allowing the UI to surface connection or permission issues without falling back to cached data.
-
-See also: [`docs/06-data-and-services.md`](./06-data-and-services.md).
+- The client uses only public Supabase credentials.
+- RLS is enabled on all live application tables.
+- Role checks in the UI are convenience checks only; enforcement lives in Supabase.

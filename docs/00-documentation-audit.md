@@ -1,42 +1,27 @@
-# Documentation Audit
+# Documentation Map
 
-This file records documentation roles, resolved drift, and open TODOs to prevent future
-contradictions.
+This file tracks the active documentation set for the current codebase.
 
-## Canonical Sources
+## Canonical Docs
 
-- `CLAUDE.md`: repo rules and operational guidance (the "how we work" contract).
-- `ARCHITECTURE.md`: canonical system model (components, data flow, invariants, trade-offs).
-- `docs/`: subordinate deep dives and runbooks (must not contradict `ARCHITECTURE.md`).
+- `ARCHITECTURE.md`: system overview and deployment/runtime model
+- `AGENTS.md`: contributor and agent operating guide
+- `docs/09-database-and-migrations.md`: live database workflow
+- `docs/10-database-security-model.md`: current security summary
 
-## Deep Dives / Runbooks
+## Supporting Docs
 
-- `docs/01-project-structure.md`: repo map and where code lives.
-- `docs/02-architecture.md`: supplemental notes on Supabase integration.
-- `docs/03-getting-started.md`: local setup runbook.
-- `docs/04-deployment.md`: deployment runbook.
-- `docs/05-component-library.md`: component responsibilities and props.
-- `docs/06-data-and-services.md`: services layer and Supabase operations.
-- `docs/07-hooks-and-state.md`: custom hooks and state coordination.
-- `docs/08-types.md`: `types.ts` reference.
-- `docs/09-database-and-migrations.md`: database schema, migrations, and access model.
+- `docs/01-project-structure.md`: repo map
+- `docs/02-architecture.md`: Supabase integration summary
+- `docs/03-getting-started.md`: local setup
+- `docs/04-deployment.md`: Vercel deployment runbook
+- `docs/05-component-library.md`: component reference
+- `docs/06-data-and-services.md`: service layer reference
+- `docs/07-hooks-and-state.md`: hook/state coordination
+- `docs/08-types.md`: shared type reference
 
-## Drift Resolved
+## Archive Policy
 
-- Removed dead link to `AI_RULES.md` from `README.md` (file is gitignored and not present).
-- Corrected Tailwind/build tooling docs (no Tailwind CDN; Vite + PostCSS build).
-- Removed/flagged legacy Firestore/IndexedDB references in docs (current backend is Supabase).
-- Fixed `docs/08-types.md` to match `types.ts` and repaired broken Markdown fences.
-- Removed references to a non-existent `migrate.js` script from `AGENTS.md`.
-- Added missing deep-dive coverage for custom hooks (`docs/07-hooks-and-state.md`).
-- Documented MCP Supabase tools as the schema/permissions workflow and updated docs to reflect the RLS-enforced access model.
-- Removed references to removed `.planning/` directory across all documentation.
-- Implemented `LineChart.tsx` placeholder component.
-- Archived historical audit and plan documents to `docs/archive/`.
-
-## Open TODOs
-
-> TODO: Confirm whether the `index.html` import map is still required under Vite.
-
-> TODO: Resolve known inconsistencies called out in `ARCHITECTURE.md` (e.g., invite code expiry
-> copy vs implementation, audit log action type mismatches).
+- Historical audits, plans, and one-off investigations belong in `docs/archive/`.
+- Archived material is useful context, but it is not the source of truth for the current app.
+- If an archived document conflicts with the active docs, follow the active docs.

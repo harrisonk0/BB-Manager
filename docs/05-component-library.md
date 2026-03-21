@@ -14,7 +14,7 @@ The root component of the entire application. It doesn't render much UI directly
     -   Manages orchestration state via hooks: `currentUser`, `userRole`, `activeSection`,
         `boys`, `settings`, `authLoading`, `dataLoading`, `dataError`, `noRoleError`, `view`.
     -   Subscribes to Supabase auth changes via `useAuthAndRole` and loads the user's role from
-        `user_roles`.
+        `profiles`.
     -   Handles view switching by deciding which page component to render based on the `view`
         state. Unauthenticated users see Login/Signup; the Help content is shown via a modal.
     -   Orchestrates data fetching (`refreshData`).
@@ -258,7 +258,3 @@ A simple, reusable SVG bar chart.
     -   Includes labels for each bar and its value.
     -   Used on the Dashboard to visualize squad performance.
 -   **Key Props**: `data`.
-
-#### `LineChart.tsx`
-
-A placeholder for future line chart visualizations. Currently returns `null` and is unused.

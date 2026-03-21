@@ -1,48 +1,30 @@
-# 9. Database, Migrations, and Access Control
+# 9. Database and Migrations
 
-This repo uses Supabase Postgres as the system of record. Database structure and permissions
-are managed via MCP Supabase tools.
+This repo relies on a live Supabase project as the database source of truth.
 
-## Source of Truth
+## Verified Current Shape
 
-- The **live database schema** is the authoritative source for database structure and permissions
-  (tables, indexes, constraints, GRANTs, and RLS policies).
-- Security implementation details are documented in `docs/10-database-security-model.md`
+Verified on 2026-03-21:
 
-## How Schema Changes Are Made
+- Tables: `profiles`, `settings`, `members`, `marks`, `invite_codes`, `audit_logs`
+- RLS: enabled on all of them
+- Helper functions present:
+  - `current_app_role`
+  - `validate_invite_code`
+  - `claim_invite_code`
+  - `cleanup_old_invite_codes`
 
-All database changes are done via **MCP Supabase tools** (not local migration files):
+Latest migration visible in the live project at the time of verification:
 
-- `mcp__supabase__executeSQL`: Execute DDL/DML directly on the remote database
-- `mcp__supabase__listTables`: List all tables
-- `mcp__supabase__describeTable`: Get table schema
+- `20260320190925 repair_live_schema_for_app_compatibility_v2`
 
-Schema changes include:
+## Workflow
 
-- Schema changes (tables/columns/indexes/constraints)
-- Permission changes (GRANT/REVOKE)
-- Security hardening (RLS policies)
+- Treat the live Supabase schema as authoritative.
+- Inspect schema and policies with Supabase MCP tools before making assumptions.
+- Apply schema changes through Supabase migrations or MCP-driven database changes, not ad-hoc dashboard edits.
+- Update app code and docs in the same change when table names, functions, or permissions change.
 
-All schema changes must be:
-1. Explained with rationale in the commit message
-2. Reflected in relevant documentation (CLAUDE.md, ARCHITECTURE.md, etc.)
+## Important Historical Note
 
-## Current Access Model
-
-The database access model uses **RLS policies with GRANTs** for defense-in-depth.
-
-Security implementation:
-
-- The browser ships a public anon key; client-side role checks are **not** a security boundary.
-- RLS policies enforce row-level rules including:
-  - per-user access
-  - role-based restrictions (admin/captain/officer)
-  - section isolation (`company` vs `junior`)
-  - audit log access (Captain/Admin only)
-- Table-level GRANTs provide baseline permissions
-- Security functions use hardened search_path to mitigate CVE-2018-1058
-
-Phase 1 (Critical Security) completed RLS implementation for all application tables.
-
-> **RLS hardening complete (Phase 1)**: All RLS policies implemented via MCP tools.
-> See `docs/10-database-security-model.md` for the authoritative security model design.
+Older docs and archived audits may refer to legacy tables such as `user_roles` or `boys`. The current app and live database use `profiles`, `members`, and `marks` instead.

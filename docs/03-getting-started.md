@@ -1,55 +1,56 @@
 # 3. Getting Started
 
-This guide walks you through setting up BB Manager locally with Supabase for authentication and data storage.
+This guide sets up BB Manager locally against a Supabase project.
 
-### Prerequisites
+## Prerequisites
 
-- **Node.js and npm**: Install from [nodejs.org](https://nodejs.org/) to manage dependencies and run the dev server.
-- **Supabase account**: Create a project at [supabase.com](https://supabase.com/).
-- A modern web browser (e.g., Chrome, Firefox, Edge).
+- Node.js 20+
+- npm
+- A Supabase project
 
----
+## 1. Install Dependencies
 
-### Step 1: Get the Code
+```bash
+npm install
+```
 
-Clone the repository or download the source as a ZIP and extract it.
+## 2. Configure Environment Variables
 
----
+Create `.env` in the repo root:
 
-### Step 2: Supabase Project Setup
+```bash
+VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
+VITE_SUPABASE_ANON_KEY="<your-public-anon-key>"
+VITE_APP_URL="http://localhost:5173"
+```
 
-1. **Create a Supabase project**
-   - In the Supabase dashboard, create a new project with a strong database password.
-   - The database schema should be configured using MCP Supabase tools.
-   - Security note: the database uses RLS policies with GRANTs for access control. See [`docs/09-database-and-migrations.md`](./09-database-and-migrations.md) and [`docs/10-database-security-model.md`](./10-database-security-model.md).
+`VITE_APP_URL` is used when the app generates auth redirect URLs, including password reset links.
 
-2. **Obtain API keys**
-   - In your project settings, copy the **Project URL** and **anon public key**.
+## 3. Confirm Supabase Bootstrap State
 
-3. **Create `.env` file**
-   - In the repository root, create a `.env` file with:
-     ```
-     VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
-     VITE_SUPABASE_ANON_KEY="<public-anon-key>"
-     ```
-   - These values are consumed by `services/supabaseClient.ts` at runtime.
-   > TODO: Ensure `.env` is ignored by git and consider checking in `.env.example`.
+The live app expects these tables to exist:
 
-4. **Seed roles (optional but recommended)**
-   - Insert at least one admin row into `user_roles` that matches a Supabase Auth user ID and email so the first login has permissions.
+- `profiles`
+- `settings`
+- `members`
+- `marks`
+- `invite_codes`
+- `audit_logs`
 
----
+For local development, make sure the first privileged user has a row in `profiles` with a valid `role` such as `admin`, `captain`, or `officer`.
 
-### Step 3: Run the Application Locally
+## 4. Run the App
 
-BB Manager uses **Vite** for local development.
+```bash
+npm run dev
+```
 
-1. **Install dependencies**
-   - In the project root, run `npm install` (or `pnpm install`/`yarn install`).
+Open the printed local URL, usually `http://localhost:5173`.
 
-2. **Start the dev server**
-   - Run `npm run dev` and open the printed URL (typically `http://localhost:3000`).
+## 5. Pre-Ship Checks
 
-**Accessing the App**
-
-Sign up or sign in through Supabase Auth. Ensure the authenticated user has a corresponding entry in `user_roles` (`admin`, `captain`, or `officer`) so the UI can load section data.
+```bash
+npm run typecheck
+npm run build
+npm run test:run
+```
