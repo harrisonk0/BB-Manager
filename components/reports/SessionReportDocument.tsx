@@ -772,167 +772,168 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
         </Page>
       ))}
 
-      {report.members.map((member) => (
-        <Page key={member.id} size="A4" style={styles.page}>
-          {renderPageHeader(report, `${member.name} Session Detail`)}
+      {report.members.flatMap((member) => {
+        const continuationChunks = chunk<MemberMeetingRecord>(member.meetings.slice(14), 22);
 
-          <View style={styles.memberMetricsRow} wrap={false}>
-            <View style={styles.memberMetricsCard}>
-              <Text style={styles.statCardLabel}>Squad / Year</Text>
-              <Text style={styles.statCardValue}>{`S${member.squad} / ${member.year}`}</Text>
-              <Text style={styles.statCardHint}>{member.isSquadLeader ? 'Squad leader' : 'Member'}</Text>
-            </View>
-            <View style={styles.memberMetricsCard}>
-              <Text style={styles.statCardLabel}>Attendance</Text>
-              <Text style={styles.statCardValue}>{`${formatNumber(member.attendanceRate)}%`}</Text>
-              <Text style={styles.statCardHint}>{`${member.attendanceCount} present, ${member.absenceCount} absent`}</Text>
-            </View>
-            <View style={styles.memberMetricsCard}>
-              <Text style={styles.statCardLabel}>Total Marks</Text>
-              <Text style={styles.statCardValue}>{formatNumber(member.totalMarks)}</Text>
-              <Text style={styles.statCardHint}>{`Avg ${formatNumber(member.averageScoreWhenPresent)} when present`}</Text>
-            </View>
-          </View>
+        return [
+          <Page key={member.id} size="A4" style={styles.page}>
+            {renderPageHeader(report, `${member.name} Session Detail`)}
 
-          <View style={styles.twoColumn} wrap={false}>
-            <View style={styles.column}>
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>Member Summary</Text>
-                <View style={styles.keyRow}>
-                  <Text style={styles.keyLabel}>Best night</Text>
-                  <Text style={styles.keyValue}>
-                    {member.bestNightDate ? `${formatNumber(member.bestNightScore)} on ${formatDate(member.bestNightDate)}` : 'N/A'}
-                  </Text>
-                </View>
-                <View style={styles.keyRow}>
-                  <Text style={styles.keyLabel}>Last attended</Text>
-                  <Text style={styles.keyValue}>{member.lastAttendedDate ? formatDate(member.lastAttendedDate) : 'N/A'}</Text>
-                </View>
-                {report.section === 'junior' && (
+            <View style={styles.memberMetricsRow} wrap={false}>
+              <View style={styles.memberMetricsCard}>
+                <Text style={styles.statCardLabel}>Squad / Year</Text>
+                <Text style={styles.statCardValue}>{`S${member.squad} / ${member.year}`}</Text>
+                <Text style={styles.statCardHint}>{member.isSquadLeader ? 'Squad leader' : 'Member'}</Text>
+              </View>
+              <View style={styles.memberMetricsCard}>
+                <Text style={styles.statCardLabel}>Attendance</Text>
+                <Text style={styles.statCardValue}>{`${formatNumber(member.attendanceRate)}%`}</Text>
+                <Text style={styles.statCardHint}>{`${member.attendanceCount} present, ${member.absenceCount} absent`}</Text>
+              </View>
+              <View style={styles.memberMetricsCard}>
+                <Text style={styles.statCardLabel}>Total Marks</Text>
+                <Text style={styles.statCardValue}>{formatNumber(member.totalMarks)}</Text>
+                <Text style={styles.statCardHint}>{`Avg ${formatNumber(member.averageScoreWhenPresent)} when present`}</Text>
+              </View>
+            </View>
+
+            <View style={styles.twoColumn} wrap={false}>
+              <View style={styles.column}>
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Member Summary</Text>
                   <View style={styles.keyRow}>
-                    <Text style={styles.keyLabel}>Uniform total</Text>
-                    <Text style={styles.keyValue}>{formatNumber(member.uniformTotal ?? 0)}</Text>
+                    <Text style={styles.keyLabel}>Best night</Text>
+                    <Text style={styles.keyValue}>
+                      {member.bestNightDate ? `${formatNumber(member.bestNightScore)} on ${formatDate(member.bestNightDate)}` : 'N/A'}
+                    </Text>
                   </View>
-                )}
-                {report.section === 'junior' && (
+                  <View style={styles.keyRow}>
+                    <Text style={styles.keyLabel}>Last attended</Text>
+                    <Text style={styles.keyValue}>{member.lastAttendedDate ? formatDate(member.lastAttendedDate) : 'N/A'}</Text>
+                  </View>
+                  {report.section === 'junior' && (
+                    <View style={styles.keyRow}>
+                      <Text style={styles.keyLabel}>Uniform total</Text>
+                      <Text style={styles.keyValue}>{formatNumber(member.uniformTotal ?? 0)}</Text>
+                    </View>
+                  )}
+                  {report.section === 'junior' && (
+                    <View style={[styles.keyRow, { borderBottom: 0 }]}>
+                      <Text style={styles.keyLabel}>Behaviour total</Text>
+                      <Text style={styles.keyValue}>{formatNumber(member.behaviourTotal ?? 0)}</Text>
+                    </View>
+                  )}
+                  {report.section === 'company' && (
+                    <View style={[styles.keyRow, { borderBottom: 0 }]}>
+                      <Text style={styles.keyLabel}>Recorded meetings</Text>
+                      <Text style={styles.keyValue}>{member.meetings.length}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.column}>
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Session Performance</Text>
+                  <View style={styles.keyRow}>
+                    <Text style={styles.keyLabel}>Attendance record</Text>
+                    <Text style={styles.keyValue}>{`${member.attendanceCount} / ${member.meetings.length}`}</Text>
+                  </View>
+                  <View style={styles.keyRow}>
+                    <Text style={styles.keyLabel}>Best score</Text>
+                    <Text style={styles.keyValue}>{formatNumber(member.bestNightScore)}</Text>
+                  </View>
+                  <View style={styles.keyRow}>
+                    <Text style={styles.keyLabel}>Attendance rate</Text>
+                    <Text style={styles.keyValue}>{`${formatNumber(member.attendanceRate)}%`}</Text>
+                  </View>
                   <View style={[styles.keyRow, { borderBottom: 0 }]}>
-                    <Text style={styles.keyLabel}>Behaviour total</Text>
-                    <Text style={styles.keyValue}>{formatNumber(member.behaviourTotal ?? 0)}</Text>
+                    <Text style={styles.keyLabel}>Average when present</Text>
+                    <Text style={styles.keyValue}>{formatNumber(member.averageScoreWhenPresent)}</Text>
                   </View>
-                )}
-                {report.section === 'company' && (
-                  <View style={[styles.keyRow, { borderBottom: 0 }]}>
-                    <Text style={styles.keyLabel}>Recorded meetings</Text>
-                    <Text style={styles.keyValue}>{member.meetings.length}</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.memberTableSection}>
+              <View style={styles.table}>
+                <View style={[styles.tableRow, styles.tableHead]}>
+                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '22%' }]}>Date</Text>
+                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '14%' }]}>Status</Text>
+                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>Score</Text>
+                  {report.section === 'junior' && (
+                    <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Uniform</Text>
+                  )}
+                  {report.section === 'junior' && (
+                    <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Behaviour</Text>
+                  )}
+                </View>
+                {member.meetings.slice(0, 14).map((meeting, index) => (
+                  <View key={meeting.date} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null]}>
+                    <Text style={[styles.tableCell, { width: '22%' }]}>{formatDate(meeting.date)}</Text>
+                    <Text style={[styles.tableCell, { width: '14%' }]}>{meeting.attended ? 'Present' : 'Absent'}</Text>
+                    <Text style={[styles.tableCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>
+                      {meeting.attended ? formatNumber(meeting.score) : '-'}
+                    </Text>
+                    {report.section === 'junior' && (
+                      <Text style={[styles.tableCell, { width: '25%' }]}>
+                        {meeting.attended ? formatNumber(meeting.uniformScore ?? 0) : '-'}
+                      </Text>
+                    )}
+                    {report.section === 'junior' && (
+                      <Text style={[styles.tableCell, { width: '25%' }]}>
+                        {meeting.attended ? formatNumber(meeting.behaviourScore ?? 0) : '-'}
+                      </Text>
+                    )}
                   </View>
-                )}
+                ))}
               </View>
-            </View>
-
-            <View style={styles.column}>
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>Session Performance</Text>
-                <View style={styles.keyRow}>
-                  <Text style={styles.keyLabel}>Attendance record</Text>
-                  <Text style={styles.keyValue}>{`${member.attendanceCount} / ${member.meetings.length}`}</Text>
-                </View>
-                <View style={styles.keyRow}>
-                  <Text style={styles.keyLabel}>Best score</Text>
-                  <Text style={styles.keyValue}>{formatNumber(member.bestNightScore)}</Text>
-                </View>
-                <View style={styles.keyRow}>
-                  <Text style={styles.keyLabel}>Attendance rate</Text>
-                  <Text style={styles.keyValue}>{`${formatNumber(member.attendanceRate)}%`}</Text>
-                </View>
-                <View style={[styles.keyRow, { borderBottom: 0 }]}>
-                  <Text style={styles.keyLabel}>Average when present</Text>
-                  <Text style={styles.keyValue}>{formatNumber(member.averageScoreWhenPresent)}</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.memberTableSection}>
-            <View style={styles.table}>
-              <View style={[styles.tableRow, styles.tableHead]}>
-                <Text style={[styles.tableCell, styles.tableHeadCell, { width: '22%' }]}>Date</Text>
-                <Text style={[styles.tableCell, styles.tableHeadCell, { width: '14%' }]}>Status</Text>
-                <Text style={[styles.tableCell, styles.tableHeadCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>Score</Text>
-                {report.section === 'junior' && (
-                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Uniform</Text>
-                )}
-                {report.section === 'junior' && (
-                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Behaviour</Text>
-                )}
-              </View>
-              {member.meetings.slice(0, 14).map((meeting, index) => (
-                <View key={meeting.date} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null]}>
-                  <Text style={[styles.tableCell, { width: '22%' }]}>{formatDate(meeting.date)}</Text>
-                  <Text style={[styles.tableCell, { width: '14%' }]}>{meeting.attended ? 'Present' : 'Absent'}</Text>
-                  <Text style={[styles.tableCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>
-                    {meeting.attended ? formatNumber(meeting.score) : '-'}
-                  </Text>
-                  {report.section === 'junior' && (
-                    <Text style={[styles.tableCell, { width: '25%' }]}>
-                      {meeting.attended ? formatNumber(meeting.uniformScore ?? 0) : '-'}
-                    </Text>
-                  )}
-                  {report.section === 'junior' && (
-                    <Text style={[styles.tableCell, { width: '25%' }]}>
-                      {meeting.attended ? formatNumber(meeting.behaviourScore ?? 0) : '-'}
-                    </Text>
-                  )}
-                </View>
-              ))}
-            </View>
-          </View>
-          {renderPageFooter(report)}
-        </Page>
-      ))}
-
-      {report.members.flatMap((member) =>
-        chunk<MemberMeetingRecord>(member.meetings.slice(14), 22).map((meetingChunk, index) => (
-          <Page key={`${member.id}-continued-${index}`} size="A4" style={styles.page}>
-            {renderPageHeader(report, `${member.name} Session Detail Continued`)}
-            <Text style={styles.sectionCopy}>
-              Continued meeting-by-meeting record for this member.
-            </Text>
-            <View style={styles.table}>
-              <View style={[styles.tableRow, styles.tableHead]}>
-                <Text style={[styles.tableCell, styles.tableHeadCell, { width: '22%' }]}>Date</Text>
-                <Text style={[styles.tableCell, styles.tableHeadCell, { width: '14%' }]}>Status</Text>
-                <Text style={[styles.tableCell, styles.tableHeadCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>Score</Text>
-                {report.section === 'junior' && (
-                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Uniform</Text>
-                )}
-                {report.section === 'junior' && (
-                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Behaviour</Text>
-                )}
-              </View>
-              {meetingChunk.map((meeting, meetingIndex) => (
-                <View key={meeting.date} style={[styles.tableRow, meetingIndex % 2 === 1 ? styles.tableRowAlt : null]}>
-                  <Text style={[styles.tableCell, { width: '22%' }]}>{formatDate(meeting.date)}</Text>
-                  <Text style={[styles.tableCell, { width: '14%' }]}>{meeting.attended ? 'Present' : 'Absent'}</Text>
-                  <Text style={[styles.tableCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>
-                    {meeting.attended ? formatNumber(meeting.score) : '-'}
-                  </Text>
-                  {report.section === 'junior' && (
-                    <Text style={[styles.tableCell, { width: '25%' }]}>
-                      {meeting.attended ? formatNumber(meeting.uniformScore ?? 0) : '-'}
-                    </Text>
-                  )}
-                  {report.section === 'junior' && (
-                    <Text style={[styles.tableCell, { width: '25%' }]}>
-                      {meeting.attended ? formatNumber(meeting.behaviourScore ?? 0) : '-'}
-                    </Text>
-                  )}
-                </View>
-              ))}
             </View>
             {renderPageFooter(report)}
-          </Page>
-        )),
-      )}
+          </Page>,
+          ...continuationChunks.map((meetingChunk, index) => (
+            <Page key={`${member.id}-continued-${index}`} size="A4" style={styles.page}>
+              {renderPageHeader(report, `${member.name} Session Detail Continued`)}
+              <Text style={styles.sectionCopy}>
+                Continued meeting-by-meeting record for this member.
+              </Text>
+              <View style={styles.table}>
+                <View style={[styles.tableRow, styles.tableHead]}>
+                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '22%' }]}>Date</Text>
+                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '14%' }]}>Status</Text>
+                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>Score</Text>
+                  {report.section === 'junior' && (
+                    <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Uniform</Text>
+                  )}
+                  {report.section === 'junior' && (
+                    <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Behaviour</Text>
+                  )}
+                </View>
+                {meetingChunk.map((meeting, meetingIndex) => (
+                  <View key={meeting.date} style={[styles.tableRow, meetingIndex % 2 === 1 ? styles.tableRowAlt : null]}>
+                    <Text style={[styles.tableCell, { width: '22%' }]}>{formatDate(meeting.date)}</Text>
+                    <Text style={[styles.tableCell, { width: '14%' }]}>{meeting.attended ? 'Present' : 'Absent'}</Text>
+                    <Text style={[styles.tableCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>
+                      {meeting.attended ? formatNumber(meeting.score) : '-'}
+                    </Text>
+                    {report.section === 'junior' && (
+                      <Text style={[styles.tableCell, { width: '25%' }]}>
+                        {meeting.attended ? formatNumber(meeting.uniformScore ?? 0) : '-'}
+                      </Text>
+                    )}
+                    {report.section === 'junior' && (
+                      <Text style={[styles.tableCell, { width: '25%' }]}>
+                        {meeting.attended ? formatNumber(meeting.behaviourScore ?? 0) : '-'}
+                      </Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+              {renderPageFooter(report)}
+            </Page>
+          )),
+        ];
+      })}
     </Document>
   );
 };
