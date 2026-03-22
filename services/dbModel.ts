@@ -82,10 +82,12 @@ export const mapBoyRow = (member: MemberRow, marks: MarkRow[]): Boy => ({
   isSquadLeader: member.is_squad_leader ?? false,
 });
 
-export const validateBoyMarks = (boy: Boy, section: Section) => {
-  if (!Array.isArray(boy.marks)) {
+export const validateMarksForSection = (marks: Mark[], section: Section, subject = 'Member') => {
+  if (!Array.isArray(marks)) {
     throw new Error('Marks must be an array.');
   }
+
+  const seenDates = new Set<string>();
 
   const validateDecimalPlaces = (value: number, fieldName: string, date: string) => {
     if (value < 0) return;
@@ -94,14 +96,20 @@ export const validateBoyMarks = (boy: Boy, section: Section) => {
     const decimalPart = valueString.split('.')[1];
 
     if (decimalPart && decimalPart.length > 2) {
-      throw new Error(`${fieldName} for ${boy.name} on ${date} has more than 2 decimal places.`);
+      throw new Error(`${fieldName} for ${subject} on ${date} has more than 2 decimal places.`);
     }
   };
 
-  for (const mark of boy.marks) {
+  for (const mark of marks) {
     if (typeof mark.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(mark.date)) {
       throw new Error(`Invalid date format for mark: ${mark.date}`);
     }
+
+    if (seenDates.has(mark.date)) {
+      throw new Error(`Duplicate mark date for ${subject} on ${mark.date}.`);
+    }
+
+    seenDates.add(mark.date);
 
     if (typeof mark.score !== 'number') {
       throw new Error(`Invalid score type for mark on ${mark.date}. Score must be a number.`);
@@ -115,19 +123,19 @@ export const validateBoyMarks = (boy: Boy, section: Section) => {
 
     if (section === 'company') {
       if (mark.score < 0 || mark.score > 10) {
-        throw new Error(`Company section score for ${boy.name} on ${mark.date} is out of range (0-10).`);
+        throw new Error(`Company section score for ${subject} on ${mark.date} is out of range (0-10).`);
       }
 
       if (mark.uniformScore !== undefined || mark.behaviourScore !== undefined) {
-        throw new Error(`Company section boy ${boy.name} on ${mark.date} has junior-specific scores.`);
+        throw new Error(`Company section boy ${subject} on ${mark.date} has junior-specific scores.`);
       }
     } else {
       if (typeof mark.uniformScore !== 'number' || mark.uniformScore < 0 || mark.uniformScore > 10) {
-        throw new Error(`Junior section uniform score for ${boy.name} on ${mark.date} is invalid or out of range (0-10).`);
+        throw new Error(`Junior section uniform score for ${subject} on ${mark.date} is invalid or out of range (0-10).`);
       }
 
       if (typeof mark.behaviourScore !== 'number' || mark.behaviourScore < 0 || mark.behaviourScore > 5) {
-        throw new Error(`Junior section behaviour score for ${boy.name} on ${mark.date} is invalid or out of range (0-5).`);
+        throw new Error(`Junior section behaviour score for ${subject} on ${mark.date} is invalid or out of range (0-5).`);
       }
 
       validateDecimalPlaces(mark.uniformScore, 'Uniform score', mark.date);
@@ -136,8 +144,12 @@ export const validateBoyMarks = (boy: Boy, section: Section) => {
       const calculatedTotal = mark.uniformScore + mark.behaviourScore;
 
       if (Math.abs(mark.score - calculatedTotal) > 0.001) {
-        throw new Error(`Junior section total score for ${boy.name} on ${mark.date} does not match sum of uniform and behaviour scores.`);
+        throw new Error(`Junior section total score for ${subject} on ${mark.date} does not match sum of uniform and behaviour scores.`);
       }
     }
   }
+};
+
+export const validateBoyMarks = (boy: Boy, section: Section) => {
+  validateMarksForSection(boy.marks, section, boy.name);
 };

@@ -16,6 +16,8 @@ The live database also retains legacy invite-code and audit-log objects for comp
 - Browser code only receives public client credentials.
 - Authorization must be enforced in Supabase, not in React components.
 - App roles are derived from `profiles`.
+- Access to `members`, `marks`, and `settings` requires a valid app role from `profiles`; authenticated Supabase users without a matching profile row should not be able to use core app tables.
+- `npm run check:db-contract` and the Playwright smoke suite can catch broken client assumptions, missing seeded rows, and failed writes, but they are not a substitute for inspecting live RLS policies.
 - Manual account provisioning is the supported path; the UI no longer exposes invite-code signup or recovery flows.
 
 ## Role Model
@@ -31,6 +33,7 @@ The UI uses those roles to shape workflows, but the database remains the enforce
 ## Sensitive Areas
 
 - `profiles` controls application access
+- `settings` is seeded with one row for `company` and one row for `junior`, and settings updates modify those rows in place
 - `invite_codes` and `audit_logs` are legacy history data and are not written by the current app
 
 Changes that affect any of those areas should be treated as security-sensitive and reflected in both code and docs.

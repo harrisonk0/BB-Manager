@@ -37,6 +37,14 @@ export interface Mark {
 }
 
 /**
+ * Represents the weekly snapshot payload used for section-wide mark saves.
+ */
+export interface WeeklyMarksSnapshotEntry {
+  memberId: string;
+  mark: Mark | null;
+}
+
+/**
  * Represents a single member of the Boys' Brigade.
  */
 export interface Boy {

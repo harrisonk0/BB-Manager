@@ -65,7 +65,7 @@ flowchart LR
   - `profiles` for app roles and user metadata
   - `members` for member records
   - `marks` for per-member attendance and scores
-- `services/settings.ts` handles section-level settings.
+- `services/settings.ts` handles section-level settings, updating the seeded `company` and `junior` rows in place.
 
 ## State Model
 

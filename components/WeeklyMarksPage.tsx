@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
-import { updateBoy } from '../services/db';
+import { saveWeeklyMarksSnapshot } from '../services/db';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
+import Modal from './Modal';
 import { getNearestMeetingDay } from './weeklyMarksDates';
 import {
-  buildUpdatedMarksForBoy,
   CompanyMarkState,
   JuniorMarkState,
+  buildWeeklyMarksSnapshot,
 } from './weeklyMarksSavePlan';
+import { shouldConfirmWeeklyMarksDateChange } from './weeklyMarksDateChange';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -34,15 +36,19 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   4: 'text-yellow-600',
 };
 
+const getTodayString = () => new Date().toISOString().split('T')[0];
+
 const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings, showToast }) => {
   // --- STATE MANAGEMENT ---
   const [selectedDate, setSelectedDate] = useState('');
   const [marks, setMarks] = useState<Record<string, CompanyMarkState | JuniorMarkState>>({});
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [isDirty, setIsDirty] = useState(false); // Tracks if there are unsaved changes.
+  const [today, setToday] = useState(getTodayString);
   const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
   const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
+  const [pendingDate, setPendingDate] = useState('');
+  const [isDateChangeConfirmOpen, setIsDateChangeConfirmOpen] = useState(false);
 
 
   const isCompany = activeSection === 'company';
@@ -56,15 +62,34 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       setSelectedDate(getNearestMeetingDay(settings.meetingDay));
     }
   }, [settings, selectedDate]);
+
+  useEffect(() => {
+    const refreshToday = () => {
+      setToday(currentToday => {
+        const nextToday = getTodayString();
+        return currentToday === nextToday ? currentToday : nextToday;
+      });
+    };
+
+    refreshToday();
+    window.addEventListener('focus', refreshToday);
+    document.addEventListener('visibilitychange', refreshToday);
+    const intervalId = window.setInterval(refreshToday, 60_000);
+
+    return () => {
+      window.removeEventListener('focus', refreshToday);
+      document.removeEventListener('visibilitychange', refreshToday);
+      window.clearInterval(intervalId);
+    };
+  }, []);
   
   /**
    * EFFECT: Automatically locks the page if the selected date is in the past.
    */
   useEffect(() => {
     if (!selectedDate) return;
-    const todayString = new Date().toISOString().split('T')[0];
-    setIsLocked(selectedDate < todayString);
-  }, [selectedDate]);
+    setIsLocked(selectedDate < today);
+  }, [selectedDate, today]);
 
   /**
    * EFFECT: Populates the marks and attendance state based on the selected date and boys data.
@@ -97,13 +122,28 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     });
     setMarks(newMarks);
     setAttendance(newAttendance);
-    setIsDirty(false); // Reset dirty state on date change.
     setMarkErrors({}); // Clear errors on date change.
   }, [selectedDate, boys, isCompany]);
 
+  const pendingSnapshot = useMemo(
+    () =>
+      selectedDate
+        ? buildWeeklyMarksSnapshot({
+            boys,
+            selectedDate,
+            attendance,
+            marks,
+            activeSection,
+          })
+        : [],
+    [boys, selectedDate, attendance, marks, activeSection],
+  );
+
+  const hasPendingChanges = pendingSnapshot.length > 0;
+
   useEffect(() => {
-    setHasUnsavedChanges(isDirty);
-  }, [isDirty, setHasUnsavedChanges]);
+    setHasUnsavedChanges(hasPendingChanges);
+  }, [hasPendingChanges, setHasUnsavedChanges]);
 
   useEffect(() => {
     return () => {
@@ -140,7 +180,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
           return { ...prev, [boyId]: { ...currentMark, [type]: scoreStr } };
         }
       });
-      setIsDirty(true);
     }
   };
 
@@ -172,7 +211,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         setMarks(prev => ({ ...prev, [boyId]: presentMark ? { uniform: markForDate.uniformScore ?? '', behaviour: markForDate.behaviourScore ?? '' } : { uniform: '', behaviour: '' } }));
       }
     }
-    setIsDirty(true);
   };
 
   const handleClearAllMarks = () => {
@@ -191,29 +229,53 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     });
     setMarks(newMarks);
     setAttendance(newAttendance);
-    setIsDirty(true);
     setMarkErrors({}); // Clear errors
     showToast('All marks cleared for present members.', 'info');
+  };
+
+  const requestDateChange = (nextDate: string) => {
+    if (!nextDate || nextDate === selectedDate) {
+      return;
+    }
+
+    if (shouldConfirmWeeklyMarksDateChange({
+      currentDate: selectedDate,
+      nextDate,
+      isDirty: hasPendingChanges,
+    })) {
+      setPendingDate(nextDate);
+      setIsDateChangeConfirmOpen(true);
+      return;
+    }
+
+    setSelectedDate(nextDate);
+  };
+
+  const confirmDateChange = () => {
+    if (pendingDate) {
+      setSelectedDate(pendingDate);
+    }
+    setPendingDate('');
+    setIsDateChangeConfirmOpen(false);
+  };
+
+  const cancelDateChange = () => {
+    setPendingDate('');
+    setIsDateChangeConfirmOpen(false);
   };
 
   const handlePreviousWeek = () => {
     const currentDate = new Date(selectedDate + 'T00:00:00');
     currentDate.setDate(currentDate.getDate() - 7);
-    setSelectedDate(currentDate.toISOString().split('T')[0]);
-    setIsDirty(true); // Mark as dirty to prompt save if date changes
+    requestDateChange(currentDate.toISOString().split('T')[0]);
   };
 
   const handleNextWeek = () => {
     const currentDate = new Date(selectedDate + 'T00:00:00');
     currentDate.setDate(currentDate.getDate() + 7);
-    setSelectedDate(currentDate.toISOString().split('T')[0]);
-    setIsDirty(true); // Mark as dirty to prompt save if date changes
+    requestDateChange(currentDate.toISOString().split('T')[0]);
   };
 
-  /**
-   * Core save logic. This function processes all local state changes, determines which boys
-   * need updating, and bundles these updates into a single transaction.
-   */
   const handleSaveMarks = async () => {
     // Check for any active errors before saving
     const hasErrors = Object.values(markErrors).some(boyErrors =>
@@ -225,32 +287,17 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       return;
     }
 
+    if (!hasPendingChanges) {
+      showToast('No changes to save.', 'info');
+      return;
+    }
+
     setIsSaving(true);
-    
-    // Map over all boys to create an array of update promises.
-    const updates = boys.map(boy => {
-        if (!boy.id) return Promise.resolve(null);
-
-        const updatedMarks = buildUpdatedMarksForBoy({
-          boy,
-          selectedDate,
-          attendanceStatus: attendance[boy.id],
-          markState: marks[boy.id],
-          activeSection,
-        });
-
-        if (!updatedMarks) {
-          return Promise.resolve(null);
-        }
-
-        return updateBoy({ ...boy, marks: updatedMarks }, activeSection);
-    });
 
     try {
-        await Promise.all(updates);
+        await saveWeeklyMarksSnapshot(activeSection, selectedDate, pendingSnapshot);
         showToast('Marks saved successfully!', 'success');
         refreshData();
-        setIsDirty(false);
     } catch (error) {
         console.error('Failed to save marks', error);
         showToast('Failed to save marks. Please try again.', 'error');
@@ -260,8 +307,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   };
   
   // --- MEMOIZED COMPUTATIONS for rendering ---
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
-
   const boysBySquad = useMemo(() => {
     const grouped: Record<string, Boy[]> = {};
     boys.forEach(boy => {
@@ -315,7 +360,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       const total = squadBoys.length;
       if (total === 0) {
         stats[squad] = { present: 0, total: 0, percentage: 0 };
-        continue;;
+        continue;
       }
       const present = squadBoys.filter(boy => boy.id && attendance[boy.id] === 'present').length;
       const percentage = Math.round((present / total) * 100);
@@ -369,7 +414,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
           </button>
           <DatePicker
             value={selectedDate}
-            onChange={setSelectedDate}
+            onChange={requestDateChange}
             accentRingClass={accentRing}
             ariaLabel="Select weekly marks date"
             // Removed disabled={isLocked} - DatePicker is now always enabled
@@ -513,7 +558,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       </div>
 
        {/* Floating Action Button for saving */}
-       {isDirty && (
+       {hasPendingChanges && (
           <button
             onClick={handleSaveMarks}
             disabled={isSaving}
@@ -527,7 +572,31 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
               </svg>
             ) : <SaveIcon className="h-7 w-7" />}
           </button>
-       )}
+      )}
+
+      <Modal isOpen={isDateChangeConfirmOpen} onClose={cancelDateChange} title="Discard unsaved marks?">
+        <div className="space-y-4">
+          <p className="text-slate-600">
+            Changing the date will discard the unsaved changes on this sheet. Continue?
+          </p>
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={cancelDateChange}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+            >
+              Stay
+            </button>
+            <button
+              type="button"
+              onClick={confirmDateChange}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              Change Date
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

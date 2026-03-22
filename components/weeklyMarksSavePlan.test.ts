@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Boy } from '../types';
-import { buildUpdatedMarksForBoy } from './weeklyMarksSavePlan';
+import {
+  areMarkListsEqual,
+  buildWeeklyMarksSnapshot,
+  normalizeEditableMarksForSave,
+} from './weeklyMarksSavePlan';
 
 const baseBoy: Boy = {
   id: 'member-1',
@@ -12,87 +16,200 @@ const baseBoy: Boy = {
   isSquadLeader: false,
 };
 
-describe('buildUpdatedMarksForBoy', () => {
-  it('creates an absent mark when attendance is toggled off', () => {
+describe('buildWeeklyMarksSnapshot', () => {
+  it('creates an absent mark entry when attendance is toggled off', () => {
     expect(
-      buildUpdatedMarksForBoy({
-        boy: baseBoy,
+      buildWeeklyMarksSnapshot({
+        boys: [baseBoy],
         selectedDate: '2026-03-27',
-        attendanceStatus: 'absent',
-        markState: undefined,
+        attendance: { 'member-1': 'absent' },
+        marks: {},
         activeSection: 'company',
       }),
-    ).toEqual([{ date: '2026-03-27', score: -1 }]);
+    ).toEqual([{ memberId: 'member-1', mark: { date: '2026-03-27', score: -1 } }]);
   });
 
-  it('skips company updates when no score has been entered', () => {
+  it('creates a delete entry when a saved company mark is cleared', () => {
     expect(
-      buildUpdatedMarksForBoy({
-        boy: baseBoy,
+      buildWeeklyMarksSnapshot({
+        boys: [{ ...baseBoy, marks: [{ date: '2026-03-27', score: 9 }] }],
         selectedDate: '2026-03-27',
-        attendanceStatus: 'present',
-        markState: '',
+        attendance: { 'member-1': 'present' },
+        marks: { 'member-1': '' },
         activeSection: 'company',
       }),
-    ).toBeNull();
+    ).toEqual([{ memberId: 'member-1', mark: null }]);
   });
 
-  it('normalizes company updates back to a single score mark', () => {
-    const boy: Boy = {
-      ...baseBoy,
-      marks: [{ date: '2026-03-27', score: 9, uniformScore: 5, behaviourScore: 4 }],
-    };
-
+  it('builds a changed-entry snapshot for the selected date', () => {
     expect(
-      buildUpdatedMarksForBoy({
-        boy,
+      buildWeeklyMarksSnapshot({
+        boys: [
+          { ...baseBoy, marks: [{ date: '2026-03-27', score: 8 }] },
+          {
+            ...baseBoy,
+            id: 'member-2',
+            name: 'Ben',
+            marks: [{ date: '2026-03-27', score: 6 }],
+          },
+          {
+            ...baseBoy,
+            id: 'member-3',
+            name: 'Chris',
+            marks: [],
+          },
+        ],
         selectedDate: '2026-03-27',
-        attendanceStatus: 'present',
-        markState: '9',
+        attendance: {
+          'member-1': 'present',
+          'member-2': 'present',
+          'member-3': 'absent',
+        },
+        marks: {
+          'member-1': 9,
+          'member-2': '',
+          'member-3': -1,
+        },
         activeSection: 'company',
       }),
-    ).toEqual([{ date: '2026-03-27', score: 9 }]);
+    ).toEqual([
+      { memberId: 'member-1', mark: { date: '2026-03-27', score: 9 } },
+      { memberId: 'member-2', mark: null },
+      { memberId: 'member-3', mark: { date: '2026-03-27', score: -1 } },
+    ]);
+  });
+
+  it('keeps absent state in the snapshot', () => {
+    expect(
+      buildWeeklyMarksSnapshot({
+        boys: [{ ...baseBoy, marks: [{ date: '2026-03-27', score: -1 }] }],
+        selectedDate: '2026-03-27',
+        attendance: { 'member-1': 'present' },
+        marks: { 'member-1': '' },
+        activeSection: 'company',
+      }),
+    ).toEqual([{ memberId: 'member-1', mark: null }]);
   });
 
   it('builds junior totals from partial entries', () => {
     expect(
-      buildUpdatedMarksForBoy({
-        boy: baseBoy,
+      buildWeeklyMarksSnapshot({
+        boys: [{ ...baseBoy, year: 'P6' }],
         selectedDate: '2026-03-27',
-        attendanceStatus: 'present',
-        markState: { uniform: 4, behaviour: '' },
+        attendance: { 'member-1': 'present' },
+        marks: { 'member-1': { uniform: 4, behaviour: '' } },
         activeSection: 'junior',
       }),
-    ).toEqual([{ date: '2026-03-27', score: 4, uniformScore: 4, behaviourScore: 0 }]);
+    ).toEqual([
+      {
+        memberId: 'member-1',
+        mark: { date: '2026-03-27', score: 4, uniformScore: 4, behaviourScore: 0 },
+      },
+    ]);
   });
 
-  it('skips junior updates when the existing mark is unchanged', () => {
-    const boy: Boy = {
-      ...baseBoy,
-      year: 'P7',
-      marks: [{ date: '2026-03-27', score: 7, uniformScore: 5, behaviourScore: 2 }],
-    };
-
+  it('omits unchanged weekly rows from the snapshot', () => {
     expect(
-      buildUpdatedMarksForBoy({
-        boy,
+      buildWeeklyMarksSnapshot({
+        boys: [{ ...baseBoy, marks: [{ date: '2026-03-27', score: -1 }] }],
         selectedDate: '2026-03-27',
-        attendanceStatus: 'present',
-        markState: { uniform: 5, behaviour: 2 },
-        activeSection: 'junior',
+        attendance: { 'member-1': 'absent' },
+        marks: {},
+        activeSection: 'company',
       }),
-    ).toBeNull();
+    ).toEqual([]);
+  });
+});
+
+describe('normalizeEditableMarksForSave', () => {
+  it('normalizes editable company marks', () => {
+    expect(
+      normalizeEditableMarksForSave([{ date: '2026-03-27', score: 8 }], 'company'),
+    ).toEqual([{ date: '2026-03-27', score: 8 }]);
   });
 
-  it('skips junior updates when a score cannot be parsed', () => {
+  it('preserves absent junior marks', () => {
     expect(
-      buildUpdatedMarksForBoy({
-        boy: { ...baseBoy, year: 'P6' },
-        selectedDate: '2026-03-27',
-        attendanceStatus: 'present',
-        markState: { uniform: 'oops' as never, behaviour: 2 },
-        activeSection: 'junior',
-      }),
-    ).toBeNull();
+      normalizeEditableMarksForSave(
+        [{ date: '2026-03-27', score: -1, uniformScore: '', behaviourScore: '' }],
+        'junior',
+      ),
+    ).toEqual([{ date: '2026-03-27', score: -1 }]);
+  });
+
+  it('normalizes junior component scores into numeric totals', () => {
+    expect(
+      normalizeEditableMarksForSave(
+        [{ date: '2026-03-27', score: 5, uniformScore: 2, behaviourScore: 3 }],
+        'junior',
+      ),
+    ).toEqual([
+      { date: '2026-03-27', score: 5, uniformScore: 2, behaviourScore: 3 },
+    ]);
+  });
+
+  it('normalizes empty junior component scores to zero', () => {
+    expect(
+      normalizeEditableMarksForSave(
+        [{ date: '2026-03-27', score: 0, uniformScore: '', behaviourScore: '' }],
+        'junior',
+      ),
+    ).toEqual([
+      { date: '2026-03-27', score: 0, uniformScore: 0, behaviourScore: 0 },
+    ]);
+  });
+});
+
+describe('areMarkListsEqual', () => {
+  it('treats reordered equivalent lists as equal', () => {
+    expect(
+      areMarkListsEqual(
+        [
+          { date: '2026-03-27', score: 8 },
+          { date: '2026-03-20', score: -1 },
+        ],
+        [
+          { date: '2026-03-20', score: -1 },
+          { date: '2026-03-27', score: 8 },
+        ],
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false when list lengths differ', () => {
+    expect(
+      areMarkListsEqual(
+        [{ date: '2026-03-27', score: 8 }],
+        [
+          { date: '2026-03-20', score: -1 },
+          { date: '2026-03-27', score: 8 },
+        ],
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when scores differ for the same date', () => {
+    expect(
+      areMarkListsEqual(
+        [{ date: '2026-03-27', score: 5 }],
+        [{ date: '2026-03-27', score: 6 }],
+      ),
+    ).toBe(false);
+  });
+
+  it('compares junior mark components as part of equality', () => {
+    expect(
+      areMarkListsEqual(
+        [{ date: '2026-03-27', score: 5, uniformScore: 2, behaviourScore: 3 }],
+        [{ date: '2026-03-27', score: 5, uniformScore: 2, behaviourScore: 3 }],
+      ),
+    ).toBe(true);
+
+    expect(
+      areMarkListsEqual(
+        [{ date: '2026-03-27', score: 5, uniformScore: 2, behaviourScore: 3 }],
+        [{ date: '2026-03-27', score: 5, uniformScore: 1, behaviourScore: 4 }],
+      ),
+    ).toBe(false);
   });
 });

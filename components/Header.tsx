@@ -7,8 +7,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MenuIcon, XIcon, CogIcon, UserCircleIcon, SwitchHorizontalIcon, LogOutIcon } from './Icons';
-import { Page, Section } from '../types';
-import { useAuthAndRole } from '../hooks/useAuthAndRole';
+import { AppUser, Page, Section, UserRole } from '../types';
 
 interface HeaderProps {
     /** Function to change the current view/page. */
@@ -19,10 +18,13 @@ interface HeaderProps {
     activeSection: Section;
     /** Callback function to handle switching between sections. */
     onSwitchSection: () => void;
+    /** The current authenticated user from the app root. */
+    currentUser: AppUser | null;
+    /** The current authenticated user's application role. */
+    userRole: UserRole | null;
 }
 
-const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSwitchSection }) => {
-    const { currentUser: user, userRole } = useAuthAndRole();
+const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSwitchSection, currentUser, userRole }) => {
     // State to manage the visibility of the mobile menu.
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     // State to manage the visibility of the desktop profile dropdown.
@@ -99,7 +101,7 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
                     
                     {/* Desktop Menu */}
                     <div className="hidden lg:flex items-center space-x-2">
-                        {user && (
+                        {currentUser && (
                             <>
                                 <button onClick={() => handleNavClick('home')} className={navLinkClasses}>Home</button>
                                 <button onClick={() => handleNavClick('dashboard')} className={navLinkClasses}>Dashboard</button>
@@ -126,7 +128,7 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
                                     {isProfileMenuOpen && (
                                         <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
                                             <div className="py-1">
-                                                <p className="block px-4 py-2 text-sm text-slate-500 truncate border-b border-slate-100">{user?.email || user?.id}</p>
+                                                <p className="block px-4 py-2 text-sm text-slate-500 truncate border-b border-slate-100">{currentUser.email || currentUser.id}</p>
                                                 <button onClick={() => handleNavClick('accountSettings')} className={dropdownItemClasses} role="menuitem">
                                                     <CogIcon className="h-5 w-5 mr-2 text-slate-500" />
                                                     Account Settings
@@ -149,7 +151,7 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
                     
                     {/* Mobile Menu Button (Hamburger Icon) */}
                     <div className="lg:hidden flex items-center">
-                        {user && (
+                        {currentUser && (
                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className={`inline-flex items-center justify-center p-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset ${ringColor}`}>
                                 <span className="sr-only">Open main menu</span>
                                 {isMenuOpen ? <XIcon className="block h-6 w-6" /> : <MenuIcon className="block h-6 w-6" />}
@@ -160,7 +162,7 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
             </nav>
 
             {/* Mobile Menu Panel */}
-            {isMenuOpen && user && (
+            {isMenuOpen && currentUser && (
                 <div className={`lg:hidden absolute w-full ${bgColor} shadow-lg z-30`} id="mobile-menu">
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                         <button onClick={() => handleNavClick('home')} className={mobileNavLinkClasses}>Home</button>
@@ -173,7 +175,7 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
                         )}
                         {/* Profile-related options in mobile menu */}
                         <div className="pt-2 mt-2 border-t border-white/20">
-                            <p className="block px-3 py-2 text-base font-medium text-gray-200">{user?.email || user?.id}</p>
+                            <p className="block px-3 py-2 text-base font-medium text-gray-200">{currentUser.email || currentUser.id}</p>
                             <button onClick={() => handleNavClick('accountSettings')} className={mobileNavLinkClasses}>
                                 <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Account Settings</span></div>
                             </button>
