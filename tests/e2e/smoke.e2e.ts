@@ -40,6 +40,14 @@ const openSectionSettings = async (page: Page) => {
   await expect(page.getByRole('heading', { name: 'Section Settings' })).toBeVisible();
 };
 
+const ensureSectionSettingsOpen = async (page: Page) => {
+  const heading = page.getByRole('heading', { name: 'Section Settings' });
+
+  if (!(await heading.isVisible())) {
+    await openSectionSettings(page);
+  }
+};
+
 const saveSettingsAndWait = async (page: Page) => {
   const saveResponsePromise = page.waitForResponse(
     (response) =>
@@ -127,7 +135,7 @@ test.describe('E2E smoke tests', () => {
       testError = error;
     } finally {
       try {
-        await openSectionSettings(page);
+        await ensureSectionSettingsOpen(page);
         const restoreSelect = page.getByLabel('Weekly Meeting Day');
         if ((await restoreSelect.inputValue()) !== String(originalValue)) {
           await restoreSelect.selectOption(String(originalValue));

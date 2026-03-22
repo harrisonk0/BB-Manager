@@ -42,7 +42,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   const [marks, setMarks] = useState<Record<string, CompanyMarkState | JuniorMarkState>>({});
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [, setIsDirty] = useState(false); // Retained for local input change tracking; navigation gating is derived from the snapshot.
   const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
   const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
   const [pendingDate, setPendingDate] = useState('');
@@ -101,7 +100,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     });
     setMarks(newMarks);
     setAttendance(newAttendance);
-    setIsDirty(false); // Reset dirty state on date change.
     setMarkErrors({}); // Clear errors on date change.
   }, [selectedDate, boys, isCompany]);
 
@@ -160,7 +158,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
           return { ...prev, [boyId]: { ...currentMark, [type]: scoreStr } };
         }
       });
-      setIsDirty(true);
     }
   };
 
@@ -192,7 +189,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         setMarks(prev => ({ ...prev, [boyId]: presentMark ? { uniform: markForDate.uniformScore ?? '', behaviour: markForDate.behaviourScore ?? '' } : { uniform: '', behaviour: '' } }));
       }
     }
-    setIsDirty(true);
   };
 
   const handleClearAllMarks = () => {
@@ -211,7 +207,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     });
     setMarks(newMarks);
     setAttendance(newAttendance);
-    setIsDirty(true);
     setMarkErrors({}); // Clear errors
     showToast('All marks cleared for present members.', 'info');
   };
@@ -271,7 +266,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     }
 
     if (!hasPendingChanges) {
-      setIsDirty(false);
       showToast('No changes to save.', 'info');
       return;
     }
@@ -282,7 +276,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         await saveWeeklyMarksSnapshot(activeSection, selectedDate, pendingSnapshot);
         showToast('Marks saved successfully!', 'success');
         refreshData();
-        setIsDirty(false);
     } catch (error) {
         console.error('Failed to save marks', error);
         showToast('Failed to save marks. Please try again.', 'error');
@@ -347,7 +340,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       const total = squadBoys.length;
       if (total === 0) {
         stats[squad] = { present: 0, total: 0, percentage: 0 };
-        continue;;
+        continue;
       }
       const present = squadBoys.filter(boy => boy.id && attendance[boy.id] === 'present').length;
       const percentage = Math.round((present / total) * 100);
