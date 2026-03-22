@@ -32,9 +32,9 @@ flowchart LR
 
 1. Sign in with your Supabase account.
 2. Choose the section you are responsible for.
-3. Use `Home` to manage the member roster.
-4. Use `Weekly Marks` for weekly attendance and scoring.
-5. Use `Dashboard` when you want a quick summary of section performance or need the session PDF.
+3. Manage the member roster from `Home`.
+4. Record weekly attendance and scoring in `Weekly Marks`.
+5. View section performance or download the session PDF from `Dashboard`.
 
 ## Member Management
 

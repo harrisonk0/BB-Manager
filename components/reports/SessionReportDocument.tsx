@@ -8,12 +8,16 @@ import {
   View,
 } from '@react-pdf/renderer';
 
-import type { MemberSessionSummary, SessionReportData, SquadSessionSummary } from '../../types/reporting';
+import type { MemberMeetingRecord, MemberSessionSummary, SessionReportData, SquadSessionSummary } from '../../types/reporting';
+import bbLogo from '../../assets/branding/bb-logo.png';
+import bbBackground from '../../assets/branding/bb-background.jpg';
+import companyLogo from '../../assets/branding/company-logo.png';
+import juniorLogo from '../../assets/branding/junior-logo.png';
 
-const BB_LOGO_URL = 'https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png';
-const BB_BACKGROUND_URL = 'https://i.postimg.cc/MKD36t18/mixed-activities.jpg';
-const COMPANY_LOGO_URL = 'https://i.postimg.cc/0j44DjdY/company-boxed-colour.png';
-const JUNIOR_LOGO_URL = 'https://i.postimg.cc/W1qvWLdp/juniors-boxed-colour.png';
+const BB_LOGO_URL = bbLogo;
+const BB_BACKGROUND_URL = bbBackground;
+const COMPANY_LOGO_URL = companyLogo;
+const JUNIOR_LOGO_URL = juniorLogo;
 
 const styles = StyleSheet.create({
   page: {
@@ -458,34 +462,34 @@ const renderPageFooter = (report: SessionReportData) => (
 const renderMemberTable = (members: MemberSessionSummary[], section: SessionReportData['section']) => (
   <View style={styles.table}>
     <View style={[styles.tableRow, styles.tableHead]}>
-      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '28%' }]}>Member</Text>
-      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '10%' }]}>Squad</Text>
-      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '10%' }]}>Year</Text>
-      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '10%' }]}>Attend</Text>
-      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '10%' }]}>Absent</Text>
-      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '10%' }]}>Rate</Text>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: section === 'junior' ? '24%' : '28%' }]}>Member</Text>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: section === 'junior' ? '8%' : '10%' }]}>Squad</Text>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: section === 'junior' ? '8%' : '10%' }]}>Year</Text>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: section === 'junior' ? '8%' : '10%' }]}>Attend</Text>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: section === 'junior' ? '8%' : '10%' }]}>Absent</Text>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: section === 'junior' ? '8%' : '10%' }]}>Rate</Text>
       <Text style={[styles.tableCell, styles.tableHeadCell, { width: section === 'junior' ? '12%' : '22%' }]}>Total</Text>
       {section === 'junior' && (
-        <Text style={[styles.tableCell, styles.tableHeadCell, { width: '10%' }]}>Uniform</Text>
+        <Text style={[styles.tableCell, styles.tableHeadCell, { width: '12%' }]}>Uniform</Text>
       )}
       {section === 'junior' && (
-        <Text style={[styles.tableCell, styles.tableHeadCell, { width: '10%' }]}>Behav.</Text>
+        <Text style={[styles.tableCell, styles.tableHeadCell, { width: '12%' }]}>Behav.</Text>
       )}
     </View>
     {members.map((member, index) => (
       <View key={member.id} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null]}>
-        <Text style={[styles.tableCell, { width: '28%' }]}>{member.name}</Text>
-        <Text style={[styles.tableCell, { width: '10%' }]}>{String(member.squad)}</Text>
-        <Text style={[styles.tableCell, { width: '10%' }]}>{String(member.year)}</Text>
-        <Text style={[styles.tableCell, { width: '10%' }]}>{member.attendanceCount}</Text>
-        <Text style={[styles.tableCell, { width: '10%' }]}>{member.absenceCount}</Text>
-        <Text style={[styles.tableCell, { width: '10%' }]}>{`${formatNumber(member.attendanceRate)}%`}</Text>
+        <Text style={[styles.tableCell, { width: section === 'junior' ? '24%' : '28%' }]}>{member.name}</Text>
+        <Text style={[styles.tableCell, { width: section === 'junior' ? '8%' : '10%' }]}>{String(member.squad)}</Text>
+        <Text style={[styles.tableCell, { width: section === 'junior' ? '8%' : '10%' }]}>{String(member.year)}</Text>
+        <Text style={[styles.tableCell, { width: section === 'junior' ? '8%' : '10%' }]}>{member.attendanceCount}</Text>
+        <Text style={[styles.tableCell, { width: section === 'junior' ? '8%' : '10%' }]}>{member.absenceCount}</Text>
+        <Text style={[styles.tableCell, { width: section === 'junior' ? '8%' : '10%' }]}>{`${formatNumber(member.attendanceRate)}%`}</Text>
         <Text style={[styles.tableCell, { width: section === 'junior' ? '12%' : '22%' }]}>{formatNumber(member.totalMarks)}</Text>
         {section === 'junior' && (
-          <Text style={[styles.tableCell, { width: '10%' }]}>{formatNumber(member.uniformTotal ?? 0)}</Text>
+          <Text style={[styles.tableCell, { width: '12%' }]}>{formatNumber(member.uniformTotal ?? 0)}</Text>
         )}
         {section === 'junior' && (
-          <Text style={[styles.tableCell, { width: '10%' }]}>{formatNumber(member.behaviourTotal ?? 0)}</Text>
+          <Text style={[styles.tableCell, { width: '12%' }]}>{formatNumber(member.behaviourTotal ?? 0)}</Text>
         )}
       </View>
     ))}
@@ -550,6 +554,10 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
   const topMeetingMark = Math.max(...report.meetings.map((meeting) => meeting.totalMarks), 0);
   const topMonthMark = Math.max(...report.months.map((month) => month.totalMarks), 0);
   const meetingChunks: SessionReportData['meetings'][] = chunk<SessionReportData['meetings'][number]>(report.meetings, 18);
+  const squadMemberChunks: MemberSessionSummary[][] = chunk<MemberSessionSummary>(
+    report.members,
+    report.section === 'junior' ? 14 : 16,
+  );
 
   return (
     <Document
@@ -616,7 +624,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
           membership size, how consistently members attended, how many marks were awarded, and which members led the section overall.
         </Text>
 
-        <View style={styles.statGrid}>
+        <View style={styles.statGrid} wrap={false}>
           <View style={styles.statCard}>
             <Text style={styles.statCardLabel}>Total attendance records</Text>
             <Text style={styles.statCardValue}>{report.headlineStats.attendanceCount}</Text>
@@ -635,7 +643,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
           </View>
         </View>
 
-        <View style={styles.twoColumn}>
+        <View style={styles.twoColumn} wrap={false}>
           <View style={styles.column}>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Top Members</Text>
@@ -679,7 +687,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
       <Page size="A4" style={styles.page}>
         {renderPageHeader(report, 'Attendance And Marks Trends')}
 
-        <View style={styles.twoColumn}>
+        <View style={styles.twoColumn} wrap={false}>
           <View style={styles.column}>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Meeting Attendance Rate</Text>
@@ -710,7 +718,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
           </View>
         </View>
 
-        <View style={styles.card}>
+        <View style={styles.card} wrap={false}>
           <Text style={styles.cardTitle}>Monthly Session Pattern</Text>
           {renderHorizontalBars(
             report.months.map((month) => ({
@@ -745,20 +753,30 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
           and where section leadership might want to focus at the start of the next session.
         </Text>
 
-        <View style={styles.twoColumn}>
+        <View style={styles.twoColumn} wrap={false}>
           <View style={styles.column}>{report.squads.filter((_, index) => index % 2 === 0).map(renderSquadCard)}</View>
           <View style={styles.column}>{report.squads.filter((_, index) => index % 2 === 1).map(renderSquadCard)}</View>
         </View>
 
-        {renderMemberTable(report.members, report.section)}
         {renderPageFooter(report)}
       </Page>
+
+      {squadMemberChunks.map((memberChunk, index) => (
+        <Page key={`squad-members-${index}`} size="A4" style={styles.page}>
+          {renderPageHeader(report, index === 0 ? 'Section Member Ledger' : 'Section Member Ledger Continued')}
+          <Text style={styles.sectionCopy}>
+            Full member-level attendance and marks summary for the selected session range.
+          </Text>
+          {renderMemberTable(memberChunk, report.section)}
+          {renderPageFooter(report)}
+        </Page>
+      ))}
 
       {report.members.map((member) => (
         <Page key={member.id} size="A4" style={styles.page}>
           {renderPageHeader(report, `${member.name} Session Detail`)}
 
-          <View style={styles.memberMetricsRow}>
+          <View style={styles.memberMetricsRow} wrap={false}>
             <View style={styles.memberMetricsCard}>
               <Text style={styles.statCardLabel}>Squad / Year</Text>
               <Text style={styles.statCardValue}>{`S${member.squad} / ${member.year}`}</Text>
@@ -776,7 +794,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
             </View>
           </View>
 
-          <View style={styles.twoColumn}>
+          <View style={styles.twoColumn} wrap={false}>
             <View style={styles.column}>
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Member Summary</Text>
@@ -847,7 +865,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
                   <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Behaviour</Text>
                 )}
               </View>
-              {member.meetings.map((meeting, index) => (
+              {member.meetings.slice(0, 14).map((meeting, index) => (
                 <View key={meeting.date} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null]}>
                   <Text style={[styles.tableCell, { width: '22%' }]}>{formatDate(meeting.date)}</Text>
                   <Text style={[styles.tableCell, { width: '14%' }]}>{meeting.attended ? 'Present' : 'Absent'}</Text>
@@ -871,6 +889,50 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
           {renderPageFooter(report)}
         </Page>
       ))}
+
+      {report.members.flatMap((member) =>
+        chunk<MemberMeetingRecord>(member.meetings.slice(14), 22).map((meetingChunk, index) => (
+          <Page key={`${member.id}-continued-${index}`} size="A4" style={styles.page}>
+            {renderPageHeader(report, `${member.name} Session Detail Continued`)}
+            <Text style={styles.sectionCopy}>
+              Continued meeting-by-meeting record for this member.
+            </Text>
+            <View style={styles.table}>
+              <View style={[styles.tableRow, styles.tableHead]}>
+                <Text style={[styles.tableCell, styles.tableHeadCell, { width: '22%' }]}>Date</Text>
+                <Text style={[styles.tableCell, styles.tableHeadCell, { width: '14%' }]}>Status</Text>
+                <Text style={[styles.tableCell, styles.tableHeadCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>Score</Text>
+                {report.section === 'junior' && (
+                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Uniform</Text>
+                )}
+                {report.section === 'junior' && (
+                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Behaviour</Text>
+                )}
+              </View>
+              {meetingChunk.map((meeting, meetingIndex) => (
+                <View key={meeting.date} style={[styles.tableRow, meetingIndex % 2 === 1 ? styles.tableRowAlt : null]}>
+                  <Text style={[styles.tableCell, { width: '22%' }]}>{formatDate(meeting.date)}</Text>
+                  <Text style={[styles.tableCell, { width: '14%' }]}>{meeting.attended ? 'Present' : 'Absent'}</Text>
+                  <Text style={[styles.tableCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>
+                    {meeting.attended ? formatNumber(meeting.score) : '-'}
+                  </Text>
+                  {report.section === 'junior' && (
+                    <Text style={[styles.tableCell, { width: '25%' }]}>
+                      {meeting.attended ? formatNumber(meeting.uniformScore ?? 0) : '-'}
+                    </Text>
+                  )}
+                  {report.section === 'junior' && (
+                    <Text style={[styles.tableCell, { width: '25%' }]}>
+                      {meeting.attended ? formatNumber(meeting.behaviourScore ?? 0) : '-'}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
+            {renderPageFooter(report)}
+          </Page>
+        )),
+      )}
     </Document>
   );
 };

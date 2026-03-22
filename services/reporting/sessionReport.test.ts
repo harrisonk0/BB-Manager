@@ -49,6 +49,22 @@ describe('sessionReport', () => {
     });
   });
 
+  it('returns null when there are no marks to report', () => {
+    expect(getSectionDateRange([])).toBeNull();
+    expect(
+      getSectionDateRange([
+        {
+          id: 'member-empty',
+          name: 'No Marks',
+          squad: 1,
+          year: 10,
+          isSquadLeader: false,
+          marks: [],
+        },
+      ]),
+    ).toBeNull();
+  });
+
   it('builds section, squad, meeting, and top-member summaries', () => {
     const report = buildSessionReportData({
       boys: companyBoys,

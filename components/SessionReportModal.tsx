@@ -29,6 +29,14 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
   const sectionRange = useMemo(() => getSectionDateRange(boys), [boys]);
   const [startDate, setStartDate] = useState(sectionRange?.startDate ?? '');
   const [endDate, setEndDate] = useState(sectionRange?.endDate ?? '');
+  const inputBrandClasses =
+    activeSection === 'company'
+      ? 'focus:border-company-blue focus:ring-company-blue'
+      : 'focus:border-junior-blue focus:ring-junior-blue';
+  const buttonBrandClasses =
+    activeSection === 'company'
+      ? 'bg-company-blue focus:ring-company-blue'
+      : 'bg-junior-blue focus:ring-junior-blue';
 
   React.useEffect(() => {
     setStartDate(sectionRange?.startDate ?? '');
@@ -51,6 +59,9 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
   const hasDataForRange = Boolean(report && report.headlineStats.meetingCount > 0);
   const sectionLabel = activeSection === 'company' ? 'Company Section' : 'Junior Section';
   const filename = `${activeSection}-session-report-${startDate || 'start'}-to-${endDate || 'end'}.pdf`;
+  const estimatedPageCount = report
+    ? 1 + 1 + 1 + Math.max(1, Math.ceil(report.meetings.length / 18)) + 1 + Math.max(1, Math.ceil(report.members.length / (activeSection === 'junior' ? 14 : 16))) + report.members.reduce((sum, member) => sum + 1 + Math.ceil(Math.max(member.meetings.length - 14, 0) / 22), 0)
+    : 0;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Master Session PDF" size="lg">
@@ -80,7 +91,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
                 min={sectionRange.startDate}
                 max={sectionRange.endDate}
                 onChange={(event) => setStartDate(event.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-company-blue focus:outline-none focus:ring-2 focus:ring-company-blue"
+                className={`w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 ${inputBrandClasses}`}
               />
             </label>
             <label className="block">
@@ -91,7 +102,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
                 min={sectionRange.startDate}
                 max={sectionRange.endDate}
                 onChange={(event) => setEndDate(event.target.value)}
-                className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:border-company-blue focus:outline-none focus:ring-2 focus:ring-company-blue"
+                className={`w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 ${inputBrandClasses}`}
               />
             </label>
           </div>
@@ -114,7 +125,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
                   </div>
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Pages</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-900">{4 + report.members.length}</p>
+                    <p className="mt-1 text-lg font-semibold text-slate-900">{estimatedPageCount}</p>
                   </div>
                 </div>
                 <p className="mt-4 text-sm text-slate-600">
@@ -145,7 +156,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
               <PDFDownloadLink
                 document={<SessionReportDocument report={report} />}
                 fileName={filename}
-                className="inline-flex items-center rounded-md bg-company-blue px-4 py-2 text-sm font-medium text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-company-blue focus:ring-offset-2"
+                className={`inline-flex items-center rounded-md px-4 py-2 text-sm font-medium text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-offset-2 ${buttonBrandClasses}`}
               >
                 {({ loading }) => (loading ? 'Preparing PDF...' : 'Download Master PDF')}
               </PDFDownloadLink>
