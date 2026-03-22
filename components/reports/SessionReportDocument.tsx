@@ -20,47 +20,44 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     color: '#0f172a',
     fontSize: 10,
-    paddingTop: 32,
+    paddingTop: 84,
     paddingBottom: 36,
     paddingHorizontal: 32,
     fontFamily: 'Helvetica',
   },
   coverPage: {
-    position: 'relative',
-    padding: 0,
-    backgroundColor: '#0f172a',
-  },
-  coverBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-  },
-  coverOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(15, 23, 42, 0.74)',
-  },
-  coverContent: {
-    position: 'relative',
-    zIndex: 1,
-    height: '100%',
     paddingTop: 48,
     paddingBottom: 48,
     paddingHorizontal: 42,
-    display: 'flex',
+    backgroundColor: '#10182e',
+    color: '#ffffff',
+    fontFamily: 'Helvetica',
+  },
+  coverContent: {
+    height: '100%',
     flexDirection: 'column',
     justifyContent: 'space-between',
   },
   coverTop: {
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    marginBottom: 34,
+  },
+  coverBrandColumn: {
+    width: '58%',
+  },
+  coverPhotoCard: {
+    width: '34%',
+    backgroundColor: '#18233f',
+    borderRadius: 18,
+    overflow: 'hidden',
+    border: '1 solid #314469',
+  },
+  coverPhoto: {
+    width: '100%',
+    height: 228,
+    objectFit: 'cover',
   },
   coverMainLogo: {
     width: 120,
@@ -73,7 +70,7 @@ const styles = StyleSheet.create({
     objectFit: 'contain',
   },
   coverEyebrow: {
-    color: '#cbd5e1',
+    color: '#9fb4ff',
     fontSize: 12,
     letterSpacing: 1.5,
     textTransform: 'uppercase',
@@ -87,27 +84,28 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   coverSubtitle: {
-    color: '#e2e8f0',
+    color: '#dbe7ff',
     fontSize: 13,
     lineHeight: 1.5,
     maxWidth: 380,
   },
   coverStatGrid: {
-    display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
     marginTop: 24,
+    marginBottom: 28,
   },
   coverStatCard: {
     width: '48%',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    border: '1 solid rgba(255, 255, 255, 0.14)',
+    backgroundColor: '#162441',
+    border: '1 solid #395485',
     borderRadius: 12,
     padding: 14,
+    marginRight: '2%',
+    marginBottom: 12,
   },
   coverStatLabel: {
-    color: '#cbd5e1',
+    color: '#9fb4ff',
     fontSize: 10,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -119,24 +117,34 @@ const styles = StyleSheet.create({
     fontWeight: 700,
   },
   coverFooter: {
-    color: '#cbd5e1',
+    color: '#c8d7f6',
     fontSize: 10,
     lineHeight: 1.5,
   },
+  coverDivider: {
+    width: 68,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: '#9fb4ff',
+    marginTop: 22,
+    marginBottom: 24,
+  },
   header: {
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 18,
     paddingBottom: 10,
     borderBottom: '1 solid #cbd5e1',
   },
   headerBrand: {
-    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    width: '66%',
+  },
+  headerTextBlock: {
+    marginLeft: 12,
+    paddingRight: 10,
   },
   headerLogo: {
     width: 48,
@@ -149,7 +157,8 @@ const styles = StyleSheet.create({
     objectFit: 'contain',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
+    lineHeight: 1.25,
     fontWeight: 700,
     color: '#0f172a',
   },
@@ -158,6 +167,7 @@ const styles = StyleSheet.create({
     color: '#475569',
     lineHeight: 1.4,
     textAlign: 'right',
+    width: '30%',
   },
   sectionTitle: {
     fontSize: 16,
@@ -172,10 +182,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   statGrid: {
-    display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
     marginBottom: 18,
   },
   statCard: {
@@ -184,6 +192,7 @@ const styles = StyleSheet.create({
     border: '1 solid #e2e8f0',
     borderRadius: 10,
     padding: 12,
+    marginRight: '2.33%',
   },
   statCardLabel: {
     color: '#64748b',
@@ -203,14 +212,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   twoColumn: {
-    display: 'flex',
     flexDirection: 'row',
-    gap: 16,
     alignItems: 'flex-start',
+    justifyContent: 'space-between',
   },
   column: {
     flexGrow: 1,
     flexBasis: 0,
+    width: '48.5%',
   },
   card: {
     backgroundColor: '#ffffff',
@@ -218,6 +227,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
     marginBottom: 14,
+  },
+  memberTableSection: {
+    marginTop: 6,
   },
   cardTitle: {
     fontSize: 12,
@@ -340,6 +352,17 @@ const styles = StyleSheet.create({
     color: '#64748b',
     lineHeight: 1.45,
   },
+  memberMetricsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  memberMetricsCard: {
+    width: '31%',
+    backgroundColor: '#ffffff',
+    border: '1 solid #e2e8f0',
+    borderRadius: 10,
+    padding: 12,
+  },
 });
 
 const formatDate = (value: string) =>
@@ -372,6 +395,16 @@ const getAccent = (section: SessionReportData['section']) =>
     ? { primary: '#222943', secondary: '#9fb4ff', soft: '#dbe4ff', sectionLogo: COMPANY_LOGO_URL }
     : { primary: '#284e8b', secondary: '#8ec6ff', soft: '#d8e9ff', sectionLogo: JUNIOR_LOGO_URL };
 
+const chunk = <T,>(items: T[], size: number) => {
+  const chunks: T[][] = [];
+
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+
+  return chunks;
+};
+
 const renderHorizontalBars = (
   items: { label: string; value: number; helper?: string }[],
   accentColor: string,
@@ -399,11 +432,11 @@ const renderPageHeader = (report: SessionReportData, title: string) => {
   const accent = getAccent(report.section);
 
   return (
-    <View style={styles.header} fixed>
+      <View style={styles.header} fixed>
       <View style={styles.headerBrand}>
         <Image src={BB_LOGO_URL} style={styles.headerLogo} />
         <Image src={accent.sectionLogo} style={styles.sectionLogo} />
-        <View>
+        <View style={styles.headerTextBlock}>
           <Text style={styles.headerTitle}>{title}</Text>
           <Text style={styles.keyLabel}>{report.sectionLabel}</Text>
         </View>
@@ -487,6 +520,27 @@ const renderSquadCard = (squad: SquadSessionSummary) => (
   </View>
 );
 
+const renderMeetingLedgerTable = (meetings: SessionReportData['meetings']) => (
+  <View style={styles.table}>
+    <View style={[styles.tableRow, styles.tableHead]}>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '26%' }]}>Meeting</Text>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '18%' }]}>Present</Text>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '18%' }]}>Absent</Text>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '18%' }]}>Attend Rate</Text>
+      <Text style={[styles.tableCell, styles.tableHeadCell, { width: '20%' }]}>Marks</Text>
+    </View>
+    {meetings.map((meeting, index) => (
+      <View key={meeting.date} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null]}>
+        <Text style={[styles.tableCell, { width: '26%' }]}>{formatDate(meeting.date)}</Text>
+        <Text style={[styles.tableCell, { width: '18%' }]}>{meeting.attendanceCount}</Text>
+        <Text style={[styles.tableCell, { width: '18%' }]}>{meeting.absenceCount}</Text>
+        <Text style={[styles.tableCell, { width: '18%' }]}>{`${formatNumber(meeting.attendanceRate)}%`}</Text>
+        <Text style={[styles.tableCell, { width: '20%' }]}>{formatNumber(meeting.totalMarks)}</Text>
+      </View>
+    ))}
+  </View>
+);
+
 export interface SessionReportDocumentProps {
   report: SessionReportData;
 }
@@ -495,6 +549,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
   const accent = getAccent(report.section);
   const topMeetingMark = Math.max(...report.meetings.map((meeting) => meeting.totalMarks), 0);
   const topMonthMark = Math.max(...report.months.map((month) => month.totalMarks), 0);
+  const meetingChunks: SessionReportData['meetings'][] = chunk<SessionReportData['meetings'][number]>(report.meetings, 18);
 
   return (
     <Document
@@ -507,37 +562,43 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
       language="en-GB"
     >
       <Page size="A4" style={styles.coverPage}>
-        <Image src={BB_BACKGROUND_URL} style={styles.coverBackground} />
-        <View style={styles.coverOverlay} />
         <View style={styles.coverContent}>
           <View>
             <View style={styles.coverTop}>
-              <Image src={BB_LOGO_URL} style={styles.coverMainLogo} />
-              <Image src={accent.sectionLogo} style={styles.coverSectionLogo} />
+              <View style={styles.coverBrandColumn}>
+                <Image src={BB_LOGO_URL} style={styles.coverMainLogo} />
+                <View style={{ marginTop: 36 }}>
+                  <Text style={styles.coverEyebrow}>BB Manager Master Session Report</Text>
+                  <Text style={styles.coverTitle}>{report.sectionLabel}</Text>
+                  <Text style={styles.coverSubtitle}>
+                    {`A complete session summary covering attendance, marks, squad performance, and member-level detail from ${formatDate(report.range.startDate)} to ${formatDate(report.range.endDate)}.`}
+                  </Text>
+                  <View style={styles.coverDivider} />
+                  <Image src={accent.sectionLogo} style={styles.coverSectionLogo} />
+                </View>
+              </View>
+              <View style={styles.coverPhotoCard}>
+                <Image src={BB_BACKGROUND_URL} style={styles.coverPhoto} />
+              </View>
             </View>
-            <View style={{ marginTop: 54 }}>
-              <Text style={styles.coverEyebrow}>BB Manager Master Session Report</Text>
-              <Text style={styles.coverTitle}>{report.sectionLabel}</Text>
-              <Text style={styles.coverSubtitle}>
-                {`A complete session summary covering attendance, marks, squad performance, and member-level detail from ${formatDate(report.range.startDate)} to ${formatDate(report.range.endDate)}.`}
-              </Text>
-            </View>
-            <View style={styles.coverStatGrid}>
-              <View style={styles.coverStatCard}>
-                <Text style={styles.coverStatLabel}>Members</Text>
-                <Text style={styles.coverStatValue}>{report.headlineStats.memberCount}</Text>
-              </View>
-              <View style={styles.coverStatCard}>
-                <Text style={styles.coverStatLabel}>Meetings</Text>
-                <Text style={styles.coverStatValue}>{report.headlineStats.meetingCount}</Text>
-              </View>
-              <View style={styles.coverStatCard}>
-                <Text style={styles.coverStatLabel}>Attendance</Text>
-                <Text style={styles.coverStatValue}>{`${formatNumber(report.headlineStats.attendanceRate)}%`}</Text>
-              </View>
-              <View style={styles.coverStatCard}>
-                <Text style={styles.coverStatLabel}>Total Marks</Text>
-                <Text style={styles.coverStatValue}>{formatNumber(report.headlineStats.totalMarks)}</Text>
+            <View>
+              <View style={styles.coverStatGrid}>
+                <View style={styles.coverStatCard}>
+                  <Text style={styles.coverStatLabel}>Members</Text>
+                  <Text style={styles.coverStatValue}>{report.headlineStats.memberCount}</Text>
+                </View>
+                <View style={styles.coverStatCard}>
+                  <Text style={styles.coverStatLabel}>Meetings</Text>
+                  <Text style={styles.coverStatValue}>{report.headlineStats.meetingCount}</Text>
+                </View>
+                <View style={styles.coverStatCard}>
+                  <Text style={styles.coverStatLabel}>Attendance</Text>
+                  <Text style={styles.coverStatValue}>{`${formatNumber(report.headlineStats.attendanceRate)}%`}</Text>
+                </View>
+                <View style={styles.coverStatCard}>
+                  <Text style={styles.coverStatLabel}>Total Marks</Text>
+                  <Text style={styles.coverStatValue}>{formatNumber(report.headlineStats.totalMarks)}</Text>
+                </View>
               </View>
             </View>
           </View>
@@ -662,26 +723,19 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
           )}
         </View>
 
-        <View style={styles.table}>
-          <View style={[styles.tableRow, styles.tableHead]}>
-            <Text style={[styles.tableCell, styles.tableHeadCell, { width: '26%' }]}>Meeting</Text>
-            <Text style={[styles.tableCell, styles.tableHeadCell, { width: '18%' }]}>Present</Text>
-            <Text style={[styles.tableCell, styles.tableHeadCell, { width: '18%' }]}>Absent</Text>
-            <Text style={[styles.tableCell, styles.tableHeadCell, { width: '18%' }]}>Attend Rate</Text>
-            <Text style={[styles.tableCell, styles.tableHeadCell, { width: '20%' }]}>Marks</Text>
-          </View>
-          {report.meetings.map((meeting, index) => (
-            <View key={meeting.date} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null]}>
-              <Text style={[styles.tableCell, { width: '26%' }]}>{formatDate(meeting.date)}</Text>
-              <Text style={[styles.tableCell, { width: '18%' }]}>{meeting.attendanceCount}</Text>
-              <Text style={[styles.tableCell, { width: '18%' }]}>{meeting.absenceCount}</Text>
-              <Text style={[styles.tableCell, { width: '18%' }]}>{`${formatNumber(meeting.attendanceRate)}%`}</Text>
-              <Text style={[styles.tableCell, { width: '20%' }]}>{formatNumber(meeting.totalMarks)}</Text>
-            </View>
-          ))}
-        </View>
         {renderPageFooter(report)}
       </Page>
+
+      {meetingChunks.map((meetingChunk, index) => (
+        <Page key={`meeting-ledger-${index}`} size="A4" style={styles.page}>
+          {renderPageHeader(report, index === 0 ? 'Meeting Ledger' : 'Meeting Ledger Continued')}
+          <Text style={styles.sectionCopy}>
+            Meeting-by-meeting attendance and marks for the selected session range.
+          </Text>
+          {renderMeetingLedgerTable(meetingChunk)}
+          {renderPageFooter(report)}
+        </Page>
+      ))}
 
       <Page size="A4" style={styles.page}>
         {renderPageHeader(report, 'Squad Breakdown')}
@@ -704,18 +758,18 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
         <Page key={member.id} size="A4" style={styles.page}>
           {renderPageHeader(report, `${member.name} Session Detail`)}
 
-          <View style={styles.statGrid}>
-            <View style={styles.statCard}>
+          <View style={styles.memberMetricsRow}>
+            <View style={styles.memberMetricsCard}>
               <Text style={styles.statCardLabel}>Squad / Year</Text>
               <Text style={styles.statCardValue}>{`S${member.squad} / ${member.year}`}</Text>
               <Text style={styles.statCardHint}>{member.isSquadLeader ? 'Squad leader' : 'Member'}</Text>
             </View>
-            <View style={styles.statCard}>
+            <View style={styles.memberMetricsCard}>
               <Text style={styles.statCardLabel}>Attendance</Text>
               <Text style={styles.statCardValue}>{`${formatNumber(member.attendanceRate)}%`}</Text>
               <Text style={styles.statCardHint}>{`${member.attendanceCount} present, ${member.absenceCount} absent`}</Text>
             </View>
-            <View style={styles.statCard}>
+            <View style={styles.memberMetricsCard}>
               <Text style={styles.statCardLabel}>Total Marks</Text>
               <Text style={styles.statCardValue}>{formatNumber(member.totalMarks)}</Text>
               <Text style={styles.statCardHint}>{`Avg ${formatNumber(member.averageScoreWhenPresent)} when present`}</Text>
@@ -759,51 +813,60 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
 
             <View style={styles.column}>
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>Night-By-Night Marks</Text>
-                {renderHorizontalBars(
-                  member.meetings.map((meeting) => ({
-                    label: formatDate(meeting.date),
-                    value: meeting.attended ? meeting.score : 0,
-                    helper: meeting.attended ? formatNumber(meeting.score) : 'Absent',
-                  })),
-                  accent.primary,
-                  Math.max(...member.meetings.map((meeting) => meeting.score), 10),
-                )}
+                <Text style={styles.cardTitle}>Session Performance</Text>
+                <View style={styles.keyRow}>
+                  <Text style={styles.keyLabel}>Attendance record</Text>
+                  <Text style={styles.keyValue}>{`${member.attendanceCount} / ${member.meetings.length}`}</Text>
+                </View>
+                <View style={styles.keyRow}>
+                  <Text style={styles.keyLabel}>Best score</Text>
+                  <Text style={styles.keyValue}>{formatNumber(member.bestNightScore)}</Text>
+                </View>
+                <View style={styles.keyRow}>
+                  <Text style={styles.keyLabel}>Attendance rate</Text>
+                  <Text style={styles.keyValue}>{`${formatNumber(member.attendanceRate)}%`}</Text>
+                </View>
+                <View style={[styles.keyRow, { borderBottom: 0 }]}>
+                  <Text style={styles.keyLabel}>Average when present</Text>
+                  <Text style={styles.keyValue}>{formatNumber(member.averageScoreWhenPresent)}</Text>
+                </View>
               </View>
             </View>
           </View>
 
-          <View style={styles.table}>
-            <View style={[styles.tableRow, styles.tableHead]}>
-              <Text style={[styles.tableCell, styles.tableHeadCell, { width: '22%' }]}>Date</Text>
-              <Text style={[styles.tableCell, styles.tableHeadCell, { width: '14%' }]}>Status</Text>
-              <Text style={[styles.tableCell, styles.tableHeadCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>Score</Text>
-              {report.section === 'junior' && (
-                <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Uniform</Text>
-              )}
-              {report.section === 'junior' && (
-                <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Behaviour</Text>
-              )}
-            </View>
-            {member.meetings.map((meeting, index) => (
-              <View key={meeting.date} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null]}>
-                <Text style={[styles.tableCell, { width: '22%' }]}>{formatDate(meeting.date)}</Text>
-                <Text style={[styles.tableCell, { width: '14%' }]}>{meeting.attended ? 'Present' : 'Absent'}</Text>
-                <Text style={[styles.tableCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>
-                  {meeting.attended ? formatNumber(meeting.score) : '0'}
-                </Text>
+          <View style={styles.memberTableSection}>
+            <View style={styles.table}>
+              <View style={[styles.tableRow, styles.tableHead]}>
+                <Text style={[styles.tableCell, styles.tableHeadCell, { width: '22%' }]}>Date</Text>
+                <Text style={[styles.tableCell, styles.tableHeadCell, { width: '14%' }]}>Status</Text>
+                <Text style={[styles.tableCell, styles.tableHeadCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>Score</Text>
                 {report.section === 'junior' && (
-                  <Text style={[styles.tableCell, { width: '25%' }]}>
-                    {meeting.attended ? formatNumber(meeting.uniformScore ?? 0) : '-'}
-                  </Text>
+                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Uniform</Text>
                 )}
                 {report.section === 'junior' && (
-                  <Text style={[styles.tableCell, { width: '25%' }]}>
-                    {meeting.attended ? formatNumber(meeting.behaviourScore ?? 0) : '-'}
-                  </Text>
+                  <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Behaviour</Text>
                 )}
               </View>
-            ))}
+              {member.meetings.map((meeting, index) => (
+                <View key={meeting.date} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null]}>
+                  <Text style={[styles.tableCell, { width: '22%' }]}>{formatDate(meeting.date)}</Text>
+                  <Text style={[styles.tableCell, { width: '14%' }]}>{meeting.attended ? 'Present' : 'Absent'}</Text>
+                  <Text style={[styles.tableCell, { width: report.section === 'junior' ? '14%' : '64%' }]}>
+                    {meeting.attended ? formatNumber(meeting.score) : '-'}
+                  </Text>
+                  {report.section === 'junior' && (
+                    <Text style={[styles.tableCell, { width: '25%' }]}>
+                      {meeting.attended ? formatNumber(meeting.uniformScore ?? 0) : '-'}
+                    </Text>
+                  )}
+                  {report.section === 'junior' && (
+                    <Text style={[styles.tableCell, { width: '25%' }]}>
+                      {meeting.attended ? formatNumber(meeting.behaviourScore ?? 0) : '-'}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
           </View>
           {renderPageFooter(report)}
         </Page>
