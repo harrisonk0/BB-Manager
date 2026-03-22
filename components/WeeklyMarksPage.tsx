@@ -36,12 +36,15 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   4: 'text-yellow-600',
 };
 
+const getTodayString = () => new Date().toISOString().split('T')[0];
+
 const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings, showToast }) => {
   // --- STATE MANAGEMENT ---
   const [selectedDate, setSelectedDate] = useState('');
   const [marks, setMarks] = useState<Record<string, CompanyMarkState | JuniorMarkState>>({});
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [today, setToday] = useState(getTodayString);
   const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
   const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
   const [pendingDate, setPendingDate] = useState('');
@@ -59,15 +62,34 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       setSelectedDate(getNearestMeetingDay(settings.meetingDay));
     }
   }, [settings, selectedDate]);
+
+  useEffect(() => {
+    const refreshToday = () => {
+      setToday(currentToday => {
+        const nextToday = getTodayString();
+        return currentToday === nextToday ? currentToday : nextToday;
+      });
+    };
+
+    refreshToday();
+    window.addEventListener('focus', refreshToday);
+    document.addEventListener('visibilitychange', refreshToday);
+    const intervalId = window.setInterval(refreshToday, 60_000);
+
+    return () => {
+      window.removeEventListener('focus', refreshToday);
+      document.removeEventListener('visibilitychange', refreshToday);
+      window.clearInterval(intervalId);
+    };
+  }, []);
   
   /**
    * EFFECT: Automatically locks the page if the selected date is in the past.
    */
   useEffect(() => {
     if (!selectedDate) return;
-    const todayString = new Date().toISOString().split('T')[0];
-    setIsLocked(selectedDate < todayString);
-  }, [selectedDate]);
+    setIsLocked(selectedDate < today);
+  }, [selectedDate, today]);
 
   /**
    * EFFECT: Populates the marks and attendance state based on the selected date and boys data.
@@ -285,8 +307,6 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   };
   
   // --- MEMOIZED COMPUTATIONS for rendering ---
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
-
   const boysBySquad = useMemo(() => {
     const grouped: Record<string, Boy[]> = {};
     boys.forEach(boy => {

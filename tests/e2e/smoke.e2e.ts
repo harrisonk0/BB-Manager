@@ -61,6 +61,24 @@ const saveSettingsAndWait = async (page: Page) => {
   await expect(page.getByText('Settings saved successfully!')).toBeVisible();
 };
 
+const openWeeklyMarksPage = async (page: Page) => {
+  await page.getByRole('button', { name: 'Weekly Marks' }).click();
+  await expect(page.getByRole('heading', { name: 'Weekly Marks' })).toBeVisible();
+  await expect(page.getByText('No Members to Mark')).toHaveCount(0);
+};
+
+const saveWeeklyMarksAndWait = async (page: Page) => {
+  const saveResponsePromise = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      response.url().includes('/rest/v1/rpc/save_weekly_marks_snapshot'),
+  );
+
+  await page.getByRole('button', { name: 'Save Marks' }).click();
+  const saveResponse = await saveResponsePromise;
+  expect(saveResponse.ok()).toBeTruthy();
+};
+
 test.describe('E2E smoke tests', () => {
   test('auth session persists across reload and can sign out', async ({ page }) => {
     await signIn(page);
@@ -77,38 +95,69 @@ test.describe('E2E smoke tests', () => {
 
   test('company weekly marks can be saved and reloaded', async ({ page }) => {
     const marksDate = getFutureMarksDate();
+    let testError: unknown;
+    let restoreError: unknown;
 
     await signIn(page);
     await selectCompanySection(page);
-    await page.getByRole('button', { name: 'Weekly Marks' }).click();
-    await expect(page.getByRole('heading', { name: 'Weekly Marks' })).toBeVisible();
-    await expect(page.getByText('No Members to Mark')).toHaveCount(0);
+    await openWeeklyMarksPage(page);
 
-    await page.getByLabel('Select weekly marks date').fill(marksDate);
+    const dateInput = page.getByLabel('Select weekly marks date');
+    await dateInput.fill(marksDate);
 
     const scoreInput = page.locator('input[aria-label^="Score for "]:not([disabled])').first();
     await expect(scoreInput).toBeVisible();
 
-    const currentValue = await scoreInput.inputValue();
-    const nextValue = currentValue === '8' ? '9' : '8';
+    const originalValue = await scoreInput.inputValue();
+    const nextValue = originalValue === '8' ? '9' : '8';
 
-    const saveResponsePromise = page.waitForResponse(
-      (response) =>
-        response.request().method() === 'POST' &&
-        response.url().includes('/rest/v1/rpc/save_weekly_marks_snapshot'),
-    );
+    try {
+      await scoreInput.fill(nextValue);
+      await saveWeeklyMarksAndWait(page);
 
-    await scoreInput.fill(nextValue);
-    await page.getByRole('button', { name: 'Save Marks' }).click();
-    const saveResponse = await saveResponsePromise;
-    expect(saveResponse.ok()).toBeTruthy();
+      await page.reload();
+      await openWeeklyMarksPage(page);
+      await dateInput.fill(marksDate);
 
-    await page.reload();
-    await page.getByRole('button', { name: 'Weekly Marks' }).click();
-    await page.getByLabel('Select weekly marks date').fill(marksDate);
+      const reloadedScoreInput = page.locator('input[aria-label^="Score for "]:not([disabled])').first();
+      await expect(reloadedScoreInput).toHaveValue(nextValue);
+    } catch (error) {
+      testError = error;
+    } finally {
+      try {
+        await openWeeklyMarksPage(page);
+        await dateInput.fill(marksDate);
 
-    const reloadedScoreInput = page.locator('input[aria-label^="Score for "]:not([disabled])').first();
-    await expect(reloadedScoreInput).toHaveValue(nextValue);
+        const restoreScoreInput = page.locator('input[aria-label^="Score for "]:not([disabled])').first();
+        await expect(restoreScoreInput).toBeVisible();
+
+        if ((await restoreScoreInput.inputValue()) !== originalValue) {
+          await restoreScoreInput.fill(originalValue);
+          await saveWeeklyMarksAndWait(page);
+          await page.reload();
+          await openWeeklyMarksPage(page);
+          await dateInput.fill(marksDate);
+          await expect(page.locator('input[aria-label^="Score for "]:not([disabled])').first()).toHaveValue(originalValue);
+        }
+      } catch (error) {
+        restoreError = error;
+      }
+    }
+
+    if (testError && restoreError) {
+      throw new AggregateError(
+        [testError, restoreError],
+        'Weekly marks smoke test failed and cleanup could not restore the original score.',
+      );
+    }
+
+    if (testError) {
+      throw testError;
+    }
+
+    if (restoreError) {
+      throw restoreError;
+    }
   });
 
   test('company section settings can be saved and restored', async ({ page }) => {
