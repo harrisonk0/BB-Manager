@@ -3,6 +3,10 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 
 import Modal from './Modal';
 import SessionReportDocument from './reports/SessionReportDocument';
+import {
+  MEMBER_DETAIL_CONTINUED_ROWS,
+  MEMBER_DETAIL_FIRST_PAGE_ROWS,
+} from './reports/reportConstants';
 import { buildSessionReportData, getSectionDateRange } from '../services/reporting/sessionReport';
 import type { Boy, Section } from '../types';
 
@@ -60,7 +64,19 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
   const sectionLabel = activeSection === 'company' ? 'Company Section' : 'Junior Section';
   const filename = `${activeSection}-session-report-${startDate || 'start'}-to-${endDate || 'end'}.pdf`;
   const estimatedPageCount = report
-    ? 1 + 1 + 1 + Math.max(1, Math.ceil(report.meetings.length / 18)) + 1 + Math.max(1, Math.ceil(report.members.length / (activeSection === 'junior' ? 14 : 16))) + report.members.reduce((sum, member) => sum + 1 + Math.ceil(Math.max(member.meetings.length - 14, 0) / 22), 0)
+    ? 1
+      + 1
+      + 1
+      + Math.max(1, Math.ceil(report.meetings.length / 18))
+      + 1
+      + (report.members.length === 0
+          ? 0
+          : Math.max(1, Math.ceil(report.members.length / (activeSection === 'junior' ? 14 : 16))))
+      + report.members.reduce(
+          (sum, member) =>
+            sum + 1 + Math.ceil(Math.max(member.meetings.length - MEMBER_DETAIL_FIRST_PAGE_ROWS, 0) / MEMBER_DETAIL_CONTINUED_ROWS),
+          0,
+        )
     : 0;
 
   return (
