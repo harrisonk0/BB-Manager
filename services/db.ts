@@ -1,4 +1,4 @@
-import { Boy, Mark, Section } from '../types';
+import { Boy, Mark, Section, WeeklyMarksSnapshotEntry } from '../types';
 import { supabase } from './supabaseClient';
 import * as supabaseAuth from './supabaseAuth';
 import {
@@ -9,11 +9,6 @@ import {
   validateBoyMarks,
   validateMarksForSection,
 } from './dbModel';
-
-export type WeeklyMarksSnapshotEntry = {
-  memberId: string;
-  mark: Mark | null;
-};
 
 export type WeeklyMarksSaveEntry = WeeklyMarksSnapshotEntry;
 

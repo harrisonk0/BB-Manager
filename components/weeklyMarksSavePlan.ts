@@ -1,11 +1,9 @@
-import { Boy, Mark, Section } from '../types';
+import { Boy, Mark, Section, WeeklyMarksSnapshotEntry } from '../types';
 
 export type JuniorMarkState = { uniform: number | ''; behaviour: number | '' };
 export type CompanyMarkState = number | string;
 export type WeeklyMarkState = CompanyMarkState | JuniorMarkState | undefined;
 export type AttendanceStatus = 'present' | 'absent' | undefined;
-export type WeeklyMarksSnapshotEntry = { memberId: string; mark: Mark | null };
-
 type EditableMarkLike = {
   date: string;
   score: number | '';
@@ -64,7 +62,10 @@ const normalizeJuniorSnapshotMark = (
     return { date: selectedDate, score: -1 };
   }
 
-  const juniorState = (markState as JuniorMarkState | undefined) ?? { uniform: '', behaviour: '' };
+  const juniorState =
+    typeof markState === 'object' && markState !== null && 'uniform' in markState && 'behaviour' in markState
+      ? markState
+      : { uniform: '', behaviour: '' };
   const noUniformScore = juniorState.uniform === '' || juniorState.uniform === undefined;
   const noBehaviourScore = juniorState.behaviour === '' || juniorState.behaviour === undefined;
 

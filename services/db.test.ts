@@ -64,6 +64,12 @@ const supabaseMock = vi.hoisted(() => {
   return {
     from,
     rpc,
+    memberUpdate,
+    memberUpdateEqId,
+    memberUpdateEqSection,
+    memberDelete,
+    memberDeleteEqId,
+    memberDeleteEqSection,
     get rpcResponse() {
       return rpcResponse;
     },
@@ -242,6 +248,15 @@ describe('db service write model', () => {
     });
 
     expect(supabaseMock.from).toHaveBeenCalledWith('members');
+    expect(supabaseMock.memberUpdate).toHaveBeenCalledWith({
+      name: 'Alex Updated',
+      school_year: '11',
+      section: 'company',
+      squad: 3,
+      is_squad_leader: true,
+    });
+    expect(supabaseMock.memberUpdateEqId).toHaveBeenCalledWith('id', 'member-1');
+    expect(supabaseMock.memberUpdateEqSection).toHaveBeenCalledWith('section', 'company');
     expect(supabaseMock.rpc).not.toHaveBeenCalled();
     expect(supabaseMock.from.mock.calls.filter(([table]) => table === 'marks')).toHaveLength(1);
   });
@@ -251,6 +266,9 @@ describe('db service write model', () => {
 
     expect(supabaseMock.from).toHaveBeenCalledTimes(1);
     expect(supabaseMock.from).toHaveBeenCalledWith('members');
+    expect(supabaseMock.memberDelete).toHaveBeenCalled();
+    expect(supabaseMock.memberDeleteEqId).toHaveBeenCalledWith('id', 'member-1');
+    expect(supabaseMock.memberDeleteEqSection).toHaveBeenCalledWith('section', 'junior');
     expect(supabaseMock.rpc).not.toHaveBeenCalled();
   });
 });

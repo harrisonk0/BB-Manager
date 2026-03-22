@@ -40,6 +40,19 @@ const openSectionSettings = async (page: Page) => {
   await expect(page.getByRole('heading', { name: 'Section Settings' })).toBeVisible();
 };
 
+const saveSettingsAndWait = async (page: Page) => {
+  const saveResponsePromise = page.waitForResponse(
+    (response) =>
+      ['PATCH', 'POST'].includes(response.request().method()) &&
+      response.url().includes('/rest/v1/settings'),
+  );
+
+  await page.getByRole('button', { name: 'Save' }).click();
+  const saveResponse = await saveResponsePromise;
+  expect(saveResponse.ok()).toBeTruthy();
+  await expect(page.getByText('Settings saved successfully!')).toBeVisible();
+};
+
 test.describe('E2E smoke tests', () => {
   test('auth session persists across reload and can sign out', async ({ page }) => {
     await signIn(page);
@@ -101,8 +114,7 @@ test.describe('E2E smoke tests', () => {
 
     try {
       await meetingDaySelect.selectOption(String(nextValue));
-      await page.getByRole('button', { name: 'Save' }).click();
-      await expect(page.getByText('Settings saved successfully!')).toBeVisible();
+      await saveSettingsAndWait(page);
       await expect(meetingDaySelect).toHaveValue(String(nextValue));
 
       await page.reload();
@@ -114,10 +126,13 @@ test.describe('E2E smoke tests', () => {
         const restoreSelect = page.getByLabel('Weekly Meeting Day');
         if ((await restoreSelect.inputValue()) !== String(originalValue)) {
           await restoreSelect.selectOption(String(originalValue));
-          await page.getByRole('button', { name: 'Save' }).click();
+          await saveSettingsAndWait(page);
+          await page.reload();
+          await openSectionSettings(page);
+          await expect(page.getByLabel('Weekly Meeting Day')).toHaveValue(String(originalValue));
         }
       } catch (restoreError) {
-        console.error('Failed to restore the company meeting day after smoke test:', restoreError);
+        throw restoreError;
       }
     }
   });

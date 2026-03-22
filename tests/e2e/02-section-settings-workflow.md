@@ -14,10 +14,10 @@ Use this checklist to verify section settings persistence against a live Supabas
 2. Change the weekly meeting day.
 3. Save the change and confirm the UI reports success.
 4. Reload the page and confirm the new value persists.
-5. Restore the original meeting day value before leaving the page.
+5. Restore the original meeting day value, save it, reload the page, and confirm the original value persisted before leaving the page.
 
 ## Expected Outcome
 
 - Section settings update in place rather than creating new rows.
 - Missing seeded rows or broken writes fail the smoke check.
-- The test run leaves the live settings value unchanged after cleanup.
+- The test run leaves the live settings value unchanged after cleanup and proves that restore step persisted.

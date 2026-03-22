@@ -136,6 +136,28 @@ describe('normalizeEditableMarksForSave', () => {
       ),
     ).toEqual([{ date: '2026-03-27', score: -1 }]);
   });
+
+  it('normalizes junior component scores into numeric totals', () => {
+    expect(
+      normalizeEditableMarksForSave(
+        [{ date: '2026-03-27', score: 5, uniformScore: 2, behaviourScore: 3 }],
+        'junior',
+      ),
+    ).toEqual([
+      { date: '2026-03-27', score: 5, uniformScore: 2, behaviourScore: 3 },
+    ]);
+  });
+
+  it('normalizes empty junior component scores to zero', () => {
+    expect(
+      normalizeEditableMarksForSave(
+        [{ date: '2026-03-27', score: 0, uniformScore: '', behaviourScore: '' }],
+        'junior',
+      ),
+    ).toEqual([
+      { date: '2026-03-27', score: 0, uniformScore: 0, behaviourScore: 0 },
+    ]);
+  });
 });
 
 describe('areMarkListsEqual', () => {
@@ -152,5 +174,42 @@ describe('areMarkListsEqual', () => {
         ],
       ),
     ).toBe(true);
+  });
+
+  it('returns false when list lengths differ', () => {
+    expect(
+      areMarkListsEqual(
+        [{ date: '2026-03-27', score: 8 }],
+        [
+          { date: '2026-03-20', score: -1 },
+          { date: '2026-03-27', score: 8 },
+        ],
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when scores differ for the same date', () => {
+    expect(
+      areMarkListsEqual(
+        [{ date: '2026-03-27', score: 5 }],
+        [{ date: '2026-03-27', score: 6 }],
+      ),
+    ).toBe(false);
+  });
+
+  it('compares junior mark components as part of equality', () => {
+    expect(
+      areMarkListsEqual(
+        [{ date: '2026-03-27', score: 5, uniformScore: 2, behaviourScore: 3 }],
+        [{ date: '2026-03-27', score: 5, uniformScore: 2, behaviourScore: 3 }],
+      ),
+    ).toBe(true);
+
+    expect(
+      areMarkListsEqual(
+        [{ date: '2026-03-27', score: 5, uniformScore: 2, behaviourScore: 3 }],
+        [{ date: '2026-03-27', score: 5, uniformScore: 1, behaviourScore: 4 }],
+      ),
+    ).toBe(false);
   });
 });

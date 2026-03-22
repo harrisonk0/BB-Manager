@@ -79,5 +79,9 @@ try {
 
   console.log(`Database contract smoke check passed for ${signInData.user.email} (${role}).`);
 } finally {
-  await supabase.auth.signOut();
+  try {
+    await supabase.auth.signOut();
+  } catch (error) {
+    console.warn('Failed to sign out after database contract check:', error);
+  }
 }

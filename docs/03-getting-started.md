@@ -23,7 +23,7 @@ VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
 VITE_SUPABASE_ANON_KEY="<your-public-anon-key>"
 ```
 
-Optional browser smoke-test credentials for `npm run test:e2e`:
+Smoke-test credentials for `npm run check:db-contract` and `npm run test:e2e`:
 
 ```bash
 E2E_TEST_EMAIL="<test-user-email>"
@@ -64,8 +64,8 @@ npm run build
 
 `npm run test:run` is the same automated suite CI runs on each push and pull request. The suite is intentionally small and focuses on business-critical logic rather than browser automation.
 
-`npm run check:db-contract` is the fast live-backend smoke check. It reads `.env` and `.env.local`, signs in with the test user, verifies `current_app_role()` resolves to a valid app role, and confirms the seeded `settings` rows for `company` and `junior` are readable through the published client credentials.
+`npm run check:db-contract` is the fast live-backend smoke check. It reads `.env` and `.env.local`, requires `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD`, signs in with that test user, verifies `current_app_role()` resolves to a valid app role, and confirms the seeded `settings` rows for `company` and `junior` are readable through the published client credentials.
 
-`npm run test:e2e` also reads `.env` and `.env.local`. It uses a real browser and real Supabase auth, so it requires a dedicated test user with a valid role, seeded `settings` rows, and at least one Company-section member already present.
+`npm run test:e2e` also reads `.env` and `.env.local` and uses the same `E2E_TEST_*` credentials. It uses a real browser and real Supabase auth, so it requires a dedicated test user with a valid role, seeded `settings` rows, and at least one Company-section member already present.
 
 Neither check proves the entire live RLS policy graph. They confirm only the client-visible contract the SPA depends on.

@@ -263,6 +263,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     });
 
     if (snapshot.length === 0) {
+      setIsDirty(false);
       showToast('No changes to save.', 'info');
       return;
     }
