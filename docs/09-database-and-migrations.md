@@ -4,7 +4,7 @@ This repo relies on a live Supabase project as the database source of truth.
 
 ## Verified Current Shape
 
-Verified on 2026-03-21:
+Verified on 2026-03-22:
 
 - Tables: `profiles`, `settings`, `members`, `marks`, `invite_codes`, `audit_logs`
 - RLS: enabled on all of them
@@ -12,9 +12,10 @@ Verified on 2026-03-21:
 The current app only depends on `profiles`, `settings`, `members`, and `marks`.
 The live project also contains legacy invite-code and audit-log objects, but they are outside the current app surface.
 
-Latest migration visible in the live project at the time of verification:
+Latest migrations visible in the live project at the time of verification:
 
-- `20260320190925 repair_live_schema_for_app_compatibility_v2`
+- `20260322185938 replace_transactional_mark_write_rpcs`
+- `20260322192041 fix_save_weekly_marks_snapshot_member_alias`
 
 ## Workflow
 

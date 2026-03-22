@@ -71,9 +71,16 @@ test.describe('E2E smoke tests', () => {
     const currentValue = await scoreInput.inputValue();
     const nextValue = currentValue === '8' ? '9' : '8';
 
+    const saveResponsePromise = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' &&
+        response.url().includes('/rest/v1/rpc/save_weekly_marks_snapshot'),
+    );
+
     await scoreInput.fill(nextValue);
     await page.getByRole('button', { name: 'Save Marks' }).click();
-    await expect(page.getByText('Marks saved successfully!')).toBeVisible();
+    const saveResponse = await saveResponsePromise;
+    expect(saveResponse.ok()).toBeTruthy();
 
     await page.reload();
     await page.getByRole('button', { name: 'Weekly Marks' }).click();
