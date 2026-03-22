@@ -7,6 +7,7 @@ This document describes how the app talks to Supabase.
 - `services/supabaseClient.ts`: shared Supabase client
 - `services/supabaseAuth.ts`: sign-in, sign-out, password update, auth subscription
 - `services/db.ts`: members, marks, profiles, and role-guardrail helpers
+- `services/reporting/sessionReport.ts`: pure session-report aggregation for dashboard PDF export
 - `services/settings.ts`: section settings for the seeded `company` and `junior` rows
 
 ## Live Table Mapping
@@ -30,4 +31,4 @@ The current app talks to these tables:
 - The UI-facing `Boy` model is assembled from `members` and `marks`.
 - Role information is loaded from `profiles`, not from a separate `user_roles` table.
 - Section settings are updated in place; missing `settings` rows are a bootstrap problem, not a normal runtime case.
-- The active UI is limited to member management, marks entry, dashboard reporting, and section settings.
+- The active UI is limited to member management, marks entry, dashboard reporting, session PDF export, and section settings.

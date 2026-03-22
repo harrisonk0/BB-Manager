@@ -24,7 +24,7 @@ flowchart LR
 | `Select a Section` | Choose either the Company or Junior section. |
 | `Home` | View, add, edit, and delete members in the active section. |
 | `Weekly Marks` | Record attendance and marks for the selected meeting date. |
-| `Dashboard` | Review summary charts and attendance trends. |
+| `Dashboard` | Review summary charts, attendance trends, and generate the master end-of-session PDF. |
 | `Section Settings` | Update section-level configuration such as the weekly meeting day. |
 | `Account Settings` | Change your personal password. |
 
@@ -32,9 +32,9 @@ flowchart LR
 
 1. Sign in with your Supabase account.
 2. Choose the section you are responsible for.
-3. Use `Home` to manage the member roster.
-4. Use `Weekly Marks` for weekly attendance and scoring.
-5. Use `Dashboard` when you want a quick summary of section performance.
+3. Manage the member roster from `Home`.
+4. Record weekly attendance and scoring in `Weekly Marks`.
+5. View section performance or download the session PDF from `Dashboard`.
 
 ## Member Management
 
@@ -52,6 +52,9 @@ flowchart LR
 ## Dashboard
 
 - Use the dashboard for a quick performance summary.
+- Use `Generate Master PDF` to export one branded end-of-session report for the active section.
+- Choose the session date range before downloading the report.
+- The PDF includes section summary pages plus a detail page for each member with recorded marks in the selected range.
 - It is reporting only. It does not change roster data.
 
 ## Settings
@@ -62,5 +65,4 @@ flowchart LR
 ## Support Notes
 
 - Accounts are provisioned manually by an administrator.
-- If you need a PDF, render or print this Markdown file to PDF from your browser or editor.
 - Keep this guide with the branch or release bundle you hand to new users.
