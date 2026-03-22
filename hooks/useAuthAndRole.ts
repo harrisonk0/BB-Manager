@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { subscribeToAuth, signOut as supabaseSignOut, getCurrentUser } from '../services/supabaseAuth';
 import { supabase } from '../services/supabaseClient';
@@ -107,18 +105,8 @@ export const useAuthAndRole = () => {
       setAuthLoading(false);
     });
 
-    const handleUserRoleRefresh = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      if (currentUserRef.current && customEvent.detail.uid === currentUserRef.current.id) {
-        loadUserRole(currentUserRef.current);
-      }
-    };
-
-    window.addEventListener('userrolerefresh', handleUserRoleRefresh);
-
       return () => {
         subscription?.unsubscribe();
-        window.removeEventListener('userrolerefresh', handleUserRoleRefresh);
       };
   }, [loadUserRole, toAppUser, updateCurrentUser]);
 
@@ -137,6 +125,5 @@ export const useAuthAndRole = () => {
     performSignOut,
     setCurrentUser,
     setUserRole,
-    user: currentUser,
   };
 };

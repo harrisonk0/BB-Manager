@@ -145,8 +145,15 @@ const App: React.FC = () => {
 
     // Render main app content with header
     return (
-        <>
-            <Header setView={navigateWithProtection} onSignOut={handleSignOutWithProtection} activeSection={activeSection} onSwitchSection={handleSwitchSectionWithProtection} />
+            <>
+            <Header
+              setView={navigateWithProtection}
+              onSignOut={handleSignOutWithProtection}
+              activeSection={activeSection}
+              onSwitchSection={handleSwitchSectionWithProtection}
+              currentUser={currentUser}
+              userRole={userRole}
+            />
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {renderMainContent()}
             </main>

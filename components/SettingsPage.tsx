@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from 'react';
 import { Section, SectionSettings, ToastType, UserRole } from '../types';
 import { saveSettings } from '../services/settings';

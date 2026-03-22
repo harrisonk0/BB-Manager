@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useCallback } from 'react';
 import { fetchBoys } from '../services/db';
 import { getSettings } from '../services/settings';

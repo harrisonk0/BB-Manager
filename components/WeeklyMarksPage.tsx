@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
-import { updateBoy } from '../services/db';
+import { saveWeeklyMarksSnapshot } from '../services/db';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
+import Modal from './Modal';
 import { getNearestMeetingDay } from './weeklyMarksDates';
 import {
-  buildUpdatedMarksForBoy,
   CompanyMarkState,
   JuniorMarkState,
+  buildWeeklyMarksSnapshot,
 } from './weeklyMarksSavePlan';
+import { shouldConfirmWeeklyMarksDateChange } from './weeklyMarksDateChange';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -43,6 +45,8 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   const [isDirty, setIsDirty] = useState(false); // Tracks if there are unsaved changes.
   const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
   const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
+  const [pendingDate, setPendingDate] = useState('');
+  const [isDateChangeConfirmOpen, setIsDateChangeConfirmOpen] = useState(false);
 
 
   const isCompany = activeSection === 'company';
@@ -196,24 +200,49 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     showToast('All marks cleared for present members.', 'info');
   };
 
+  const requestDateChange = (nextDate: string) => {
+    if (!nextDate || nextDate === selectedDate) {
+      return;
+    }
+
+    if (shouldConfirmWeeklyMarksDateChange({
+      currentDate: selectedDate,
+      nextDate,
+      isDirty,
+    })) {
+      setPendingDate(nextDate);
+      setIsDateChangeConfirmOpen(true);
+      return;
+    }
+
+    setSelectedDate(nextDate);
+  };
+
+  const confirmDateChange = () => {
+    if (pendingDate) {
+      setSelectedDate(pendingDate);
+    }
+    setPendingDate('');
+    setIsDateChangeConfirmOpen(false);
+  };
+
+  const cancelDateChange = () => {
+    setPendingDate('');
+    setIsDateChangeConfirmOpen(false);
+  };
+
   const handlePreviousWeek = () => {
     const currentDate = new Date(selectedDate + 'T00:00:00');
     currentDate.setDate(currentDate.getDate() - 7);
-    setSelectedDate(currentDate.toISOString().split('T')[0]);
-    setIsDirty(true); // Mark as dirty to prompt save if date changes
+    requestDateChange(currentDate.toISOString().split('T')[0]);
   };
 
   const handleNextWeek = () => {
     const currentDate = new Date(selectedDate + 'T00:00:00');
     currentDate.setDate(currentDate.getDate() + 7);
-    setSelectedDate(currentDate.toISOString().split('T')[0]);
-    setIsDirty(true); // Mark as dirty to prompt save if date changes
+    requestDateChange(currentDate.toISOString().split('T')[0]);
   };
 
-  /**
-   * Core save logic. This function processes all local state changes, determines which boys
-   * need updating, and bundles these updates into a single transaction.
-   */
   const handleSaveMarks = async () => {
     // Check for any active errors before saving
     const hasErrors = Object.values(markErrors).some(boyErrors =>
@@ -225,29 +254,23 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       return;
     }
 
-    setIsSaving(true);
-    
-    // Map over all boys to create an array of update promises.
-    const updates = boys.map(boy => {
-        if (!boy.id) return Promise.resolve(null);
-
-        const updatedMarks = buildUpdatedMarksForBoy({
-          boy,
-          selectedDate,
-          attendanceStatus: attendance[boy.id],
-          markState: marks[boy.id],
-          activeSection,
-        });
-
-        if (!updatedMarks) {
-          return Promise.resolve(null);
-        }
-
-        return updateBoy({ ...boy, marks: updatedMarks }, activeSection);
+    const snapshot = buildWeeklyMarksSnapshot({
+      boys,
+      selectedDate,
+      attendance,
+      marks,
+      activeSection,
     });
 
+    if (snapshot.length === 0) {
+      showToast('No changes to save.', 'info');
+      return;
+    }
+
+    setIsSaving(true);
+
     try {
-        await Promise.all(updates);
+        await saveWeeklyMarksSnapshot(activeSection, selectedDate, snapshot);
         showToast('Marks saved successfully!', 'success');
         refreshData();
         setIsDirty(false);
@@ -369,7 +392,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
           </button>
           <DatePicker
             value={selectedDate}
-            onChange={setSelectedDate}
+            onChange={requestDateChange}
             accentRingClass={accentRing}
             ariaLabel="Select weekly marks date"
             // Removed disabled={isLocked} - DatePicker is now always enabled
@@ -527,7 +550,31 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
               </svg>
             ) : <SaveIcon className="h-7 w-7" />}
           </button>
-       )}
+      )}
+
+      <Modal isOpen={isDateChangeConfirmOpen} onClose={cancelDateChange} title="Discard unsaved marks?">
+        <div className="space-y-4">
+          <p className="text-slate-600">
+            Changing the date will discard the unsaved changes on this sheet. Continue?
+          </p>
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={cancelDateChange}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+            >
+              Stay
+            </button>
+            <button
+              type="button"
+              onClick={confirmDateChange}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              Change Date
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

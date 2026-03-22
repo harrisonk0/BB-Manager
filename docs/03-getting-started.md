@@ -40,6 +40,8 @@ The live app expects these tables to exist:
 - `marks`
 
 For local development, create users manually in Supabase Auth and make sure each user has a row in `profiles` with a valid `role` such as `admin`, `captain`, or `officer`.
+Seed `settings` with one row for `company` and one row for `junior` before running the app; section settings are updated in place and are not created on demand.
+The Playwright smoke suite depends on those seeded rows so it can verify settings writes and restore the original value after each run.
 
 New-user handover material lives in [`docs/user-guide.md`](./user-guide.md).
 
@@ -61,4 +63,4 @@ npm run build
 
 `npm run test:run` is the same automated suite CI runs on each push and pull request. The suite is intentionally small and focuses on business-critical logic rather than browser automation.
 
-`npm run test:e2e` runs the small Playwright smoke suite. It uses a real browser and real Supabase auth, so it requires a dedicated test user with a valid role and at least one Company-section member already present.
+`npm run test:e2e` runs the small Playwright smoke suite. It uses a real browser and real Supabase auth, so it requires a dedicated test user with a valid role, seeded `settings` rows, and at least one Company-section member already present.

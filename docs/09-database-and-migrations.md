@@ -22,6 +22,9 @@ Latest migration visible in the live project at the time of verification:
 - Inspect schema and policies with Supabase MCP tools before making assumptions.
 - Apply schema changes through Supabase migrations or MCP-driven database changes, not ad-hoc dashboard edits.
 - Update app code and docs in the same change when table names, functions, or permissions change.
+- Keep `members`, `marks`, and `settings` policies tied to valid app roles from `profiles`, not merely `auth.role() = 'authenticated'`.
+- Keep one seeded `settings` row per section and treat missing rows as a bootstrap error that should be corrected, not created lazily from the browser.
+- CI and browser smoke tests can validate the client contract against live data, but they cannot prove live RLS policy shape without privileged Supabase inspection.
 - The current app no longer exposes invite-code provisioning, recovery, or audit-log flows.
 
 ## Important Historical Note

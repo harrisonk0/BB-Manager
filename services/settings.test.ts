@@ -1,13 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const supabaseMock = vi.hoisted(() => {
-  const single = vi.fn();
-  const eq = vi.fn(() => ({ single }));
-  const select = vi.fn(() => ({ eq }));
-  const upsert = vi.fn();
-  const from = vi.fn(() => ({ select, upsert }));
+  const readSingle = vi.fn();
+  const readEq = vi.fn(() => ({ single: readSingle }));
+  const readSelect = vi.fn(() => ({ eq: readEq }));
 
-  return { from, select, eq, single, upsert };
+  const writeSingle = vi.fn();
+  const writeSelect = vi.fn(() => ({ single: writeSingle }));
+  const writeEq = vi.fn(() => ({ select: writeSelect }));
+  const update = vi.fn(() => ({ eq: writeEq }));
+
+  const from = vi.fn(() => ({ select: readSelect, update }));
+
+  return { from, readSelect, readEq, readSingle, update, writeEq, writeSelect, writeSingle };
 });
 
 vi.mock('./supabaseClient', () => ({
@@ -24,7 +29,7 @@ describe('settings', () => {
   });
 
   it('returns the default meeting day when the settings row is missing', async () => {
-    supabaseMock.single.mockResolvedValueOnce({
+    supabaseMock.readSingle.mockResolvedValueOnce({
       data: null,
       error: { code: 'PGRST116' },
     });
@@ -34,7 +39,7 @@ describe('settings', () => {
   });
 
   it('returns the stored meeting day when the row exists', async () => {
-    supabaseMock.single.mockResolvedValueOnce({
+    supabaseMock.readSingle.mockResolvedValueOnce({
       data: { meeting_day: 2 },
       error: null,
     });
@@ -42,8 +47,33 @@ describe('settings', () => {
     await expect(getSettings('junior')).resolves.toEqual({ meetingDay: 2 });
   });
 
+  it('updates the seeded settings row for admins and captains', async () => {
+    supabaseMock.writeSingle.mockResolvedValueOnce({
+      data: { section: 'company', meeting_day: 4 },
+      error: null,
+    });
+
+    await expect(saveSettings('company', { meetingDay: 4 }, 'captain')).resolves.toBeUndefined();
+    expect(supabaseMock.update).toHaveBeenCalledWith({
+      meeting_day: 4,
+      updated_at: expect.any(String),
+    });
+    expect(supabaseMock.writeEq).toHaveBeenCalledWith('section', 'company');
+  });
+
   it('rejects save attempts from non-admin roles before writing', async () => {
     await expect(saveSettings('company', { meetingDay: 4 }, 'officer')).rejects.toThrow(/permission denied/i);
-    expect(supabaseMock.upsert).not.toHaveBeenCalled();
+    expect(supabaseMock.update).not.toHaveBeenCalled();
+  });
+
+  it('surfaces a missing seeded row as an error', async () => {
+    supabaseMock.writeSingle.mockResolvedValueOnce({
+      data: null,
+      error: { code: 'PGRST116', message: 'No rows found' },
+    });
+
+    await expect(saveSettings('junior', { meetingDay: 2 }, 'admin')).rejects.toMatchObject({
+      code: 'PGRST116',
+    });
   });
 });

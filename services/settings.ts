@@ -12,8 +12,8 @@ const DEFAULT_MEETING_DAY = 5; // Friday
 
 /**
  * Fetches the settings for a given section from Supabase.
- * If no settings row exists for the section, it returns default values.
- * This ensures the app always has valid settings to work with.
+ * The live project seeds one row per section; if a row is missing or unreadable,
+ * this falls back to the default meeting day so the UI can still render safely.
  * @param section The section ('company' or 'junior') to fetch settings for.
  * @returns A promise that resolves to the section's settings.
  */
@@ -45,6 +45,8 @@ export const getSettings = async (section: Section): Promise<SectionSettings> =>
 
 /**
  * Saves the settings for a given section to Supabase.
+ * The live database contract expects one seeded row per section, so this updates
+ * the existing row in place rather than creating new rows.
  * @param section The section ('company' or 'junior') to save settings for.
  * @param settings The settings object to save.
  * @param userRole The role of the user attempting to save settings.
@@ -59,11 +61,15 @@ export const saveSettings = async (
     throw new Error('Permission denied: Only Admins and Captains can save settings.');
   }
 
-  const { error } = await supabase.from('settings').upsert({
-    section,
-    meeting_day: settings.meetingDay,
-    updated_at: new Date().toISOString(),
-  });
+  const { error } = await supabase
+    .from('settings')
+    .update({
+      meeting_day: settings.meetingDay,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('section', section)
+    .select('section,meeting_day')
+    .single();
 
   if (error) {
     console.error(`Error saving settings for ${section}:`, error);

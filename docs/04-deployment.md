@@ -32,4 +32,6 @@ In Supabase Auth URL configuration:
 2. Deploy from the main branch or the intended release branch.
 3. Verify sign-in works for manually provisioned users.
 4. Verify the production users have the expected roles in `profiles`.
-5. Smoke-test member CRUD, marks entry, settings, and dashboard.
+5. Verify `settings` has seeded rows for both `company` and `junior`.
+6. Smoke-test auth, section settings persistence, member CRUD, marks entry, and dashboard behavior against the live backend.
+7. Treat CI smoke results as client-contract checks only; use Supabase inspection for live RLS policy verification.

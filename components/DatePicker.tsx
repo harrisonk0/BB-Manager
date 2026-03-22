@@ -1,5 +1,3 @@
-"use client";
-
 import React from 'react';
 // CalendarIcon is no longer needed as the custom button is removed.
 // import { CalendarIcon } from './Icons'; 

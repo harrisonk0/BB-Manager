@@ -6,10 +6,14 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { fetchBoyById, updateBoy } from '../services/db';
 import { Boy, Mark, Squad, Section, JuniorSquad, ToastType } from '../types';
 import { TrashIcon, SaveIcon } from './Icons';
 import { BoyMarksPageSkeleton } from './SkeletonLoaders';
+import { fetchBoyById, saveBoyMarks } from '../services/db';
+import {
+  areMarkListsEqual,
+  normalizeEditableMarksForSave,
+} from './weeklyMarksSavePlan';
 
 interface BoyMarksPageProps {
   boyId: string;
@@ -70,8 +74,8 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
         // Sort marks by date descending for display.
         boyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setBoy(boyData);
-        // Create a deep copy of the marks for editing to avoid mutating the original state.
-        setEditedMarks(JSON.parse(JSON.stringify(boyData.marks)));
+        // Create a shallow copy of the marks for editing to avoid mutating the original state.
+        setEditedMarks(boyData.marks.map((mark) => ({ ...mark })));
       } else {
         setError('Boy not found.');
       }
@@ -96,34 +100,9 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
   useEffect(() => {
     if (boy) {
       // Create a canonical, sorted representation of the original marks to ensure consistent key order and data types for comparison.
-      const originalMarksCanonical = [...boy.marks]
-        .map(m => {
-            const cleanMark: any = { date: m.date, score: m.score };
-            if (m.uniformScore !== undefined) cleanMark.uniformScore = m.uniformScore;
-            if (m.behaviourScore !== undefined) cleanMark.behaviourScore = m.behaviourScore;
-            return cleanMark;
-        })
-        .sort((a, b) => a.date.localeCompare(b.date));
+      const editedMarksCanonical = normalizeEditableMarksForSave(editedMarks, activeSection);
 
-      // Create a canonical, sorted representation of the edited marks.
-      // Empty string inputs are converted to 0, which mirrors the save logic.
-      const editedMarksCanonical = [...editedMarks]
-        .map(editableMark => {
-            if (isCompany || editableMark.uniformScore === undefined) {
-                // An empty string for a score is treated as 0 for comparison.
-                const score = editableMark.score === '' ? 0 : parseFloat(editableMark.score as string); // Use parseFloat
-                return { date: editableMark.date, score };
-            }
-            // For Juniors, recalculate the total score from uniform and behaviour.
-            const uniformScore = editableMark.uniformScore === '' ? 0 : parseFloat(editableMark.uniformScore as string); // Use parseFloat
-            const behaviourScore = editableMark.behaviourScore === '' ? 0 : parseFloat(editableMark.behaviourScore as string); // Use parseFloat
-            const totalScore = Number(editableMark.score) < 0 ? -1 : uniformScore + behaviourScore; // Preserve absent status.
-            return { date: editableMark.date, score: totalScore, uniformScore, behaviourScore };
-        })
-        .sort((a, b) => a.date.localeCompare(b.date));
-      
-      // Compare the stringified versions to check for differences.
-      setIsDirty(JSON.stringify(originalMarksCanonical) !== JSON.stringify(editedMarksCanonical));
+      setIsDirty(!areMarkListsEqual(boy.marks, editedMarksCanonical));
     } else {
         setIsDirty(false);
     }
@@ -193,32 +172,26 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
 
   const handleSaveChanges = async () => {
     if (!boy || !isDirty) return;
+    if (!boy.id) {
+      setError('Boy ID is required.');
+      return;
+    }
     setIsSaving(true);
     setError(null);
 
-    // Convert the local `EditableMark[]` state back into the strict `Mark[]` type for saving.
-    const validMarks: Mark[] = editedMarks
-      .map(editableMark => {
-        if(isCompany || editableMark.uniformScore === undefined) {
-             // An empty string for a score should be saved as 0.
-             const score = editableMark.score === '' ? 0 : parseFloat(editableMark.score as string); // Use parseFloat
-             return { date: editableMark.date, score };
-        }
-        // For Juniors, recalculate the total score from uniform and behaviour.
-        const uniformScore = editableMark.uniformScore === '' ? 0 : parseFloat(editableMark.uniformScore as string); // Use parseFloat
-        const behaviourScore = editableMark.behaviourScore === '' ? 0 : parseFloat(editableMark.behaviourScore as string); // Use parseFloat
-        const totalScore = Number(editableMark.score) < 0 ? -1 : uniformScore + behaviourScore; // Preserve absent status.
-        return { date: editableMark.date, score: totalScore, uniformScore, behaviourScore };
-      });
-
-    const updatedBoyData = { ...boy, marks: validMarks };
+    const nextMarks = normalizeEditableMarksForSave(editedMarks, activeSection);
 
     try {
-      await updateBoy(updatedBoyData, activeSection);
-      // Update local state to match the saved data.
-      updatedBoyData.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setBoy(updatedBoyData);
-      setEditedMarks(JSON.parse(JSON.stringify(updatedBoyData.marks)));
+      await saveBoyMarks(boy.id, activeSection, boy.marks, nextMarks);
+
+      const savedBoy = await fetchBoyById(boy.id, activeSection);
+      if (!savedBoy) {
+        throw new Error('Failed to reload saved marks.');
+      }
+
+      savedBoy.marks.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setBoy(savedBoy);
+      setEditedMarks(savedBoy.marks.map((mark) => ({ ...mark })));
       showToast('Changes saved successfully!', 'success');
       refreshData(); // Refresh data in the main App component.
       setIsDirty(false);

@@ -1,4 +1,4 @@
-import { Boy, Section, Mark } from '../types';
+import { Boy, Mark, Section } from '../types';
 import { supabase } from './supabaseClient';
 import * as supabaseAuth from './supabaseAuth';
 import {
@@ -7,54 +7,134 @@ import {
   MemberRow,
   toStoredMark,
   validateBoyMarks,
+  validateMarksForSection,
 } from './dbModel';
-import { buildMemberMarkSyncPlan } from './dbSyncPlan';
 
-const syncMemberMarks = async (memberId: string, section: Section, marks: Mark[]) => {
+export type WeeklyMarksSnapshotEntry = {
+  memberId: string;
+  mark: Mark | null;
+};
+
+export type WeeklyMarksSaveEntry = WeeklyMarksSnapshotEntry;
+
+type StoredMarkPatchRow = ReturnType<typeof toStoredMark>;
+
+const storedMarksMatch = (left: StoredMarkPatchRow, right: StoredMarkPatchRow) =>
+  left.date === right.date &&
+  left.section === right.section &&
+  left.score === right.score &&
+  left.uniform_score === right.uniform_score &&
+  left.behaviour_score === right.behaviour_score &&
+  left.present === right.present;
+
+const buildMemberMarksPatch = ({
+  originalMarks,
+  nextMarks,
+  section,
+}: {
+  originalMarks: Mark[];
+  nextMarks: Mark[];
+  section: Section;
+}) => {
+  const nextMarksByDate = new Map(nextMarks.map((mark) => [mark.date, mark]));
+  const originalMarksByDate = new Map(originalMarks.map((mark) => [mark.date, mark]));
+
+  const deleteDates = originalMarks
+    .filter((mark) => !nextMarksByDate.has(mark.date))
+    .map((mark) => mark.date);
+
+  const upsertRows = nextMarks.reduce<StoredMarkPatchRow[]>((rows, mark) => {
+    const nextStored = toStoredMark(mark, section);
+    const originalMark = originalMarksByDate.get(mark.date);
+
+    if (!originalMark) {
+      rows.push(nextStored);
+      return rows;
+    }
+
+    const originalStored = toStoredMark(originalMark, section);
+
+    if (!storedMarksMatch(originalStored, nextStored)) {
+      rows.push(nextStored);
+    }
+
+    return rows;
+  }, []);
+
+  return { deleteDates, upsertRows };
+};
+
+export const saveBoyMarks = async (
+  memberId: string,
+  section: Section,
+  originalMarks: Mark[],
+  nextMarks: Mark[],
+): Promise<void> => {
+  if (!memberId) throw new Error('Member ID is required.');
   const authUser = await supabaseAuth.getCurrentUser();
   if (!authUser) throw new Error('User not authenticated');
 
-  const { data: existingData, error: existingError } = await supabase
-    .from('marks')
-    .select('date')
-    .eq('member_id', memberId);
+  validateMarksForSection(nextMarks, section, 'Member');
 
-  if (existingError) {
-    throw new Error(existingError.message || 'Failed to fetch existing marks.');
-  }
-
-  const { datesToDelete, markRows } = buildMemberMarkSyncPlan({
-    existingDates: (existingData || []).map((row) => row.date as string),
-    marks,
-    memberId,
-    createdBy: authUser.id,
+  const { deleteDates, upsertRows } = buildMemberMarksPatch({
+    originalMarks,
+    nextMarks,
     section,
   });
 
-  if (datesToDelete.length > 0) {
-    const { error: deleteError } = await supabase
-      .from('marks')
-      .delete()
-      .eq('member_id', memberId)
-      .in('date', datesToDelete);
-
-    if (deleteError) {
-      throw new Error(deleteError.message || 'Failed to remove deleted marks.');
-    }
-  }
-
-  if (marks.length === 0) {
+  if (deleteDates.length === 0 && upsertRows.length === 0) {
     return;
   }
 
-  const { error: upsertError } = await supabase
-    .from('marks')
-    .upsert(markRows, { onConflict: 'member_id,date' });
+  const { error } = await supabase.rpc('save_member_marks_patch', {
+    p_member_id: memberId,
+    p_section: section,
+    p_delete_dates: deleteDates,
+    p_upsert_rows: upsertRows,
+  });
 
-  if (upsertError) {
-    throw new Error(upsertError.message || 'Failed to save marks.');
+  if (error) {
+    throw new Error(error.message || 'Failed to save member marks.');
   }
 };
+
+export const saveWeeklyMarksSnapshot = async (
+  section: Section,
+  selectedDate: string,
+  snapshot: WeeklyMarksSnapshotEntry[],
+): Promise<void> => {
+  if (snapshot.length === 0) {
+    return;
+  }
+  const authUser = await supabaseAuth.getCurrentUser();
+  if (!authUser) throw new Error('User not authenticated');
+
+  validateMarksForSection(
+    snapshot.flatMap(({ mark }) => (mark ? [mark] : [])),
+    section,
+    'Member',
+  );
+
+  const { error } = await supabase.rpc('save_weekly_marks_snapshot', {
+    p_section: section,
+    p_meeting_date: selectedDate,
+    p_snapshot: snapshot.map(({ memberId, mark }) => ({
+      memberId,
+      mark: mark
+        ? (() => {
+            const { date: _date, ...storedMark } = toStoredMark(mark, section);
+            return storedMark;
+          })()
+        : null,
+    })),
+  });
+
+  if (error) {
+    throw new Error(error.message || 'Failed to save weekly marks.');
+  }
+};
+
+export const saveWeeklyMarksForSection = saveWeeklyMarksSnapshot;
 
 export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise<Boy> => {
   validateBoyMarks(boy as Boy, section);
@@ -79,15 +159,18 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise
     throw new Error(error?.message || 'Failed to create boy');
   }
 
-  if (boy.marks.length > 0) {
-    await syncMemberMarks(data.id, section, boy.marks);
+  if (boy.marks.length === 0) {
+    return mapBoyRow(data as MemberRow, []);
   }
 
-  return mapBoyRow(data as MemberRow, boy.marks.map((mark, index) => ({
-    id: `${index}`,
-    member_id: data.id,
-    ...toStoredMark(mark, section),
-  })) as MarkRow[]);
+  await saveBoyMarks(data.id, section, [], boy.marks);
+
+  const savedBoy = await fetchBoyById(data.id, section);
+  if (!savedBoy) {
+    throw new Error('Failed to reload created boy.');
+  }
+
+  return savedBoy;
 };
 
 export const fetchBoys = async (section: Section): Promise<Boy[]> => {
@@ -159,29 +242,25 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
 };
 
 export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
-  validateBoyMarks(boy, section);
-  const { id, ...boyData } = boy;
-  if (!id) throw new Error('Boy ID is required.');
+  if (!boy.id) throw new Error('Boy ID is required.');
 
   const { error } = await supabase
     .from('members')
     .update({
-      name: boyData.name,
-      school_year: String(boyData.year),
+      name: boy.name,
+      school_year: String(boy.year),
       section,
-      squad: boyData.squad,
-      is_squad_leader: boyData.isSquadLeader ?? false,
+      squad: boy.squad,
+      is_squad_leader: boy.isSquadLeader ?? false,
     })
-    .eq('id', id)
+    .eq('id', boy.id)
     .eq('section', section);
 
   if (error) {
     throw new Error(error.message || 'Failed to update boy');
   }
 
-  await syncMemberMarks(id, section, boyData.marks);
-
-  const updatedBoy = await fetchBoyById(id, section);
+  const updatedBoy = await fetchBoyById(boy.id, section);
   if (!updatedBoy) {
     throw new Error('Failed to reload updated boy.');
   }
@@ -190,16 +269,6 @@ export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
 };
 
 export const deleteBoyById = async (id: string, section: Section): Promise<void> => {
-  const { error: marksError } = await supabase
-    .from('marks')
-    .delete()
-    .eq('member_id', id)
-    .eq('section', section);
-
-  if (marksError) {
-    throw new Error(marksError.message || 'Failed to delete member marks');
-  }
-
   const { error } = await supabase
     .from('members')
     .delete()

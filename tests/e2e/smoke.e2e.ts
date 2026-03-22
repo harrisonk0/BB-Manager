@@ -35,6 +35,11 @@ const selectCompanySection = async (page: Page) => {
   await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
 };
 
+const openSectionSettings = async (page: Page) => {
+  await page.getByRole('button', { name: 'Section Settings' }).click();
+  await expect(page.getByRole('heading', { name: 'Section Settings' })).toBeVisible();
+};
+
 test.describe('E2E smoke tests', () => {
   test('auth session persists across reload and can sign out', async ({ page }) => {
     await signIn(page);
@@ -76,5 +81,37 @@ test.describe('E2E smoke tests', () => {
 
     const reloadedScoreInput = page.locator('input[aria-label^="Score for "]:not([disabled])').first();
     await expect(reloadedScoreInput).toHaveValue(nextValue);
+  });
+
+  test('company section settings can be saved and restored', async ({ page }) => {
+    await signIn(page);
+    await selectCompanySection(page);
+    await openSectionSettings(page);
+
+    const meetingDaySelect = page.getByLabel('Weekly Meeting Day');
+    const originalValue = Number(await meetingDaySelect.inputValue());
+    const nextValue = (originalValue + 1) % 7;
+
+    try {
+      await meetingDaySelect.selectOption(String(nextValue));
+      await page.getByRole('button', { name: 'Save' }).click();
+      await expect(page.getByText('Settings saved successfully!')).toBeVisible();
+      await expect(meetingDaySelect).toHaveValue(String(nextValue));
+
+      await page.reload();
+      await openSectionSettings(page);
+      await expect(page.getByLabel('Weekly Meeting Day')).toHaveValue(String(nextValue));
+    } finally {
+      try {
+        await openSectionSettings(page);
+        const restoreSelect = page.getByLabel('Weekly Meeting Day');
+        if ((await restoreSelect.inputValue()) !== String(originalValue)) {
+          await restoreSelect.selectOption(String(originalValue));
+          await page.getByRole('button', { name: 'Save' }).click();
+        }
+      } catch (restoreError) {
+        console.error('Failed to restore the company meeting day after smoke test:', restoreError);
+      }
+    }
   });
 });
