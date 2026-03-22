@@ -30,8 +30,9 @@ In Supabase Auth URL configuration:
 
 1. Confirm Vercel env vars are present for the target environment.
 2. Deploy from the main branch or the intended release branch.
-3. Verify sign-in works for manually provisioned users.
-4. Verify the production users have the expected roles in `profiles`.
-5. Verify `settings` has seeded rows for both `company` and `junior`.
-6. Smoke-test auth, section settings persistence, member CRUD, marks entry, and dashboard behavior against the live backend.
-7. Treat CI smoke results as client-contract checks only; use Supabase inspection for live RLS policy verification.
+3. Run `npm run check:db-contract` against the target environment credentials or confirm the CI run passed with the intended deployment inputs.
+4. Verify sign-in works for manually provisioned users.
+5. Verify the production users have the expected roles in `profiles`.
+6. Verify `settings` has seeded rows for both `company` and `junior`.
+7. Smoke-test auth, section settings persistence, member CRUD, marks entry, and dashboard behavior against the live backend.
+8. Treat CI smoke results as client-contract checks only; use Supabase inspection for live RLS policy verification.

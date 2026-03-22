@@ -56,6 +56,7 @@ Open the printed local URL, usually `http://localhost:5173`.
 ## 5. Pre-Ship Checks
 
 ```bash
+npm run check:db-contract
 npm run typecheck
 npm run test:coverage
 npm run build
@@ -63,4 +64,8 @@ npm run build
 
 `npm run test:run` is the same automated suite CI runs on each push and pull request. The suite is intentionally small and focuses on business-critical logic rather than browser automation.
 
+`npm run check:db-contract` is the fast live-backend smoke check. It signs in with the test user, verifies `current_app_role()` resolves to a valid app role, and confirms the seeded `settings` rows for `company` and `junior` are readable through the published client credentials.
+
 `npm run test:e2e` runs the small Playwright smoke suite. It uses a real browser and real Supabase auth, so it requires a dedicated test user with a valid role, seeded `settings` rows, and at least one Company-section member already present.
+
+Neither check proves the entire live RLS policy graph. They confirm only the client-visible contract the SPA depends on.

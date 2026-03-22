@@ -41,10 +41,13 @@ jobs:
         run: |
           node --input-type=module -e "import { createServer } from 'vite'; const server = await createServer({ server: { middlewareMode: true }, optimizeDeps: { noDiscovery: true } }); try { await server.ssrLoadModule('/services/supabaseClient.ts'); console.log('Supabase client startup smoke test passed'); } finally { await server.close(); }"
 
+      - name: Run client-visible database contract smoke check
+        run: npm run check:db-contract
+
       - name: Type-check app and tests
         run: npm run typecheck
 
-      - name: Run unit and database-contract tests
+      - name: Run unit tests
         run: npm run test:run
 
       - name: Build production bundle

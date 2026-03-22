@@ -17,7 +17,7 @@ The live database also retains legacy invite-code and audit-log objects for comp
 - Authorization must be enforced in Supabase, not in React components.
 - App roles are derived from `profiles`.
 - Access to `members`, `marks`, and `settings` requires a valid app role from `profiles`; authenticated Supabase users without a matching profile row should not be able to use core app tables.
-- Automated CI and Playwright smoke tests can catch broken client assumptions, missing seeded rows, and failed writes, but they are not a substitute for inspecting live RLS policies.
+- `npm run check:db-contract` and the Playwright smoke suite can catch broken client assumptions, missing seeded rows, and failed writes, but they are not a substitute for inspecting live RLS policies.
 - Manual account provisioning is the supported path; the UI no longer exposes invite-code signup or recovery flows.
 
 ## Role Model

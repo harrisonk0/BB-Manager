@@ -24,6 +24,7 @@ Latest migration visible in the live project at the time of verification:
 - Update app code and docs in the same change when table names, functions, or permissions change.
 - Keep `members`, `marks`, and `settings` policies tied to valid app roles from `profiles`, not merely `auth.role() = 'authenticated'`.
 - Keep one seeded `settings` row per section and treat missing rows as a bootstrap error that should be corrected, not created lazily from the browser.
+- `npm run check:db-contract` is the fast live-backend check for the client contract: sign-in, `current_app_role()`, and the seeded `settings` rows for `company` and `junior`.
 - CI and browser smoke tests can validate the client contract against live data, but they cannot prove live RLS policy shape without privileged Supabase inspection.
 - The current app no longer exposes invite-code provisioning, recovery, or audit-log flows.
 
