@@ -3,6 +3,10 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 
 import Modal from './Modal';
 import SessionReportDocument from './reports/SessionReportDocument';
+import {
+  MEMBER_DETAIL_CONTINUED_ROWS,
+  MEMBER_DETAIL_FIRST_PAGE_ROWS,
+} from './reports/reportConstants';
 import { buildSessionReportData, getSectionDateRange } from '../services/reporting/sessionReport';
 import type { Boy, Section } from '../types';
 
@@ -12,9 +16,6 @@ interface SessionReportModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const MEMBER_DETAIL_FIRST_PAGE_ROWS = 18;
-const MEMBER_DETAIL_CONTINUED_ROWS = 26;
 
 const formatDate = (value: string) =>
   new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
@@ -68,7 +69,9 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
       + 1
       + Math.max(1, Math.ceil(report.meetings.length / 18))
       + 1
-      + Math.max(1, Math.ceil(report.members.length / (activeSection === 'junior' ? 14 : 16)))
+      + (report.members.length === 0
+          ? 0
+          : Math.max(1, Math.ceil(report.members.length / (activeSection === 'junior' ? 14 : 16))))
       + report.members.reduce(
           (sum, member) =>
             sum + 1 + Math.ceil(Math.max(member.meetings.length - MEMBER_DETAIL_FIRST_PAGE_ROWS, 0) / MEMBER_DETAIL_CONTINUED_ROWS),

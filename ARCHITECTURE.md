@@ -49,6 +49,7 @@ flowchart LR
 - `components/*` implements pages and shared UI.
 - `components/reports/*` contains the branded session PDF document used by the dashboard export flow.
 - Navigation is app-state driven rather than router-driven.
+- `@react-pdf/renderer` documents are the styling exception: those files use `StyleSheet.create()` and PDF-specific inline layout values because the PDF renderer does not support the app's Tailwind/PostCSS runtime classes.
 
 ### 2. Hook Layer
 

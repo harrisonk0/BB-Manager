@@ -13,14 +13,15 @@ import bbLogo from '../../assets/branding/bb-logo.png';
 import bbBackground from '../../assets/branding/bb-background.jpg';
 import companyLogo from '../../assets/branding/company-logo.png';
 import juniorLogo from '../../assets/branding/junior-logo.png';
+import {
+  MEMBER_DETAIL_CONTINUED_ROWS,
+  MEMBER_DETAIL_FIRST_PAGE_ROWS,
+} from './reportConstants';
 
 const BB_LOGO_URL = bbLogo;
 const BB_BACKGROUND_URL = bbBackground;
 const COMPANY_LOGO_URL = companyLogo;
 const JUNIOR_LOGO_URL = juniorLogo;
-
-const MEMBER_DETAIL_FIRST_PAGE_ROWS = 18;
-const MEMBER_DETAIL_CONTINUED_ROWS = 26;
 
 const styles = StyleSheet.create({
   page: {
