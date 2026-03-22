@@ -5,10 +5,12 @@
  * providing a high-level overview for reporting and comparison.
  */
 
-import React, { useMemo } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { Boy, Squad, Section, JuniorSquad, Mark } from '../types';
-import { StarIcon, ChartBarIcon } from './Icons';
+import { StarIcon, ChartBarIcon, ClipboardDocumentListIcon } from './Icons';
 import BarChart from './BarChart';
+
+const SessionReportModal = React.lazy(() => import('./SessionReportModal'));
 
 
 interface DashboardPageProps {
@@ -38,6 +40,7 @@ const SQUAD_CHART_COLORS: Record<string, string> = {
 }
 
 const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) => {
+  const [isReportModalOpen, setIsReportModalOpen] = React.useState(false);
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
@@ -165,7 +168,26 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            Review session performance across marks and attendance, then export a single master BB report for the active section.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsReportModalOpen(true)}
+          className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            isCompany
+              ? 'bg-company-blue hover:brightness-95 focus:ring-company-blue'
+              : 'bg-junior-blue hover:brightness-95 focus:ring-junior-blue'
+          }`}
+        >
+          <ClipboardDocumentListIcon className="mr-2 h-5 w-5" />
+          Generate Master PDF
+        </button>
+      </div>
       
       {/* Visualizations Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -274,6 +296,17 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
           </div>
         </div>
       </div>
+
+      {isReportModalOpen && (
+        <Suspense fallback={null}>
+          <SessionReportModal
+            boys={boys}
+            activeSection={activeSection}
+            isOpen={isReportModalOpen}
+            onClose={() => setIsReportModalOpen(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

@@ -47,6 +47,7 @@ flowchart LR
 
 - `App.tsx` orchestrates auth state, active section, view switching, and modal/toast state.
 - `components/*` implements pages and shared UI.
+- `components/reports/*` contains the branded session PDF document used by the dashboard export flow.
 - Navigation is app-state driven rather than router-driven.
 
 ### 2. Hook Layer
@@ -65,6 +66,7 @@ flowchart LR
   - `profiles` for app roles and user metadata
   - `members` for member records
   - `marks` for per-member attendance and scores
+- `services/reporting/sessionReport.ts` derives PDF-ready session reporting aggregates from loaded section data.
 - `services/settings.ts` handles section-level settings, updating the seeded `company` and `junior` rows in place.
 
 ## State Model
@@ -77,6 +79,7 @@ Sources of truth:
 - React component and hook state for loaded records and view state
 
 The app does not maintain an offline cache or a separate backend API.
+The branded session PDF generator also runs fully client-side in the browser.
 
 ## Security Model
 
