@@ -87,6 +87,8 @@ export const validateMarksForSection = (marks: Mark[], section: Section, subject
     throw new Error('Marks must be an array.');
   }
 
+  const seenDates = new Set<string>();
+
   const validateDecimalPlaces = (value: number, fieldName: string, date: string) => {
     if (value < 0) return;
 
@@ -102,6 +104,12 @@ export const validateMarksForSection = (marks: Mark[], section: Section, subject
     if (typeof mark.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(mark.date)) {
       throw new Error(`Invalid date format for mark: ${mark.date}`);
     }
+
+    if (seenDates.has(mark.date)) {
+      throw new Error(`Duplicate mark date for ${subject} on ${mark.date}.`);
+    }
+
+    seenDates.add(mark.date);
 
     if (typeof mark.score !== 'number') {
       throw new Error(`Invalid score type for mark on ${mark.date}. Score must be a number.`);

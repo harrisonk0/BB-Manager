@@ -42,7 +42,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   const [marks, setMarks] = useState<Record<string, CompanyMarkState | JuniorMarkState>>({});
   const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [isDirty, setIsDirty] = useState(false); // Tracks if there are unsaved changes.
+  const [, setIsDirty] = useState(false); // Retained for local input change tracking; navigation gating is derived from the snapshot.
   const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
   const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
   const [pendingDate, setPendingDate] = useState('');
@@ -105,9 +105,25 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     setMarkErrors({}); // Clear errors on date change.
   }, [selectedDate, boys, isCompany]);
 
+  const pendingSnapshot = useMemo(
+    () =>
+      selectedDate
+        ? buildWeeklyMarksSnapshot({
+            boys,
+            selectedDate,
+            attendance,
+            marks,
+            activeSection,
+          })
+        : [],
+    [boys, selectedDate, attendance, marks, activeSection],
+  );
+
+  const hasPendingChanges = pendingSnapshot.length > 0;
+
   useEffect(() => {
-    setHasUnsavedChanges(isDirty);
-  }, [isDirty, setHasUnsavedChanges]);
+    setHasUnsavedChanges(hasPendingChanges);
+  }, [hasPendingChanges, setHasUnsavedChanges]);
 
   useEffect(() => {
     return () => {
@@ -208,7 +224,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     if (shouldConfirmWeeklyMarksDateChange({
       currentDate: selectedDate,
       nextDate,
-      isDirty,
+      isDirty: hasPendingChanges,
     })) {
       setPendingDate(nextDate);
       setIsDateChangeConfirmOpen(true);
@@ -254,15 +270,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       return;
     }
 
-    const snapshot = buildWeeklyMarksSnapshot({
-      boys,
-      selectedDate,
-      attendance,
-      marks,
-      activeSection,
-    });
-
-    if (snapshot.length === 0) {
+    if (!hasPendingChanges) {
       setIsDirty(false);
       showToast('No changes to save.', 'info');
       return;
@@ -271,7 +279,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     setIsSaving(true);
 
     try {
-        await saveWeeklyMarksSnapshot(activeSection, selectedDate, snapshot);
+        await saveWeeklyMarksSnapshot(activeSection, selectedDate, pendingSnapshot);
         showToast('Marks saved successfully!', 'success');
         refreshData();
         setIsDirty(false);
@@ -537,7 +545,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       </div>
 
        {/* Floating Action Button for saving */}
-       {isDirty && (
+       {hasPendingChanges && (
           <button
             onClick={handleSaveMarks}
             disabled={isSaving}

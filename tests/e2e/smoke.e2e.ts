@@ -43,7 +43,7 @@ const openSectionSettings = async (page: Page) => {
 const saveSettingsAndWait = async (page: Page) => {
   const saveResponsePromise = page.waitForResponse(
     (response) =>
-      ['PATCH', 'POST'].includes(response.request().method()) &&
+      response.request().method() === 'PATCH' &&
       response.url().includes('/rest/v1/settings'),
   );
 
@@ -112,6 +112,9 @@ test.describe('E2E smoke tests', () => {
     const originalValue = Number(await meetingDaySelect.inputValue());
     const nextValue = (originalValue + 1) % 7;
 
+    let testError: unknown;
+    let restoreError: unknown;
+
     try {
       await meetingDaySelect.selectOption(String(nextValue));
       await saveSettingsAndWait(page);
@@ -120,6 +123,8 @@ test.describe('E2E smoke tests', () => {
       await page.reload();
       await openSectionSettings(page);
       await expect(page.getByLabel('Weekly Meeting Day')).toHaveValue(String(nextValue));
+    } catch (error) {
+      testError = error;
     } finally {
       try {
         await openSectionSettings(page);
@@ -131,9 +136,24 @@ test.describe('E2E smoke tests', () => {
           await openSectionSettings(page);
           await expect(page.getByLabel('Weekly Meeting Day')).toHaveValue(String(originalValue));
         }
-      } catch (restoreError) {
-        throw restoreError;
+      } catch (error) {
+        restoreError = error;
       }
+    }
+
+    if (testError && restoreError) {
+      throw new AggregateError(
+        [testError, restoreError],
+        'Settings smoke test failed and cleanup could not restore the original meeting day.',
+      );
+    }
+
+    if (testError) {
+      throw testError;
+    }
+
+    if (restoreError) {
+      throw restoreError;
     }
   });
 });

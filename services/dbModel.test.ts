@@ -115,4 +115,20 @@ describe('dbModel', () => {
 
     expect(() => validateBoyMarks(boy, 'junior')).toThrow(/does not match sum/i);
   });
+
+  it('rejects duplicate mark dates', () => {
+    const boy: Boy = {
+      id: 'member-1',
+      name: 'Euan',
+      squad: 2,
+      year: 10,
+      marks: [
+        { date: '2026-03-20', score: 8 },
+        { date: '2026-03-20', score: 7 },
+      ],
+      isSquadLeader: false,
+    };
+
+    expect(() => validateBoyMarks(boy, 'company')).toThrow(/duplicate mark date/i);
+  });
 });

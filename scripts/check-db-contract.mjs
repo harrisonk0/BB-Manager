@@ -77,7 +77,7 @@ try {
     requireMeetingDay(section, row.meeting_day);
   }
 
-  console.log(`Database contract smoke check passed for ${signInData.user.email} (${role}).`);
+  console.log(`Database contract smoke check passed for role ${role}.`);
 } finally {
   try {
     await supabase.auth.signOut();

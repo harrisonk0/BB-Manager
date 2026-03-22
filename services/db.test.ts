@@ -182,6 +182,22 @@ describe('db service write model', () => {
     expect(supabaseMock.rpc).not.toHaveBeenCalled();
   });
 
+  it('rejects duplicate mark dates before calling the patch RPC', async () => {
+    await expect(
+      saveBoyMarks(
+        'member-1',
+        'company',
+        [],
+        [
+          { date: '2026-03-20', score: 7 },
+          { date: '2026-03-20', score: 8 },
+        ],
+      ),
+    ).rejects.toThrow(/duplicate mark date/i);
+
+    expect(supabaseMock.rpc).not.toHaveBeenCalled();
+  });
+
   it('sends the whole selected-date snapshot to the live snapshot RPC', async () => {
     await expect(
       saveWeeklyMarksSnapshot('company', '2026-03-20', [
