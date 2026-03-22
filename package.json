@@ -7,11 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check:db-contract": "node scripts/check-db-contract.mjs",
+    "check:db-contract": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/check-db-contract.mjs",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
+    "test:e2e": "node --env-file-if-exists=.env --env-file-if-exists=.env.local ./node_modules/@playwright/test/cli.js test",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
