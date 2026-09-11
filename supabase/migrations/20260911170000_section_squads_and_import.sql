@@ -107,5 +107,5 @@ CREATE UNIQUE INDEX IF NOT EXISTS members_imported_from_archived_member_id_key
 COMMENT ON COLUMN public.members.imported_from_archived_member_id IS
   'When set, this live member was imported from that archived_members row. Marks are not copied.';
 
-REVOKE ALL ON FUNCTION public.squads_payload_is_valid(jsonb) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.squads_payload_is_valid(jsonb) TO postgres, service_role;
+REVOKE ALL ON FUNCTION public.squads_payload_is_valid(jsonb) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.squads_payload_is_valid(jsonb) TO authenticated, postgres, service_role;

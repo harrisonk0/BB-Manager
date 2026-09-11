@@ -39,7 +39,7 @@ The UI uses those roles to shape workflows, but the database remains the enforce
 ## Sensitive Areas
 
 - `profiles` controls application access
-- `settings` is seeded with one row for `company` and one row for `junior`, and settings updates modify those rows in place, including the `squads` JSON list
+- `settings` is seeded with one row for `company` and one row for `junior`, and settings updates modify those rows in place, including the `squads` JSON list. The `squads_payload_is_valid` check function is executable by `authenticated` so those updates can satisfy the column check; RLS still blocks officers from writing settings.
 - `bb_sessions`, `archived_members`, and `archived_marks` are append-only from the client: staff can SELECT, and captains/admins start a new year through `start_new_bb_session`
 - `invite_codes` and `audit_logs` are legacy history data and are not written by the current app
 
