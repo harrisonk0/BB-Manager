@@ -31,7 +31,7 @@ This records how the 2026-09-11 live audit findings were closed. The hosted proj
 | F-13 | CI typecheck/unit/build always run. Live Auth/db/e2e steps skip when `E2E_TEST_*` secrets are empty. Dummy `VITE_*` values are used only so the bundle can compile. |
 | F-15 | Generated `types/database.ts` for `public`. |
 | F-18 | `ErrorBoundary` plus `services/observability.ts` (`reportError`). No Sentry DSN is configured. |
-| F-19 | Access Denied heading is `text-2xl`. Return to Login signs the user out. |
+| F-19 | Access Denied heading is `text-2xl`. Return to Login signs the user out and clears local auth state immediately. |
 | F-20 | `localStorage` section values are parsed with `parseSection`. |
 | F-21 | Root `ErrorBoundary`. |
 | F-22 | Branding and favicon are local (`assets/branding/`, `public/favicon.png`). |
