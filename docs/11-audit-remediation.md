@@ -57,7 +57,7 @@ This records how the 2026-09-11 live audit findings were closed. The hosted proj
 - **F-06 HIBP / captcha:** plan/secret limits. Revisit if the project is upgraded.
 - **F-14 CIDRs:** keep operator access; SSL-only for this pass.
 - **F-16:** do not disable real staff Auth users. Disposable `bbmgr.*` / `ZZZ-E2E-*` leftovers were cleaned when found.
-- **F-26:** `@supabase/supabase-js` was bumped. Remaining npm audit issues are mostly build/test transitive; do not `npm audit fix` blindly.
+- **F-26:** `@supabase/supabase-js` was bumped. That client needs Node 22+ (native WebSocket). CI now uses Node 22. Remaining npm audit issues are mostly build/test transitive; do not `npm audit fix` blindly.
 
 ## Operator follow-up
 

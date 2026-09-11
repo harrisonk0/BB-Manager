@@ -4,7 +4,7 @@ This guide sets up BB Manager locally against a Supabase project.
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - npm
 - A Supabase project
 
