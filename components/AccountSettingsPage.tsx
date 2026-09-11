@@ -77,7 +77,10 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({
         }
       }
 
-      const { error } = await supabaseAuth.updatePassword(newPassword);
+      const { error } = await supabaseAuth.updatePassword(
+        newPassword,
+        recoveryMode ? undefined : currentPassword,
+      );
 
       if (error) {
         throw error;

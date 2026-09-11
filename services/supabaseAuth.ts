@@ -69,8 +69,11 @@ export async function requestPasswordReset(email: string) {
   return supabase.auth.resetPasswordForEmail(email, redirectTo ? { redirectTo } : undefined);
 }
 
-export async function updatePassword(newPassword: string) {
-  return supabase.auth.updateUser({ password: newPassword });
+export async function updatePassword(newPassword: string, currentPassword?: string) {
+  return supabase.auth.updateUser({
+    password: newPassword,
+    ...(currentPassword ? { current_password: currentPassword } : {}),
+  });
 }
 
 export async function retireRememberedPasswordAfterPasskey() {

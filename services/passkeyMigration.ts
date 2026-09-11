@@ -99,7 +99,7 @@ export function takePasskeyMigrationNotice(): boolean {
 }
 
 export async function retirePasswordAfterPasskeyIfPossible(
-  updatePassword: (nextPassword: string) => Promise<{ error: { message: string } | null }>,
+  updatePassword: (nextPassword: string, currentPassword: string) => Promise<{ error: { message: string } | null }>,
   signInWithPassword: (email: string, password: string) => Promise<{ error: { message: string } | null }>,
   currentEmail?: string | null,
 ): Promise<{ retired: boolean; error?: string }> {
@@ -117,7 +117,7 @@ export async function retirePasswordAfterPasskeyIfPossible(
     return { retired: false, error: reauthError.message };
   }
 
-  const { error } = await updatePassword(generateUnusablePassword());
+  const { error } = await updatePassword(generateUnusablePassword(), password);
   if (error) {
     return { retired: false, error: error.message };
   }

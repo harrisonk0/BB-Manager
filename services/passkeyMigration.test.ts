@@ -81,6 +81,7 @@ describe('passkeyMigration', () => {
     expect(signInWithPassword).toHaveBeenCalledWith('officer@example.com', 'once-only');
     expect(updatePassword).toHaveBeenCalledTimes(1);
     expect(String(updatePassword.mock.calls[0][0])).not.toBe('once-only');
+    expect(updatePassword.mock.calls[0][1]).toBe('once-only');
     expect(hasRememberedPassword()).toBe(false);
   });
 

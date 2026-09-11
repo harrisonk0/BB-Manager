@@ -124,6 +124,10 @@ const App: React.FC = () => {
         if (cancelled) {
           return;
         }
+        if (!result.retired && hasRememberedPassword()) {
+          setPasskeyGate('required');
+          return;
+        }
         if (!result.retired && result.error) {
           showToast(`Could not turn off password sign-in: ${result.error}`, 'error');
         }

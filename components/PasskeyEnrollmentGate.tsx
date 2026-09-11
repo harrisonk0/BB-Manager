@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { branding } from './branding';
 import { KeyIcon } from './Icons';
 import { browserSupportsPasskeys } from '../services/passkeyErrors';
-import { registerPasskey, retireRememberedPasswordAfterPasskey } from '../services/supabaseAuth';
+import { listPasskeys, registerPasskey, retireRememberedPasswordAfterPasskey } from '../services/supabaseAuth';
 
 interface PasskeyEnrollmentGateProps {
   onComplete: () => void;
@@ -15,6 +15,22 @@ const PasskeyEnrollmentGate: React.FC<PasskeyEnrollmentGateProps> = ({ onComplet
   const [isRetiring, setIsRetiring] = useState(false);
   const [passkeySaved, setPasskeySaved] = useState(false);
   const supported = browserSupportsPasskeys();
+
+  useEffect(() => {
+    let cancelled = false;
+    void listPasskeys()
+      .then((passkeys) => {
+        if (!cancelled && passkeys.length > 0) {
+          setPasskeySaved(true);
+        }
+      })
+      .catch(() => {
+        // Leave the create-passkey action available if listing fails.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const retirePassword = async (): Promise<boolean> => {
     setIsRetiring(true);

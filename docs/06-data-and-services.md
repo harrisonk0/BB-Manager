@@ -5,7 +5,7 @@ This document describes how the app talks to Supabase.
 ## Service Modules
 
 - `services/supabaseClient.ts`: shared Supabase client
-- `services/supabaseAuth.ts`: passkey sign-in/registration, password sign-in, password reset, one-time live password retirement after passkey enrollment
+- `services/supabaseAuth.ts`: passkey sign-in/registration, password sign-in, password reset, one-time live password retirement after passkey enrollment (sends `current_password` because hosted Auth requires it)
 - `services/passkeyMigration.ts`: live-origin gate rules and in-memory password used only to turn password sign-in off
 - `services/db.ts`: members and marks
 - `services/sessions.ts`: closed BB years, archived members/marks, and `start_new_bb_session`
