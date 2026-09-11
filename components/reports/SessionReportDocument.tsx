@@ -13,6 +13,10 @@ import bbLogo from '../../assets/branding/bb-logo.png';
 import bbBackground from '../../assets/branding/bb-background.jpg';
 import companyLogo from '../../assets/branding/company-logo.png';
 import juniorLogo from '../../assets/branding/junior-logo.png';
+import {
+  MEMBER_DETAIL_CONTINUED_ROWS,
+  MEMBER_DETAIL_FIRST_PAGE_ROWS,
+} from './reportConstants';
 
 const BB_LOGO_URL = bbLogo;
 const BB_BACKGROUND_URL = bbBackground;
@@ -53,15 +57,40 @@ const styles = StyleSheet.create({
   },
   coverPhotoCard: {
     width: '34%',
+    height: 228,
     backgroundColor: '#18233f',
     borderRadius: 18,
     overflow: 'hidden',
     border: '1 solid #314469',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   coverPhoto: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     width: '100%',
-    height: 228,
+    height: '100%',
     objectFit: 'cover',
+    opacity: 0.32,
+  },
+  coverPhotoInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  coverPhotoLogo: {
+    width: 96,
+    height: 96,
+    objectFit: 'contain',
+    marginBottom: 10,
+  },
+  coverPhotoLabel: {
+    color: '#dbe7ff',
+    fontSize: 10,
+    textAlign: 'center',
+    lineHeight: 1.4,
   },
   coverMainLogo: {
     width: 120,
@@ -229,8 +258,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     border: '1 solid #e2e8f0',
     borderRadius: 10,
-    padding: 14,
-    marginBottom: 14,
+    padding: 12,
+    marginBottom: 12,
   },
   memberTableSection: {
     marginTop: 6,
@@ -246,7 +275,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderBottom: '1 solid #f1f5f9',
-    paddingVertical: 5,
+    paddingVertical: 4,
   },
   keyLabel: {
     fontSize: 9,
@@ -327,9 +356,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
   tableCell: {
-    paddingVertical: 7,
+    paddingVertical: 5,
     paddingHorizontal: 8,
-    fontSize: 8.5,
+    fontSize: 8,
     color: '#0f172a',
   },
   tableHeadCell: {
@@ -587,6 +616,12 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
               </View>
               <View style={styles.coverPhotoCard}>
                 <Image src={BB_BACKGROUND_URL} style={styles.coverPhoto} />
+                <View style={styles.coverPhotoInner}>
+                  <Image src={accent.sectionLogo} style={styles.coverPhotoLogo} />
+                  <Text style={styles.coverPhotoLabel}>
+                    End-of-session attendance, marks, and member performance for the selected section.
+                  </Text>
+                </View>
               </View>
             </View>
             <View>
@@ -773,7 +808,10 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
       ))}
 
       {report.members.flatMap((member) => {
-        const continuationChunks = chunk<MemberMeetingRecord>(member.meetings.slice(14), 22);
+        const continuationChunks = chunk<MemberMeetingRecord>(
+          member.meetings.slice(MEMBER_DETAIL_FIRST_PAGE_ROWS),
+          MEMBER_DETAIL_CONTINUED_ROWS,
+        );
 
         return [
           <Page key={member.id} size="A4" style={styles.page}>
@@ -868,7 +906,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
                     <Text style={[styles.tableCell, styles.tableHeadCell, { width: '25%' }]}>Behaviour</Text>
                   )}
                 </View>
-                {member.meetings.slice(0, 14).map((meeting, index) => (
+                {member.meetings.slice(0, MEMBER_DETAIL_FIRST_PAGE_ROWS).map((meeting, index) => (
                   <View key={meeting.date} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null]}>
                     <Text style={[styles.tableCell, { width: '22%' }]}>{formatDate(meeting.date)}</Text>
                     <Text style={[styles.tableCell, { width: '14%' }]}>{meeting.attended ? 'Present' : 'Absent'}</Text>
