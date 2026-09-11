@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Section, ToastType } from '../types';
 import * as supabaseAuth from '../services/supabaseAuth';
+import PasskeysCard from './PasskeysCard';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -197,6 +198,7 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight text-slate-900">Account Settings</h1>
       <div className="max-w-2xl mx-auto space-y-6">
+        {!recoveryMode && <PasskeysCard activeSection={activeSection} showToast={showToast} />}
         {formCard}
       </div>
     </div>

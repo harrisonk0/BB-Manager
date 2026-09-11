@@ -21,6 +21,10 @@ import { useAuthAndRole } from '@/hooks/useAuthAndRole';
 import { useSectionManagement } from '@/hooks/useSectionManagement';
 import { useAppData } from '@/hooks/useAppData';
 import { useUnsavedChangesProtection } from '@/hooks/useUnsavedChangesProtection';
+import { listPasskeys } from '@/services/supabaseAuth';
+import { browserSupportsPasskeys } from '@/services/passkeyErrors';
+
+const PASSKEY_NUDGE_STORAGE_KEY = 'bb-passkey-nudge-dismissed';
 
 const App: React.FC = () => {
   const { toasts, showToast, removeToast } = useToastNotifications();
@@ -37,6 +41,7 @@ const App: React.FC = () => {
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [view, setView] = useState<View>({ page: 'home' });
+  const [showPasskeyNudge, setShowPasskeyNudge] = useState(false);
   const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(setView);
   const { boys, settings, dataLoading, dataError, refreshData, setSettings } = useAppData(
     activeSection,
@@ -66,6 +71,34 @@ const App: React.FC = () => {
       clearStoredSection();
     }
   }, [noRoleError, setActiveSection, setUserRole]);
+
+  useEffect(() => {
+    if (!currentUser || passwordRecovery || !browserSupportsPasskeys()) {
+      setShowPasskeyNudge(false);
+      return;
+    }
+    if (sessionStorage.getItem(PASSKEY_NUDGE_STORAGE_KEY) === '1') {
+      setShowPasskeyNudge(false);
+      return;
+    }
+
+    let cancelled = false;
+    void listPasskeys()
+      .then((passkeys) => {
+        if (!cancelled) {
+          setShowPasskeyNudge(passkeys.length === 0);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setShowPasskeyNudge(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser, passwordRecovery]);
 
   const renderMainContent = () => {
     if (!activeSection) return null;
@@ -166,6 +199,38 @@ const App: React.FC = () => {
 
     return (
       <>
+        {showPasskeyNudge && (
+          <div className="bg-amber-50 border-b border-amber-200 text-amber-950">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm">
+                Add a passkey in Account Settings so you can sign in on the live site without a password.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sessionStorage.setItem(PASSKEY_NUDGE_STORAGE_KEY, '1');
+                    setShowPasskeyNudge(false);
+                    navigateWithProtection({ page: 'accountSettings' });
+                  }}
+                  className="rounded-md bg-amber-900 px-3 py-1.5 text-sm font-medium text-white"
+                >
+                  Open Account Settings
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    sessionStorage.setItem(PASSKEY_NUDGE_STORAGE_KEY, '1');
+                    setShowPasskeyNudge(false);
+                  }}
+                  className="rounded-md px-3 py-1.5 text-sm font-medium text-amber-900"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <Header
           setView={navigateWithProtection}
           onSignOut={handleSignOutWithProtection}

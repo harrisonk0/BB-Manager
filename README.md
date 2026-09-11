@@ -21,7 +21,7 @@ There is no in-repo Express server or Docker runtime. The app is built as a stat
 
 ## Testing
 
-- `npm run check:auth-config` confirms hosted Auth has public signup disabled.
+- `npm run check:auth-config` confirms hosted Auth has public signup disabled and passkeys enabled.
 - `npm run check:db-contract` reads `.env` and `.env.local`, signs in with the test user, resolves `current_app_role()`, confirms the seeded `settings` rows for `company` and `junior`, and confirms `bb_sessions` is readable through the published client credentials.
 - `npm run test:run` runs the lean automated suite used by CI on every push and pull request.
 - `npm run test:coverage` reports coverage for the same suite.

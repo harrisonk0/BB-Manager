@@ -28,6 +28,7 @@ In Supabase Auth URL configuration:
 - Add local development and preview URLs to `Additional Redirect URLs` as needed.
 - Keep public signup disabled. Staff accounts are created in the Auth dashboard.
 - Password reset emails use `VITE_APP_URL` when it is set.
+- Passkeys are enabled for relying party `bb-manager.vercel.app`. Enroll passkeys on the production origin.
 
 ## Deployment Checklist
 

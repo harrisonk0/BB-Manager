@@ -107,18 +107,30 @@ Allows users to configure application settings specific to the currently active 
 Allows the currently logged-in user to manage their personal account settings.
 
 -   **Responsibilities**:
+    -   Lets staff add, rename, and remove passkeys.
     -   Provides a form for changing the user's password, including the current password.
     -   Reauthenticates, then updates the password with Supabase Authentication.
     -   Can run in recovery mode after a reset-email session.
     -   Displays user-friendly error messages for password changes.
 -   **Key Props**: `showToast`, `activeSection`, `recoveryMode`, `onRecoveryComplete`.
 
+#### `PasskeysCard.tsx`
+
+Passkey enrollment and management used by Account Settings.
+
+-   **Responsibilities**:
+    -   Lists the signed-in user's passkeys.
+    -   Registers a new passkey through the WebAuthn ceremony.
+    -   Renames or removes an existing passkey.
+-   **Key Props**: `activeSection`, `showToast`.
+
 #### `LoginPage.tsx`
 
 Handles user authentication with Supabase.
 
 -   **Responsibilities**:
-    -   Provides a form for email and password sign-in.
+    -   Offers passkey sign-in as the primary action when the browser supports WebAuthn.
+    -   Provides a form for email and password sign-in as a fallback.
     -   Offers a Forgot password action that emails a reset link.
 -   **Key Props**: none.
 
@@ -177,7 +189,7 @@ A collection of simple, stateless SVG icon components.
 
 -   **Responsibilities**:
     -   Exports multiple functional components, each rendering a specific SVG icon.
-    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Clipboard, Clipboard Document List, Archive Box, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
+    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Clipboard, Clipboard Document List, Archive Box, Key, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
     -   Accepts an optional `className` prop for easy styling with Tailwind CSS.
 
 #### `DatePicker.tsx`

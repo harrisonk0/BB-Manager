@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import * as supabaseAuth from '../services/supabaseAuth';
 import { branding } from './branding';
+import { browserSupportsPasskeys } from '../services/passkeyErrors';
+import { KeyIcon } from './Icons';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -8,7 +10,9 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPasskeyLoading, setIsPasskeyLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const passkeysSupported = browserSupportsPasskeys();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +28,22 @@ const LoginPage: React.FC = () => {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePasskeySignIn = async () => {
+    setIsPasskeyLoading(true);
+    setError(null);
+    setInfo(null);
+    try {
+      const { error: passkeyError } = await supabaseAuth.signInWithPasskey();
+      if (passkeyError) {
+        setError(passkeyError.message);
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Could not sign in with a passkey.');
+    } finally {
+      setIsPasskeyLoading(false);
     }
   };
 
@@ -73,7 +93,33 @@ const LoginPage: React.FC = () => {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSignIn}>
+        {passkeysSupported && (
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => { void handlePasskeySignIn(); }}
+              disabled={isPasskeyLoading || isLoading}
+              className="group relative w-full flex justify-center items-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-junior-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <KeyIcon className="h-5 w-5 mr-2" />
+              {isPasskeyLoading ? 'Waiting for passkey…' : 'Sign in with passkey'}
+            </button>
+            <p className="text-center text-xs text-slate-500">
+              Passkeys work on the live BB Manager site after you add one in Account Settings.
+            </p>
+          </div>
+        )}
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center" aria-hidden="true">
+            <div className="w-full border-t border-slate-200" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-white px-3 text-sm text-slate-500">or use email and password</span>
+          </div>
+        </div>
+
+        <form className="space-y-6" onSubmit={handleSignIn}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email-address" className="sr-only">Email address</label>
@@ -119,8 +165,8 @@ const LoginPage: React.FC = () => {
           <div>
             <button
               type="submit"
-              disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-junior-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading || isPasskeyLoading}
+              className="group relative w-full flex justify-center py-2 px-4 border border-slate-300 text-sm font-medium rounded-md text-slate-800 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>

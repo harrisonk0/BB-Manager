@@ -27,7 +27,7 @@ The live project also contains legacy invite-code and audit-log objects, but the
 - Keep `members`, `marks`, and `settings` policies tied to valid app roles from `profiles`, not merely `auth.role() = 'authenticated'`.
 - Keep one seeded `settings` row per section and treat missing rows as a bootstrap error that should be corrected, not created lazily from the browser.
 - `npm run check:db-contract` is the fast live-backend check for the client contract: sign-in, `current_app_role()`, the seeded `settings` rows for `company` and `junior`, and readable `bb_sessions`.
-- `npm run check:auth-config` confirms public signup is disabled.
+- `npm run check:auth-config` confirms public signup is disabled and passkeys are enabled.
 - Isolated Playwright can validate the client contract against live data, but it cannot prove live RLS policy shape without privileged Supabase inspection.
 - The current app no longer exposes invite-code provisioning. Do not call leftover invite RPCs from the client.
 

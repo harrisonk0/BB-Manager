@@ -29,6 +29,14 @@ enable_signup = false
 enable_anonymous_sign_ins = false
 minimum_password_length = 8
 
+[auth.passkey]
+enabled = true
+
+[auth.webauthn]
+rp_display_name = "BB Manager"
+rp_id = "bb-manager.vercel.app"
+rp_origins = ["https://bb-manager.vercel.app"]
+
 [auth.email]
 enable_signup = false
 enable_confirmations = true

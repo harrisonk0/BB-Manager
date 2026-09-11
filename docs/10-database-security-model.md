@@ -8,6 +8,7 @@ Verified on 2026-09-11:
 
 - RLS is enabled on `profiles`, `settings`, `members`, `marks`, `bb_sessions`, `archived_members`, `archived_marks`, `invite_codes`, and `audit_logs`.
 - Public signup is disabled.
+- Passkey authentication is enabled for relying party `bb-manager.vercel.app`.
 - `anon` table privileges and leftover invite RPC `EXECUTE` are revoked from client roles.
 - `start_new_bb_session` is executable by authenticated captains and admins only; the function itself checks `current_app_role()`.
 
@@ -22,6 +23,7 @@ The live database also retains legacy invite-code and audit-log objects for comp
 - Access to `members`, `marks`, and `settings` requires a valid app role from `profiles`; authenticated Supabase users without a matching profile row should not be able to use core app tables.
 - `npm run check:db-contract` and isolated Playwright can catch broken client assumptions, missing seeded rows, and failed writes, but they are not a substitute for inspecting live RLS policies.
 - Manual account provisioning is the supported path; public signup is disabled.
+- Staff sign in with a passkey on the live site. Email and password remain as a fallback and for local/CI.
 - Password changes require the current password (or a recovery session from a reset email).
 
 ## Role Model

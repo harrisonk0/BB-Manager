@@ -28,7 +28,7 @@ const signIn = async (page: Page) => {
 
   await page.getByLabel('Email address').fill(getRequiredEnv('E2E_TEST_EMAIL'));
   await page.getByLabel('Password').fill(getRequiredEnv('E2E_TEST_PASSWORD'));
-  await page.getByRole('button', { name: 'Sign In' }).click();
+  await page.getByRole('button', { name: 'Sign In', exact: true }).click();
 
   await expect(page.getByRole('heading', { name: 'Select a Section' })).toBeVisible();
 };

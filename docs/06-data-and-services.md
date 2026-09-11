@@ -5,7 +5,7 @@ This document describes how the app talks to Supabase.
 ## Service Modules
 
 - `services/supabaseClient.ts`: shared Supabase client
-- `services/supabaseAuth.ts`: sign-in, sign-out, password update, password reset, auth subscription
+- `services/supabaseAuth.ts`: passkey sign-in/registration, password sign-in, password reset, auth subscription
 - `services/db.ts`: members and marks
 - `services/sessions.ts`: closed BB years, archived members/marks, and `start_new_bb_session`
 - `services/sessionArchiveModel.ts`: mapping archived rows onto the live `Boy` model
@@ -37,4 +37,4 @@ The current app talks to these tables:
 - The UI-facing `Boy` model is assembled from `members` and `marks`.
 - Role information is loaded from `profiles`, not from a separate `user_roles` table.
 - Section settings are updated in place; missing `settings` rows throw `SettingsUnavailableError` instead of inventing a Friday meeting day.
-- The active UI includes member management, marks entry, dashboard reporting, session PDF export, past-session archives, and section settings.
+- The active UI includes member management, marks entry, dashboard reporting, session PDF export, past-session archives, section settings, and passkey sign-in.

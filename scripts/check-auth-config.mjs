@@ -25,4 +25,8 @@ if (settings.disable_signup !== true) {
   throw new Error('Public signup must be disabled (disable_signup=true).');
 }
 
-console.log('Auth config check passed: public signup is disabled.');
+if (settings.passkeys_enabled !== true) {
+  throw new Error('Passkey authentication must be enabled (passkeys_enabled=true).');
+}
+
+console.log('Auth config check passed: public signup is disabled and passkeys are enabled.');

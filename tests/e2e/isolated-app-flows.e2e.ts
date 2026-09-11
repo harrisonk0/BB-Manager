@@ -41,7 +41,7 @@ const signIn = async (page: Page, email = getRequiredEmail(), password = getRequ
   await expect(page.getByText('Sign in to your account')).toBeVisible();
   await page.getByLabel('Email address').fill(email);
   await page.getByLabel('Password').fill(password);
-  await page.getByRole('button', { name: 'Sign In' }).click();
+  await page.getByRole('button', { name: 'Sign In', exact: true }).click();
 };
 
 const selectCompanySection = async (page: Page) => {
@@ -99,6 +99,7 @@ test.describe('Isolated app flows', () => {
     await expect(page.getByText('Login Failed')).toBeVisible();
     await expect(page.getByText('Sign in to your account')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Forgot password?' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sign in with passkey' })).toBeVisible();
   });
 
   test('valid user reaches company roster and session survives reload', async ({ page }) => {
@@ -196,6 +197,8 @@ test.describe('Isolated app flows', () => {
     await openUserMenu(page);
     await page.getByRole('menuitem', { name: 'Account Settings' }).click();
     await expect(page.getByRole('heading', { name: 'Account Settings' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Passkeys' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add a passkey' })).toBeVisible();
     await expect(page.getByLabel('Current Password')).toBeVisible();
     await expect(page.getByLabel('New Password', { exact: true })).toBeVisible();
     await expect(page.getByLabel('Confirm New Password')).toBeVisible();
