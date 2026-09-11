@@ -81,7 +81,7 @@ CI/browser test variables:
 
 See [docs/11-audit-remediation.md](./docs/11-audit-remediation.md) for the 2026-09-11 finding closeout.
 
-Passkeys are enabled on hosted Auth for relying party `bb-manager.vercel.app`. Email/password remains for recovery, localhost, and CI.
+Passkeys are required on hosted Auth for relying party `bb-manager.vercel.app`. The next live password sign-in must create a passkey, after which that password is replaced and no longer works. Email/password remains for recovery, localhost, and CI.
 
 Rules:
 

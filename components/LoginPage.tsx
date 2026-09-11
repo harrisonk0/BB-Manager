@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as supabaseAuth from '../services/supabaseAuth';
 import { branding } from './branding';
 import { browserSupportsPasskeys } from '../services/passkeyErrors';
+import {
+  clearRememberedPassword,
+  isPasskeyEnrollmentRequired,
+  rememberPasswordForPasskeyMigration,
+  takePasskeyMigrationNotice,
+} from '../services/passkeyMigration';
 import { KeyIcon } from './Icons';
 
 const LoginPage: React.FC = () => {
@@ -13,18 +19,30 @@ const LoginPage: React.FC = () => {
   const [isPasskeyLoading, setIsPasskeyLoading] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const passkeysSupported = browserSupportsPasskeys();
+  const enrollmentRequired = isPasskeyEnrollmentRequired();
+
+  useEffect(() => {
+    if (takePasskeyMigrationNotice()) {
+      setInfo('Sign in with your current password once to create your passkey. After that, the password stops working.');
+    }
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     setInfo(null);
+    if (enrollmentRequired) {
+      rememberPasswordForPasskeyMigration(email.trim(), password);
+    }
     try {
       const { error: signInError } = await supabaseAuth.signIn(email, password);
       if (signInError) {
+        clearRememberedPassword();
         setError(signInError.message || 'Invalid email or password.');
       }
     } catch (err: unknown) {
+      clearRememberedPassword();
       setError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
@@ -35,6 +53,7 @@ const LoginPage: React.FC = () => {
     setIsPasskeyLoading(true);
     setError(null);
     setInfo(null);
+    clearRememberedPassword();
     try {
       const { error: passkeyError } = await supabaseAuth.signInWithPasskey();
       if (passkeyError) {
@@ -105,7 +124,9 @@ const LoginPage: React.FC = () => {
               {isPasskeyLoading ? 'Waiting for passkey…' : 'Sign in with passkey'}
             </button>
             <p className="text-center text-xs text-slate-500">
-              Passkeys work on the live BB Manager site after you add one in Account Settings.
+              {enrollmentRequired
+                ? 'If you already created a passkey, use it here. Password sign-in is only for the one-time migration or for recovering a lost passkey.'
+                : 'Passkeys work on the live BB Manager site after you add one. On this computer, email and password still work.'}
             </p>
           </div>
         )}
@@ -115,7 +136,9 @@ const LoginPage: React.FC = () => {
             <div className="w-full border-t border-slate-200" />
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-white px-3 text-sm text-slate-500">or use email and password</span>
+            <span className="bg-white px-3 text-sm text-slate-500">
+              {enrollmentRequired ? 'one-time password sign-in' : 'or use email and password'}
+            </span>
           </div>
         </div>
 
@@ -171,6 +194,12 @@ const LoginPage: React.FC = () => {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </div>
+          {enrollmentRequired && (
+            <p className="text-xs text-slate-500">
+              After this password sign-in you must create a passkey. The password then stops working.
+              Forgot password remains only if you lose every passkey.
+            </p>
+          )}
         </form>
       </div>
     </div>

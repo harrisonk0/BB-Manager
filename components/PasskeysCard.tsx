@@ -3,6 +3,7 @@ import { Section, ToastType } from '../types';
 import * as supabaseAuth from '../services/supabaseAuth';
 import type { AppPasskey } from '../services/supabaseAuth';
 import { browserSupportsPasskeys } from '../services/passkeyErrors';
+import { canRemovePasskey, isPasskeyEnrollmentRequired } from '../services/passkeyMigration';
 import Modal from './Modal';
 
 interface PasskeysCardProps {
@@ -28,6 +29,8 @@ const PasskeysCard: React.FC<PasskeysCardProps> = ({ activeSection, showToast })
   const [passkeyToDelete, setPasskeyToDelete] = useState<AppPasskey | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const supported = browserSupportsPasskeys();
+  const enrollmentRequired = isPasskeyEnrollmentRequired();
+  const lastPasskeyLocked = !canRemovePasskey(passkeys.length, enrollmentRequired);
   const isCompany = activeSection === 'company';
   const accentText = isCompany ? 'text-company-blue' : 'text-junior-blue';
   const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
@@ -83,6 +86,10 @@ const PasskeysCard: React.FC<PasskeysCardProps> = ({ activeSection, showToast })
 
   const handleDelete = async () => {
     if (!passkeyToDelete) return;
+    if (!canRemovePasskey(passkeys.length, enrollmentRequired)) {
+      showToast('Add another passkey before removing this one.', 'error');
+      return;
+    }
     setIsDeleting(true);
     try {
       await supabaseAuth.deletePasskey(passkeyToDelete.id);
@@ -102,6 +109,7 @@ const PasskeysCard: React.FC<PasskeysCardProps> = ({ activeSection, showToast })
       <p className="text-sm text-slate-600">
         Passkeys sign you in with this device&apos;s fingerprint, face, PIN, or a password manager. They are bound to
         {' '}<code className="text-xs">bb-manager.vercel.app</code>, so add them while you are on the live site.
+        {enrollmentRequired && ' Keep at least one passkey; password sign-in is turned off after the first one is created.'}
       </p>
       {!supported && (
         <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
@@ -164,7 +172,9 @@ const PasskeysCard: React.FC<PasskeysCardProps> = ({ activeSection, showToast })
                     <button
                       type="button"
                       onClick={() => setPasskeyToDelete(passkey)}
-                      className="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700"
+                      disabled={lastPasskeyLocked}
+                      title={lastPasskeyLocked ? 'Add another passkey before removing this one.' : undefined}
+                      className="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Remove
                     </button>
@@ -191,7 +201,9 @@ const PasskeysCard: React.FC<PasskeysCardProps> = ({ activeSection, showToast })
         title="Remove this passkey?"
       >
         <p className="text-slate-700">
-          You will not be able to sign in with {passkeyToDelete?.friendly_name || 'this passkey'} until you add it again.
+          {lastPasskeyLocked
+            ? 'This is the last passkey on the account. Add another one before removing it, or you will be locked out.'
+            : `You will not be able to sign in with ${passkeyToDelete?.friendly_name || 'this passkey'} until you add it again.`}
         </p>
         <div className="flex justify-end gap-3 pt-6">
           <button
@@ -204,9 +216,9 @@ const PasskeysCard: React.FC<PasskeysCardProps> = ({ activeSection, showToast })
           </button>
           <button
             type="button"
-            disabled={isDeleting}
+            disabled={isDeleting || lastPasskeyLocked}
             onClick={() => { void handleDelete(); }}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md"
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isDeleting ? 'Removing...' : 'Remove passkey'}
           </button>

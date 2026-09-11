@@ -22,18 +22,18 @@ flowchart LR
 
 | Screen | Purpose |
 | --- | --- |
-| `Sign in` | Sign in with a passkey on the live site, or use email/password as a fallback. Use Forgot password if you need a reset link. |
+| `Sign in` | On the live site, sign in with a passkey. The first time, sign in with the password an administrator set, create a passkey, then that password stops working. Local development still uses email/password. Use Forgot password only if you lose every passkey. |
 | `Select a Section` | Choose either the Company or Junior section. Log Out is labelled on this screen. |
 | `Home` | View, add, edit, and delete members in the active section. |
 | `Weekly Marks` | Record attendance and marks for the selected meeting date. New rows start as Not recorded. |
 | `Dashboard` | Review summary charts, attendance trends, and generate the master end-of-session PDF. |
 | `Archives` | Browse closed BB years and regenerate Master PDFs from archived members and marks. |
 | `Section Settings` | Update the weekly meeting day. Captains and admins can also archive the current year and start a new session. |
-| `Account Settings` | Add a passkey, and change your password. Password changes ask for the current password. |
+| `Account Settings` | Add extra passkeys. On the live site you cannot remove the last passkey, and you cannot set a lasting password. |
 
 ## Getting Started
 
-1. Sign in with a passkey, or with the email/password an administrator created for you. Public self-signup is disabled.
+1. On `https://bb-manager.vercel.app`, sign in with the email/password an administrator created for you. You will be asked to create a passkey. After that, only the passkey works. Local development still uses email/password. Public self-signup is disabled.
 2. Choose the section you are responsible for.
 3. Manage the member roster from `Home`.
 4. Record weekly attendance and scoring in `Weekly Marks`.
@@ -72,8 +72,9 @@ flowchart LR
 - `Section Settings` controls the weekly meeting day.
 - Captains and admins can **Start a new BB session**. That copies every live Company and Junior member and mark into Archives, then empties both live rosters so you can add the next year's boys.
 - Type `START NEW SESSION` in the confirmation dialog. Meeting days and staff accounts stay as they are.
-- `Account Settings` is where you add a passkey. Add it while signed in on `https://bb-manager.vercel.app`.
-- Password changes still ask for the current password. Keep a password as a backup until every device you use has a passkey.
+- `Account Settings` is where you add extra passkeys. Add them while signed in on `https://bb-manager.vercel.app`.
+- On the live site, the first password sign-in is a one-time migration: you must create a passkey, then the old password is turned off. You cannot change back to a lasting password there.
+- If you lose every passkey, use Forgot password, set a temporary password, sign in, add a new passkey before you sign out, then the temporary password is turned off.
 
 ## Support Notes
 

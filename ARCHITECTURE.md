@@ -90,9 +90,9 @@ The branded session PDF generator also runs fully client-side in the browser.
 
 - The browser only receives public client credentials (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
 - Authorization is enforced in Supabase, not in the client.
-- Keep public signup disabled. Staff accounts are created in the Auth dashboard. Passkeys are the primary live sign-in.
-- Password reset uses `VITE_APP_URL` (or the current origin) as the Auth redirect.
-- Passkeys are enabled on hosted Auth for `https://bb-manager.vercel.app`. Local and preview hosts cannot complete a WebAuthn ceremony against that relying party ID, so they keep email/password.
+- Keep public signup disabled. Staff accounts are created in the Auth dashboard. Passkeys are required on the live site after a one-time password migration.
+- Password reset uses `VITE_APP_URL` (or the current origin) as the Auth redirect. A reset password on production is temporary until a passkey is created.
+- Passkeys are enabled on hosted Auth for `https://bb-manager.vercel.app`. Local and preview hosts cannot complete a WebAuthn ceremony against that relying party ID, so they keep email/password and do not run the migration gate.
 - New-user onboarding is documented in [`docs/user-guide.md`](docs/user-guide.md).
 - Client-side role checks remain UX guardrails only.
 - `ErrorBoundary` plus `reportError` cover unexpected UI failures; there is no hosted error product configured.

@@ -23,8 +23,8 @@ The live database also retains legacy invite-code and audit-log objects for comp
 - Access to `members`, `marks`, and `settings` requires a valid app role from `profiles`; authenticated Supabase users without a matching profile row should not be able to use core app tables.
 - `npm run check:db-contract` and isolated Playwright can catch broken client assumptions, missing seeded rows, and failed writes, but they are not a substitute for inspecting live RLS policies.
 - Manual account provisioning is the supported path; public signup is disabled.
-- Staff sign in with a passkey on the live site. Email and password remain as a fallback and for local/CI.
-- Password changes require the current password (or a recovery session from a reset email).
+- Staff sign in with a passkey on the live site. The next password sign-in there is a one-time migration: the app requires a passkey, then replaces the password so it no longer works. Email and password remain for localhost, CI, and lost-passkey recovery.
+- Lost-passkey recovery uses a reset email. The new password is temporary; the user must add a passkey, after which password sign-in is turned off again.
 
 ## Role Model
 

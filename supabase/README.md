@@ -9,7 +9,7 @@ Do **not** run `supabase db push` blindly. Review each migration, then apply wit
 
 Do **not** run `supabase config push` without reading `supabase config diff` first. A full push can overwrite hosted Auth redirect URLs.
 
-Passkeys were enabled on the hosted Auth project for RP ID `bb-manager.vercel.app` and origin `https://bb-manager.vercel.app`. Changing that RP ID would invalidate enrolled passkeys.
+Passkeys were enabled on the hosted Auth project for RP ID `bb-manager.vercel.app` and origin `https://bb-manager.vercel.app`. The live app requires a passkey on the next password sign-in, then turns password sign-in off. Changing that RP ID would invalidate enrolled passkeys.
 
 After applying schema changes, regenerate `types/database.ts` with:
 

@@ -100,10 +100,12 @@ test.describe('Isolated app flows', () => {
     await expect(page.getByText('Sign in to your account')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Forgot password?' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sign in with passkey' })).toBeVisible();
+    await expect(page.getByText('or use email and password')).toBeVisible();
   });
 
   test('valid user reaches company roster and session survives reload', async ({ page }) => {
     await signIn(page);
+    await expect(page.getByRole('heading', { name: 'Create your passkey' })).toHaveCount(0);
     await selectCompanySection(page);
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();

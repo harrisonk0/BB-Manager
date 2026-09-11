@@ -10,7 +10,7 @@ This document summarises the app's custom hook layer.
 - Maps the auth user into the app's `AppUser` shape
 - Loads the current role from `profiles`
 - Treats a missing or invalid role as Access Denied
-- Surfaces password-recovery sessions so Account Settings can set a new password
+- Surfaces password-recovery sessions so Account Settings can set a new password. On the live origin that password is temporary until a passkey is created.
 
 ### `useSectionManagement`
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Section, ToastType } from '../types';
 import * as supabaseAuth from '../services/supabaseAuth';
+import { isPasskeyEnrollmentRequired, rememberPasswordForPasskeyMigration } from '../services/passkeyMigration';
 import PasskeysCard from './PasskeysCard';
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -82,6 +83,13 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({
         throw error;
       }
 
+      if (recoveryMode && isPasskeyEnrollmentRequired()) {
+        const user = await supabaseAuth.getCurrentUser();
+        if (user?.email) {
+          rememberPasswordForPasskeyMigration(user.email, newPassword);
+        }
+      }
+
       showToast('Password changed successfully!', 'success');
       setCurrentPassword('');
       setNewPassword('');
@@ -110,7 +118,9 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({
         </h2>
         {recoveryMode && (
           <p className="text-sm text-slate-600">
-            Choose a new password for this account. You will continue into the app afterwards.
+            {isPasskeyEnrollmentRequired()
+              ? 'This password is temporary. After you save it, you must create a passkey. The password then stops working.'
+              : 'Choose a new password for this account. You will continue into the app afterwards.'}
           </p>
         )}
         {generalError && <p className="text-red-500 text-sm">{generalError}</p>}
@@ -199,7 +209,17 @@ const AccountSettingsPage: React.FC<AccountSettingsPageProps> = ({
       <h1 className="text-3xl font-bold tracking-tight text-slate-900">Account Settings</h1>
       <div className="max-w-2xl mx-auto space-y-6">
         {!recoveryMode && <PasskeysCard activeSection={activeSection} showToast={showToast} />}
-        {formCard}
+        {isPasskeyEnrollmentRequired() ? (
+          <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md space-y-2">
+            <h2 className={`text-xl font-semibold border-b pb-2 ${accentText}`}>Password</h2>
+            <p className="text-sm text-slate-600">
+              On the live site, password sign-in is turned off after you create a passkey. If you lose every passkey,
+              use Forgot password on the sign-in screen, then add a new passkey before you sign out.
+            </p>
+          </div>
+        ) : (
+          formCard
+        )}
       </div>
     </div>
   );

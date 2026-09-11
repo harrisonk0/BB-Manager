@@ -28,14 +28,14 @@ In Supabase Auth URL configuration:
 - Add local development and preview URLs to `Additional Redirect URLs` as needed.
 - Keep public signup disabled. Staff accounts are created in the Auth dashboard.
 - Password reset emails use `VITE_APP_URL` when it is set.
-- Passkeys are enabled for relying party `bb-manager.vercel.app`. Enroll passkeys on the production origin.
+- Passkeys are enabled for relying party `bb-manager.vercel.app`. On that origin, the next password sign-in requires creating a passkey, then password sign-in is turned off. Localhost and preview hosts keep email/password.
 
 ## Deployment Checklist
 
 1. Confirm Vercel env vars are present for the target environment.
 2. Deploy from the main branch or the intended release branch.
 3. Run `npm run check:db-contract` against the target environment credentials or confirm the CI run passed with the intended deployment inputs.
-4. Verify sign-in works for manually provisioned users.
+4. Verify sign-in works for manually provisioned users. On production, the first password sign-in must create a passkey.
 5. Verify the production users have the expected roles in `profiles`.
 6. Verify `settings` has seeded rows for both `company` and `junior`.
 7. Smoke-test auth, section settings persistence, member CRUD, marks entry, dashboard, and Past Sessions against the live backend.

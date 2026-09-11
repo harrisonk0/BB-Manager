@@ -2,6 +2,7 @@ import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabaseClient';
 import { getAppUrl } from './appUrl';
 import { describePasskeyError } from './passkeyErrors';
+import { retirePasswordAfterPasskeyIfPossible } from './passkeyMigration';
 
 export type AppPasskey = {
   id: string;
@@ -70,6 +71,18 @@ export async function requestPasswordReset(email: string) {
 
 export async function updatePassword(newPassword: string) {
   return supabase.auth.updateUser({ password: newPassword });
+}
+
+export async function retireRememberedPasswordAfterPasskey() {
+  const user = await getCurrentUser();
+  return retirePasswordAfterPasskeyIfPossible(
+    updatePassword,
+    async (email, password) => {
+      const { error } = await signIn(email, password);
+      return { error };
+    },
+    user?.email,
+  );
 }
 
 export async function getCurrentUser(): Promise<User | null> {

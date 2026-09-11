@@ -9,6 +9,7 @@ import SettingsPage from './components/SettingsPage';
 import ArchivesPage from './components/ArchivesPage';
 import SectionSelectPage from './components/SectionSelectPage';
 import AccountSettingsPage from './components/AccountSettingsPage';
+import PasskeyEnrollmentGate from './components/PasskeyEnrollmentGate';
 import Toast from './components/Toast';
 import { HomePageSkeleton } from './components/SkeletonLoaders';
 import { View, BoyMarksPageView } from './types';
@@ -21,10 +22,18 @@ import { useAuthAndRole } from '@/hooks/useAuthAndRole';
 import { useSectionManagement } from '@/hooks/useSectionManagement';
 import { useAppData } from '@/hooks/useAppData';
 import { useUnsavedChangesProtection } from '@/hooks/useUnsavedChangesProtection';
-import { listPasskeys } from '@/services/supabaseAuth';
+import { listPasskeys, retireRememberedPasswordAfterPasskey } from '@/services/supabaseAuth';
 import { browserSupportsPasskeys } from '@/services/passkeyErrors';
+import {
+  hasRememberedPassword,
+  isPasskeyEnrollmentRequired,
+  resolvePasskeyGateDecision,
+  setPasskeyMigrationNotice,
+} from '@/services/passkeyMigration';
 
 const PASSKEY_NUDGE_STORAGE_KEY = 'bb-passkey-nudge-dismissed';
+
+type PasskeyGateStatus = 'ready' | 'checking' | 'required' | 'error';
 
 const App: React.FC = () => {
   const { toasts, showToast, removeToast } = useToastNotifications();
@@ -42,6 +51,10 @@ const App: React.FC = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [view, setView] = useState<View>({ page: 'home' });
   const [showPasskeyNudge, setShowPasskeyNudge] = useState(false);
+  const [passkeyGate, setPasskeyGate] = useState<PasskeyGateStatus>(() =>
+    isPasskeyEnrollmentRequired() ? 'checking' : 'ready'
+  );
+  const [passkeyGateRetry, setPasskeyGateRetry] = useState(0);
   const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(setView);
   const { boys, settings, dataLoading, dataError, refreshData, setSettings } = useAppData(
     activeSection,
@@ -73,7 +86,62 @@ const App: React.FC = () => {
   }, [noRoleError, setActiveSection, setUserRole]);
 
   useEffect(() => {
-    if (!currentUser || passwordRecovery || !browserSupportsPasskeys()) {
+    if (!currentUser || passwordRecovery) {
+      if (!currentUser) {
+        setPasskeyGate(isPasskeyEnrollmentRequired() ? 'checking' : 'ready');
+      }
+      return;
+    }
+    if (!isPasskeyEnrollmentRequired()) {
+      setPasskeyGate('ready');
+      return;
+    }
+
+    let cancelled = false;
+    setPasskeyGate('checking');
+
+    void (async () => {
+      try {
+        const passkeys = await listPasskeys();
+        if (cancelled) {
+          return;
+        }
+        const decision = resolvePasskeyGateDecision({
+          enrollmentRequired: true,
+          passkeyCount: passkeys.length,
+          hasRememberedPassword: hasRememberedPassword(),
+        });
+        if (decision.action === 'sign-out-for-password-login') {
+          setPasskeyMigrationNotice();
+          await performSignOut();
+          return;
+        }
+        if (decision.action === 'require-enrollment') {
+          setPasskeyGate('required');
+          return;
+        }
+        const result = await retireRememberedPasswordAfterPasskey();
+        if (cancelled) {
+          return;
+        }
+        if (!result.retired && result.error) {
+          showToast(`Could not turn off password sign-in: ${result.error}`, 'error');
+        }
+        setPasskeyGate('ready');
+      } catch {
+        if (!cancelled) {
+          setPasskeyGate('error');
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser, passwordRecovery, passkeyGateRetry, performSignOut, showToast]);
+
+  useEffect(() => {
+    if (!currentUser || passwordRecovery || isPasskeyEnrollmentRequired() || !browserSupportsPasskeys()) {
       setShowPasskeyNudge(false);
       return;
     }
@@ -161,6 +229,45 @@ const App: React.FC = () => {
           activeSection={activeSection ?? 'company'}
           recoveryMode
           onRecoveryComplete={completePasswordRecovery}
+        />
+      );
+    }
+
+    if (passkeyGate === 'checking') {
+      return <HomePageSkeleton />;
+    }
+
+    if (passkeyGate === 'error') {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-slate-200 p-4">
+          <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md text-center">
+            <img src={branding.bbLogo} alt="The Boys' Brigade Logo" className="w-48 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-slate-800">Could not check passkeys</h2>
+            <p className="text-slate-700">The live site could not confirm whether this account has a passkey yet.</p>
+            <button
+              type="button"
+              onClick={() => setPasskeyGateRetry((count) => count + 1)}
+              className="mt-2 group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-junior-blue hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-junior-blue"
+            >
+              Try again
+            </button>
+            <button
+              type="button"
+              onClick={() => { void performSignOut(); }}
+              className="group relative w-full flex justify-center py-2 px-4 border border-slate-300 text-sm font-medium rounded-md text-slate-800 bg-white hover:bg-slate-50"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (passkeyGate === 'required') {
+      return (
+        <PasskeyEnrollmentGate
+          onComplete={() => setPasskeyGate('ready')}
+          onSignOut={() => { void performSignOut(); }}
         />
       );
     }

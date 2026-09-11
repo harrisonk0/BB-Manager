@@ -19,6 +19,7 @@ The root component of the entire application. It doesn't render much UI directly
     -   Orchestrates data fetching (`refreshData`).
     -   Manages the "unsaved changes" confirmation modal.
     -   Manages and renders the global toast notification system.
+    -   On the live origin, blocks the app until a passkey exists, then turns off password sign-in.
     -   Integrates custom hooks: `useToastNotifications`, `useAuthAndRole`, `useSectionManagement`, `useAppData`, `useUnsavedChangesProtection`.
 -   **Key Props**: None.
 
@@ -107,8 +108,9 @@ Allows users to configure application settings specific to the currently active 
 Allows the currently logged-in user to manage their personal account settings.
 
 -   **Responsibilities**:
-    -   Lets staff add, rename, and remove passkeys.
-    -   Provides a form for changing the user's password, including the current password.
+    -   Lets staff add, rename, and remove passkeys. The last live passkey cannot be removed.
+    -   Hides the lasting password form on the live origin. Recovery mode still accepts a temporary password.
+    -   Provides a form for changing the user's password on localhost, including the current password.
     -   Reauthenticates, then updates the password with Supabase Authentication.
     -   Can run in recovery mode after a reset-email session.
     -   Displays user-friendly error messages for password changes.
@@ -121,8 +123,18 @@ Passkey enrollment and management used by Account Settings.
 -   **Responsibilities**:
     -   Lists the signed-in user's passkeys.
     -   Registers a new passkey through the WebAuthn ceremony.
-    -   Renames or removes an existing passkey.
+    -   Renames or removes an existing passkey. On the live origin, the last passkey cannot be removed.
 -   **Key Props**: `activeSection`, `showToast`.
+
+#### `PasskeyEnrollmentGate.tsx`
+
+Full-screen one-time migration shown on `bb-manager.vercel.app` after password sign-in when the account has no passkey.
+
+-   **Responsibilities**:
+    -   Requires creating a passkey before the rest of the app is usable.
+    -   Replaces the old password so it no longer works.
+    -   Offers Sign out if the browser cannot complete WebAuthn.
+-   **Key Props**: `onComplete`, `onSignOut`.
 
 #### `LoginPage.tsx`
 
@@ -130,7 +142,8 @@ Handles user authentication with Supabase.
 
 -   **Responsibilities**:
     -   Offers passkey sign-in as the primary action when the browser supports WebAuthn.
-    -   Provides a form for email and password sign-in as a fallback.
+    -   On the live origin, treats email/password as a one-time migration or lost-passkey recovery.
+    -   Provides a form for email and password sign-in for localhost, CI, and that one-time live migration.
     -   Offers a Forgot password action that emails a reset link.
 -   **Key Props**: none.
 

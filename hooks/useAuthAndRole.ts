@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { subscribeToAuth, signOut as supabaseSignOut, getCurrentUser } from '../services/supabaseAuth';
+import { clearRememberedPassword } from '../services/passkeyMigration';
 import { supabase } from '../services/supabaseClient';
 import { reportError } from '../services/observability';
 import { AppUser, UserRole } from '../types';
@@ -56,6 +57,7 @@ export const useAuthAndRole = () => {
     } catch (error) {
       reportError(error, 'signOut');
     } finally {
+      clearRememberedPassword();
       updateCurrentUser(null);
       setPasswordRecovery(false);
       setNoRoleError(null);
