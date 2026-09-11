@@ -14,17 +14,6 @@ export const useAuthAndRole = () => {
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const currentUserRef = useRef<AppUser | null>(null);
 
-  const performSignOut = useCallback(async () => {
-    try {
-      await supabaseSignOut();
-      setPasswordRecovery(false);
-      setNoRoleError(null);
-      setUserRole(null);
-    } catch (error) {
-      reportError(error, 'signOut');
-    }
-  }, []);
-
   const loadUserRole = useCallback(async (user: AppUser) => {
     const { data, error } = await supabase.from('profiles').select('role').eq('id', user.id).single();
 
@@ -60,6 +49,19 @@ export const useAuthAndRole = () => {
       return user;
     });
   }, []);
+
+  const performSignOut = useCallback(async () => {
+    try {
+      await supabaseSignOut();
+    } catch (error) {
+      reportError(error, 'signOut');
+    } finally {
+      updateCurrentUser(null);
+      setPasswordRecovery(false);
+      setNoRoleError(null);
+      setUserRole(null);
+    }
+  }, [updateCurrentUser]);
 
   useEffect(() => {
     const initialize = async () => {

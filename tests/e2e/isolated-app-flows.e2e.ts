@@ -46,6 +46,7 @@ const signIn = async (page: Page, email = getRequiredEmail(), password = getRequ
 
 const selectCompanySection = async (page: Page) => {
   await expect(page.getByRole('heading', { name: 'Select a Section' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Log Out' })).toBeVisible();
   await page.getByRole('button', { name: 'Manage Company Section' }).click();
   await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
 };
@@ -97,6 +98,7 @@ test.describe('Isolated app flows', () => {
     await signIn(page, 'nobody@example.com', 'wrong-password');
     await expect(page.getByText('Login Failed')).toBeVisible();
     await expect(page.getByText('Sign in to your account')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Forgot password?' })).toBeVisible();
   });
 
   test('valid user reaches company roster and session survives reload', async ({ page }) => {
@@ -110,6 +112,12 @@ test.describe('Isolated app flows', () => {
   test('officer can create, search, edit, and open a sentinel member', async ({ page }) => {
     await signIn(page);
     await selectCompanySection(page);
+
+    await page.getByRole('button', { name: 'Open sort and filter options' }).click();
+    const filterDialog = page.getByRole('dialog');
+    await expect(filterDialog.getByRole('heading', { name: 'Sort & Filter' })).toBeVisible();
+    await expect(filterDialog.getByRole('button', { name: 'Done' })).toBeVisible();
+    await filterDialog.getByRole('button', { name: 'Done' }).click();
 
     await page.getByRole('button', { name: 'Add Boy' }).click();
     const addDialog = page.getByRole('dialog');
@@ -154,6 +162,8 @@ test.describe('Isolated app flows', () => {
 
     const presentToggle = page.getByRole('button', { name: `Mark ${MEMBER_RENAMED} as present` });
     await expect(presentToggle).toBeVisible();
+    await expect(presentToggle).toHaveText('Not recorded');
+    await expect(page.getByText('Attendance: Not recorded').first()).toBeVisible();
     await presentToggle.click();
 
     const scoreInput = page.getByLabel(`Score for ${MEMBER_RENAMED}`);
