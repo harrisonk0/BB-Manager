@@ -7,7 +7,13 @@ const requireEnv = (name) => {
 };
 
 const supabaseUrl = requireEnv('VITE_SUPABASE_URL').replace(/\/$/, '');
-const response = await fetch(`${supabaseUrl}/auth/v1/settings`);
+const anonKey = requireEnv('VITE_SUPABASE_ANON_KEY');
+const response = await fetch(`${supabaseUrl}/auth/v1/settings`, {
+  headers: {
+    apikey: anonKey,
+    Authorization: `Bearer ${anonKey}`,
+  },
+});
 
 if (!response.ok) {
   throw new Error(`Failed to read Auth settings (${response.status}).`);
