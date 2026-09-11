@@ -1,0 +1,35 @@
+# Local CLI config for BB Manager. The hosted project is the live source of truth.
+project_id = "bb-manager"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.ssl_enforcement]
+enabled = true
+
+[auth]
+enabled = true
+site_url = "https://bb-manager.vercel.app"
+additional_redirect_urls = [
+  "http://127.0.0.1:3000",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173",
+  "http://localhost:5173",
+]
+enable_signup = false
+enable_anonymous_sign_ins = false
+minimum_password_length = 8
+
+[auth.email]
+enable_signup = false
+enable_confirmations = true
+secure_password_change = true

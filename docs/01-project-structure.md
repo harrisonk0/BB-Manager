@@ -9,7 +9,10 @@ BB Manager is organised as a Vite SPA with Supabase-facing services and a small 
 ├── docs/                # Active docs and runbooks
 ├── hooks/               # Custom React hooks
 ├── services/            # Supabase client, auth, data, settings
-├── tests/               # Manual E2E runbooks
+├── public/              # Favicon and other static files
+├── supabase/            # Applied remediation SQL and CLI config
+├── tests/               # Playwright specs and manual E2E runbooks
+├── types/               # Generated Database types and reporting types
 ├── AGENTS.md            # Contributor and agent guide
 ├── ARCHITECTURE.md      # Canonical system overview
 ├── App.tsx              # App shell and view orchestration
@@ -27,8 +30,8 @@ BB Manager is organised as a Vite SPA with Supabase-facing services and a small 
 - `components/`: page-level UI and reusable presentation components
 - `hooks/`: auth, section management, data loading, unsaved-change protection, toasts
 - `services/`: Supabase integration and domain operations
-- `tests/`: markdown E2E runbooks
-- `docs/`: active docs and runbooks
+- `tests/`: Playwright specs and markdown E2E runbooks
+- `docs/`: active docs and runbooks, including [docs/11-audit-remediation.md](./11-audit-remediation.md)
 
 ## Key Root Files
 

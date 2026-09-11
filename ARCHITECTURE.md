@@ -52,8 +52,8 @@ flowchart LR
 
 ### 2. Hook Layer
 
-- `useAuthAndRole` subscribes to Supabase auth and loads the current user's role from `profiles`.
-- `useSectionManagement` persists the active section in `localStorage`.
+- `useAuthAndRole` subscribes to Supabase auth, loads the current user's role from `profiles`, treats a missing role as Access Denied, and handles password-recovery sessions.
+- `useSectionManagement` persists the active section in `localStorage` after validating it.
 - `useAppData` loads members and section settings for the active section.
 - `useUnsavedChangesProtection` guards navigation while forms are dirty.
 - `useToastNotifications` owns transient toast state.
@@ -75,7 +75,8 @@ Sources of truth:
 
 - Supabase Auth session for authentication
 - Supabase Postgres for application data
-- `localStorage['activeSection']` for the selected section
+- `localStorage['activeSection']` for the selected section (validated to `company` | `junior`)
+- `sessionStorage` for per-section roster search/sort
 - React component and hook state for loaded records and view state
 
 The app does not maintain an offline cache or a separate backend API.
@@ -85,11 +86,14 @@ The branded session PDF generator also runs fully client-side in the browser.
 
 - The browser only receives public client credentials (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`).
 - Authorization is enforced in Supabase, not in the client.
-- Manual account provisioning is handled directly in Supabase; the app no longer exposes signup or recovery flows.
+- Manual account provisioning is handled directly in Supabase; public signup is disabled.
+- Password reset uses `VITE_APP_URL` (or the current origin) as the Auth redirect.
 - New-user onboarding is documented in [`docs/user-guide.md`](docs/user-guide.md).
 - Client-side role checks remain UX guardrails only.
+- `ErrorBoundary` plus `reportError` cover unexpected UI failures; there is no hosted error product configured.
 
 See [docs/10-database-security-model.md](docs/10-database-security-model.md) for the current security summary.
+See [docs/11-audit-remediation.md](docs/11-audit-remediation.md) for the 2026-09-11 closeout.
 
 ## Deployment Model
 

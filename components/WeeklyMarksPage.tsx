@@ -4,10 +4,11 @@ import { saveWeeklyMarksSnapshot } from '../services/db';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
 import Modal from './Modal';
-import { getNearestMeetingDay } from './weeklyMarksDates';
+import { getNearestMeetingDay, getTodayString, addLocalDays } from './weeklyMarksDates';
 import {
   CompanyMarkState,
   JuniorMarkState,
+  AttendanceStatus,
   buildWeeklyMarksSnapshot,
 } from './weeklyMarksSavePlan';
 import { shouldConfirmWeeklyMarksDateChange } from './weeklyMarksDateChange';
@@ -36,13 +37,17 @@ const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
   4: 'text-yellow-600',
 };
 
-const getTodayString = () => new Date().toISOString().split('T')[0];
+const nextAttendanceStatus = (current: AttendanceStatus): AttendanceStatus => {
+  if (current === 'present') return 'absent';
+  if (current === 'absent') return undefined;
+  return 'present';
+};
 
 const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, setHasUnsavedChanges, activeSection, settings, showToast }) => {
   // --- STATE MANAGEMENT ---
   const [selectedDate, setSelectedDate] = useState('');
   const [marks, setMarks] = useState<Record<string, CompanyMarkState | JuniorMarkState>>({});
-  const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent'>>({});
+  const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [today, setToday] = useState(getTodayString);
   const [isLocked, setIsLocked] = useState(false); // Read-only state for past dates.
@@ -99,7 +104,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     if (!selectedDate) return;
 
     const newMarks: Record<string, CompanyMarkState | JuniorMarkState> = {};
-    const newAttendance: Record<string, 'present' | 'absent'> = {};
+    const newAttendance: Record<string, AttendanceStatus> = {};
 
     boys.forEach(boy => {
       if (boy.id) {
@@ -114,8 +119,8 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
               ? markForDate.score
               : { uniform: markForDate.uniformScore ?? '', behaviour: markForDate.behaviourScore ?? '' };
           }
-        } else { // No mark exists for this date, default to present with empty scores.
-          newAttendance[boy.id] = 'present';
+        } else {
+          newAttendance[boy.id] = undefined;
           newMarks[boy.id] = isCompany ? '' : { uniform: '', behaviour: '' };
         }
       }
@@ -171,16 +176,13 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       [boyId]: { ...prev[boyId], [type]: error }
     }));
 
-    if (!error) {
-      setMarks(prev => {
-        if (isCompany) {
-          return { ...prev, [boyId]: scoreStr };
-        } else {
-          const currentMark = (prev[boyId] as JuniorMarkState) || { uniform: '', behaviour: '' };
-          return { ...prev, [boyId]: { ...currentMark, [type]: scoreStr } };
-        }
-      });
-    }
+    setMarks(prev => {
+      if (isCompany) {
+        return { ...prev, [boyId]: scoreStr };
+      }
+      const currentMark = (prev[boyId] as JuniorMarkState) || { uniform: '', behaviour: '' };
+      return { ...prev, [boyId]: { ...currentMark, [type]: scoreStr } };
+    });
   };
 
   const handleCompanyMarkChange = (boyId: string, score: string) => {
@@ -193,23 +195,28 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   };
 
   const handleAttendanceToggle = (boyId: string) => {
-    const newStatus = attendance[boyId] === 'present' ? 'absent' : 'present';
+    const newStatus = nextAttendanceStatus(attendance[boyId]);
     setAttendance(prev => ({ ...prev, [boyId]: newStatus }));
 
     if (newStatus === 'absent') {
-      // If absent, set score to -1.
       setMarks(prev => ({ ...prev, [boyId]: isCompany ? -1 : { uniform: -1, behaviour: -1 } }));
-      setMarkErrors(prev => ({ ...prev, [boyId]: {} })); // Clear errors when absent
+      setMarkErrors(prev => ({ ...prev, [boyId]: {} }));
+      return;
+    }
+
+    if (newStatus === undefined) {
+      setMarks(prev => ({ ...prev, [boyId]: isCompany ? '' : { uniform: '', behaviour: '' } }));
+      setMarkErrors(prev => ({ ...prev, [boyId]: {} }));
+      return;
+    }
+
+    const markForDate = boys.find(b => b.id === boyId)?.marks.find(m => m.date === selectedDate);
+    const presentMark = (markForDate && markForDate.score >= 0);
+
+    if (isCompany) {
+      setMarks(prev => ({ ...prev, [boyId]: presentMark ? markForDate.score : '' }));
     } else {
-      // If toggled back to present, restore their previous mark for this date if it exists, otherwise clear it.
-      const markForDate = boys.find(b => b.id === boyId)?.marks.find(m => m.date === selectedDate);
-      const presentMark = (markForDate && markForDate.score >= 0);
-      
-      if(isCompany) {
-        setMarks(prev => ({ ...prev, [boyId]: presentMark ? markForDate.score : '' }));
-      } else {
-        setMarks(prev => ({ ...prev, [boyId]: presentMark ? { uniform: markForDate.uniformScore ?? '', behaviour: markForDate.behaviourScore ?? '' } : { uniform: '', behaviour: '' } }));
-      }
+      setMarks(prev => ({ ...prev, [boyId]: presentMark ? { uniform: markForDate.uniformScore ?? '', behaviour: markForDate.behaviourScore ?? '' } : { uniform: '', behaviour: '' } }));
     }
   };
 
@@ -219,18 +226,18 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       return;
     }
     const newMarks: Record<string, CompanyMarkState | JuniorMarkState> = {};
-    const newAttendance: Record<string, 'present' | 'absent'> = {};
+    const newAttendance: Record<string, AttendanceStatus> = {};
 
     boys.forEach(boy => {
       if (boy.id) {
-        newAttendance[boy.id] = 'present'; // Default to present when clearing marks
+        newAttendance[boy.id] = undefined;
         newMarks[boy.id] = isCompany ? '' : { uniform: '', behaviour: '' };
       }
     });
     setMarks(newMarks);
     setAttendance(newAttendance);
-    setMarkErrors({}); // Clear errors
-    showToast('All marks cleared for present members.', 'info');
+    setMarkErrors({});
+    showToast('All marks cleared.', 'info');
   };
 
   const requestDateChange = (nextDate: string) => {
@@ -265,15 +272,11 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   };
 
   const handlePreviousWeek = () => {
-    const currentDate = new Date(selectedDate + 'T00:00:00');
-    currentDate.setDate(currentDate.getDate() - 7);
-    requestDateChange(currentDate.toISOString().split('T')[0]);
+    requestDateChange(addLocalDays(selectedDate, -7));
   };
 
   const handleNextWeek = () => {
-    const currentDate = new Date(selectedDate + 'T00:00:00');
-    currentDate.setDate(currentDate.getDate() + 7);
-    requestDateChange(currentDate.toISOString().split('T')[0]);
+    requestDateChange(addLocalDays(selectedDate, 7));
   };
 
   const handleSaveMarks = async () => {
@@ -333,38 +336,21 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
     return grouped;
   }, [boys]);
 
-  const squadLeaders = useMemo(() => {
-    const leaders: Record<string, string | undefined> = {};
-    Object.keys(boysBySquad).forEach(squad => {
-        const squadBoys = boysBySquad[squad];
-        if (squadBoys.length === 0) return;
-        let leader = squadBoys.find(b => b.isSquadLeader);
-        if (!leader) {
-            leader = squadBoys[0];
-        }
-        if (leader) {
-            leaders[squad] = leader.id;
-        }
-    });
-    return leaders;
-  }, [boysBySquad]);
-  
   /**
    * Memoized calculation of real-time attendance stats for each squad.
    * This provides immediate feedback as the user marks attendance.
    */
   const squadAttendanceStats = useMemo(() => {
-    const stats: Record<string, { present: number; total: number; percentage: number }> = {};
+    const stats: Record<string, { present: number; recorded: number; percentage: number | null }> = {};
     for (const squad in boysBySquad) {
       const squadBoys = boysBySquad[squad];
-      const total = squadBoys.length;
-      if (total === 0) {
-        stats[squad] = { present: 0, total: 0, percentage: 0 };
-        continue;
-      }
-      const present = squadBoys.filter(boy => boy.id && attendance[boy.id] === 'present').length;
-      const percentage = Math.round((present / total) * 100);
-      stats[squad] = { present, total, percentage };
+      const recorded = squadBoys.filter((boy) => boy.id && (attendance[boy.id] === 'present' || attendance[boy.id] === 'absent'));
+      const present = recorded.filter((boy) => boy.id && attendance[boy.id] === 'present').length;
+      stats[squad] = {
+        present,
+        recorded: recorded.length,
+        percentage: recorded.length === 0 ? null : Math.round((present / recorded.length) * 100),
+      };
     }
     return stats;
   }, [boysBySquad, attendance]);
@@ -448,7 +434,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         </div>
       </div>
       
-      <div className="space-y-8 pb-20">
+      <div className="space-y-8">
         {sortedSquads.map((squad) => (
           <div key={squad}>
             <div className="flex justify-between items-baseline mb-4">
@@ -456,10 +442,12 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
               {squadAttendanceStats[squad] && (
                 <div className="text-right">
                   <p className="font-semibold text-slate-600">
-                    Attendance: {squadAttendanceStats[squad].percentage}%
+                    {squadAttendanceStats[squad].percentage === null
+                      ? 'Attendance: Not recorded'
+                      : `Attendance: ${squadAttendanceStats[squad].percentage}%`}
                   </p>
                   <p className="text-sm text-slate-500">
-                    ({squadAttendanceStats[squad].present} / {squadAttendanceStats[squad].total} present)
+                    ({squadAttendanceStats[squad].present} / {squadAttendanceStats[squad].recorded} recorded)
                   </p>
                 </div>
               )}
@@ -468,15 +456,23 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
               <ul className="divide-y divide-slate-200">
                 {boysBySquad[squad].map((boy) => {
                     if (!boy.id) return null;
-                    const isPresent = attendance[boy.id] === 'present';
+                    const status = attendance[boy.id];
+                    const isPresent = status === 'present';
+                    const isAbsent = status === 'absent';
                     const boyErrors = markErrors[boy.id] || {};
+                    const attendanceLabel = isPresent ? 'Present' : isAbsent ? 'Absent' : 'Not recorded';
+                    const attendanceNextLabel = isPresent
+                      ? `Mark ${boy.name} as absent`
+                      : isAbsent
+                        ? `Clear attendance for ${boy.name}`
+                        : `Mark ${boy.name} as present`;
 
                     return (
                       <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                         <div className="flex-1">
                           <span className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
                             {boy.name}
-                            {squadLeaders[squad] === boy.id && (
+                            {boy.isSquadLeader && (
                                 <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
                             )}
                           </span>
@@ -486,15 +482,17 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                           <button
                             onClick={() => handleAttendanceToggle(boy.id!)}
                             disabled={isLocked}
-                            className={`px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors w-20 text-center ${
+                            className={`px-3 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors w-28 text-center ${
                                 isPresent
                                 ? 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500'
-                                : 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
+                                : isAbsent
+                                  ? 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500'
+                                  : 'bg-slate-200 hover:bg-slate-300 text-slate-700 focus:ring-slate-400'
                             } disabled:opacity-70 disabled:cursor-not-allowed`}
-                            aria-pressed={!isPresent}
-                            aria-label={`Mark ${boy.name} as ${isPresent ? 'absent' : 'present'}`}
+                            aria-pressed={isPresent}
+                            aria-label={attendanceNextLabel}
                           >
-                            {isPresent ? 'Present' : 'Absent'}
+                            {attendanceLabel}
                           </button>
                           {isCompany ? (
                             <div className="flex flex-col items-center">
@@ -557,21 +555,25 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         ))}
       </div>
 
-       {/* Floating Action Button for saving */}
        {hasPendingChanges && (
-          <button
-            onClick={handleSaveMarks}
-            disabled={isSaving}
-            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
-            aria-label="Save Marks"
-          >
-            {isSaving ? (
-              <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : <SaveIcon className="h-7 w-7" />}
-          </button>
+          <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 mt-6 px-4 sm:px-6 lg:px-8 py-3 bg-slate-200/95 border-t border-slate-300 backdrop-blur">
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleSaveMarks}
+                disabled={isSaving}
+                className={`inline-flex items-center px-4 py-2 rounded-md text-white shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${accentBg}`}
+              >
+                {isSaving ? (
+                  <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : <SaveIcon className="h-5 w-5 mr-2" />}
+                {isSaving ? 'Saving…' : 'Save Marks'}
+              </button>
+            </div>
+          </div>
       )}
 
       <Modal isOpen={isDateChangeConfirmOpen} onClose={cancelDateChange} title="Discard unsaved marks?">

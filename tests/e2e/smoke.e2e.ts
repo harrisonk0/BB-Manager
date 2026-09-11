@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
+// Mutates live Company settings and an existing member's marks.
+// Ignored unless E2E_ALLOW_PRODUCTION_MUTATION=1. Prefer isolated-app-flows.e2e.ts.
+
 const getRequiredEnv = (name: string) => {
   const value = process.env[name];
 
@@ -106,13 +109,18 @@ test.describe('E2E smoke tests', () => {
     await dateInput.fill(marksDate);
 
     const scoreInput = page.locator('input[aria-label^="Score for "]:not([disabled])').first();
-    await expect(scoreInput).toBeVisible();
+    if (!(await scoreInput.count())) {
+      await page.getByRole('button', { name: /Mark .+ as present/ }).first().click();
+    }
 
-    const originalValue = await scoreInput.inputValue();
+    const editableScoreInput = page.locator('input[aria-label^="Score for "]:not([disabled])').first();
+    await expect(editableScoreInput).toBeVisible();
+
+    const originalValue = await editableScoreInput.inputValue();
     const nextValue = originalValue === '8' ? '9' : '8';
 
     try {
-      await scoreInput.fill(nextValue);
+      await editableScoreInput.fill(nextValue);
       await saveWeeklyMarksAndWait(page);
 
       await page.reload();

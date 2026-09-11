@@ -1,43 +1,42 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { subscribeToAuth, signOut as supabaseSignOut, getCurrentUser } from '../services/supabaseAuth';
 import { supabase } from '../services/supabaseClient';
+import { reportError } from '../services/observability';
 import { AppUser, UserRole } from '../types';
 
-/**
- * Custom hook for managing Supabase authentication state and user roles.
- * Handles user login/logout, fetching user roles, and error states related to roles.
- */
+const VALID_ROLES: readonly UserRole[] = ['admin', 'captain', 'officer'];
+
 export const useAuthAndRole = () => {
   const [currentUser, setCurrentUserState] = useState<AppUser | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [noRoleError, setNoRoleError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
   const currentUserRef = useRef<AppUser | null>(null);
 
   const performSignOut = useCallback(async () => {
     try {
       await supabaseSignOut();
-      // State will be reset by the auth state listener
+      setPasswordRecovery(false);
+      setNoRoleError(null);
+      setUserRole(null);
     } catch (error) {
-      console.error('Sign out failed', error);
+      reportError(error, 'signOut');
     }
   }, []);
 
   const loadUserRole = useCallback(async (user: AppUser) => {
     const { data, error } = await supabase.from('profiles').select('role').eq('id', user.id).single();
 
-    if (error || !data) {
+    if (error || !data || !data.role) {
       setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
-      // Keep user signed in so they can see the error message
       setUserRole(null);
       return;
     }
 
-    // Validate role value before trusting it
-    const validRoles = ['admin', 'captain', 'officer'] as const;
     const role = data.role as UserRole;
 
-    if (!validRoles.includes(role)) {
+    if (!VALID_ROLES.includes(role)) {
       setNoRoleError(`Your account has an invalid role (${role}). Please contact an administrator to gain access.`);
       setUserRole(null);
       return;
@@ -47,12 +46,9 @@ export const useAuthAndRole = () => {
     setNoRoleError(null);
   }, []);
 
-  const toAppUser = useCallback((user: { id: string; email: string | null }) => {
+  const toAppUser = useCallback((user: { id: string; email?: string | null }) => {
     if (!user) return null;
-    if (!user.email) {
-      return { id: user.id, email: '' } as AppUser;
-    }
-    return { id: user.id, email: user.email } as AppUser;
+    return { id: user.id, email: user.email || '' } as AppUser;
   }, []);
 
   const updateCurrentUser = useCallback((user: AppUser | null) => {
@@ -79,8 +75,8 @@ export const useAuthAndRole = () => {
           setUserRole(null);
           setNoRoleError(null);
         }
-      } catch (err: any) {
-        console.error(`Failed to get current user: ${err.message}`);
+      } catch (err: unknown) {
+        reportError(err, 'getCurrentUser');
       } finally {
         setAuthLoading(false);
       }
@@ -89,6 +85,10 @@ export const useAuthAndRole = () => {
     initialize();
 
     const subscription = subscribeToAuth(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecovery(true);
+      }
+
       const supabaseUser = session?.user ?? null;
       const mappedUser = supabaseUser ? toAppUser(supabaseUser) : null;
       const previousUser = currentUserRef.current;
@@ -100,30 +100,29 @@ export const useAuthAndRole = () => {
       } else if (!mappedUser && previousUser) {
         setUserRole(null);
         setNoRoleError(null);
+        setPasswordRecovery(false);
       }
 
       setAuthLoading(false);
     });
 
-      return () => {
-        subscription?.unsubscribe();
-      };
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, [loadUserRole, toAppUser, updateCurrentUser]);
 
-  const setCurrentUser = useCallback(
-    (user: AppUser | null) => {
-      updateCurrentUser(user);
-    },
-    [updateCurrentUser]
-  );
+  const completePasswordRecovery = useCallback(() => {
+    setPasswordRecovery(false);
+  }, []);
 
   return {
     currentUser,
     userRole,
     noRoleError,
     authLoading,
+    passwordRecovery,
     performSignOut,
-    setCurrentUser,
+    completePasswordRecovery,
     setUserRole,
   };
 };

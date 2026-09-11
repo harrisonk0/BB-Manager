@@ -28,18 +28,20 @@ RLS is enabled on all of those tables.
 
 Important database functions present in the live project:
 
-- `claim_invite_code`
-- `cleanup_old_invite_codes`
 - `current_app_role`
-- `validate_invite_code`
+- `save_weekly_marks_snapshot`
+- `save_member_marks_patch`
+
+Leftover invite helpers (`claim_invite_code`, `cleanup_old_invite_codes`, `validate_invite_code`) still exist but client roles can no longer execute them.
 
 ## Key Repository Areas
 
 - `components/`: UI and page components
 - `hooks/`: cross-cutting React hooks
 - `services/`: Supabase access, auth helpers, and settings
+- `supabase/`: applied remediation SQL and CLI config (hosted project remains authoritative)
 - `docs/`: active documentation and runbooks
-- `tests/`: Playwright smoke specs and manual E2E runbooks
+- `tests/`: Playwright specs and manual E2E runbooks
 - `.github/workflows/`: CI and operational workflows
 
 ## Commands
@@ -54,6 +56,8 @@ npm run test
 npm run test:run
 npm run test:coverage
 npm run test:e2e
+npm run check:db-contract
+npm run check:auth-config
 ```
 
 ## Environment Variables
@@ -64,10 +68,14 @@ Client-side variables:
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_APP_URL` for auth redirect URLs in deployed environments
 
-CI/browser smoke-test variables:
+CI/browser test variables:
 
 - `E2E_TEST_EMAIL`
 - `E2E_TEST_PASSWORD`
+
+`npm run test:e2e` runs isolated sentinel flows by default. `tests/e2e/smoke.e2e.ts` mutates live settings/marks and is ignored unless `E2E_ALLOW_PRODUCTION_MUTATION=1`.
+
+See [docs/11-audit-remediation.md](./docs/11-audit-remediation.md) for the 2026-09-11 finding closeout.
 
 Rules:
 

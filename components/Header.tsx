@@ -7,6 +7,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MenuIcon, XIcon, CogIcon, UserCircleIcon, SwitchHorizontalIcon, LogOutIcon } from './Icons';
+import { branding } from './branding';
 import { AppUser, Page, Section, UserRole } from '../types';
 
 interface HeaderProps {
@@ -22,9 +23,10 @@ interface HeaderProps {
     currentUser: AppUser | null;
     /** The current authenticated user's application role. */
     userRole: UserRole | null;
+    currentPage: Page | 'boyMarks';
 }
 
-const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSwitchSection, currentUser, userRole }) => {
+const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSwitchSection, currentUser, userRole, currentPage }) => {
     // State to manage the visibility of the mobile menu.
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     // State to manage the visibility of the desktop profile dropdown.
@@ -64,9 +66,19 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
     const ringColor = 'focus:ring-white';
 
     // Shared Tailwind CSS class strings for consistent styling.
-    const navLinkClasses = `px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`;
+    const navLinkClasses = (page: Page) => {
+        const isActive = currentPage === page;
+        return `px-3 py-2 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor} ${
+            isActive ? 'bg-white/20 text-white' : 'text-gray-200 hover:bg-white/10 hover:text-white'
+        }`;
+    };
     const iconButtonClasses = `p-2 rounded-full text-gray-200 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${ringOffsetColor} ${ringColor}`;
-    const mobileNavLinkClasses = `block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-white/10 hover:text-white`;
+    const mobileNavLinkClasses = (page?: Page) => {
+        const isActive = page ? currentPage === page : false;
+        return `block w-full text-left px-3 py-2 rounded-md text-base font-medium ${
+            isActive ? 'bg-white/20 text-white' : 'text-gray-200 hover:bg-white/10 hover:text-white'
+        }`;
+    };
     const dropdownItemClasses = `flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 w-full text-left`;
 
 
@@ -84,15 +96,15 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
                             aria-label="Go to Home page"
                         >
                             <img 
-                                src="https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png" 
+                                src={branding.bbLogo} 
                                 alt="The Boys' Brigade Logo" 
-                                className="h-14 rounded-md" // Consistent size for main logo
+                                className="h-14 rounded-md"
                             />
                         </button>
                         {/* Section-specific logo, hidden by default, shown on lg and up */}
                         <div className="hidden lg:flex items-center border-l border-white/20 pl-4">
                           <img
-                            src={isCompany ? "https://i.postimg.cc/0j44DjdY/company-boxed-colour.png" : "https://i.postimg.cc/W1qvWLdp/juniors-boxed-colour.png"}
+                            src={isCompany ? branding.companyLogo : branding.juniorLogo}
                             alt={`${sectionName} Logo`}
                             className="h-10 rounded-md"
                           />
@@ -103,13 +115,13 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
                     <div className="hidden lg:flex items-center space-x-2">
                         {currentUser && (
                             <>
-                                <button onClick={() => handleNavClick('home')} className={navLinkClasses}>Home</button>
-                                <button onClick={() => handleNavClick('dashboard')} className={navLinkClasses}>Dashboard</button>
-                                <button onClick={() => handleNavClick('weeklyMarks')} className={navLinkClasses}>Weekly Marks</button>
+                                <button onClick={() => handleNavClick('home')} className={navLinkClasses('home')} aria-current={currentPage === 'home' ? 'page' : undefined}>Home</button>
+                                <button onClick={() => handleNavClick('dashboard')} className={navLinkClasses('dashboard')} aria-current={currentPage === 'dashboard' ? 'page' : undefined}>Dashboard</button>
+                                <button onClick={() => handleNavClick('weeklyMarks')} className={navLinkClasses('weeklyMarks')} aria-current={currentPage === 'weeklyMarks' ? 'page' : undefined}>Weekly Marks</button>
                                 
                                 {/* Icon-based buttons for less frequent actions */}
                                 {canAccessSectionSettings && (
-                                    <button onClick={() => handleNavClick('settings')} title="Section Settings" aria-label="Section Settings" className={iconButtonClasses}>
+                                    <button onClick={() => handleNavClick('settings')} title="Section Settings" aria-label="Section Settings" className={`${iconButtonClasses} ${currentPage === 'settings' ? 'bg-white/20 text-white' : ''}`} aria-current={currentPage === 'settings' ? 'page' : undefined}>
                                         <CogIcon className="h-6 w-6"/>
                                     </button>
                                 )}
@@ -165,24 +177,24 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
             {isMenuOpen && currentUser && (
                 <div className={`lg:hidden absolute w-full ${bgColor} shadow-lg z-30`} id="mobile-menu">
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                        <button onClick={() => handleNavClick('home')} className={mobileNavLinkClasses}>Home</button>
-                        <button onClick={() => handleNavClick('dashboard')} className={mobileNavLinkClasses}>Dashboard</button>
-                        <button onClick={() => handleNavClick('weeklyMarks')} className={mobileNavLinkClasses}>Weekly Marks</button>
+                        <button onClick={() => handleNavClick('home')} className={mobileNavLinkClasses('home')} aria-current={currentPage === 'home' ? 'page' : undefined}>Home</button>
+                        <button onClick={() => handleNavClick('dashboard')} className={mobileNavLinkClasses('dashboard')} aria-current={currentPage === 'dashboard' ? 'page' : undefined}>Dashboard</button>
+                        <button onClick={() => handleNavClick('weeklyMarks')} className={mobileNavLinkClasses('weeklyMarks')} aria-current={currentPage === 'weeklyMarks' ? 'page' : undefined}>Weekly Marks</button>
                         {canAccessSectionSettings && (
-                            <button onClick={() => handleNavClick('settings')} className={mobileNavLinkClasses}>
+                            <button onClick={() => handleNavClick('settings')} className={mobileNavLinkClasses('settings')} aria-current={currentPage === 'settings' ? 'page' : undefined}>
                                 <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Section Settings</span></div>
                             </button>
                         )}
                         {/* Profile-related options in mobile menu */}
                         <div className="pt-2 mt-2 border-t border-white/20">
                             <p className="block px-3 py-2 text-base font-medium text-gray-200">{currentUser.email || currentUser.id}</p>
-                            <button onClick={() => handleNavClick('accountSettings')} className={mobileNavLinkClasses}>
+                            <button onClick={() => handleNavClick('accountSettings')} className={mobileNavLinkClasses('accountSettings')}>
                                 <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Account Settings</span></div>
                             </button>
-                            <button onClick={() => { onSwitchSection(); setIsMenuOpen(false); }} className={mobileNavLinkClasses}>
+                            <button onClick={() => { onSwitchSection(); setIsMenuOpen(false); }} className={mobileNavLinkClasses()}>
                                 <div className="flex items-center"><SwitchHorizontalIcon className="h-5 w-5 mr-3"/><span>Switch Section</span></div>
                             </button>
-                            <button onClick={() => { onSignOut(); setIsMenuOpen(false); }} className={mobileNavLinkClasses}>
+                            <button onClick={() => { onSignOut(); setIsMenuOpen(false); }} className={mobileNavLinkClasses()}>
                                 <div className="flex items-center"><LogOutIcon className="h-5 w-5 mr-3"/><span>Log Out</span></div>
                             </button>
                         </div>

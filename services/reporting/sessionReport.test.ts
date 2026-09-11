@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildSessionReportData, getSectionDateRange } from './sessionReport';
+import { buildSessionReportData, getDefaultSessionReportRange, getSectionDateRange } from './sessionReport';
 import type { Boy } from '../../types';
 
 const companyBoys: Boy[] = [
@@ -45,6 +45,28 @@ describe('sessionReport', () => {
   it('derives the section date range from all member marks', () => {
     expect(getSectionDateRange(companyBoys)).toEqual({
       startDate: '2026-01-09',
+      endDate: '2026-02-06',
+    });
+  });
+
+  it('defaults the session export window to the last 12 weeks of recorded marks', () => {
+    expect(getDefaultSessionReportRange(companyBoys)).toEqual({
+      startDate: '2026-01-09',
+      endDate: '2026-02-06',
+    });
+
+    const longHistory: Boy[] = [
+      {
+        ...companyBoys[0],
+        marks: [
+          { date: '2025-01-03', score: 8 },
+          { date: '2026-02-06', score: 9 },
+        ],
+      },
+    ];
+
+    expect(getDefaultSessionReportRange(longHistory)).toEqual({
+      startDate: '2025-11-14',
       endDate: '2026-02-06',
     });
   });

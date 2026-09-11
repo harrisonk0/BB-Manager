@@ -19,3 +19,5 @@ This file tracks the active documentation set for the current codebase.
 - `docs/06-data-and-services.md`: service layer reference
 - `docs/07-hooks-and-state.md`: hook/state coordination
 - `docs/08-types.md`: shared type reference
+- `docs/11-audit-remediation.md`: 2026-09-11 finding closeout
+- `docs/user-guide.md`: operator handout

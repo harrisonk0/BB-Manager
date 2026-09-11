@@ -7,6 +7,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import './index.css'; // Global Tailwind styles
 
 // Find the root HTML element where the React app will be mounted.
@@ -20,6 +21,8 @@ const root = ReactDOM.createRoot(rootElement);
 // Render the main App component.
 root.render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>
 );

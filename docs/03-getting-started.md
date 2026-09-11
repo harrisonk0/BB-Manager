@@ -21,9 +21,10 @@ Create `.env` in the repo root:
 ```bash
 VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
 VITE_SUPABASE_ANON_KEY="<your-public-anon-key>"
+VITE_APP_URL="http://127.0.0.1:5173"
 ```
 
-Smoke-test credentials for `npm run check:db-contract` and `npm run test:e2e`:
+Test credentials for `npm run check:db-contract`, `npm run check:auth-config`, and isolated Playwright:
 
 ```bash
 E2E_TEST_EMAIL="<test-user-email>"
@@ -66,6 +67,6 @@ npm run build
 
 `npm run check:db-contract` is the fast live-backend smoke check. It reads `.env` and `.env.local`, requires `E2E_TEST_EMAIL` and `E2E_TEST_PASSWORD`, signs in with that test user, verifies `current_app_role()` resolves to a valid app role, and confirms the seeded `settings` rows for `company` and `junior` are readable through the published client credentials.
 
-`npm run test:e2e` also reads `.env` and `.env.local` and uses the same `E2E_TEST_*` credentials. It uses a real browser and real Supabase auth, so it requires a dedicated test user with a valid role, seeded `settings` rows, and at least one Company-section member already present.
+`npm run test:e2e` also reads `.env` and `.env.local` and uses the same `E2E_TEST_*` credentials. The default spec creates and deletes a `ZZZ-E2E-*` sentinel member. `tests/e2e/smoke.e2e.ts` mutates live settings and an existing member and is ignored unless `E2E_ALLOW_PRODUCTION_MUTATION=1`.
 
 Neither check proves the entire live RLS policy graph. They confirm only the client-visible contract the SPA depends on.

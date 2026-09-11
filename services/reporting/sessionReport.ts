@@ -1,3 +1,4 @@
+import { addLocalDays } from '../../components/weeklyMarksDates';
 import type { Boy, Mark, Section } from '../../types';
 import type {
   BuildSessionReportInput,
@@ -200,6 +201,21 @@ export const getSectionDateRange = (boys: Boy[]): ReportDateRange | null => {
   return {
     startDate: dates[0],
     endDate: dates[dates.length - 1],
+  };
+};
+
+const DEFAULT_SESSION_WINDOW_DAYS = 84;
+
+export const getDefaultSessionReportRange = (boys: Boy[]): ReportDateRange | null => {
+  const fullRange = getSectionDateRange(boys);
+  if (!fullRange) {
+    return null;
+  }
+
+  const windowStart = addLocalDays(fullRange.endDate, -DEFAULT_SESSION_WINDOW_DAYS);
+  return {
+    startDate: windowStart > fullRange.startDate ? windowStart : fullRange.startDate,
+    endDate: fullRange.endDate,
   };
 };
 

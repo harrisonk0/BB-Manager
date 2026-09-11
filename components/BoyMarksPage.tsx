@@ -21,6 +21,7 @@ interface BoyMarksPageProps {
   setHasUnsavedChanges: (dirty: boolean) => void;
   activeSection: Section;
   showToast: (message: string, type?: ToastType) => void;
+  onBack: () => void;
 }
 
 // Section-specific color mappings.
@@ -50,7 +51,7 @@ type EditableMark = {
   behaviourScore?: number | '';
 };
 
-const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges, activeSection, showToast }) => {
+const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasUnsavedChanges, activeSection, showToast, onBack }) => {
   // --- STATE MANAGEMENT ---
   const [boy, setBoy] = useState<Boy | null>(null);
   const [editedMarks, setEditedMarks] = useState<EditableMark[]>([]);
@@ -213,8 +214,8 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
      const marksToConsider = editedMarks
       .map(m => {
           if (isCompany || m.uniformScore === undefined) return m;
-          const uniform = m.uniformScore === '' ? 0 : parseFloat(m.uniformScore as string); // Use parseFloat
-          const behaviour = m.behaviourScore === '' ? 0 : parseFloat(m.behaviourScore as string); // Use parseFloat
+          const uniform = m.uniformScore === '' ? 0 : parseFloat(String(m.uniformScore));
+          const behaviour = m.behaviourScore === '' ? 0 : parseFloat(String(m.behaviourScore));
           // FIX: Use Number() to correctly compare score which could be an empty string.
           return { ...m, score: Number(m.score) < 0 ? -1 : uniform + behaviour };
       });
@@ -238,9 +239,16 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
   const accentBg = isCompany ? 'bg-company-blue focus:ring-company-blue disabled:bg-company-blue' : 'bg-junior-blue focus:ring-junior-blue disabled:bg-junior-blue';
 
   return (
-    <div className="pb-20">
+    <div>
       <div className="mb-6 pb-4 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-3 text-sm font-medium text-slate-600 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400 rounded"
+          >
+            ← Back to members
+          </button>
           <h1 className={`text-3xl font-bold tracking-tight ${(SQUAD_COLORS as any)[boy.squad]}`}>{boy.name}'s Marks</h1>
           <p className="mt-1 text-lg text-slate-600">
             {`Squad ${boy.squad}`}
@@ -347,21 +355,25 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
         )}
       </div>
       
-       {/* Floating Action Button for saving changes */}
        {isDirty && (
-          <button
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-            className={`fixed bottom-6 right-6 z-10 w-14 h-14 rounded-full text-white shadow-lg hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 ${accentBg}`}
-            aria-label="Save Changes"
-          >
-            {isSaving ? (
-              <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            ) : <SaveIcon className="h-7 w-7" />}
-          </button>
+          <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 mt-6 px-4 sm:px-6 lg:px-8 py-3 bg-slate-200/95 border-t border-slate-300 backdrop-blur">
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className={`inline-flex items-center px-4 py-2 rounded-md text-white shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${accentBg}`}
+              >
+                {isSaving ? (
+                  <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : <SaveIcon className="h-5 w-5 mr-2" />}
+                {isSaving ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
        )}
     </div>
   );

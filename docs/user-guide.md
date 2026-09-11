@@ -1,6 +1,6 @@
 # BB Manager User Guide
 
-![BB Manager logo](https://i.postimg.cc/FHrS3pzD/full-colour-boxed-logo.png)
+![BB Manager logo](../assets/branding/bb-logo.png)
 
 This guide is the handout for new users. The app no longer ships an in-app help/manual screen.
 
@@ -20,17 +20,17 @@ flowchart LR
 
 | Screen | Purpose |
 | --- | --- |
-| `Sign in` | Authenticate with the email/password provided by an administrator. |
-| `Select a Section` | Choose either the Company or Junior section. |
+| `Sign in` | Authenticate with the email/password provided by an administrator. Use Forgot password if you need a reset link. |
+| `Select a Section` | Choose either the Company or Junior section. Log Out is labelled on this screen. |
 | `Home` | View, add, edit, and delete members in the active section. |
-| `Weekly Marks` | Record attendance and marks for the selected meeting date. |
+| `Weekly Marks` | Record attendance and marks for the selected meeting date. New rows start as Not recorded. |
 | `Dashboard` | Review summary charts, attendance trends, and generate the master end-of-session PDF. |
 | `Section Settings` | Update section-level configuration such as the weekly meeting day. |
-| `Account Settings` | Change your personal password. |
+| `Account Settings` | Change your personal password. You must enter your current password. |
 
 ## Getting Started
 
-1. Sign in with your Supabase account.
+1. Sign in with the account an administrator created for you. Public self-signup is disabled.
 2. Choose the section you are responsible for.
 3. Manage the member roster from `Home`.
 4. Record weekly attendance and scoring in `Weekly Marks`.
@@ -40,27 +40,28 @@ flowchart LR
 
 - Add a new member from `Home`.
 - Edit member details directly from the roster or member detail screen.
+- Open a member's marks history, then use `Back to members` to return. Search and sort stay where you left them.
 - Delete members only when the record is no longer needed.
 
 ## Weekly Marks
 
 - Pick the meeting date with the date control.
-- Mark each member present or absent.
-- Enter scores for present members.
-- Save once you have finished the whole sheet.
+- Attendance starts as `Not recorded`. Cycle Present → Absent → Not recorded.
+- Enter scores for present members, then use `Save Marks`.
+- Squad attendance percentages only count members you have marked present or absent.
 
 ## Dashboard
 
 - Use the dashboard for a quick performance summary.
 - Use `Generate Master PDF` to export one branded end-of-session report for the active section.
-- Choose the session date range before downloading the report.
+- The default range is the last 12 weeks of recorded marks. Narrow it if the page estimate is large.
 - The PDF includes section summary pages plus a detail page for each member with recorded marks in the selected range.
 - It is reporting only. It does not change roster data.
 
 ## Settings
 
 - `Section Settings` controls section-wide options.
-- `Account Settings` only changes your own password.
+- `Account Settings` only changes your own password, and asks for the current password first.
 
 ## Support Notes
 

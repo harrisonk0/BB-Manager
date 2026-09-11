@@ -4,6 +4,7 @@ import Modal from './Modal';
 import BoyForm from './BoyForm';
 import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
 import { deleteBoyById } from '../services/db';
+import { readRosterFilters, writeRosterFilters } from '../hooks/rosterFilters';
 
 interface HomePageProps {
   /** The list of all boys for the active section. */
@@ -39,20 +40,32 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   const [boyToEdit, setBoyToEdit] = useState<Boy | null>(null);
   const [boyToDelete, setBoyToDelete] = useState<Boy | null>(null);
   
-  // State for filtering and sorting
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const initialFilters = readRosterFilters(activeSection);
+  const [searchQuery, setSearchQuery] = useState(initialFilters.searchQuery);
+  const [isSearchVisible, setIsSearchVisible] = useState(!!initialFilters.searchQuery);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<SortByType>('name');
-  const [filterSquad, setFilterSquad] = useState<string>('all');
-  const [filterYear, setFilterYear] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<SortByType>(initialFilters.sortBy);
+  const [filterSquad, setFilterSquad] = useState<string>(initialFilters.filterSquad);
+  const [filterYear, setFilterYear] = useState<string>(initialFilters.filterYear);
 
   const isCompany = activeSection === 'company';
   const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
-  // Keep the search control visible while a query is active.
   useEffect(() => {
-    setIsSearchVisible(!!searchQuery);
+    const stored = readRosterFilters(activeSection);
+    setSearchQuery(stored.searchQuery);
+    setSortBy(stored.sortBy);
+    setFilterSquad(stored.filterSquad);
+    setFilterYear(stored.filterYear);
+    setIsSearchVisible(!!stored.searchQuery);
+  }, [activeSection]);
+
+  useEffect(() => {
+    writeRosterFilters(activeSection, { searchQuery, sortBy, filterSquad, filterYear });
+  }, [activeSection, searchQuery, sortBy, filterSquad, filterYear]);
+
+  useEffect(() => {
+    setIsSearchVisible((visible) => visible || !!searchQuery);
   }, [searchQuery]);
 
   // --- UTILITY FUNCTIONS ---
@@ -122,55 +135,24 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     return grouped;
   }, [filteredBoys, sortBy]);
   
-  /**
-   * Memoized calculation of squad-wide statistics and leaders.
-   * This calculation is based on the original, unfiltered `boys` array to ensure
-   * that the stats and leader designations are always correct and not affected by filtering.
-   */
-  const { squadStats, squadLeaders } = useMemo(() => {
-    // Group all boys by squad from the original unfiltered prop
-    const allBoysBySquad: Record<string, Boy[]> = {};
-    boys.forEach(boy => {
-      if (!allBoysBySquad[boy.squad]) {
-        allBoysBySquad[boy.squad] = [];
-      }
-      allBoysBySquad[boy.squad].push(boy);
-    });
-    
+  const squadStats = useMemo(() => {
     const stats: Record<string, { totalMarks: number; avgAttendance: number }> = {};
-    const leaders: Record<string, string | undefined> = {};
 
-    Object.keys(allBoysBySquad).forEach(squad => {
-        const squadBoys = allBoysBySquad[squad];
-        
-        // Calculate squad-wide statistics
-        stats[squad] = {
-            totalMarks: squadBoys.reduce((total, boy) => total + calculateTotalMarks(boy), 0),
-            avgAttendance: (() => {
-              const totalPossibleAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.length, 0);
-              if (totalPossibleAttendances === 0) return 0;
-              const totalActualAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.filter(m => m.score >= 0).length, 0);
-              return Math.round((totalActualAttendances / totalPossibleAttendances) * 100);
-            })(),
-        };
-
-        // Determine the squad leader
-        if (squadBoys.length === 0) return;
-        let leader = squadBoys.find(b => b.isSquadLeader);
-        if (!leader && squadBoys.length > 0) {
-            // Find most senior boy in the squad as a fallback
-            const sortedByYear = [...squadBoys].sort((a, b) => {
-                return String(b.year).localeCompare(String(a.year), undefined, { numeric: true }) || a.name.localeCompare(b.name);
-            });
-            leader = sortedByYear[0];
-        }
-        if (leader) {
-            leaders[squad] = leader.id;
-        }
+    Object.keys(boysBySquad).forEach((squad) => {
+      const squadBoys = boysBySquad[squad];
+      stats[squad] = {
+        totalMarks: squadBoys.reduce((total, boy) => total + calculateTotalMarks(boy), 0),
+        avgAttendance: (() => {
+          const totalPossibleAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.length, 0);
+          if (totalPossibleAttendances === 0) return 0;
+          const totalActualAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.filter((m) => m.score >= 0).length, 0);
+          return Math.round((totalActualAttendances / totalPossibleAttendances) * 100);
+        })(),
+      };
     });
 
-    return { squadStats: stats, squadLeaders: leaders };
-  }, [boys]);
+    return stats;
+  }, [boysBySquad]);
 
 
   // --- EVENT HANDLERS ---
@@ -228,6 +210,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
   const accentTextHover = isCompany ? 'hover:text-company-blue' : 'hover:text-junior-blue';
   const hasActiveFilters = filterSquad !== 'all' || filterYear !== 'all' || searchQuery !== '';
+  const hasNonDefaultSortOrFilter = filterSquad !== 'all' || filterYear !== 'all' || sortBy !== 'name';
 
   return (
     <div className="space-y-6">
@@ -243,10 +226,14 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
             </button>
              <button
                 onClick={() => setIsFilterModalOpen(true)}
-                className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentRing}`}
+                className={`relative p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${hasNonDefaultSortOrFilter ? 'bg-slate-100' : ''} ${accentRing}`}
                 aria-label="Open sort and filter options"
+                aria-pressed={hasNonDefaultSortOrFilter}
             >
                 <FilterIcon className="h-5 w-5"/>
+                {hasNonDefaultSortOrFilter && (
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-400" aria-hidden="true" />
+                )}
             </button>
             <button
               onClick={handleAddBoy}
@@ -328,7 +315,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
                         <div className="flex-1">
                           <p className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
                               {boy.name}
-                              {squadLeaders[boy.squad] === boy.id && (
+                              {boy.isSquadLeader && (
                                   <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
                               )}
                           </p>
@@ -429,7 +416,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
               <button
                 type="button"
                 onClick={() => setIsFilterModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
               >
                 Done
               </button>

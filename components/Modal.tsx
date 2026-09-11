@@ -101,14 +101,18 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
 
   return (
     // The overlay covers the entire screen.
-    <div 
-      className={`fixed inset-0 bg-slate-900 bg-opacity-60 z-50 flex justify-center items-center ${paddingClass}`} 
-      aria-modal="true" 
+    <div
+      className={`fixed inset-0 bg-slate-900 bg-opacity-60 z-50 flex justify-center items-center ${paddingClass}`}
+      aria-modal="true"
       role="dialog"
-      tabIndex={-1} // Ensure the modal itself can receive focus initially
+      tabIndex={-1}
+      onClick={onClose}
     >
-      {/* The main modal container. */}
-      <div ref={modalRef} className={`bg-white rounded-lg shadow-xl w-full ${maxWidthClass} ${maxHeightClass} flex flex-col`}>
+      <div
+        ref={modalRef}
+        className={`bg-white rounded-lg shadow-xl w-full ${maxWidthClass} ${maxHeightClass} flex flex-col`}
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="p-5 border-b border-slate-200 flex justify-between items-center flex-shrink-0">
           <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
           <button 

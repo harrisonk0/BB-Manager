@@ -9,6 +9,7 @@ Set these in the Vercel project for Preview and Production:
 ```bash
 VITE_SUPABASE_URL="https://<your-project-ref>.supabase.co"
 VITE_SUPABASE_ANON_KEY="<your-public-anon-key>"
+VITE_APP_URL="https://<your-production-host>"
 ```
 
 ## Vercel Settings
@@ -25,6 +26,8 @@ In Supabase Auth URL configuration:
 
 - Set `Site URL` to the canonical production URL.
 - Add local development and preview URLs to `Additional Redirect URLs` as needed.
+- Keep public signup disabled. Staff accounts are created in the Auth dashboard.
+- Password reset emails use `VITE_APP_URL` when it is set.
 
 ## Deployment Checklist
 

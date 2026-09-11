@@ -8,6 +8,7 @@ const serverCommand = process.env.CI
 export default defineConfig({
   testDir: './tests/e2e',
   testMatch: ['**/*.e2e.ts'],
+  testIgnore: process.env.E2E_ALLOW_PRODUCTION_MUTATION === '1' ? [] : ['**/smoke.e2e.ts'],
   fullyParallel: false,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,

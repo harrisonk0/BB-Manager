@@ -36,6 +36,10 @@ const normalizeCompanySnapshotMark = (
     return { date: selectedDate, score: -1 };
   }
 
+  if (attendanceStatus !== 'present') {
+    return null;
+  }
+
   if (markState === '' || markState === undefined) {
     return null;
   }
@@ -60,6 +64,10 @@ const normalizeJuniorSnapshotMark = (
 ) => {
   if (attendanceStatus === 'absent') {
     return { date: selectedDate, score: -1 };
+  }
+
+  if (attendanceStatus !== 'present') {
+    return null;
   }
 
   const juniorState =
@@ -131,7 +139,7 @@ export const buildWeeklyMarksSnapshot = ({
 }: {
   boys: Boy[];
   selectedDate: string;
-  attendance: Record<string, 'present' | 'absent'>;
+  attendance: Record<string, AttendanceStatus>;
   marks: Record<string, CompanyMarkState | JuniorMarkState>;
   activeSection: Section;
 }): WeeklyMarksSnapshotEntry[] => {

@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes progressBar {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
 /* Custom font definition - moved here from index.html */
 @font-face {
   font-family: 'Futura';

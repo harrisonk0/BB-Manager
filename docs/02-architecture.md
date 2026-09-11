@@ -35,4 +35,4 @@ React component -> hook -> services/* -> Supabase
 - The client uses only public Supabase credentials.
 - RLS is enabled on all live application tables.
 - Role checks in the UI are convenience checks only; enforcement lives in Supabase.
-- Manual account provisioning lives in Supabase; the UI covers sign-in, section selection, roster management, marks entry, dashboard, settings, and account password changes.
+- Manual account provisioning lives in Supabase; public signup is disabled. The UI covers sign-in, password reset, section selection, roster management, marks entry, dashboard, settings, and account password changes.

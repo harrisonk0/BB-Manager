@@ -47,11 +47,12 @@ The interface for entering weekly attendance and scores for all members.
 
 -   **Responsibilities**:
     -   Displays all members grouped by squad.
-    -   Displays real-time squad attendance statistics as marks are entered.
+    -   Displays real-time squad attendance statistics as marks are entered. Unmarked rows are excluded from the percentage.
+    -   Defaults new rows to Not recorded rather than Present.
     -   Implements a read-only (locked) mode for past dates to prevent accidental edits, which can be unlocked by the user.
     -   Manages a date selector, defaulting to the next meeting day based on settings.
     -   Tracks unsaved changes and communicates this to the `App` component.
-    -   Saves all changes for the selected date in a single batch operation.
+    -   Saves all changes for the selected date in a single batch operation using a labelled save bar.
 -   **Key Props**: `boys`, `refreshData`, `setHasUnsavedChanges`, `activeSection`, `settings`, `showToast`.
 
 #### `BoyMarksPage.tsx`
@@ -64,7 +65,7 @@ A detailed view showing the entire mark history for a single member.
     -   Allows for editing of past scores, changing attendance status, and deleting mark entries.
     -   Tracks unsaved changes by performing a deep comparison between the original and edited marks.
     -   Saves all corrections directly through the data service layer.
--   **Key Props**: `boyId`, `refreshData`, `setHasUnsavedChanges`, `activeSection`, `showToast`.
+-   **Key Props**: `boyId`, `refreshData`, `setHasUnsavedChanges`, `activeSection`, `showToast`, `onBack`.
 
 #### `DashboardPage.tsx`
 
@@ -94,10 +95,11 @@ Allows users to configure application settings specific to the currently active 
 Allows the currently logged-in user to manage their personal account settings.
 
 -   **Responsibilities**:
-    -   Provides a form for changing the user's password.
-    -   Updates the password with Supabase Authentication.
+    -   Provides a form for changing the user's password, including the current password.
+    -   Reauthenticates, then updates the password with Supabase Authentication.
+    -   Can run in recovery mode after a reset-email session.
     -   Displays user-friendly error messages for password changes.
--   **Key Props**: `showToast`, `activeSection`.
+-   **Key Props**: `showToast`, `activeSection`, `recoveryMode`, `onRecoveryComplete`.
 
 #### `LoginPage.tsx`
 
@@ -105,6 +107,7 @@ Handles user authentication with Supabase.
 
 -   **Responsibilities**:
     -   Provides a form for email and password sign-in.
+    -   Offers a Forgot password action that emails a reset link.
 -   **Key Props**: none.
 
 #### `SectionSelectPage.tsx`
@@ -132,7 +135,7 @@ The main navigation bar at the top of the application.
     -   Conditionally renders navigation items based on `userRole`.
     -   Includes a profile dropdown menu for `Account Settings`, `Switch Section`, and `Log Out`.
     -   Manages its own state for the mobile menu (`isMenuOpen`).
--   **Key Props**: `setView`, `onSignOut`, `activeSection`, `onSwitchSection`.
+-   **Key Props**: `setView`, `onSignOut`, `activeSection`, `onSwitchSection`, `currentUser`, `userRole`, `currentPage`.
 
 #### `BoyForm.tsx`
 

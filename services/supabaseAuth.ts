@@ -1,5 +1,6 @@
 import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabaseClient';
+import { getAppUrl } from './appUrl';
 
 export async function signIn(email: string, password: string) {
   return supabase.auth.signInWithPassword({
@@ -10,6 +11,11 @@ export async function signIn(email: string, password: string) {
 
 export async function signOut() {
   return supabase.auth.signOut();
+}
+
+export async function requestPasswordReset(email: string) {
+  const redirectTo = getAppUrl();
+  return supabase.auth.resetPasswordForEmail(email, redirectTo ? { redirectTo } : undefined);
 }
 
 export async function updatePassword(newPassword: string) {

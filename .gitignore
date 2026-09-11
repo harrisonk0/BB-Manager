@@ -35,5 +35,5 @@ AI_RULES.md
 # Worktrees
 .worktrees/
 
-# Private local-only runbooks
-docs/private-selfhosted-trial.md
+# Supabase CLI cache
+supabase/.temp/

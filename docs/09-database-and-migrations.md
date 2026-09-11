@@ -4,18 +4,17 @@ This repo relies on a live Supabase project as the database source of truth.
 
 ## Verified Current Shape
 
-Verified on 2026-03-22:
+Verified on 2026-09-11:
 
 - Tables: `profiles`, `settings`, `members`, `marks`, `invite_codes`, `audit_logs`
 - RLS: enabled on all of them
+- `profiles.role` is nullable; new Auth users do not receive `officer` by default
+- Leftover invite RPCs exist but client `EXECUTE` is revoked
+- Remediation SQL: `supabase/migrations/20260911120000_audit_remediations.sql`
+- Generated client types: `types/database.ts`
 
 The current app only depends on `profiles`, `settings`, `members`, and `marks`.
 The live project also contains legacy invite-code and audit-log objects, but they are outside the current app surface.
-
-Latest migrations visible in the live project at the time of verification:
-
-- `20260322185938 replace_transactional_mark_write_rpcs`
-- `20260322192041 fix_save_weekly_marks_snapshot_member_alias`
 
 ## Workflow
 
@@ -26,8 +25,9 @@ Latest migrations visible in the live project at the time of verification:
 - Keep `members`, `marks`, and `settings` policies tied to valid app roles from `profiles`, not merely `auth.role() = 'authenticated'`.
 - Keep one seeded `settings` row per section and treat missing rows as a bootstrap error that should be corrected, not created lazily from the browser.
 - `npm run check:db-contract` is the fast live-backend check for the client contract: sign-in, `current_app_role()`, and the seeded `settings` rows for `company` and `junior`.
-- CI and browser smoke tests can validate the client contract against live data, but they cannot prove live RLS policy shape without privileged Supabase inspection.
-- The current app no longer exposes invite-code provisioning, recovery, or audit-log flows.
+- `npm run check:auth-config` confirms public signup is disabled.
+- Isolated Playwright can validate the client contract against live data, but it cannot prove live RLS policy shape without privileged Supabase inspection.
+- The current app no longer exposes invite-code provisioning. Do not call leftover invite RPCs from the client.
 
 ## Important Historical Note
 

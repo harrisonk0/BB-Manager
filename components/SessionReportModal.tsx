@@ -3,7 +3,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 
 import Modal from './Modal';
 import SessionReportDocument from './reports/SessionReportDocument';
-import { buildSessionReportData, getSectionDateRange } from '../services/reporting/sessionReport';
+import { buildSessionReportData, getDefaultSessionReportRange, getSectionDateRange } from '../services/reporting/sessionReport';
 import type { Boy, Section } from '../types';
 
 interface SessionReportModalProps {
@@ -27,8 +27,9 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
   onClose,
 }) => {
   const sectionRange = useMemo(() => getSectionDateRange(boys), [boys]);
-  const [startDate, setStartDate] = useState(sectionRange?.startDate ?? '');
-  const [endDate, setEndDate] = useState(sectionRange?.endDate ?? '');
+  const defaultRange = useMemo(() => getDefaultSessionReportRange(boys), [boys]);
+  const [startDate, setStartDate] = useState(defaultRange?.startDate ?? '');
+  const [endDate, setEndDate] = useState(defaultRange?.endDate ?? '');
   const inputBrandClasses =
     activeSection === 'company'
       ? 'focus:border-company-blue focus:ring-company-blue'
@@ -39,9 +40,9 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
       : 'bg-junior-blue focus:ring-junior-blue';
 
   React.useEffect(() => {
-    setStartDate(sectionRange?.startDate ?? '');
-    setEndDate(sectionRange?.endDate ?? '');
-  }, [sectionRange, isOpen]);
+    setStartDate(defaultRange?.startDate ?? '');
+    setEndDate(defaultRange?.endDate ?? '');
+  }, [defaultRange, isOpen]);
 
   const hasValidRange = Boolean(startDate && endDate && startDate <= endDate);
   const report = useMemo(() => {
@@ -131,6 +132,11 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
                 <p className="mt-4 text-sm text-slate-600">
                   {`Report range: ${formatDate(startDate)} to ${formatDate(endDate)}. This will export ${report.members.length} member detail pages in addition to the summary pages.`}
                 </p>
+                {estimatedPageCount > 15 && (
+                  <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                    This range is estimated at {estimatedPageCount} pages. Narrow the dates if you only need a shorter session.
+                  </p>
+                )}
               </div>
             ) : (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">

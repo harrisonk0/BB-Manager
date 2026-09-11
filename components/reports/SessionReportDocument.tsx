@@ -566,7 +566,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
       subject={`${report.sectionLabel} end of session report`}
       creator="BB Manager"
       producer="BB Manager"
-      keywords={['BB Manager', 'Boys Brigade', report.sectionLabel, 'session report']}
+      keywords={['BB Manager', 'Boys Brigade', report.sectionLabel, 'session report'].join(', ')}
       language="en-GB"
     >
       <Page size="A4" style={styles.coverPage}>

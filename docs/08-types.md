@@ -191,3 +191,5 @@ interface UserWithRole {
   role: UserRole;
 }
 ```
+
+Generated Supabase `public` types live in `types/database.ts` and are passed to `createClient`. Regenerate them after schema changes with `supabase gen types typescript --linked --schema public > types/database.ts`.

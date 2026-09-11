@@ -1,23 +1,20 @@
 import { useState, useCallback } from 'react';
 import { Section, View } from '../types';
+import { clearStoredSection, readStoredSection, writeStoredSection } from './sectionStorage';
 
-/**
- * Custom hook for managing the active section of the application.
- * Handles setting, retrieving from local storage, and providing logic for switching sections.
- */
 export const useSectionManagement = (
   setView: (view: View) => void
 ) => {
-  const [activeSection, setActiveSection] = useState<Section | null>(() => localStorage.getItem('activeSection') as Section | null);
+  const [activeSection, setActiveSection] = useState<Section | null>(() => readStoredSection());
 
   const handleSelectSection = useCallback((section: Section) => {
-    localStorage.setItem('activeSection', section);
+    writeStoredSection(section);
     setActiveSection(section);
     setView({ page: 'home' });
   }, [setView]);
 
   const performSwitchSection = useCallback(() => {
-    localStorage.removeItem('activeSection');
+    clearStoredSection();
     setActiveSection(null);
     setView({ page: 'home' });
   }, [setView]);

@@ -9,11 +9,15 @@ This document summarises the app's custom hook layer.
 - Subscribes to Supabase auth changes
 - Maps the auth user into the app's `AppUser` shape
 - Loads the current role from `profiles`
+- Treats a missing or invalid role as Access Denied
+- Surfaces password-recovery sessions so Account Settings can set a new password
 
 ### `useSectionManagement`
 
-- Persists the active section in `localStorage`
+- Persists the active section in `localStorage` after validating `company` | `junior`
 - Exposes helpers for switching or clearing section context
+
+`hooks/sectionStorage.ts` and `hooks/rosterFilters.ts` hold the storage helpers. Roster search/sort persist in `sessionStorage` per section.
 
 ### `useAppData`
 
@@ -33,5 +37,6 @@ This document summarises the app's custom hook layer.
 
 - Supabase Auth session
 - Supabase data (`profiles`, `members`, `marks`, `settings`)
-- `localStorage['activeSection']`
+- `localStorage['activeSection']` (validated)
+- `sessionStorage` roster filters
 - React state held in hooks and components

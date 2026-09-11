@@ -108,6 +108,18 @@ describe('buildWeeklyMarksSnapshot', () => {
     ]);
   });
 
+  it('does not snapshot unmarked members with empty scores', () => {
+    expect(
+      buildWeeklyMarksSnapshot({
+        boys: [baseBoy],
+        selectedDate: '2026-03-27',
+        attendance: {},
+        marks: { 'member-1': '' },
+        activeSection: 'company',
+      }),
+    ).toEqual([]);
+  });
+
   it('omits unchanged weekly rows from the snapshot', () => {
     expect(
       buildWeeklyMarksSnapshot({

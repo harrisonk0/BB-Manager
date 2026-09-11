@@ -158,7 +158,12 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise
     return mapBoyRow(data as MemberRow, []);
   }
 
-  await saveBoyMarks(data.id, section, [], boy.marks);
+  try {
+    await saveBoyMarks(data.id, section, [], boy.marks);
+  } catch (marksError) {
+    await supabase.from('members').delete().eq('id', data.id).eq('section', section);
+    throw marksError;
+  }
 
   const savedBoy = await fetchBoyById(data.id, section);
   if (!savedBoy) {
@@ -238,6 +243,8 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
 
 export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
   if (!boy.id) throw new Error('Boy ID is required.');
+  const authUser = await supabaseAuth.getCurrentUser();
+  if (!authUser) throw new Error('User not authenticated');
 
   const { error } = await supabase
     .from('members')
@@ -264,6 +271,9 @@ export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
 };
 
 export const deleteBoyById = async (id: string, section: Section): Promise<void> => {
+  const authUser = await supabaseAuth.getCurrentUser();
+  if (!authUser) throw new Error('User not authenticated');
+
   const { error } = await supabase
     .from('members')
     .delete()

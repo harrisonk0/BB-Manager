@@ -21,20 +21,20 @@ vi.mock('./supabaseClient', () => ({
   },
 }));
 
-import { getSettings, saveSettings } from './settings';
+import { getSettings, saveSettings, SettingsUnavailableError } from './settings';
 
 describe('settings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('returns the default meeting day when the settings row is missing', async () => {
+  it('throws when the settings row is missing', async () => {
     supabaseMock.readSingle.mockResolvedValueOnce({
       data: null,
       error: { code: 'PGRST116' },
     });
 
-    await expect(getSettings('company')).resolves.toEqual({ meetingDay: 5 });
+    await expect(getSettings('company')).rejects.toBeInstanceOf(SettingsUnavailableError);
     expect(supabaseMock.from).toHaveBeenCalledWith('settings');
   });
 
