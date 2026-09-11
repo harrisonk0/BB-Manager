@@ -110,7 +110,7 @@ test.describe('Isolated app flows', () => {
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Import' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Import', exact: true })).toBeVisible();
   });
 
   test('officer can create, search, edit, and open a sentinel member', async ({ page }) => {
