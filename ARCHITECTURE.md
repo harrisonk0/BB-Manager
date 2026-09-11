@@ -90,6 +90,7 @@ The branded session PDF generator also runs fully client-side in the browser.
 - Client-side role checks remain UX guardrails only.
 
 See [docs/10-database-security-model.md](docs/10-database-security-model.md) for the current security summary.
+A 2026-09-11 live-backend audit is in [`docs/technical-audit-2026-09-11.md`](docs/technical-audit-2026-09-11.md); prefer it where it conflicts with this overview (especially Auth signup settings).
 
 ## Deployment Model
 

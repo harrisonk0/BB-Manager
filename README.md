@@ -44,3 +44,4 @@ It verifies the client-visible contract only; it does not prove every live RLS r
 - [docs/03-getting-started.md](./docs/03-getting-started.md): local setup
 - [docs/04-deployment.md](./docs/04-deployment.md): Vercel deployment runbook
 - [docs/user-guide.md](./docs/user-guide.md): handout for new users
+- [docs/technical-audit-2026-09-11.md](./docs/technical-audit-2026-09-11.md): whole-project audit vs live Supabase (2026-09-11)
