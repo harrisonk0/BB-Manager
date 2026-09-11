@@ -140,7 +140,7 @@ These types are used by the root `App.tsx` component to manage the current page 
 Represents the main pages available in the application's navigation.
 
 ```typescript
-type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'settings' | 'accountSettings';
+type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'archives' | 'settings' | 'accountSettings';
 ```
 
 ---

@@ -14,6 +14,109 @@ export type Database = {
   }
   public: {
     Tables: {
+      archived_marks: {
+        Row: {
+          behaviour_score: number | null
+          created_by: string | null
+          date: string
+          id: string
+          present: boolean
+          score: number | null
+          section: Database["public"]["Enums"]["section"]
+          session_id: string
+          source_created_at: string | null
+          source_mark_id: string
+          source_member_id: string
+          source_updated_at: string | null
+          uniform_score: number | null
+        }
+        Insert: {
+          behaviour_score?: number | null
+          created_by?: string | null
+          date: string
+          id?: string
+          present: boolean
+          score?: number | null
+          section: Database["public"]["Enums"]["section"]
+          session_id: string
+          source_created_at?: string | null
+          source_mark_id: string
+          source_member_id: string
+          source_updated_at?: string | null
+          uniform_score?: number | null
+        }
+        Update: {
+          behaviour_score?: number | null
+          created_by?: string | null
+          date?: string
+          id?: string
+          present?: boolean
+          score?: number | null
+          section?: Database["public"]["Enums"]["section"]
+          session_id?: string
+          source_created_at?: string | null
+          source_mark_id?: string
+          source_member_id?: string
+          source_updated_at?: string | null
+          uniform_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "archived_marks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "bb_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      archived_members: {
+        Row: {
+          id: string
+          is_squad_leader: boolean
+          name: string
+          school_year: string
+          section: Database["public"]["Enums"]["section"]
+          session_id: string
+          source_created_at: string | null
+          source_member_id: string
+          source_updated_at: string | null
+          squad: number
+        }
+        Insert: {
+          id?: string
+          is_squad_leader?: boolean
+          name: string
+          school_year: string
+          section: Database["public"]["Enums"]["section"]
+          session_id: string
+          source_created_at?: string | null
+          source_member_id: string
+          source_updated_at?: string | null
+          squad: number
+        }
+        Update: {
+          id?: string
+          is_squad_leader?: boolean
+          name?: string
+          school_year?: string
+          section?: Database["public"]["Enums"]["section"]
+          session_id?: string
+          source_created_at?: string | null
+          source_member_id?: string
+          source_updated_at?: string | null
+          squad?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "archived_members_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "bb_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action_type: string
@@ -60,6 +163,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      bb_sessions: {
+        Row: {
+          closed_at: string
+          closed_by: string | null
+          closed_by_email: string | null
+          created_at: string
+          id: string
+          label: string
+          mark_count: number
+          member_count: number
+        }
+        Insert: {
+          closed_at?: string
+          closed_by?: string | null
+          closed_by_email?: string | null
+          created_at?: string
+          id?: string
+          label: string
+          mark_count?: number
+          member_count?: number
+        }
+        Update: {
+          closed_at?: string
+          closed_by?: string | null
+          closed_by_email?: string | null
+          created_at?: string
+          id?: string
+          label?: string
+          mark_count?: number
+          member_count?: number
+        }
+        Relationships: []
       }
       invite_codes: {
         Row: {
@@ -269,6 +405,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      start_new_bb_session: { Args: { p_label: string }; Returns: Json }
       validate_invite_code: {
         Args: { p_code: string }
         Returns: {

@@ -189,6 +189,10 @@ test.describe('Isolated app flows', () => {
     await expect(page.getByRole('heading', { name: 'Master Session PDF' })).toBeVisible();
     await page.getByRole('button', { name: 'Close modal' }).click();
 
+    await page.getByRole('button', { name: 'Archives' }).click();
+    await expect(page.getByRole('heading', { name: 'Past Sessions' })).toBeVisible();
+    await expect(page.getByText('Closed BB years keep their members and marks here.')).toBeVisible();
+
     await openUserMenu(page);
     await page.getByRole('menuitem', { name: 'Account Settings' }).click();
     await expect(page.getByRole('heading', { name: 'Account Settings' })).toBeVisible();

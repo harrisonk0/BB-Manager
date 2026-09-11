@@ -36,7 +36,7 @@ This document summarises the app's custom hook layer.
 ## State Sources
 
 - Supabase Auth session
-- Supabase data (`profiles`, `members`, `marks`, `settings`)
+- Supabase data (`profiles`, `members`, `marks`, `settings`, `bb_sessions`, `archived_members`, `archived_marks`)
 - `localStorage['activeSection']` (validated)
 - `sessionStorage` roster filters
 - React state held in hooks and components

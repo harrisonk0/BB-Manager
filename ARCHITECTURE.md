@@ -14,12 +14,15 @@ The app is deployed as a static SPA on Vercel. The browser talks directly to Sup
 
 ## Verified Live Supabase Shape
 
-Verified on 2026-03-21:
+Verified on 2026-09-11:
 
 - `profiles`
 - `settings`
 - `members`
 - `marks`
+- `bb_sessions`
+- `archived_members`
+- `archived_marks`
 
 RLS is enabled on the current app tables.
 
@@ -66,6 +69,7 @@ flowchart LR
   - `profiles` for app roles and user metadata
   - `members` for member records
   - `marks` for per-member attendance and scores
+- `services/sessions.ts` lists closed BB years and starts a new session through `start_new_bb_session`.
 - `services/reporting/sessionReport.ts` derives PDF-ready session reporting aggregates from loaded section data.
 - `services/settings.ts` handles section-level settings, updating the seeded `company` and `junior` rows in place.
 

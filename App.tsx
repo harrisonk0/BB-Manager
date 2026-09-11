@@ -6,6 +6,7 @@ import Header from './components/Header';
 import LoginPage from './components/LoginPage';
 import DashboardPage from './components/DashboardPage';
 import SettingsPage from './components/SettingsPage';
+import ArchivesPage from './components/ArchivesPage';
 import SectionSelectPage from './components/SectionSelectPage';
 import AccountSettingsPage from './components/AccountSettingsPage';
 import Toast from './components/Toast';
@@ -76,8 +77,21 @@ const App: React.FC = () => {
         return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection} settings={settings} showToast={showToast} />;
       case 'dashboard':
         return <DashboardPage boys={boys} activeSection={activeSection} />;
+      case 'archives':
+        return <ArchivesPage activeSection={activeSection} showToast={showToast} />;
       case 'settings':
-        return <SettingsPage activeSection={activeSection} currentSettings={settings} onSettingsSaved={setSettings} showToast={showToast} userRole={userRole} onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })} />;
+        return (
+          <SettingsPage
+            activeSection={activeSection}
+            currentSettings={settings}
+            onSettingsSaved={setSettings}
+            showToast={showToast}
+            userRole={userRole}
+            onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })}
+            refreshData={refreshData}
+            onNavigateToArchives={() => navigateWithProtection({ page: 'archives' })}
+          />
+        );
       case 'accountSettings':
         return <AccountSettingsPage showToast={showToast} activeSection={activeSection} />;
       case 'boyMarks': {

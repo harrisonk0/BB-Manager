@@ -65,7 +65,7 @@ export interface Boy {
 /**
  * Represents the main pages available in the application's navigation.
  */
-export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'settings' | 'accountSettings';
+export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'archives' | 'settings' | 'accountSettings';
 
 /**
  * A specific view type for displaying an individual boy's marks page.

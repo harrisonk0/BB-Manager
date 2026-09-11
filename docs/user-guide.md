@@ -12,8 +12,10 @@ flowchart LR
   B --> C[Home roster]
   C --> D[Weekly marks]
   C --> E[Dashboard]
+  C --> H[Archives]
   C --> F[Settings]
   F --> G[Account settings]
+  F --> I[Start new BB session]
 ```
 
 ## What Each Screen Does
@@ -25,7 +27,8 @@ flowchart LR
 | `Home` | View, add, edit, and delete members in the active section. |
 | `Weekly Marks` | Record attendance and marks for the selected meeting date. New rows start as Not recorded. |
 | `Dashboard` | Review summary charts, attendance trends, and generate the master end-of-session PDF. |
-| `Section Settings` | Update section-level configuration such as the weekly meeting day. |
+| `Archives` | Browse closed BB years and regenerate Master PDFs from archived members and marks. |
+| `Section Settings` | Update the weekly meeting day. Captains and admins can also archive the current year and start a new session. |
 | `Account Settings` | Change your personal password. You must enter your current password. |
 
 ## Getting Started
@@ -34,7 +37,7 @@ flowchart LR
 2. Choose the section you are responsible for.
 3. Manage the member roster from `Home`.
 4. Record weekly attendance and scoring in `Weekly Marks`.
-5. View section performance or download the session PDF from `Dashboard`.
+5. View section performance or download the session PDF from `Dashboard`. Closed years live under `Archives`.
 
 ## Member Management
 
@@ -58,9 +61,17 @@ flowchart LR
 - The PDF includes section summary pages plus a detail page for each member with recorded marks in the selected range.
 - It is reporting only. It does not change roster data.
 
+## Archives
+
+- `Archives` lists closed BB years.
+- Opening a session shows that year's members for the section you currently have selected.
+- Generate the same Master PDF from archived data. The live Home roster is not changed by viewing an archive.
+
 ## Settings
 
-- `Section Settings` controls section-wide options.
+- `Section Settings` controls the weekly meeting day.
+- Captains and admins can **Start a new BB session**. That copies every live Company and Junior member and mark into Archives, then empties both live rosters so you can add the next year's boys.
+- Type `START NEW SESSION` in the confirmation dialog. Meeting days and staff accounts stay as they are.
 - `Account Settings` only changes your own password, and asks for the current password first.
 
 ## Support Notes

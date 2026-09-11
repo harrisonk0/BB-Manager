@@ -11,6 +11,8 @@ interface SessionReportModalProps {
   activeSection: Section;
   isOpen: boolean;
   onClose: () => void;
+  /** Optional closed-session label used in copy and the download filename. */
+  sessionLabel?: string;
 }
 
 const formatDate = (value: string) =>
@@ -25,6 +27,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
   activeSection,
   isOpen,
   onClose,
+  sessionLabel,
 }) => {
   const sectionRange = useMemo(() => getSectionDateRange(boys), [boys]);
   const defaultRange = useMemo(() => getDefaultSessionReportRange(boys), [boys]);
@@ -59,7 +62,10 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
 
   const hasDataForRange = Boolean(report && report.headlineStats.meetingCount > 0);
   const sectionLabel = activeSection === 'company' ? 'Company Section' : 'Junior Section';
-  const filename = `${activeSection}-session-report-${startDate || 'start'}-to-${endDate || 'end'}.pdf`;
+  const filenamePrefix = sessionLabel
+    ? `${sessionLabel.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'archived-session'}-`
+    : '';
+  const filename = `${filenamePrefix}${activeSection}-session-report-${startDate || 'start'}-to-${endDate || 'end'}.pdf`;
   const estimatedPageCount = report
     ? 1 + 1 + 1 + Math.max(1, Math.ceil(report.meetings.length / 18)) + 1 + Math.max(1, Math.ceil(report.members.length / (activeSection === 'junior' ? 14 : 16))) + report.members.reduce((sum, member) => sum + 1 + Math.ceil(Math.max(member.meetings.length - 14, 0) / 22), 0)
     : 0;
@@ -80,6 +86,7 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
               This export produces one branded end-of-session PDF for the active section using the current BB logo
               and photography already used in the app. The document includes the section summary, attendance and marks
               trends, squad breakdowns, and a page for every member in the selected date range.
+              {sessionLabel ? ` This download uses archived ${sessionLabel} data rather than the live roster.` : ''}
             </p>
           </div>
 

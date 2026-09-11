@@ -17,8 +17,12 @@ The app currently maps to these public tables:
 - `settings`
 - `members`
 - `marks`
+- `bb_sessions`
+- `archived_members`
+- `archived_marks`
 
 `services/db.ts` translates between the UI-facing `Boy` model and the normalized `members` + `marks` tables used in Supabase.
+`services/sessions.ts` archives both sections into `bb_sessions` when a captain or admin starts a new year.
 
 ## Integration Pattern
 

@@ -77,7 +77,18 @@ A visual summary report view of member and squad performance.
     -   Shows a bar chart comparing the total marks accumulated by each squad.
     -   Presents an attendance trend heatmap, showing each squad's attendance percentage for every recorded date.
     -   Includes a detailed "Marks Breakdown by Month" table for granular reporting.
+    -   Opens the Master Session PDF export modal.
 -   **Key Props**: `boys`, `activeSection`.
+
+#### `ArchivesPage.tsx`
+
+Read-only view of closed BB years.
+
+-   **Responsibilities**:
+    -   Lists archived sessions newest first.
+    -   Loads that session's members and marks for the active section.
+    -   Reuses `SessionReportModal` so staff can regenerate a Master PDF from archived data.
+-   **Key Props**: `activeSection`, `showToast`.
 
 #### `SettingsPage.tsx`
 
@@ -86,9 +97,10 @@ Allows users to configure application settings specific to the currently active 
 -   **Responsibilities**:
     -   Displays form inputs for available section settings (e.g., meeting day).
     -   Handles saving the settings to Supabase, with client-side permission checks based on `userRole`.
+    -   Lets captains and admins archive both sections and start a new BB session.
     -   Provides a link to navigate to `AccountSettingsPage`.
     -   Persists section settings through the data service layer.
--   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToAccountSettings`.
+-   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToAccountSettings`, `refreshData`, `onNavigateToArchives`.
 
 #### `AccountSettingsPage.tsx`
 
@@ -128,7 +140,7 @@ Allows the authenticated user to choose which section (Company or Junior) to man
 The main navigation bar at the top of the application.
 
 -   **Responsibilities**:
-    -   Provides navigation links to all main pages.
+    -   Provides navigation links to all main pages, including Archives.
     -   Displays the currently logged-in user's email.
     -   Handles sign-out and switch-section actions.
     -   Dynamically changes its color scheme based on the `activeSection`.
@@ -165,7 +177,7 @@ A collection of simple, stateless SVG icon components.
 
 -   **Responsibilities**:
     -   Exports multiple functional components, each rendering a specific SVG icon.
-    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Clipboard, Clipboard Document List, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
+    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Clipboard, Clipboard Document List, Archive Box, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
     -   Accepts an optional `className` prop for easy styling with Tailwind CSS.
 
 #### `DatePicker.tsx`

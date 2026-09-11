@@ -58,6 +58,12 @@ try {
     throw new Error(`Failed to read seeded settings rows: ${settingsError.message}`);
   }
 
+  const { error: sessionsError } = await supabase.from('bb_sessions').select('id').limit(1);
+
+  if (sessionsError) {
+    throw new Error(`Failed to read bb_sessions: ${sessionsError.message}`);
+  }
+
   const rows = settingsRows ?? [];
   const rowsBySection = new Map(rows.map((row) => [row.section, row]));
 

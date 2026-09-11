@@ -15,12 +15,15 @@ Keep it aligned with the actual codebase, deployment model, and live Supabase sh
 
 ## Verified Live Database Shape
 
-Verified against Supabase on 2026-03-21:
+Verified against Supabase on 2026-09-11:
 
 - `profiles`
 - `settings`
 - `members`
 - `marks`
+- `bb_sessions`
+- `archived_members`
+- `archived_marks`
 - `invite_codes`
 - `audit_logs`
 
@@ -31,6 +34,7 @@ Important database functions present in the live project:
 - `current_app_role`
 - `save_weekly_marks_snapshot`
 - `save_member_marks_patch`
+- `start_new_bb_session`
 
 Leftover invite helpers (`claim_invite_code`, `cleanup_old_invite_codes`, `validate_invite_code`) still exist but client roles can no longer execute them.
 
@@ -39,7 +43,7 @@ Leftover invite helpers (`claim_invite_code`, `cleanup_old_invite_codes`, `valid
 - `components/`: UI and page components
 - `hooks/`: cross-cutting React hooks
 - `services/`: Supabase access, auth helpers, and settings
-- `supabase/`: applied remediation SQL and CLI config (hosted project remains authoritative)
+- `supabase/`: applied SQL and CLI config (hosted project remains authoritative)
 - `docs/`: active documentation and runbooks
 - `tests/`: Playwright specs and manual E2E runbooks
 - `.github/workflows/`: CI and operational workflows

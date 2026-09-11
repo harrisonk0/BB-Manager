@@ -10,7 +10,7 @@ BB Manager is organised as a Vite SPA with Supabase-facing services and a small 
 ├── hooks/               # Custom React hooks
 ├── services/            # Supabase client, auth, data, settings
 ├── public/              # Favicon and other static files
-├── supabase/            # Applied remediation SQL and CLI config
+├── supabase/            # Applied SQL and CLI config
 ├── tests/               # Playwright specs and manual E2E runbooks
 ├── types/               # Generated Database types and reporting types
 ├── AGENTS.md            # Contributor and agent guide

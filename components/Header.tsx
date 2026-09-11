@@ -118,6 +118,7 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
                                 <button onClick={() => handleNavClick('home')} className={navLinkClasses('home')} aria-current={currentPage === 'home' ? 'page' : undefined}>Home</button>
                                 <button onClick={() => handleNavClick('dashboard')} className={navLinkClasses('dashboard')} aria-current={currentPage === 'dashboard' ? 'page' : undefined}>Dashboard</button>
                                 <button onClick={() => handleNavClick('weeklyMarks')} className={navLinkClasses('weeklyMarks')} aria-current={currentPage === 'weeklyMarks' ? 'page' : undefined}>Weekly Marks</button>
+                                <button onClick={() => handleNavClick('archives')} className={navLinkClasses('archives')} aria-current={currentPage === 'archives' ? 'page' : undefined}>Archives</button>
                                 
                                 {/* Icon-based buttons for less frequent actions */}
                                 {canAccessSectionSettings && (
@@ -180,6 +181,7 @@ const Header: React.FC<HeaderProps> = ({ setView, onSignOut, activeSection, onSw
                         <button onClick={() => handleNavClick('home')} className={mobileNavLinkClasses('home')} aria-current={currentPage === 'home' ? 'page' : undefined}>Home</button>
                         <button onClick={() => handleNavClick('dashboard')} className={mobileNavLinkClasses('dashboard')} aria-current={currentPage === 'dashboard' ? 'page' : undefined}>Dashboard</button>
                         <button onClick={() => handleNavClick('weeklyMarks')} className={mobileNavLinkClasses('weeklyMarks')} aria-current={currentPage === 'weeklyMarks' ? 'page' : undefined}>Weekly Marks</button>
+                        <button onClick={() => handleNavClick('archives')} className={mobileNavLinkClasses('archives')} aria-current={currentPage === 'archives' ? 'page' : undefined}>Archives</button>
                         {canAccessSectionSettings && (
                             <button onClick={() => handleNavClick('settings')} className={mobileNavLinkClasses('settings')} aria-current={currentPage === 'settings' ? 'page' : undefined}>
                                 <div className="flex items-center"><CogIcon className="h-5 w-5 mr-3"/><span>Section Settings</span></div>

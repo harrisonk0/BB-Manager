@@ -37,5 +37,6 @@ In Supabase Auth URL configuration:
 4. Verify sign-in works for manually provisioned users.
 5. Verify the production users have the expected roles in `profiles`.
 6. Verify `settings` has seeded rows for both `company` and `junior`.
-7. Smoke-test auth, section settings persistence, member CRUD, marks entry, and dashboard behavior against the live backend.
-8. Treat CI smoke results as client-contract checks only; use Supabase inspection for live RLS policy verification.
+7. Smoke-test auth, section settings persistence, member CRUD, marks entry, dashboard, and Past Sessions against the live backend.
+8. Do not start a new BB session from CI. That RPC archives and empties both live rosters.
+9. Treat CI smoke results as client-contract checks only; use Supabase inspection for live RLS policy verification.
