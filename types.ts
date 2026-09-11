@@ -4,18 +4,19 @@
 export type Section = 'company' | 'junior';
 
 /**
- * Represents the squad numbers for the Company Section.
+ * Squad numbers are configured per section in settings.
+ * Company historically used 1–3 and Junior 1–4.
  */
-export type Squad = 1 | 2 | 3;
+export type Squad = number;
 /**
  * Represents the school year for members of the Company Section.
  */
 export type SchoolYear = 8 | 9 | 10 | 11 | 12 | 13 | 14;
 
 /**
- * Represents the squad numbers for the Junior Section.
+ * Squad numbers are configured per section in settings.
  */
-export type JuniorSquad = 1 | 2 | 3 | 4;
+export type JuniorSquad = number;
 /**
  * Represents the school year (Primary school levels) for members of the Junior Section.
  */
@@ -60,6 +61,8 @@ export interface Boy {
   marks: Mark[];
   /** A flag indicating if the member is a designated squad leader. */
   isSquadLeader?: boolean;
+  /** Set when this live member was imported from a past-session archive row. */
+  importedFromArchivedMemberId?: string | null;
 }
 
 /**
@@ -83,11 +86,21 @@ export interface BoyMarksPageView {
 export type View = { page: Page } | BoyMarksPageView;
 
 /**
+ * A squad configured for a section. `label` is an optional nickname; the number is what members store.
+ */
+export interface SectionSquad {
+  number: number;
+  label: string | null;
+}
+
+/**
  * Represents the settings specific to a section (Company or Junior).
  */
 export interface SectionSettings {
   /** The day of the week the section meets (0 = Sunday, 1 = Monday, ..., 6 = Saturday). */
   meetingDay: number;
+  /** Ordered list of squads staff can assign members to. */
+  squads: SectionSquad[];
 }
 
 /**
