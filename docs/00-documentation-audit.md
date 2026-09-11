@@ -8,7 +8,7 @@ This file tracks the active documentation set for the current codebase.
 - `AGENTS.md`: contributor and agent operating guide
 - `docs/09-database-and-migrations.md`: live database workflow
 - `docs/10-database-security-model.md`: current security summary
-- `docs/technical-audit-2026-09-11.md`: whole-project technical audit against live Supabase (2026-09-11). Treat as forensic ground truth where it disagrees with older docs.
+- `docs/technical-audit-2026-09-11.md`: whole-project technical audit against live Supabase (2026-09-11), including a later production UI browse (Appendix E). Treat as forensic ground truth where it disagrees with older docs.
 
 ## Supporting Docs
 

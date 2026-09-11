@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-09-11  
 **Auditor role:** senior/staff review (architecture, application security, database, reliability, operations)  
-**Mode:** read-only schema/Auth inspection, plus a later isolated browser E2E pass that used a disposable Auth user and a sentinel member (`ZZZ-E2E-*`). That user and member were deleted afterwards. Existing children’s rows were not used as write targets.
+**Mode:** read-only schema/Auth inspection, plus isolated Playwright app flows, plus a later **manual production browse** (desktop + mobile) against `https://bb-manager.vercel.app`. Browse used a disposable captain Auth user and sentinel members named `ZZZ-E2E-BROWSE-*`. Those users and members were deleted afterwards. Existing children’s rows were not used as write targets; weekly marks were not saved; meeting day was not changed.
 
 This document is ground truth from the repository at the stated commit, the production SPA, and authenticated inspection of the hosted Supabase project. Documentation, comments, migrations, and tests were treated as evidence, not as authority.
 
@@ -12,7 +12,7 @@ This document is ground truth from the repository at the stated commit, the prod
 
 BB Manager is a small, coherent Vite/React SPA that talks directly to one hosted Supabase project. The product surface is real and currently used: production has **5 application profiles**, **14 members**, **205 marks**, and seeded settings for both sections. The frontend **builds, type-checks, and passes its 42 unit tests**. Isolated Playwright app flows (6 tests) also passed against a disposable officer account. Last `main` CI Infrastructure run (2026-03-22) succeeded.
 
-The architecture is understandable and appropriate for a two-section club roster: no extra server, no unused microservice layer, mark writes concentrated in two RPCs, settings locked down to captain/admin. That part is sound.
+The architecture is understandable and appropriate for a two-section club roster: no extra server, no unused microservice layer, mark writes concentrated in two RPCs, settings locked down to captain/admin. That part is sound. A full click-through of the production UI (login, both sections, roster search, weekly marks, dashboard/PDF modal, section settings, account settings, mobile hamburger) found **no additional security holes in the SPA**, but several real UX/correctness bugs (false 100% attendance, squad totals that ignore search, a phantom Leader badge, an invisible Done button, a broken Access Denied “Return to Login”).
 
 The security posture is not. **Hosted Auth still allows public email/password signup with automatic email confirmation.** A new Auth user is given a `profiles` row whose **default role is `officer`**. Live RLS then grants every officer **full read/write/delete on all members and marks in both sections**. The UI hides signup, and the docs say provisioning is manual. The Auth API does not. Anyone who can call `https://smjictierxsqgdmwobrj.supabase.co/auth/v1/signup` with the public anon key can obtain the same data-plane access as staff. That is the single most urgent issue.
 
@@ -22,7 +22,7 @@ Secondary but serious: leftover SECURITY DEFINER RPCs from the removed invite-co
 
 **Overall security posture:** weak at the identity boundary, stronger at anonymous table access.  
 **Overall database/Supabase posture:** small, constrained schema with useful CHECKs and FKs; RLS enabled everywhere that matters; dangerous leftover definer functions and default grants; no in-repo migration history.  
-**Confidence in this assessment:** high for architecture, schema, RLS, Auth config, and the signup chain; **F-01 signup→officer→data access is now Confirmed** (a disposable user was created via `/auth/v1/signup`, received role `officer`, and could read all 14 members; the user was then deleted). High for build/unit/isolated-e2e baseline. Medium for performance. The legacy Playwright smoke suite that mutates real settings/marks was still not run.
+**Confidence in this assessment:** high for architecture, schema, RLS, Auth config, and the signup chain; **F-01 signup→officer→data access is now Confirmed** (a disposable user was created via `/auth/v1/signup`, received role `officer`, and could read all 14 members; the user was then deleted). High for build/unit/isolated-e2e baseline. High for UI/UX defects found in the production browse (F-31–F-35, F-19 expanded). Medium for performance. The legacy Playwright smoke suite that mutates real settings/marks was still not run.
 
 **Most urgent actions (do these before further production feature work):**
 
@@ -118,9 +118,9 @@ What the system **actually** is:
 
 **Limitations**
 
-- Did not create or sign in as an application user (would insert/use production identity).
-- Did not call mutating RPCs (`cleanup_old_invite_codes`, `claim_invite_code`, mark saves).
-- Did not dump table contents. Counts and role histograms only.
+- Schema/Auth dump work did not originally sign in as an application user. A later isolated e2e pass and a later UI browse **did** create disposable Auth users (officer, then captain) and sentinel `ZZZ-E2E-*` members; those were deleted. Existing children’s rows were not write targets.
+- Did not call mutating RPCs (`cleanup_old_invite_codes`, `claim_invite_code`). Browse did **not** save weekly marks or change `settings.meeting_day`.
+- Did not dump table contents. Counts and role histograms only. Browse screenshots of unfiltered rosters were not committed.
 - `pg_dump`/inspect-over-pooler unavailable without Docker or the database password.
 - No Supabase MCP in this environment; CLI + Management API used instead.
 - Personal access token was provided in chat; it must be rotated. It is not stored in the repo.
@@ -541,6 +541,42 @@ Those users hit Access Denied. They also prove provisioning is inconsistent. Rev
 
 RLS blocks DML for anon (confirmed empty GETs). PostgreSQL RLS does not apply to TRUNCATE; PostgREST does not offer TRUNCATE. Still revoke unused privileges from `anon` (`TRUNCATE`, `REFERENCES`, `TRIGGER`, writes).
 
+### F-31 — Weekly Marks reports 100% attendance before anyone is marked
+
+| | |
+|---|---|
+| **Severity** | MEDIUM |
+| **Confidence** | Confirmed on production (2026-09-11, meeting date 2026-09-11) |
+| **Scope** | `WeeklyMarksPage` attendance defaults |
+
+New sheets default every member to **Present** with an empty score. Squad headers then show `Attendance: 100% (n / n present)` even though nothing has been saved. Playwright measured `6 / 6`, `4 / 4`, and `5 / 5` on Company (15 people including a temporary sentinel). Empty present rows are not persisted (`buildWeeklyMarksSnapshot` returns `null` for blank scores), so the 100% is UI fiction.
+
+Staff can think the room is complete when they have only opened the page. Count only rows with a saved mark, or default attendance to unmarked rather than present.
+
+### F-32 — Squad totals ignore search and filters
+
+| | |
+|---|---|
+| **Severity** | MEDIUM |
+| **Confidence** | Confirmed |
+| **Scope** | `HomePage` `squadStats` |
+
+`squadStats` is computed from the unfiltered `boys` array by design. After searching `ZZZ-E2E-BROWSE`, Company Squad 1 showed **Total Marks: 500.5 / Avg Attendance: 92%** while the only visible member had **0 / 0%**. There is no caption that those figures are section-wide.
+
+Either recompute from `filteredBoys` or label the header “Squad total (all members)”.
+
+### F-33 — Members without `is_squad_leader` still get a Leader badge
+
+| | |
+|---|---|
+| **Severity** | MEDIUM |
+| **Confidence** | Confirmed |
+| **Scope** | `HomePage` / `WeeklyMarksPage` leader fallback |
+
+If a squad has no `is_squad_leader` row, the UI badges the most senior (or only) member as **Leader**. A junior sentinel created with `is_squad_leader=false` still showed the yellow Leader chip. The edit form checkbox was unchecked. Weekly Marks uses the same fallback (`squadBoys[0]` after year sort).
+
+Only badge members with the flag set. If a fallback is wanted, use different copy (“Acting” / no badge).
+
 ### F-18 — No production observability
 
 | | |
@@ -555,9 +591,11 @@ No Sentry/LogRocket/GA. Failures are `console.error` in the browser. Hosted Supa
 
 ## 8. Low Findings
 
-### F-19 — Access Denied does not sign the user out
+### F-19 — Access Denied does not sign the user out; Return to Login is a no-op
 
 `App.tsx` “Return to Login” only `setCurrentUser(null)`. The Supabase session remains in browser storage. Refresh returns them to Access Denied. Confusing, not a privilege bypass.
+
+Browse follow-up (disposable user with `profiles` row deleted): **`noRoleError` is rendered before `!currentUser`**, so clearing `currentUser` never shows `LoginPage`. Clicking Return to Login left Access Denied on screen. Reload still showed Access Denied. The heading class is `2xl font-bold` (missing `text-`), so it renders at **16px** instead of `text-2xl` (24px). Sign out in the handler, then clear `noRoleError`; fix the heading class.
 
 ### F-20 — `localStorage['activeSection']` is trusted as a `Section`
 
@@ -602,6 +640,48 @@ Autovacuum/analyze never useful here; do not use those stats for capacity decisi
 ### F-30 — Password recovery exists only in the Supabase dashboard
 
 Fine for a closed staff app; operators need a runbook. Not a defect until signup is closed.
+
+### F-34 — Sort & Filter “Done” is white text on a transparent background
+
+| | |
+|---|---|
+| **Severity** | LOW |
+| **Confidence** | Confirmed (`getComputedStyle`: `color: rgb(255,255,255)`, `backgroundColor: rgba(0,0,0,0)`) |
+| **Scope** | `HomePage` filter modal |
+
+The control exists in the DOM (67×36, label “Done”) and **does close the modal if you click the empty corner**. It is effectively invisible. Escape and the X still work. Class list is `text-white` with no `bg-*`. Give it the same filled button classes as Add Boy / Cancel’s sibling actions.
+
+### F-35 — Weekly mark number inputs keep a stale error after an invalid extra digit
+
+Typing `1` then `11` stores `"1"` (valid) but leaves `Must be between 0 and 10` because `validateAndSetMark` writes the error even when it refuses to update state. The field shows `1` with a red error. Save would persist 1. Clear the error when the controlled value is valid, or keep the invalid string in local input state.
+
+### F-36 — No current-page indicator in the header
+
+Home / Dashboard / Weekly Marks share one class. No `aria-current`. The cog is the only extra cue on Section Settings. Easy to lose your place, especially on mobile after opening the hamburger.
+
+### F-37 — Filter icon never shows that filters are active
+
+`hasActiveFilters` is only used for the empty-result copy. The funnel button does not badge or highlight when squad/year filters are on.
+
+### F-38 — Boy marks page has no Back control; Home resets search
+
+The only way off an individual history is header Home / logo. `HomePage` search state is local, so it clears. Add “Back to members” and/or lift search into the app shell.
+
+### F-39 — Section-select logout is an unlabeled icon in the corner
+
+Company/Junior cards are large; Log Out is a small icon at the bottom-right of the viewport (`absolute bottom-6 right-6`) with only `aria-label`. Easy to miss. Use a text button in the card.
+
+### F-40 — Save FAB can cover Weekly Marks squad stats
+
+The floating save control is `fixed bottom-6 right-6` with no label. On a filled Company sheet it sat on top of Squad 2’s attendance line. Add padding (`pb-24` is present; still overlaps the next squad header) or a labelled bar.
+
+### F-41 — Master PDF defaults to the full mark history
+
+Opening Generate Master PDF on Company pre-filled **19 Sep 2025–20 Mar 2026**, 16 meetings, **34 pages**, 15 member detail pages (while a sentinel existed). Easy to export a huge document by accident. Default to the current term or last N meetings; warn above ~15 pages.
+
+### F-42 — Modal overlay click does not close; password form has no current-password field
+
+Overlay click on Sort & Filter left the modal open (Escape/X work). Account Settings has no current-password challenge (already noted under F-06). No forgot-password link on login (acceptable once signup is closed; until then there is also no recovery UX for the open-signup world).
 
 ---
 
@@ -704,6 +784,7 @@ Duplicate systems: two role readers (`profiles.role` vs `current_app_role()`); t
 | Vitest (42 tests) | `dbModel`, settings role guard, mark save-plan, date helpers, mocked `db.ts` | Good for pure functions. **Mocks the Supabase client**, so they cannot catch RLS, RPC SQL, or Auth config. |
 | `check:db-contract` | Sign-in + `current_app_role` + two settings rows | Useful canary; **writes nothing**; uses production. |
 | Playwright isolated flows | `tests/e2e/isolated-app-flows.e2e.ts` — invalid login, session persist, sentinel member CRUD, weekly marks on that member only, dashboard/PDF modal, account settings, junior switch, logout, delete sentinel | **Useful.** Passed 6/6 against a disposable officer. Cleans up via `members.name like prefix`. Still hits production, but does not edit existing children or settings. |
+| Manual production browse | Desktop + mobile click-through as disposable captain; sentinel search; settings cog; Access Denied (profile deleted) | **Useful.** Found F-31–F-42. Did not save marks or settings. User and sentinels deleted. |
 | Playwright smoke | Auth persist, settings round-trip, weekly marks round-trip on a **real** company member | Exercises the real stack; **mutates production**; no member CRUD; no signup-closed assertion; no officer-vs-captain; no RLS negatives. **Not re-run in this audit.** |
 | Manual markdown e2e | Four runbooks | Operator memory; not automated. |
 | RLS / contract tests | None in repo | Largest gap. |
@@ -729,7 +810,9 @@ sentinel member can be deleted from the roster
 
 Production login (https://bb-manager.vercel.app) was also exercised in a browser: no signup control; invalid credentials show `Login Failed: Invalid login credentials` without leaving the form.
 
-Cleanup: sentinel members 0 leftover; `members` count 14; disposable Auth user deleted.
+Cleanup (isolated e2e): sentinel members 0 leftover; `members` count 14; disposable Auth user deleted.
+
+A later **manual production browse** (desktop ≥1280 and ~390px mobile) used a disposable **captain** plus `ZZZ-E2E-BROWSE-*` sentinels. See Appendix E. Those rows and the Auth user were deleted; `members` count returned to **14**. Weekly marks were not saved; Friday meeting day was not changed.
 
 
 ---
@@ -847,6 +930,8 @@ These should not be casually rewritten:
 | Settings errors not swallowed (F-10) | Visible outages | Low | UI copy | — |
 | RLS tests (anon, no-role, officer, captain) | Prevents F-01 regressions | Medium | Needs a non-prod DB | Staging |
 | Observability (F-18) | Detect abuse/outages | Medium | Privacy of error reports | — |
+| Weekly Marks unmarked ≠ 100% (F-31) | Stops false attendance | Low | Attendance headers | Tests |
+| Squad stats vs filter (F-32) / Leader badge (F-33) / Done button (F-34) | Stops misleading roster chrome | Low | HomePage / WeeklyMarksPage | — |
 
 ### Long term
 
@@ -920,6 +1005,7 @@ supabase db dump           fail (docker missing)
 supabase db advisors perf  fail (pooler password)
 npm run test:e2e (smoke.e2e.ts)           not run (mutates existing production rows)
 isolated-app-flows.e2e.ts                 0 (6 passed)
+manual production browse                  see Appendix E (disposable captain; cleaned up)
 
 ```
 
@@ -936,3 +1022,54 @@ isolated-app-flows.e2e.ts                 0 (6 passed)
 | F-05 | Maybe migrations exist elsewhere in git | Only historical commits; HEAD has none. |
 
 False-positive watch: GraphQL “anon can SELECT” advisors were **not** promoted to Critical because RLS still returns zero rows without a JWT.
+
+## Appendix E — Manual production browse (2026-09-11)
+
+**Target:** `https://bb-manager.vercel.app` (desktop ≥1280px and ~390px).  
+**Identity:** disposable captain created via public signup, `profiles.role` patched to `captain` with the service role for settings/cog coverage, then deleted.  
+**Data:** sentinel members `ZZZ-E2E-BROWSE-*` in company and junior; both deleted. Live `members` count **14** after cleanup.  
+**Not done:** save weekly marks, change meeting day, download PDF, run `cleanup_old_invite_codes`.
+
+### What worked
+
+- Login HTML5 required fields; invalid password stays on the form with `Login Failed: Invalid login credentials`.
+- No signup or forgot-password links in the UI.
+- Logo and `postimg.cc` chrome loaded on login, header, and section cards during this session.
+- Search isolates a sentinel immediately.
+- Add Boy rejects empty and whitespace-only names.
+- Escape and X close modals; invisible Done still closes if you click the blank corner.
+- Unsaved-changes prompt on Weekly Marks when leaving a dirty sheet (Stay works). Past dates auto-lock (`Unlock to edit past marks`).
+- Captain cog → Section Settings shows Friday; Save disabled-path not exercised (left unchanged).
+- Account Settings client validation: length ≥6 and confirm match, shown together.
+- Desktop nav at ≥1024px; hamburger at ~390px includes Home, Dashboard, Weekly Marks, Section Settings, email, Account Settings, Switch Section, Log Out.
+- Switch Section and logout return to the expected screens.
+- Dashboard, heatmap, Top 5, and Master PDF modal open (Suspense eventually shows the form; download was not used).
+
+### Bugs / improvements found in this pass
+
+| ID | Issue | Severity |
+|---|---|---|
+| F-31 | Weekly Marks 100% present on a blank sheet | Medium |
+| F-32 | Squad header totals ignore search/filter | Medium |
+| F-33 | Leader badge on members who are not squad leaders | Medium |
+| F-19 | Access Denied heading is 16px (`2xl` not `text-2xl`); Return to Login does not navigate or sign out | Low (button broken) |
+| F-34 | Sort & Filter Done is white on transparent | Low |
+| F-35 | Stale “0–10” error after typing `11` | Low |
+| F-36 | Header has no current-page / `aria-current` | Low |
+| F-37 | Filter icon has no active badge | Low |
+| F-38 | No Back on boy marks; search resets | Low |
+| F-39 | Section-select logout is a corner icon | Low |
+| F-40 | Save FAB overlaps the next squad’s stats | Low |
+| F-41 | PDF range defaults to all history (~34 pages) | Low |
+| F-42 | Overlay click does not dismiss; no current-password field | Low |
+
+### Further product improvements (not separate findings)
+
+- Weekly Marks has no search; officers must scan the full roster (PII-heavy, slow).
+- Copy mixes “Members” with “Add Boy” / “Update Boy”.
+- Password change does not require the current password (F-06).
+- `BoyForm` does not disable submit while saving (double-click create risk; F-08 related).
+- Heatmap attendance is “of members who already have a mark that day”, not of the whole squad.
+- Default Present cannot distinguish “not yet taken” from “everyone is here”.
+
+Cleanup confirmed: no `ZZZ-E2E-*` members; browse Auth user deleted; extra no-role test users deleted.
