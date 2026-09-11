@@ -37,7 +37,7 @@ The main landing page after login, displaying the member roster.
     -   Displays a list of all members, grouped and sorted by squad.
     -   Calculates and displays squad-level and individual-level statistics (total marks, attendance).
     -   Implements advanced search, filtering (by squad/year), and sorting (by name/marks/attendance) via a modal interface.
-    -   Features a modern UI with toggleable icon buttons for accessing page controls.
+    -   Features a modern UI with toggleable icon buttons for accessing page controls. On a phone, Import and Add Boy collapse to icons; an empty roster keeps those actions in the empty state instead of the header.
     -   Handles user interactions for adding, editing, deleting, and importing members from a past session.
     -   Navigates to the `BoyMarksPage` when a member's chart icon is clicked.
 -   **Key Props**: `boys`, `setView`, `refreshData`, `activeSection`, `showToast`, `settings`.

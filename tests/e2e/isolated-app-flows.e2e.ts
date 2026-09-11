@@ -110,7 +110,9 @@ test.describe('Isolated app flows', () => {
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Import', exact: true })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Import', exact: true }).or(page.getByRole('button', { name: 'Import from a past session' })),
+    ).toBeVisible();
   });
 
   test('officer can create, search, edit, and open a sentinel member', async ({ page }) => {
@@ -123,7 +125,7 @@ test.describe('Isolated app flows', () => {
     await expect(filterDialog.getByRole('button', { name: 'Done' })).toBeVisible();
     await filterDialog.getByRole('button', { name: 'Done' }).click();
 
-    await page.getByRole('button', { name: 'Add Boy' }).click();
+    await page.getByRole('button', { name: 'Add Boy' }).or(page.getByRole('button', { name: 'Add your first member' })).click();
     const addDialog = page.getByRole('dialog');
     await expect(addDialog.getByRole('heading', { name: 'Add New Boy' })).toBeVisible();
     await addDialog.getByLabel('Name').fill(MEMBER_NAME);

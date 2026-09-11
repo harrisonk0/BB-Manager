@@ -211,9 +211,9 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Members</h1>
-        <div className="flex items-center space-x-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Members</h1>
+        <div className="flex items-center gap-1 sm:gap-2">
             <button
                 onClick={() => setIsSearchVisible(!isSearchVisible)}
                 className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isSearchVisible ? 'bg-slate-100' : ''} ${accentRing}`}
@@ -232,20 +232,26 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
                   <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-400" aria-hidden="true" />
                 )}
             </button>
-            <button
-              onClick={() => setIsImportModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
-            >
-              <ArrowDownTrayIcon className="h-5 w-5 mr-2 -ml-1"/>
-              Import
-            </button>
-            <button
-              onClick={handleAddBoy}
-              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
-            >
-              <PlusIcon className="h-5 w-5 mr-2 -ml-1"/>
-              Add Boy
-            </button>
+            {boys.length > 0 && (
+              <>
+                <button
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="inline-flex items-center justify-center rounded-full p-2 text-slate-700 hover:bg-slate-100 sm:rounded-md sm:border sm:border-slate-300 sm:bg-white sm:px-4 sm:py-2 sm:text-sm sm:font-medium sm:shadow-sm sm:hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+                  aria-label="Import"
+                >
+                  <ArrowDownTrayIcon className="h-5 w-5 sm:mr-2 sm:-ml-1"/>
+                  <span className="hidden sm:inline">Import</span>
+                </button>
+                <button
+                  onClick={handleAddBoy}
+                  className={`inline-flex items-center justify-center rounded-full p-2 text-white ${accentBg} hover:brightness-90 sm:rounded-md sm:px-4 sm:py-2 sm:text-sm sm:font-medium sm:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+                  aria-label="Add Boy"
+                >
+                  <PlusIcon className="h-5 w-5 sm:mr-2 sm:-ml-1"/>
+                  <span className="hidden sm:inline">Add Boy</span>
+                </button>
+              </>
+            )}
         </div>
       </div>
       
@@ -273,20 +279,20 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
             <p className="mt-2 text-md text-slate-500">
                 Add a new member, or import returning boys from a past session. School year moves on by one when you import.
             </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <button
-                    onClick={() => setIsImportModalOpen(true)}
-                    className="inline-flex items-center px-6 py-3 border border-slate-300 text-base font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
-                >
-                    <ArrowDownTrayIcon className="h-5 w-5 mr-3 -ml-1"/>
-                    Import from a past session
-                </button>
+            <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3">
                 <button
                     onClick={handleAddBoy}
-                    className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
+                    className={`inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
                 >
                     <PlusIcon className="h-5 w-5 mr-3 -ml-1"/>
                     Add your first member
+                </button>
+                <button
+                    onClick={() => setIsImportModalOpen(true)}
+                    className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-slate-300 text-base font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+                >
+                    <ArrowDownTrayIcon className="h-5 w-5 mr-3 -ml-1"/>
+                    Import from a past session
                 </button>
             </div>
         </div>
