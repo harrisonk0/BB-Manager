@@ -7,6 +7,7 @@ export type MemberRow = {
   section: Section;
   school_year: string;
   is_squad_leader: boolean | null;
+  imported_from_archived_member_id?: string | null;
 };
 
 export type MarkRow = {
@@ -80,6 +81,7 @@ export const mapBoyRow = (member: MemberRow, marks: MarkRow[]): Boy => ({
     .sort((a, b) => a.date.localeCompare(b.date))
     .map(mapMarkRow),
   isSquadLeader: member.is_squad_leader ?? false,
+  importedFromArchivedMemberId: member.imported_from_archived_member_id ?? null,
 });
 
 export const validateMarksForSection = (marks: Mark[], section: Section, subject = 'Member') => {

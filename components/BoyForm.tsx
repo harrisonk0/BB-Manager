@@ -4,9 +4,16 @@
  * It is displayed within a modal.
  */
 
-import React, { useState, useEffect } from 'react';
-import { Boy, Squad, SchoolYear, Section, JuniorSquad, JuniorYear } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Boy, SchoolYear, Section, JuniorYear, SectionSquad } from '../types';
 import { createBoy, updateBoy } from '../services/db';
+import {
+  formatSchoolYear,
+  resolveSquadNumber,
+  schoolYearsForSection,
+  squadDisplayName,
+  defaultSquadsForSection,
+} from '../services/sectionSquads';
 
 interface BoyFormProps {
   /** If provided, the form will be in 'edit' mode, pre-filled with this boy's data. If null/undefined, it's in 'add' mode. */
@@ -17,60 +24,60 @@ interface BoyFormProps {
   onClose: () => void;
   /** The currently active section, which determines the available options (e.g., squads, years). */
   activeSection: Section;
+  /** Squads configured for this section in settings. */
+  squads?: SectionSquad[];
 }
 
-const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSection }) => {
+const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSection, squads }) => {
   const isCompany = activeSection === 'company';
-  
-  // Set initial form state based on the active section.
-  const initialSquad = isCompany ? 1 : 1;
-  const initialYear = isCompany ? 8 : 'P4';
-  
-  // Form field states.
+  const configuredSquads = useMemo(
+    () => (squads && squads.length > 0 ? squads : defaultSquadsForSection(activeSection)),
+    [squads, activeSection],
+  );
+
+  const squadOptions = useMemo(() => {
+    const options = [...configuredSquads];
+    if (boyToEdit && !options.some((squad) => squad.number === boyToEdit.squad)) {
+      options.push({ number: boyToEdit.squad, label: null });
+      options.sort((left, right) => left.number - right.number);
+    }
+    return options;
+  }, [configuredSquads, boyToEdit]);
+
+  const schoolYears = schoolYearsForSection(activeSection);
+  const initialSquad = resolveSquadNumber(squadOptions, boyToEdit?.squad);
+  const initialYear = (isCompany ? 8 : 'P4') as SchoolYear | JuniorYear;
+
   const [name, setName] = useState('');
-  const [squad, setSquad] = useState<Squad | JuniorSquad>(initialSquad);
+  const [squad, setSquad] = useState(initialSquad);
   const [year, setYear] = useState<SchoolYear | JuniorYear>(initialYear);
   const [isSquadLeader, setIsSquadLeader] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
-  // Granular error states
+
   const [nameError, setNameError] = useState<string | null>(null);
   const [squadError, setSquadError] = useState<string | null>(null);
   const [yearError, setYearError] = useState<string | null>(null);
 
-  /**
-   * EFFECT: Populates the form fields when `boyToEdit` prop changes.
-   * This handles switching between 'add' and 'edit' modes.
-   */
   useEffect(() => {
     if (boyToEdit) {
-      // Edit mode: set state from the boy's data.
       setName(boyToEdit.name);
-      setSquad(boyToEdit.squad);
+      setSquad(resolveSquadNumber(squadOptions, boyToEdit.squad));
       setYear(boyToEdit.year || initialYear);
       setIsSquadLeader(boyToEdit.isSquadLeader || false);
     } else {
-      // Add mode: reset form to initial values.
       setName('');
-      setSquad(initialSquad);
+      setSquad(resolveSquadNumber(squadOptions, undefined));
       setYear(initialYear);
       setIsSquadLeader(false);
     }
-    // Clear all errors when boyToEdit changes
     setNameError(null);
     setSquadError(null);
     setYearError(null);
-  }, [boyToEdit, activeSection]);
+  }, [boyToEdit, activeSection, squadOptions, initialYear]);
 
-  /**
-   * Handles the form submission.
-   * It performs validation, then calls the appropriate database service (create or update),
-   * and finally calls the onSave callback.
-   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Clear previous errors
+
     setNameError(null);
     setSquadError(null);
     setYearError(null);
@@ -80,8 +87,10 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
       setNameError('Name cannot be empty.');
       isValid = false;
     }
-    // Add more validation for squad and year if necessary, e.g., if they could be invalid.
-    // For now, assuming select/radio ensure valid values.
+    if (!squadOptions.some((option) => option.number === squad)) {
+      setSquadError('Choose a squad.');
+      isValid = false;
+    }
 
     if (!isValid) {
       return;
@@ -90,36 +99,24 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     setIsSaving(true);
     try {
       if (boyToEdit) {
-        // --- UPDATE LOGIC ---
         await updateBoy({ ...boyToEdit, name, squad, year, isSquadLeader }, activeSection);
         onSave(false, name);
       } else {
-        // --- CREATE LOGIC ---
         await createBoy({ name, squad, year, marks: [], isSquadLeader }, activeSection);
         onSave(true, name);
       }
     } catch (err) {
       console.error('Failed to save boy:', err);
-      setNameError('Failed to save boy. Please try again.'); // Generic error for save failure
+      setNameError('Failed to save boy. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
-  
-  // Define available form options based on the active section.
-  const companyYears: SchoolYear[] = [8, 9, 10, 11, 12, 13, 14];
-  const juniorYears: JuniorYear[] = ['P4', 'P5', 'P6', 'P7'];
-  const schoolYears = isCompany ? companyYears : juniorYears;
 
-  const companySquads: Squad[] = [1, 2, 3];
-  const juniorSquads: JuniorSquad[] = [1, 2, 3, 4];
-  const squadOptions = isCompany ? companySquads : juniorSquads;
-
-  // Define dynamic styles based on the active section.
   const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
   const accentText = isCompany ? 'text-company-blue focus:ring-company-blue' : 'text-junior-blue focus:ring-junior-blue';
   const accentBg = isCompany ? 'bg-company-blue focus:ring-company-blue' : 'bg-junior-blue focus:ring-junior-blue';
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
@@ -146,7 +143,6 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
           id="year"
           value={year}
           onChange={(e) => {
-            // Handle parsing to number for Company Section years.
             const value = isCompany ? parseInt(e.target.value, 10) : e.target.value;
             setYear(value as SchoolYear | JuniorYear);
           }}
@@ -156,7 +152,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
         >
           {schoolYears.map((yearNum) => (
             <option key={yearNum} value={yearNum}>
-              {isCompany ? `Year ${yearNum}` : yearNum}
+              {formatSchoolYear(activeSection, yearNum)}
             </option>
           ))}
         </select>
@@ -165,17 +161,18 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
       <div>
         <label className="block text-sm font-medium text-slate-700">Squad</label>
         <div className={`mt-2 flex flex-wrap gap-4 ${squadError ? 'border border-red-500 p-2 rounded-md' : ''}`}>
-          {squadOptions.map((squadNum) => (
-            <label key={squadNum} className="inline-flex items-center">
+          {squadOptions.map((option) => (
+            <label key={option.number} className="inline-flex items-center">
               <input
                 type="radio"
                 name="squad"
-                value={squadNum}
-                checked={squad === squadNum}
-                onChange={() => setSquad(squadNum as Squad | JuniorSquad)}
+                value={option.number}
+                checked={squad === option.number}
+                onChange={() => setSquad(option.number)}
+                aria-label={`Squad ${option.number}`}
                 className={`form-radio h-4 w-4 border-slate-300 ${accentText}`}
               />
-              <span className="ml-2 text-slate-700">{`Squad ${squadNum}`}</span>
+              <span className="ml-2 text-slate-700">{squadDisplayName(squadOptions, option.number)}</span>
             </label>
           ))}
         </div>
@@ -192,7 +189,6 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
           <span className="ml-2 text-sm text-slate-700">Set as Squad Leader</span>
         </label>
       </div>
-      {/* Form action buttons */}
       <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
         <button
           type="button"

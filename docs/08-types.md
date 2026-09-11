@@ -24,6 +24,8 @@ interface Boy {
   marks: Mark[];
   /** A flag indicating if the member is a designated squad leader. */
   isSquadLeader?: boolean;
+  /** Set when this live member was imported from a past-session archive row. */
+  importedFromArchivedMemberId?: string | null;
 }
 ```
 
@@ -56,6 +58,13 @@ Represents the settings specific to a section (Company or Junior).
 interface SectionSettings {
   /** The day of the week the section meets (0 = Sunday, 1 = Monday, ..., 6 = Saturday). */
   meetingDay: number;
+  /** Squads configured for the section. */
+  squads: SectionSquad[];
+}
+
+interface SectionSquad {
+  number: number;
+  label: string | null;
 }
 ```
 
@@ -80,12 +89,11 @@ type Section = 'company' | 'junior';
 These types define the valid squad numbers and school years for each section.
 
 ```typescript
-// Company Section
-type Squad = 1 | 2 | 3;
+// Company and Junior squad numbers are configured in section settings.
+type Squad = number;
 type SchoolYear = 8 | 9 | 10 | 11 | 12 | 13 | 14;
 
-// Junior Section
-type JuniorSquad = 1 | 2 | 3 | 4;
+type JuniorSquad = number;
 type JuniorYear = 'P4' | 'P5' | 'P6' | 'P7';
 ```
 

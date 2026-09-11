@@ -177,13 +177,13 @@ const App: React.FC = () => {
 
     switch (view.page) {
       case 'home':
-        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection} showToast={showToast} />;
+        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection} showToast={showToast} settings={settings} />;
       case 'weeklyMarks':
         return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection} settings={settings} showToast={showToast} />;
       case 'dashboard':
-        return <DashboardPage boys={boys} activeSection={activeSection} />;
+        return <DashboardPage boys={boys} activeSection={activeSection} settings={settings} />;
       case 'archives':
-        return <ArchivesPage activeSection={activeSection} showToast={showToast} />;
+        return <ArchivesPage activeSection={activeSection} showToast={showToast} liveBoys={boys} settings={settings} refreshData={refreshData} />;
       case 'settings':
         return (
           <SettingsPage
@@ -195,6 +195,7 @@ const App: React.FC = () => {
             onNavigateToAccountSettings={() => navigateWithProtection({ page: 'accountSettings' })}
             refreshData={refreshData}
             onNavigateToArchives={() => navigateWithProtection({ page: 'archives' })}
+            boys={boys}
           />
         );
       case 'accountSettings':
@@ -213,7 +214,7 @@ const App: React.FC = () => {
         );
       }
       default:
-        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection} showToast={showToast} />;
+        return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection} showToast={showToast} settings={settings} />;
     }
   };
 

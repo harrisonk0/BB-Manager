@@ -261,6 +261,7 @@ describe('db service write model', () => {
       year: 10,
       marks: [],
       isSquadLeader: false,
+      importedFromArchivedMemberId: null,
     });
 
     expect(supabaseMock.from).toHaveBeenCalledWith('members');

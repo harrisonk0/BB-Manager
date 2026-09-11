@@ -72,7 +72,7 @@ flowchart LR
   - `marks` for per-member attendance and scores
 - `services/sessions.ts` lists closed BB years and starts a new session through `start_new_bb_session`.
 - `services/reporting/sessionReport.ts` derives PDF-ready session reporting aggregates from loaded section data.
-- `services/settings.ts` handles section-level settings, updating the seeded `company` and `junior` rows in place.
+- `services/settings.ts` handles section-level settings, updating the seeded `company` and `junior` rows in place, including the squad list.
 
 ## State Model
 

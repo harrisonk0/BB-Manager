@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Section, SectionSettings, ToastType, UserRole } from '../types';
+import { Boy, Section, SectionSettings, ToastType, UserRole } from '../types';
 import { saveSettings } from '../services/settings';
 import { startNewBbSession } from '../services/sessions';
 import {
@@ -7,6 +7,7 @@ import {
   NEW_SESSION_CONFIRMATION_PHRASE,
 } from '../services/sessionArchiveModel';
 import Modal from './Modal';
+import SquadsSettingsCard from './SquadsSettingsCard';
 
 interface SettingsPageProps {
   activeSection: Section;
@@ -22,6 +23,8 @@ interface SettingsPageProps {
   refreshData: () => Promise<void>;
   /** Open the Past Sessions page after a successful archive. */
   onNavigateToArchives: () => void;
+  /** Live members in this section, used to block deleting occupied squads. */
+  boys: Boy[];
 }
 
 const WEEKDAYS = [
@@ -37,6 +40,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   onNavigateToAccountSettings,
   refreshData,
   onNavigateToArchives,
+  boys,
 }) => {
   const [meetingDay, setMeetingDay] = useState<number>(5);
   const [isSaving, setIsSaving] = useState(false);
@@ -67,7 +71,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     setIsSaving(true);
     setError(null);
     try {
-      const newSettings: SectionSettings = { meetingDay };
+      const newSettings: SectionSettings = { meetingDay, squads: currentSettings.squads };
       await saveSettings(activeSection, newSettings, userRole);
       onSettingsSaved(newSettings);
       showToast('Settings saved successfully!', 'success');
@@ -175,6 +179,18 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             </div>
           </div>
         </div>
+
+        {currentSettings && (
+          <SquadsSettingsCard
+            activeSection={activeSection}
+            currentSettings={currentSettings}
+            boys={boys}
+            userRole={userRole}
+            canEdit={!!canEditSettings}
+            onSettingsSaved={onSettingsSaved}
+            showToast={showToast}
+          />
+        )}
 
         {canEditSettings && (
           <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md">

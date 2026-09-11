@@ -145,9 +145,10 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise
         school_year: String(boy.year),
         is_squad_leader: boy.isSquadLeader ?? false,
         section,
+        imported_from_archived_member_id: boy.importedFromArchivedMemberId ?? null,
       },
     ])
-    .select('id,name,squad,section,school_year,is_squad_leader')
+    .select('id,name,squad,section,school_year,is_squad_leader,imported_from_archived_member_id')
     .single();
 
   if (error || !data) {
@@ -180,7 +181,7 @@ export const fetchBoys = async (section: Section): Promise<Boy[]> => {
   const [{ data: members, error: membersError }, { data: marks, error: marksError }] = await Promise.all([
     supabase
       .from('members')
-      .select('id,name,squad,section,school_year,is_squad_leader')
+      .select('id,name,squad,section,school_year,is_squad_leader,imported_from_archived_member_id')
       .eq('section', section)
       .order('name'),
     supabase
@@ -216,7 +217,7 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
   const [{ data: member, error: memberError }, { data: marks, error: marksError }] = await Promise.all([
     supabase
       .from('members')
-      .select('id,name,squad,section,school_year,is_squad_leader')
+      .select('id,name,squad,section,school_year,is_squad_leader,imported_from_archived_member_id')
       .eq('id', id)
       .eq('section', section)
       .single(),

@@ -290,6 +290,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          imported_from_archived_member_id: string | null
           is_squad_leader: boolean
           name: string
           school_year: string
@@ -300,6 +301,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          imported_from_archived_member_id?: string | null
           is_squad_leader?: boolean
           name: string
           school_year: string
@@ -310,6 +312,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          imported_from_archived_member_id?: string | null
           is_squad_leader?: boolean
           name?: string
           school_year?: string
@@ -317,7 +320,15 @@ export type Database = {
           squad?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "members_imported_from_archived_member_id_fkey"
+            columns: ["imported_from_archived_member_id"]
+            isOneToOne: false
+            referencedRelation: "archived_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -347,16 +358,19 @@ export type Database = {
         Row: {
           meeting_day: number
           section: Database["public"]["Enums"]["section"]
+          squads: Json
           updated_at: string
         }
         Insert: {
           meeting_day: number
           section: Database["public"]["Enums"]["section"]
+          squads?: Json
           updated_at?: string
         }
         Update: {
           meeting_day?: number
           section?: Database["public"]["Enums"]["section"]
+          squads?: Json
           updated_at?: string
         }
         Relationships: []
@@ -406,6 +420,7 @@ export type Database = {
         Returns: undefined
       }
       start_new_bb_session: { Args: { p_label: string }; Returns: Json }
+      squads_payload_is_valid: { Args: { payload: Json }; Returns: boolean }
       validate_invite_code: {
         Args: { p_code: string }
         Returns: {

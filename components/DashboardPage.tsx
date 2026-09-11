@@ -6,9 +6,10 @@
  */
 
 import React, { Suspense, useMemo } from 'react';
-import { Boy, Squad, Section, JuniorSquad, Mark } from '../types';
+import { Boy, Section, Mark, SectionSettings } from '../types';
 import { StarIcon, ChartBarIcon, ClipboardDocumentListIcon } from './Icons';
 import BarChart from './BarChart';
+import { squadChartColor, squadDisplayName, squadTextClass, withSettingsSquads } from '../services/sectionSquads';
 
 const SessionReportModal = React.lazy(() => import('./SessionReportModal'));
 
@@ -16,33 +17,13 @@ const SessionReportModal = React.lazy(() => import('./SessionReportModal'));
 interface DashboardPageProps {
   boys: Boy[];
   activeSection: Section;
+  settings: SectionSettings | null;
 }
 
-// Section-specific color mappings.
-const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
-  1: 'text-red-600',
-  2: 'text-green-600',
-  3: 'text-yellow-600',
-};
-
-const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
-  1: 'text-red-600',
-  2: 'text-green-600',
-  3: 'text-blue-600',
-  4: 'text-yellow-600',
-};
-
-const SQUAD_CHART_COLORS: Record<string, string> = {
-    '1': '#ef4444', // red-500
-    '2': '#22c55e', // green-500
-    '3': '#eab308', // yellow-500
-    '4': '#3b82f6', // blue-500
-}
-
-const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection, settings }) => {
   const [isReportModalOpen, setIsReportModalOpen] = React.useState(false);
   const isCompany = activeSection === 'company';
-  const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
+  const configuredSquads = withSettingsSquads(settings, activeSection);
 
   if (boys.length === 0) {
     const accentTextColor = isCompany ? 'text-company-blue' : 'text-junior-blue';
@@ -96,12 +77,12 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
   const squadMarksData = useMemo(() => {
     return Object.keys(boysBySquad)
         .map(squad => ({
-            label: `Squad ${squad}`,
+            label: squadDisplayName(configuredSquads, Number(squad)),
             value: boysBySquad[squad].reduce((total, boy) => total + calculateTotalMarks(boy), 0),
-            color: SQUAD_CHART_COLORS[squad] || '#64748b' // slate-500
+            color: squadChartColor(activeSection, Number(squad)),
         }))
         .sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
-  }, [boysBySquad]);
+  }, [activeSection, boysBySquad, configuredSquads]);
 
   const heatmapData = useMemo(() => {
     const allDates = Array.from(new Set(boys.flatMap(b => b.marks.map(m => m.date)))).sort();
@@ -202,7 +183,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
                 <li key={boy.id} className="flex items-center justify-between">
                   <div className="flex items-center">
                     <span className={`w-6 text-center font-bold text-lg ${index < 3 ? 'text-slate-800' : 'text-slate-500'}`}>{index + 1}</span>
-                    <span className={`ml-3 font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>{boy.name}</span>
+                    <span className={`ml-3 font-medium ${squadTextClass(activeSection, boy.squad)}`}>{boy.name}</span>
                   </div>
                   <span className="font-bold text-slate-800">{boy.totalMarks}</span>
                 </li>
@@ -279,7 +260,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection }) =>
                 {sortedSquads.flatMap(squad => boysBySquad[squad].map(boy => (
                   <tr key={boy.id}>
                     <td className="sticky left-0 bg-white whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 z-10 w-48 min-w-[12rem]">
-                      <div className={`${(SQUAD_COLORS as any)[boy.squad]}`}>{boy.name}</div>
+                      <div className={`${squadTextClass(activeSection, boy.squad)}`}>{boy.name}</div>
                     </td>
                     {allMonths.map(month => (
                       <td key={`${boy.id}-${month}`} className="whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500">

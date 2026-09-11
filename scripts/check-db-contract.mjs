@@ -16,6 +16,19 @@ const requireMeetingDay = (section, value) => {
   }
 };
 
+const requireSquads = (section, value) => {
+  if (!Array.isArray(value) || value.length < 1) {
+    throw new Error(`Settings row for ${section} has invalid squads: ${JSON.stringify(value)}`);
+  }
+
+  for (const item of value) {
+    const number = Number(item?.number);
+    if (!Number.isInteger(number) || number < 1) {
+      throw new Error(`Settings row for ${section} has an invalid squad entry.`);
+    }
+  }
+};
+
 const supabase = createClient(requireEnv('VITE_SUPABASE_URL'), requireEnv('VITE_SUPABASE_ANON_KEY'), {
   auth: {
     autoRefreshToken: false,
@@ -51,7 +64,7 @@ try {
 
   const { data: settingsRows, error: settingsError } = await supabase
     .from('settings')
-    .select('section,meeting_day')
+    .select('section,meeting_day,squads')
     .in('section', ['company', 'junior']);
 
   if (settingsError) {
@@ -81,6 +94,7 @@ try {
     }
 
     requireMeetingDay(section, row.meeting_day);
+    requireSquads(section, row.squads);
   }
 
   console.log(`Database contract smoke check passed for role ${role}.`);

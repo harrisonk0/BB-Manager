@@ -17,7 +17,10 @@ const supabaseMock = vi.hoisted(() => {
 
   const archivedMemberOrder = vi.fn(() => Promise.resolve(archivedMembersResponse));
   const archivedMemberEqSection = vi.fn(() => ({ order: archivedMemberOrder }));
-  const archivedMemberEqSession = vi.fn(() => ({ eq: archivedMemberEqSection }));
+  const archivedMemberEqSession = vi.fn(() => ({
+    eq: archivedMemberEqSection,
+    order: archivedMemberOrder,
+  }));
   const archivedMemberSelect = vi.fn(() => ({ eq: archivedMemberEqSession }));
 
   const archivedMarkEqSection = vi.fn(() => Promise.resolve(archivedMarksResponse));
@@ -70,7 +73,7 @@ const supabaseMock = vi.hoisted(() => {
 vi.mock('./supabaseAuth', () => authMock);
 vi.mock('./supabaseClient', () => ({ supabase: supabaseMock }));
 
-import { fetchArchivedBoys, listBbSessions, startNewBbSession } from './sessions';
+import { fetchArchivedBoys, fetchArchivedMemberSnapshots, listBbSessions, startNewBbSession } from './sessions';
 
 describe('sessions service', () => {
   beforeEach(() => {
@@ -164,6 +167,34 @@ describe('sessions service', () => {
         year: 10,
         isSquadLeader: false,
         marks: [],
+        importedFromArchivedMemberId: null,
+      },
+    ]);
+  });
+
+  it('loads archived member snapshots for import without marks', async () => {
+    supabaseMock.archivedMembersResponse = {
+      data: [
+        {
+          id: 'archive-member-1',
+          name: 'Archive Alpha',
+          squad: 1,
+          section: 'company',
+          school_year: '10',
+          is_squad_leader: false,
+        },
+      ],
+      error: null,
+    };
+
+    await expect(fetchArchivedMemberSnapshots('session-1')).resolves.toEqual([
+      {
+        id: 'archive-member-1',
+        name: 'Archive Alpha',
+        squad: 1,
+        section: 'company',
+        year: 10,
+        isSquadLeader: false,
       },
     ]);
   });

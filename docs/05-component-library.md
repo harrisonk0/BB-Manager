@@ -38,9 +38,9 @@ The main landing page after login, displaying the member roster.
     -   Calculates and displays squad-level and individual-level statistics (total marks, attendance).
     -   Implements advanced search, filtering (by squad/year), and sorting (by name/marks/attendance) via a modal interface.
     -   Features a modern UI with toggleable icon buttons for accessing page controls.
-    -   Handles user interactions for adding, editing, and deleting members.
+    -   Handles user interactions for adding, editing, deleting, and importing members from a past session.
     -   Navigates to the `BoyMarksPage` when a member's chart icon is clicked.
--   **Key Props**: `boys`, `setView`, `refreshData`, `activeSection`, `showToast`.
+-   **Key Props**: `boys`, `setView`, `refreshData`, `activeSection`, `showToast`, `settings`.
 
 #### `WeeklyMarksPage.tsx`
 
@@ -79,7 +79,7 @@ A visual summary report view of member and squad performance.
     -   Presents an attendance trend heatmap, showing each squad's attendance percentage for every recorded date.
     -   Includes a detailed "Marks Breakdown by Month" table for granular reporting.
     -   Opens the Master Session PDF export modal.
--   **Key Props**: `boys`, `activeSection`.
+-   **Key Props**: `boys`, `activeSection`, `settings`.
 
 #### `ArchivesPage.tsx`
 
@@ -89,7 +89,8 @@ Read-only view of closed BB years.
     -   Lists archived sessions newest first.
     -   Loads that session's members and marks for the active section.
     -   Reuses `SessionReportModal` so staff can regenerate a Master PDF from archived data.
--   **Key Props**: `activeSection`, `showToast`.
+    -   Offers import into the current year’s live roster, with school year moved on by one.
+-   **Key Props**: `activeSection`, `showToast`, `liveBoys`, `settings`, `refreshData`.
 
 #### `SettingsPage.tsx`
 
@@ -97,11 +98,32 @@ Allows users to configure application settings specific to the currently active 
 
 -   **Responsibilities**:
     -   Displays form inputs for available section settings (e.g., meeting day).
+    -   Lets captains and admins add, rename, and remove squads for the active section.
     -   Handles saving the settings to Supabase, with client-side permission checks based on `userRole`.
     -   Lets captains and admins archive both sections and start a new BB session.
     -   Provides a link to navigate to `AccountSettingsPage`.
     -   Persists section settings through the data service layer.
--   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToAccountSettings`, `refreshData`, `onNavigateToArchives`.
+-   **Key Props**: `activeSection`, `currentSettings`, `onSettingsSaved`, `showToast`, `userRole`, `onNavigateToAccountSettings`, `refreshData`, `onNavigateToArchives`, `boys`.
+
+#### `SquadsSettingsCard.tsx`
+
+CRUD UI for the active section’s squad list, embedded in Section Settings.
+
+-   **Responsibilities**:
+    -   Lists configured squad numbers and optional nicknames.
+    -   Adds the next unused squad number, renames on blur, and deletes empty squads.
+    -   Refuses to delete the last squad or a squad that still has members.
+-   **Key Props**: `activeSection`, `currentSettings`, `boys`, `userRole`, `canEdit`, `onSettingsSaved`, `showToast`.
+
+#### `ImportFromSessionModal.tsx`
+
+Lets staff copy returning boys from a closed BB year onto the live roster.
+
+-   **Responsibilities**:
+    -   Loads archived members for a chosen past session (no marks).
+    -   Bumps school year by one, promotes Junior P7 into Company Year 8, and excludes Year 14 leavers.
+    -   Creates live members with empty marks and records `imported_from_archived_member_id`.
+-   **Key Props**: `isOpen`, `onClose`, `activeSection`, `liveBoys`, `destinationSquads`, `showToast`, `refreshData`, `initialSessionId`.
 
 #### `AccountSettingsPage.tsx`
 
@@ -180,10 +202,10 @@ A versatile form used for both creating and editing a member.
 
 -   **Responsibilities**:
     -   Renders form inputs for a member's name, squad, year, and squad leader status.
-    -   Adapts the available options (squads, years) based on the `activeSection`.
+    -   Adapts the available options (squads, years) based on the `activeSection` and configured squad list.
     -   Populates its fields with existing data when in "edit" mode (`boyToEdit` prop is provided).
     -   Handles form submission, validation, and calls the appropriate data service (`createBoy` or `updateBoy`).
--   **Key Props**: `boyToEdit`, `onSave`, `onClose`, `activeSection`.
+-   **Key Props**: `boyToEdit`, `onSave`, `onClose`, `activeSection`, `squads`.
 
 #### `Modal.tsx`
 
@@ -202,7 +224,7 @@ A collection of simple, stateless SVG icon components.
 
 -   **Responsibilities**:
     -   Exports multiple functional components, each rendering a specific SVG icon.
-    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Clipboard, Clipboard Document List, Archive Box, Key, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
+    -   Includes icons for Plus, Pencil, Trash, Chart Bar, Undo, Clock, Search, Menu, X, Save, Cog, Switch Horizontal, Clipboard, Clipboard Document List, Archive Box, Arrow Down Tray, Key, Check, Star, Check Circle, X Circle, Info Circle, Filter, Lock Closed, Lock Open, User Circle, Log Out, Calendar.
     -   Accepts an optional `className` prop for easy styling with Tailwind CSS.
 
 #### `DatePicker.tsx`

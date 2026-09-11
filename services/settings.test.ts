@@ -38,31 +38,45 @@ describe('settings', () => {
     expect(supabaseMock.from).toHaveBeenCalledWith('settings');
   });
 
-  it('returns the stored meeting day when the row exists', async () => {
+  it('returns the stored meeting day and squads when the row exists', async () => {
     supabaseMock.readSingle.mockResolvedValueOnce({
-      data: { meeting_day: 2 },
+      data: {
+        meeting_day: 2,
+        squads: [{ number: 1, label: null }, { number: 2, label: 'Blue' }],
+      },
       error: null,
     });
 
-    await expect(getSettings('junior')).resolves.toEqual({ meetingDay: 2 });
+    await expect(getSettings('junior')).resolves.toEqual({
+      meetingDay: 2,
+      squads: [
+        { number: 1, label: null },
+        { number: 2, label: 'Blue' },
+      ],
+    });
   });
 
   it('updates the seeded settings row for admins and captains', async () => {
     supabaseMock.writeSingle.mockResolvedValueOnce({
-      data: { section: 'company', meeting_day: 4 },
+      data: { section: 'company', meeting_day: 4, squads: [{ number: 1, label: null }] },
       error: null,
     });
 
-    await expect(saveSettings('company', { meetingDay: 4 }, 'captain')).resolves.toBeUndefined();
+    await expect(
+      saveSettings('company', { meetingDay: 4, squads: [{ number: 1, label: null }] }, 'captain'),
+    ).resolves.toBeUndefined();
     expect(supabaseMock.update).toHaveBeenCalledWith({
       meeting_day: 4,
+      squads: [{ number: 1, label: null }],
       updated_at: expect.any(String),
     });
     expect(supabaseMock.writeEq).toHaveBeenCalledWith('section', 'company');
   });
 
   it('rejects save attempts from non-admin roles before writing', async () => {
-    await expect(saveSettings('company', { meetingDay: 4 }, 'officer')).rejects.toThrow(/permission denied/i);
+    await expect(
+      saveSettings('company', { meetingDay: 4, squads: [{ number: 1, label: null }] }, 'officer'),
+    ).rejects.toThrow(/permission denied/i);
     expect(supabaseMock.update).not.toHaveBeenCalled();
   });
 
@@ -72,7 +86,9 @@ describe('settings', () => {
       error: { code: 'PGRST116', message: 'No rows found' },
     });
 
-    await expect(saveSettings('junior', { meetingDay: 2 }, 'admin')).rejects.toMatchObject({
+    await expect(
+      saveSettings('junior', { meetingDay: 2, squads: [{ number: 1, label: null }] }, 'admin'),
+    ).rejects.toMatchObject({
       code: 'PGRST116',
     });
   });

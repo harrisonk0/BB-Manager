@@ -1,10 +1,18 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Boy, Squad, View, Section, JuniorSquad, ToastType, SortByType, SchoolYear, JuniorYear } from '../types';
+import { Boy, View, Section, ToastType, SortByType, SchoolYear, JuniorYear, SectionSettings } from '../types';
 import Modal from './Modal';
 import BoyForm from './BoyForm';
-import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon } from './Icons';
+import ImportFromSessionModal from './ImportFromSessionModal';
+import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon, ArrowDownTrayIcon } from './Icons';
 import { deleteBoyById } from '../services/db';
 import { readRosterFilters, writeRosterFilters } from '../hooks/rosterFilters';
+import {
+  formatSchoolYear,
+  rosterSquadNumbers,
+  squadDisplayName,
+  squadTextClass,
+  withSettingsSquads,
+} from '../services/sectionSquads';
 
 interface HomePageProps {
   /** The list of all boys for the active section. */
@@ -17,23 +25,11 @@ interface HomePageProps {
   activeSection: Section;
   /** Function to display a toast notification. */
   showToast: (message: string, type?: ToastType) => void;
+  /** Section settings, including the configured squad list. */
+  settings: SectionSettings | null;
 }
 
-// Color mappings for squad names, specific to each section.
-const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
-  1: 'text-red-600',
-  2: 'text-green-600',
-  3: 'text-yellow-600',
-};
-
-const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
-  1: 'text-red-600',
-  2: 'text-green-600',
-  3: 'text-blue-600',
-  4: 'text-yellow-600',
-};
-
-const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection, showToast }) => {
+const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection, showToast, settings }) => {
   // --- STATE MANAGEMENT ---
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -44,12 +40,13 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   const [searchQuery, setSearchQuery] = useState(initialFilters.searchQuery);
   const [isSearchVisible, setIsSearchVisible] = useState(!!initialFilters.searchQuery);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortByType>(initialFilters.sortBy);
   const [filterSquad, setFilterSquad] = useState<string>(initialFilters.filterSquad);
   const [filterYear, setFilterYear] = useState<string>(initialFilters.filterYear);
 
   const isCompany = activeSection === 'company';
-  const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
+  const configuredSquads = withSettingsSquads(settings, activeSection);
 
   useEffect(() => {
     const stored = readRosterFilters(activeSection);
@@ -82,15 +79,12 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   // --- MEMOIZED COMPUTATIONS ---
   const { uniqueYears, uniqueSquads } = useMemo(() => {
     const years = new Set<SchoolYear | JuniorYear>();
-    const squads = new Set<Squad | JuniorSquad>();
     boys.forEach(boy => {
         years.add(boy.year);
-        squads.add(boy.squad);
     });
     const sortedYears = Array.from(years).sort((a,b) => String(b).localeCompare(String(a), undefined, { numeric: true }));
-    const sortedSquads = Array.from(squads).sort((a,b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
-    return { uniqueYears: sortedYears, uniqueSquads: sortedSquads };
-  }, [boys]);
+    return { uniqueYears: sortedYears, uniqueSquads: rosterSquadNumbers(configuredSquads, boys) };
+  }, [boys, configuredSquads]);
 
   /**
    * Memoized filtering of boys. This is a key performance optimization.
@@ -205,12 +199,15 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
   }
 
   // --- RENDER LOGIC ---
-  const sortedSquads = Object.keys(boysBySquad).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
   const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
   const accentTextHover = isCompany ? 'hover:text-company-blue' : 'hover:text-junior-blue';
   const hasActiveFilters = filterSquad !== 'all' || filterYear !== 'all' || searchQuery !== '';
   const hasNonDefaultSortOrFilter = filterSquad !== 'all' || filterYear !== 'all' || sortBy !== 'name';
+  const sortedSquads = (hasActiveFilters
+    ? Object.keys(boysBySquad).map(Number)
+    : rosterSquadNumbers(configuredSquads, filteredBoys)
+  ).sort((a, b) => a - b);
 
   return (
     <div className="space-y-6">
@@ -234,6 +231,13 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
                 {hasNonDefaultSortOrFilter && (
                   <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-400" aria-hidden="true" />
                 )}
+            </button>
+            <button
+              onClick={() => setIsImportModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+            >
+              <ArrowDownTrayIcon className="h-5 w-5 mr-2 -ml-1"/>
+              Import
             </button>
             <button
               onClick={handleAddBoy}
@@ -267,9 +271,16 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
             <ClipboardDocumentListIcon className="mx-auto h-16 w-16 text-slate-400" />
             <h3 className="mt-4 text-xl font-semibold text-slate-900">Your Roster is Empty</h3>
             <p className="mt-2 text-md text-slate-500">
-                Get started by adding your first member. You can assign them to a squad and start tracking their marks.
+                Add a new member, or import returning boys from a past session. School year moves on by one when you import.
             </p>
-            <div className="mt-6">
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <button
+                    onClick={() => setIsImportModalOpen(true)}
+                    className="inline-flex items-center px-6 py-3 border border-slate-300 text-base font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+                >
+                    <ArrowDownTrayIcon className="h-5 w-5 mr-3 -ml-1"/>
+                    Import from a past session
+                </button>
                 <button
                     onClick={handleAddBoy}
                     className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
@@ -289,16 +300,17 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       )}
 
       {/* Main content: list of squads and their members */}
+      {boys.length > 0 && (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         {sortedSquads.map((squad) => {
-            // Only render the squad if it has members after filtering
-            if (!boysBySquad[squad] || boysBySquad[squad].length === 0) {
+            const squadBoys = boysBySquad[squad] || [];
+            if (hasActiveFilters && squadBoys.length === 0) {
                 return null;
             }
             return (
               <div key={squad}>
                 <div className="flex justify-between items-baseline mb-4">
-                  <h2 className="text-2xl font-semibold text-slate-800">{`Squad ${squad}`}</h2>
+                  <h2 className="text-2xl font-semibold text-slate-800">{squadDisplayName(configuredSquads, squad)}</h2>
                   <div className="text-right">
                     <p className="font-semibold text-slate-600">
                       Total Marks: {squadStats[squad]?.totalMarks ?? 0}
@@ -309,18 +321,21 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
                   </div>
                 </div>
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                  <ul className="divide-y divide-slate-200">
-                    {boysBySquad[squad].map((boy) => (
+                    {squadBoys.length === 0 ? (
+                      <p className="p-4 text-sm text-slate-500">No members in this squad yet.</p>
+                    ) : (
+                    <ul className="divide-y divide-slate-200">
+                    {squadBoys.map((boy) => (
                       <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                         <div className="flex-1">
-                          <p className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
+                          <p className={`text-lg font-medium ${squadTextClass(activeSection, boy.squad)}`}>
                               {boy.name}
                               {boy.isSquadLeader && (
                                   <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
                               )}
                           </p>
                           <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate-500">
-                            <span>{isCompany ? `Year ${boy.year}` : boy.year}</span>
+                            <span>{formatSchoolYear(activeSection, boy.year)}</span>
                             <span className="text-slate-300">&bull;</span>
                             <span>Total Marks: {calculateTotalMarks(boy)}</span>
                             <span className="text-slate-300">&bull;</span>
@@ -353,15 +368,15 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
                       </li>
                     ))}
                   </ul>
+                    )}
                 </div>
               </div>
             )
         })}
       </div>
-
-      {/* Modals for Add/Edit Form and Delete Confirmation */}
+      )}
       <Modal isOpen={isFormModalOpen} onClose={handleCloseFormModal} title={boyToEdit ? 'Edit Boy' : 'Add New Boy'}>
-        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} activeSection={activeSection} />
+        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} activeSection={activeSection} squads={configuredSquads} />
       </Modal>
 
       <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Confirm Deletion">
@@ -401,14 +416,14 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
                     <label htmlFor="filter-squad" className="block text-sm font-medium text-slate-700">Filter by Squad</label>
                     <select id="filter-squad" value={filterSquad} onChange={e => setFilterSquad(e.target.value)} className={`mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none sm:text-sm rounded-md ${accentRing}`}>
                         <option value="all">All Squads</option>
-                        {uniqueSquads.map(s => <option key={s} value={s}>Squad {s}</option>)}
+                        {uniqueSquads.map(s => <option key={s} value={s}>{squadDisplayName(configuredSquads, s)}</option>)}
                     </select>
                 </div>
                 <div>
                     <label htmlFor="filter-year" className="block text-sm font-medium text-slate-700">Filter by Year</label>
                     <select id="filter-year" value={filterYear} onChange={e => setFilterYear(e.target.value)} className={`mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none sm:text-sm rounded-md ${accentRing}`}>
                         <option value="all">All Years</option>
-                        {uniqueYears.map(y => <option key={y} value={y}>{isCompany ? `Year ${y}` : y}</option>)}
+                        {uniqueYears.map(y => <option key={y} value={y}>{formatSchoolYear(activeSection, y)}</option>)}
                     </select>
                 </div>
           </div>
@@ -422,6 +437,16 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
               </button>
           </div>
       </Modal>
+
+      <ImportFromSessionModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        activeSection={activeSection}
+        liveBoys={boys}
+        destinationSquads={configuredSquads}
+        showToast={showToast}
+        refreshData={refreshData}
+      />
 
     </div>
   );

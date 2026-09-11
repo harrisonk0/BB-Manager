@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Boy, Mark, Squad, Section, JuniorSquad, ToastType } from '../types';
+import { Boy, Mark, Section, ToastType } from '../types';
 import { TrashIcon, SaveIcon } from './Icons';
 import { BoyMarksPageSkeleton } from './SkeletonLoaders';
 import { fetchBoyById, saveBoyMarks } from '../services/db';
@@ -14,6 +14,7 @@ import {
   areMarkListsEqual,
   normalizeEditableMarksForSave,
 } from './weeklyMarksSavePlan';
+import { squadTextClass } from '../services/sectionSquads';
 
 interface BoyMarksPageProps {
   boyId: string;
@@ -24,26 +25,6 @@ interface BoyMarksPageProps {
   onBack: () => void;
 }
 
-// Section-specific color mappings.
-const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
-  1: 'text-red-600',
-  2: 'text-green-600',
-  3: 'text-yellow-600',
-};
-
-const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
-  1: 'text-red-600',
-  2: 'text-green-600',
-  3: 'text-blue-600',
-  4: 'text-yellow-600',
-};
-
-/**
- * A local type for managing marks in the component's state.
- * It allows scores to be an empty string ('') during editing, which is
- * different from the main `Mark` type where `score` is always a number.
- */
-// FIX: Redefined type to allow score to be number or empty string, avoiding incorrect type intersection with the original Mark type.
 type EditableMark = {
   date: string;
   score: number | '';
@@ -61,7 +42,6 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
   const [error, setError] = useState<string | null>(null);
 
   const isCompany = activeSection === 'company';
-  const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
 
   /**
    * Fetches the specific boy's data from the database.
@@ -249,7 +229,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
           >
             ← Back to members
           </button>
-          <h1 className={`text-3xl font-bold tracking-tight ${(SQUAD_COLORS as any)[boy.squad]}`}>{boy.name}'s Marks</h1>
+          <h1 className={`text-3xl font-bold tracking-tight ${squadTextClass(activeSection, boy.squad)}`}>{boy.name}'s Marks</h1>
           <p className="mt-1 text-lg text-slate-600">
             {`Squad ${boy.squad}`}
             <span className="mx-2 text-slate-300">&bull;</span>

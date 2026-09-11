@@ -11,10 +11,11 @@ Use this checklist to verify section settings persistence against a live Supabas
 ## Checks
 
 1. Open the section settings page.
-2. Change the weekly meeting day.
-3. Save the change and confirm the UI reports success.
-4. Reload the page and confirm the new value persists.
-5. Restore the original meeting day value, save it, reload the page, and confirm the original value persisted before leaving the page.
+2. Change the weekly meeting day and save it.
+3. Add a squad, rename it, then remove it if it has no members.
+4. Save the meeting-day change and confirm the UI reports success.
+5. Reload the page and confirm the meeting day and squad list persist.
+6. Restore the original meeting day and original squads, save, reload, and confirm they persisted before leaving the page.
 
 ## Expected Outcome
 

@@ -21,7 +21,7 @@ This document summarises the app's custom hook layer.
 
 ### `useAppData`
 
-- Loads members and settings for the active section
+- Loads members and settings (meeting day and squads) for the active section
 - Exposes loading, error, and refresh state
 
 ### `useUnsavedChangesProtection`

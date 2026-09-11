@@ -110,6 +110,7 @@ test.describe('Isolated app flows', () => {
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Home', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Import' })).toBeVisible();
   });
 
   test('officer can create, search, edit, and open a sentinel member', async ({ page }) => {
@@ -191,6 +192,16 @@ test.describe('Isolated app flows', () => {
     await page.getByRole('button', { name: 'Generate Master PDF' }).click();
     await expect(page.getByRole('heading', { name: 'Master Session PDF' })).toBeVisible();
     await page.getByRole('button', { name: 'Close modal' }).click();
+
+    const sectionSettings = page.getByRole('button', { name: 'Section Settings' });
+    if (await sectionSettings.isVisible()) {
+      await sectionSettings.click();
+      await expect(page.getByRole('heading', { name: 'Section Settings' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Squads' })).toBeVisible();
+      await expect(page.getByText('Squad 1')).toBeVisible();
+      await page.getByRole('button', { name: 'Home', exact: true }).click();
+      await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
+    }
 
     await page.getByRole('button', { name: 'Archives' }).click();
     await expect(page.getByRole('heading', { name: 'Past Sessions' })).toBeVisible();

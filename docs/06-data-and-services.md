@@ -11,7 +11,9 @@ This document describes how the app talks to Supabase.
 - `services/sessions.ts`: closed BB years, archived members/marks, and `start_new_bb_session`
 - `services/sessionArchiveModel.ts`: mapping archived rows onto the live `Boy` model
 - `services/reporting/sessionReport.ts`: pure session-report aggregation for dashboard PDF export
-- `services/settings.ts`: section settings for the seeded `company` and `junior` rows
+- `services/settings.ts`: section settings for the seeded `company` and `junior` rows, including the squad list
+- `services/sectionSquads.ts`: parse/validate squad JSON, display names, and colours
+- `services/importFromSession.ts`: school-year bump rules and live-roster import from archived members
 - `services/observability.ts`: `reportError` used by the root error boundary
 - `services/appUrl.ts`: Auth redirect base URL
 
@@ -38,4 +40,6 @@ The current app talks to these tables:
 - The UI-facing `Boy` model is assembled from `members` and `marks`.
 - Role information is loaded from `profiles`, not from a separate `user_roles` table.
 - Section settings are updated in place; missing `settings` rows throw `SettingsUnavailableError` instead of inventing a Friday meeting day.
+- Captains and admins edit the `settings.squads` JSON list from Section Settings. Members store the squad number; nicknames are optional.
+- Importing a boy from Past Sessions creates a new live `members` row with empty marks, school year moved on by one, and `imported_from_archived_member_id` set so the same archive row cannot be imported twice.
 - The active UI includes member management, marks entry, dashboard reporting, session PDF export, past-session archives, section settings, passkey sign-in, and a one-time live password-to-passkey migration.

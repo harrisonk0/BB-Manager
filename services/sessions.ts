@@ -1,11 +1,13 @@
 import { Boy, Section } from '../types';
 import { supabase } from './supabaseClient';
 import * as supabaseAuth from './supabaseAuth';
+import { parseSchoolYear } from './dbModel';
 import {
   ArchivedMarkRow,
   ArchivedMemberRow,
   mapArchivedBoys,
 } from './sessionArchiveModel';
+import type { ArchivedMemberSnapshot } from './importFromSession';
 
 export type BbSession = {
   id: string;
@@ -108,6 +110,30 @@ export const fetchArchivedBoys = async (sessionId: string, section: Section): Pr
   }
 
   return mapArchivedBoys(members as ArchivedMemberRow[], (marks || []) as ArchivedMarkRow[]);
+};
+
+export const fetchArchivedMemberSnapshots = async (sessionId: string): Promise<ArchivedMemberSnapshot[]> => {
+  const authUser = await supabaseAuth.getCurrentUser();
+  if (!authUser) throw new Error('User not authenticated');
+
+  const { data, error } = await supabase
+    .from('archived_members')
+    .select('id,name,squad,section,school_year,is_squad_leader')
+    .eq('session_id', sessionId)
+    .order('name');
+
+  if (error || !data) {
+    throw new Error(error?.message || 'Failed to load archived members.');
+  }
+
+  return data.map((row) => ({
+    id: row.id,
+    name: row.name,
+    squad: row.squad,
+    section: row.section as Section,
+    year: parseSchoolYear(row.section as Section, row.school_year),
+    isSquadLeader: row.is_squad_leader ?? false,
+  }));
 };
 
 export const startNewBbSession = async (label: string): Promise<StartNewBbSessionResult> => {

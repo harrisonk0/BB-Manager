@@ -24,11 +24,11 @@ flowchart LR
 | --- | --- |
 | `Sign in` | On the live site, sign in with a passkey. The first time, sign in with the password an administrator set, create a passkey, then that password stops working. Local development still uses email/password. Use Forgot password only if you lose every passkey. |
 | `Select a Section` | Choose either the Company or Junior section. Log Out is labelled on this screen. |
-| `Home` | View, add, edit, and delete members in the active section. |
+| `Home` | View, add, edit, delete, and import members in the active section. |
 | `Weekly Marks` | Record attendance and marks for the selected meeting date. New rows start as Not recorded. |
 | `Dashboard` | Review summary charts, attendance trends, and generate the master end-of-session PDF. |
-| `Archives` | Browse closed BB years and regenerate Master PDFs from archived members and marks. |
-| `Section Settings` | Update the weekly meeting day. Captains and admins can also archive the current year and start a new session. |
+| `Archives` | Browse closed BB years, regenerate Master PDFs, and import returning boys into this year. |
+| `Section Settings` | Update the weekly meeting day and the section’s squad list. Captains and admins can also archive the current year and start a new session. |
 | `Account Settings` | Add extra passkeys. On the live site you cannot remove the last passkey, and you cannot set a lasting password. |
 
 ## Getting Started
@@ -41,7 +41,8 @@ flowchart LR
 
 ## Member Management
 
-- Add a new member from `Home`.
+- Add a new member from `Home`, or use **Import** to bring back boys from a past session.
+- Import moves school year on by one (P4→P5, Year 8→9, and so on). Junior P7 join Company as Year 8. Year 14 have left and are not imported. Last year’s marks stay in Archives.
 - Edit member details directly from the roster or member detail screen.
 - Open a member's marks history, then use `Back to members` to return. Search and sort stay where you left them.
 - Delete members only when the record is no longer needed.
@@ -65,11 +66,12 @@ flowchart LR
 
 - `Archives` lists closed BB years.
 - Opening a session shows that year's members for the section you currently have selected.
-- Generate the same Master PDF from archived data. The live Home roster is not changed by viewing an archive.
+- Generate the same Master PDF from archived data. Use **Import into this year** to copy returning boys onto the live roster with school year moved on. The archive itself is not changed.
 
 ## Settings
 
-- `Section Settings` controls the weekly meeting day.
+- `Section Settings` controls the weekly meeting day and the squad list for the selected section.
+- Captains and admins can add, rename, or remove squads. A squad cannot be removed while members are still assigned to it.
 - Captains and admins can **Start a new BB session**. That copies every live Company and Junior member and mark into Archives, then empties both live rosters so you can add the next year's boys.
 - Type `START NEW SESSION` in the confirmation dialog. Meeting days and staff accounts stay as they are.
 - `Account Settings` is where you add extra passkeys. Add them while signed in on `https://bb-manager.vercel.app`.

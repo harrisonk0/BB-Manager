@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Boy, Squad, Section, JuniorSquad, SectionSettings, ToastType } from '../types';
+import { Boy, Section, SectionSettings, ToastType } from '../types';
 import { saveWeeklyMarksSnapshot } from '../services/db';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
@@ -12,6 +12,7 @@ import {
   buildWeeklyMarksSnapshot,
 } from './weeklyMarksSavePlan';
 import { shouldConfirmWeeklyMarksDateChange } from './weeklyMarksDateChange';
+import { squadDisplayName, squadTextClass, withSettingsSquads } from '../services/sectionSquads';
 
 interface WeeklyMarksPageProps {
   boys: Boy[];
@@ -23,19 +24,6 @@ interface WeeklyMarksPageProps {
   /** Function to display a toast notification. */
   showToast: (message: string, type?: ToastType) => void;
 }
-
-// Section-specific color mappings for squad names.
-const COMPANY_SQUAD_COLORS: Record<Squad, string> = {
-  1: 'text-red-600',
-  2: 'text-green-600',
-  3: 'text-yellow-600',
-};
-const JUNIOR_SQUAD_COLORS: Record<JuniorSquad, string> = {
-  1: 'text-red-600',
-  2: 'text-green-600',
-  3: 'text-blue-600',
-  4: 'text-yellow-600',
-};
 
 const nextAttendanceStatus = (current: AttendanceStatus): AttendanceStatus => {
   if (current === 'present') return 'absent';
@@ -57,7 +45,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
 
 
   const isCompany = activeSection === 'company';
-  const SQUAD_COLORS = isCompany ? COMPANY_SQUAD_COLORS : JUNIOR_SQUAD_COLORS;
+  const configuredSquads = withSettingsSquads(settings, activeSection);
 
   /**
    * EFFECT: Sets the initial date for the marks page based on the user's settings.
@@ -438,7 +426,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         {sortedSquads.map((squad) => (
           <div key={squad}>
             <div className="flex justify-between items-baseline mb-4">
-              <h2 className="text-2xl font-semibold text-slate-800">{`Squad ${squad}`}</h2>
+              <h2 className="text-2xl font-semibold text-slate-800">{squadDisplayName(configuredSquads, Number(squad))}</h2>
               {squadAttendanceStats[squad] && (
                 <div className="text-right">
                   <p className="font-semibold text-slate-600">
@@ -470,7 +458,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                     return (
                       <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                         <div className="flex-1">
-                          <span className={`text-lg font-medium ${(SQUAD_COLORS as any)[boy.squad]}`}>
+                          <span className={`text-lg font-medium ${squadTextClass(activeSection, boy.squad)}`}>
                             {boy.name}
                             {boy.isSquadLeader && (
                                 <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>

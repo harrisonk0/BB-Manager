@@ -1,13 +1,18 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
-import { Boy, Section, ToastType } from '../types';
-import { ArchiveBoxIcon, ChartBarIcon, ClipboardDocumentListIcon } from './Icons';
+import { Boy, Section, SectionSettings, ToastType } from '../types';
+import { ArchiveBoxIcon, ArrowDownTrayIcon, ChartBarIcon, ClipboardDocumentListIcon } from './Icons';
 import { fetchArchivedBoys, listBbSessions, type BbSession } from '../services/sessions';
+import ImportFromSessionModal from './ImportFromSessionModal';
+import { withSettingsSquads } from '../services/sectionSquads';
 
 const SessionReportModal = React.lazy(() => import('./SessionReportModal'));
 
 interface ArchivesPageProps {
   activeSection: Section;
   showToast: (message: string, type?: ToastType) => void;
+  liveBoys: Boy[];
+  settings: SectionSettings | null;
+  refreshData: () => void | Promise<void>;
 }
 
 const formatClosedAt = (value: string) =>
@@ -17,13 +22,14 @@ const formatClosedAt = (value: string) =>
     year: 'numeric',
   });
 
-const ArchivesPage: React.FC<ArchivesPageProps> = ({ activeSection, showToast }) => {
+const ArchivesPage: React.FC<ArchivesPageProps> = ({ activeSection, showToast, liveBoys, settings, refreshData }) => {
   const [sessions, setSessions] = useState<BbSession[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [archivedBoys, setArchivedBoys] = useState<Boy[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const isCompany = activeSection === 'company';
   const accentText = isCompany ? 'text-company-blue' : 'text-junior-blue';
   const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
@@ -184,6 +190,15 @@ const ArchivesPage: React.FC<ArchivesPageProps> = ({ activeSection, showToast })
                 <ChartBarIcon className="mr-2 h-5 w-5" />
                 Generate Master PDF
               </button>
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                disabled={isLoadingSession || archivedBoys.length === 0}
+                className="inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ArrowDownTrayIcon className="mr-2 h-5 w-5" />
+                Import into this year
+              </button>
             </div>
           </div>
 
@@ -226,6 +241,17 @@ const ArchivesPage: React.FC<ArchivesPageProps> = ({ activeSection, showToast })
           />
         </Suspense>
       )}
+
+      <ImportFromSessionModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        activeSection={activeSection}
+        liveBoys={liveBoys}
+        destinationSquads={withSettingsSquads(settings, activeSection)}
+        showToast={showToast}
+        refreshData={refreshData}
+        initialSessionId={selectedSessionId}
+      />
     </div>
   );
 };

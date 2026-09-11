@@ -63,6 +63,7 @@ describe('sessionArchiveModel', () => {
         squad: 2,
         year: 11,
         isSquadLeader: true,
+        importedFromArchivedMemberId: null,
         marks: [
           { date: '2026-01-09', score: 8 },
           { date: '2026-01-16', score: -1 },
