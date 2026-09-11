@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-09-11  
 **Auditor role:** senior/staff review (architecture, application security, database, reliability, operations)  
-**Mode:** read-only discovery. No production data was modified. No application fixes were applied.
+**Mode:** read-only schema/Auth inspection, plus a later isolated browser E2E pass that used a disposable Auth user and a sentinel member (`ZZZ-E2E-*`). That user and member were deleted afterwards. Existing children’s rows were not used as write targets.
 
 This document is ground truth from the repository at the stated commit, the production SPA, and authenticated inspection of the hosted Supabase project. Documentation, comments, migrations, and tests were treated as evidence, not as authority.
 
@@ -10,7 +10,7 @@ This document is ground truth from the repository at the stated commit, the prod
 
 ## 1. Executive Summary
 
-BB Manager is a small, coherent Vite/React SPA that talks directly to one hosted Supabase project. The product surface is real and currently used: production has **5 application profiles**, **14 members**, **205 marks**, and seeded settings for both sections. The frontend **builds, type-checks, and passes its 42 unit tests**. Last `main` CI Infrastructure run (2026-03-22) succeeded.
+BB Manager is a small, coherent Vite/React SPA that talks directly to one hosted Supabase project. The product surface is real and currently used: production has **5 application profiles**, **14 members**, **205 marks**, and seeded settings for both sections. The frontend **builds, type-checks, and passes its 42 unit tests**. Isolated Playwright app flows (6 tests) also passed against a disposable officer account. Last `main` CI Infrastructure run (2026-03-22) succeeded.
 
 The architecture is understandable and appropriate for a two-section club roster: no extra server, no unused microservice layer, mark writes concentrated in two RPCs, settings locked down to captain/admin. That part is sound.
 
@@ -22,7 +22,7 @@ Secondary but serious: leftover SECURITY DEFINER RPCs from the removed invite-co
 
 **Overall security posture:** weak at the identity boundary, stronger at anonymous table access.  
 **Overall database/Supabase posture:** small, constrained schema with useful CHECKs and FKs; RLS enabled everywhere that matters; dangerous leftover definer functions and default grants; no in-repo migration history.  
-**Confidence in this assessment:** high for architecture, schema, RLS, Auth config, and the signup chain; high for build/test baseline; medium for performance (stats are stale; tables are tiny); low for anything requiring a privileged Auth user session (E2E credentials were not used; signup was not executed against production).
+**Confidence in this assessment:** high for architecture, schema, RLS, Auth config, and the signup chain; **F-01 signup→officer→data access is now Confirmed** (a disposable user was created via `/auth/v1/signup`, received role `officer`, and could read all 14 members; the user was then deleted). High for build/unit/isolated-e2e baseline. Medium for performance. The legacy Playwright smoke suite that mutates real settings/marks was still not run.
 
 **Most urgent actions (do these before further production feature work):**
 
@@ -108,7 +108,8 @@ What the system **actually** is:
 | `npm run test:run` | Exit 0 — 7 files, 42 tests |
 | `npm run build` | Exit 0 — warns SessionReportModal chunk ~1.6 MB |
 | Lint | **No ESLint (or other) script exists** |
-| `npm run test:e2e` | **Not run.** It PATCHes live `settings` and writes live marks. |
+| `npm run test:e2e` (legacy `smoke.e2e.ts`) | **Not run.** It PATCHes live `settings` and writes marks on an existing member. |
+| Isolated Playwright (`tests/e2e/isolated-app-flows.e2e.ts`) | Exit 0 — **6 passed** (re-run after selector fixes also 6 passed). Disposable officer + `ZZZ-E2E-*` sentinel member only; both deleted. Live `members` count remained 14. |
 | `npm run check:db-contract` | **Not run.** Requires `E2E_TEST_*` and signs into production. |
 | Schema dump via `supabase db dump` | Failed: CLI requires Docker/Podman for pg_dump |
 | Live schema | Captured via `supabase db query` (Management API, read-only SQL) |
@@ -168,7 +169,7 @@ Live public columns (application tables):
 | | |
 |---|---|
 | **Severity** | CRITICAL |
-| **Confidence** | High (configuration and authorization chain confirmed; signup POST not executed against production) |
+| **Confidence** | Confirmed |
 | **Scope** | Systemic (Auth + trigger + RLS) |
 | **Affected** | Hosted Auth; `public.handle_new_user`; `public.profiles.role` default; RLS on `members`/`marks`; production anon key |
 
@@ -200,7 +201,7 @@ Docs and UI: only manually provisioned staff can sign in; new Auth users do not 
 - Live function body of `handle_new_user` and column default on `profiles.role`.
 - Live `pg_policies` for `members` and `marks`.
 - App has no signup screen (`LoginPage.tsx` sign-in only) — this is **not a mitigating control** for the Auth API.
-- Production data exists to steal: 14 members, 205 marks.
+- Production `/auth/v1/signup` with the public anon key returned HTTP 200, a session, and `email_confirmed`. `current_app_role()` was `"officer"`. `GET /rest/v1/members` as that user returned all 14 rows (`content-range 0-13/14`). The disposable user was deleted via the Auth admin API afterwards (HTTP 200); subsequent password grant returned 400.
 
 **Root cause**
 
@@ -210,9 +211,9 @@ Auth was left on default “allow signup / autoconfirm” while the product move
 
 Remote unauthenticated attacker with the public anon key (in the JS bundle and this repo’s deployment) can register any email, skip verification, receive officer privileges, then read and alter names, school years, attendance and scores for children in both sections, and delete members (CASCADE deletes marks).
 
-**Trigger / reproduction (do not run against production)**
+**Trigger / reproduction (executed once with a disposable account, then deleted)**
 
-`POST /auth/v1/signup` with email+password and the anon key, then PostgREST `GET /rest/v1/members`. This audit stopped before the POST.
+`POST /auth/v1/signup` with email+password and the anon key, then PostgREST `GET /rest/v1/members`. Do not leave such users in production.
 
 **Recommended remediation**
 
@@ -702,14 +703,34 @@ Duplicate systems: two role readers (`profiles.role` vs `current_app_role()`); t
 |---|---|---|
 | Vitest (42 tests) | `dbModel`, settings role guard, mark save-plan, date helpers, mocked `db.ts` | Good for pure functions. **Mocks the Supabase client**, so they cannot catch RLS, RPC SQL, or Auth config. |
 | `check:db-contract` | Sign-in + `current_app_role` + two settings rows | Useful canary; **writes nothing**; uses production. |
-| Playwright smoke | Auth persist, settings round-trip, weekly marks round-trip | Exercises the real stack; **mutates production**; no member CRUD; no signup-closed assertion; no officer-vs-captain; no RLS negatives. |
+| Playwright isolated flows | `tests/e2e/isolated-app-flows.e2e.ts` — invalid login, session persist, sentinel member CRUD, weekly marks on that member only, dashboard/PDF modal, account settings, junior switch, logout, delete sentinel | **Useful.** Passed 6/6 against a disposable officer. Cleans up via `members.name like prefix`. Still hits production, but does not edit existing children or settings. |
+| Playwright smoke | Auth persist, settings round-trip, weekly marks round-trip on a **real** company member | Exercises the real stack; **mutates production**; no member CRUD; no signup-closed assertion; no officer-vs-captain; no RLS negatives. **Not re-run in this audit.** |
 | Manual markdown e2e | Four runbooks | Operator memory; not automated. |
 | RLS / contract tests | None in repo | Largest gap. |
 | Coverage script | `test:coverage` exists; CI uses `test:run` | Docs (`docs/03`) overstate coverage as the ship gate. |
 
 A green unit suite plus a green `main` CI run **does not** mean the app is closed to strangers. Tests encode the opposite assumption: a staff user and live rows already exist.
 
-Skipped/not run here: e2e and db-contract, to avoid production writes/logins.
+Skipped/not run here: legacy `smoke.e2e.ts` (settings + existing-member marks). Isolated app flows were run and passed.
+
+## Appendix D — Isolated E2E results (2026-09-11)
+
+```
+npx playwright test tests/e2e/isolated-app-flows.e2e.ts
+6 passed (20.1s)
+
+invalid credentials stay on login with a failure message
+valid user reaches company roster and session survives reload
+officer can create, search, edit, and open a sentinel member
+weekly marks save and reload for the sentinel member only
+dashboard, PDF modal, account settings, junior switch, then logout
+sentinel member can be deleted from the roster
+```
+
+Production login (https://bb-manager.vercel.app) was also exercised in a browser: no signup control; invalid credentials show `Login Failed: Invalid login credentials` without leaving the form.
+
+Cleanup: sentinel members 0 leftover; `members` count 14; disposable Auth user deleted.
+
 
 ---
 
@@ -897,14 +918,16 @@ supabase projects list     1 project
 supabase db query          0   (catalog/RLS/function SQL)
 supabase db dump           fail (docker missing)
 supabase db advisors perf  fail (pooler password)
-npm run test:e2e           not run (production writes)
+npm run test:e2e (smoke.e2e.ts)           not run (mutates existing production rows)
+isolated-app-flows.e2e.ts                 0 (6 passed)
+
 ```
 
 ## Appendix C — Challenge log (Critical / High)
 
 | Finding | Disconfirming evidence sought | Result |
 |---|---|---|
-| F-01 | Maybe signup UI absence or a hook blocks API signup | Public `/auth/v1/settings` still `disable_signup=false`. Hooks disabled. Captcha off. Autoconfirm on. Chain stands. Did not POST signup. |
+| F-01 | Maybe signup UI absence or a hook blocks API signup | Public `/auth/v1/settings` still `disable_signup=false`. Hooks disabled. Captcha off. Autoconfirm on. **Signup POST was executed with a disposable account; officer access to all members confirmed; user deleted.** |
 | F-01 | Maybe officer RLS is section- or owner-scoped | Policies are role-only. Confirmed. |
 | F-01 | Maybe anon can already read (would change the story) | Anon GET members/marks/profiles/settings empty. Signup is the hole. |
 | F-02 | Maybe PostgREST cannot execute trigger-shaped functions | Read-only definer RPCs returned 200 as anon. Cleanup not called. GRANT is real. |
