@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Boy, Section, SectionSettings, ToastType } from '../types';
 import { saveWeeklyMarksSnapshot } from '../services/db';
+import { describeError, reportError } from '../services/observability';
 import { SaveIcon, LockClosedIcon, LockOpenIcon, ClipboardDocumentListIcon, ChevronLeftIcon, ChevronRightIcon } from './Icons';
 import DatePicker from './DatePicker'; // Import the new DatePicker component
 import Modal from './Modal';
-import { getNearestMeetingDay, getTodayString, addLocalDays } from './weeklyMarksDates';
+import { getDefaultMarksDate, getTodayString, addLocalDays } from './weeklyMarksDates';
 import {
   CompanyMarkState,
   JuniorMarkState,
@@ -42,6 +43,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
   const [markErrors, setMarkErrors] = useState<Record<string, { score?: string; uniform?: string; behaviour?: string }>>({});
   const [pendingDate, setPendingDate] = useState('');
   const [isDateChangeConfirmOpen, setIsDateChangeConfirmOpen] = useState(false);
+  const isSavingRef = useRef(false);
 
 
   const isCompany = activeSection === 'company';
@@ -52,7 +54,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
    */
   useEffect(() => {
     if (settings && !selectedDate) {
-      setSelectedDate(getNearestMeetingDay(settings.meetingDay));
+      setSelectedDate(getDefaultMarksDate(settings.meetingDay));
     }
   }, [settings, selectedDate]);
 
@@ -283,6 +285,11 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       return;
     }
 
+    if (isSavingRef.current) {
+      return;
+    }
+
+    isSavingRef.current = true;
     setIsSaving(true);
 
     try {
@@ -290,9 +297,10 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
         showToast('Marks saved successfully!', 'success');
         refreshData();
     } catch (error) {
-        console.error('Failed to save marks', error);
-        showToast('Failed to save marks. Please try again.', 'error');
+        reportError(error, 'saveWeeklyMarks');
+        showToast(describeError(error, 'Failed to save marks. Please try again.'), 'error');
     } finally {
+        isSavingRef.current = false;
         setIsSaving(false);
     }
   };
@@ -544,7 +552,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
       </div>
 
        {hasPendingChanges && (
-          <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 mt-6 px-4 sm:px-6 lg:px-8 py-3 bg-slate-200/95 border-t border-slate-300 backdrop-blur">
+          <div className="sticky bottom-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 mt-6 px-4 sm:px-6 lg:px-8 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-slate-200/95 border-t border-slate-300 backdrop-blur">
             <div className="flex justify-end">
               <button
                 type="button"

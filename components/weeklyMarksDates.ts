@@ -27,3 +27,23 @@ export const getNearestMeetingDay = (meetingDay: number, baseDate = new Date()):
   nextMeetingDate.setDate(nextMeetingDate.getDate() + diff);
   return formatLocalYmd(nextMeetingDate);
 };
+
+export const getDefaultMarksDate = (meetingDay: number, baseDate = new Date()): string => {
+  const today = formatLocalYmd(baseDate);
+  const nextMeetingDate = getNearestMeetingDay(meetingDay, baseDate);
+
+  if (nextMeetingDate === today) {
+    return today;
+  }
+
+  const previousMeetingDate = addLocalDays(nextMeetingDate, -7);
+  const daysSincePrevious = Math.round(
+    (parseLocalYmd(today).getTime() - parseLocalYmd(previousMeetingDate).getTime()) / 86_400_000,
+  );
+
+  if (daysSincePrevious >= 0 && daysSincePrevious <= 2) {
+    return previousMeetingDate;
+  }
+
+  return nextMeetingDate;
+};

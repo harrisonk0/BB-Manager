@@ -20,6 +20,8 @@ const supabaseMock = vi.hoisted(() => {
     data: [],
     error: null,
   };
+  let marksDeleteResponse: { error: { message?: string } | null } = { error: null };
+  let marksInsertResponse: { error: { message?: string } | null } = { error: null };
 
   const rpc = vi.fn(() => Promise.resolve(rpcResponse));
 
@@ -43,6 +45,12 @@ const supabaseMock = vi.hoisted(() => {
   const marksSelectEqSection = vi.fn(() => Promise.resolve(marksSelectResponse));
   const marksSelectEqMember = vi.fn(() => ({ eq: marksSelectEqSection }));
   const marksSelect = vi.fn(() => ({ eq: marksSelectEqMember }));
+  const marksDeleteIn = vi.fn(() => Promise.resolve(marksDeleteResponse));
+  const marksDeleteEqDate = vi.fn(() => ({ in: marksDeleteIn }));
+  const marksDeleteEqSection = vi.fn(() => ({ eq: marksDeleteEqDate }));
+  const marksDelete = vi.fn(() => ({ eq: marksDeleteEqSection }));
+  const marksInsert = vi.fn(() => Promise.resolve(marksInsertResponse));
+  const marksUpsert = vi.fn(() => Promise.resolve(marksInsertResponse));
 
   const from = vi.fn((table: string) => {
     if (table === 'members') {
@@ -55,7 +63,7 @@ const supabaseMock = vi.hoisted(() => {
     }
 
     if (table === 'marks') {
-      return { select: marksSelect };
+      return { select: marksSelect, delete: marksDelete, insert: marksInsert, upsert: marksUpsert };
     }
 
     throw new Error(`Unexpected table: ${table}`);
@@ -70,6 +78,10 @@ const supabaseMock = vi.hoisted(() => {
     memberDelete,
     memberDeleteEqId,
     memberDeleteEqSection,
+    marksDelete,
+    marksDeleteIn,
+    marksInsert,
+    marksUpsert,
     get rpcResponse() {
       return rpcResponse;
     },
@@ -106,6 +118,18 @@ const supabaseMock = vi.hoisted(() => {
     set marksSelectResponse(next) {
       marksSelectResponse = next;
     },
+    get marksDeleteResponse() {
+      return marksDeleteResponse;
+    },
+    set marksDeleteResponse(next) {
+      marksDeleteResponse = next;
+    },
+    get marksInsertResponse() {
+      return marksInsertResponse;
+    },
+    set marksInsertResponse(next) {
+      marksInsertResponse = next;
+    },
   };
 });
 
@@ -137,6 +161,8 @@ describe('db service write model', () => {
     supabaseMock.deleteResponse = { error: null };
     supabaseMock.memberSelectSingleResponse = { data: null, error: { code: 'PGRST116', message: 'No rows found' } };
     supabaseMock.marksSelectResponse = { data: [], error: null };
+    supabaseMock.marksDeleteResponse = { error: null };
+    supabaseMock.marksInsertResponse = { error: null };
   });
 
   it('sends a transactional member mark patch to the live patch RPC', async () => {
@@ -212,7 +238,9 @@ describe('db service write model', () => {
       p_snapshot: [
         {
           memberId: 'member-1',
+          member_id: 'member-1',
           mark: {
+            date: '2026-03-20',
             section: 'company',
             score: 7,
             uniform_score: null,
@@ -222,10 +250,56 @@ describe('db service write model', () => {
         },
         {
           memberId: 'member-2',
+          member_id: 'member-2',
           mark: null,
         },
       ],
     });
+    expect(supabaseMock.marksDelete).not.toHaveBeenCalled();
+    expect(supabaseMock.marksInsert).not.toHaveBeenCalled();
+    expect(supabaseMock.marksUpsert).not.toHaveBeenCalled();
+  });
+
+  it('falls back to a direct marks replace when the snapshot RPC fails', async () => {
+    supabaseMock.rpcResponse = { error: { message: 'new row violates row-level security policy' } };
+
+    await expect(
+      saveWeeklyMarksSnapshot('company', '2026-03-20', [
+        { memberId: 'member-1', mark: { date: '2026-03-20', score: 7 } },
+        { memberId: 'member-2', mark: null },
+      ]),
+    ).resolves.toBeUndefined();
+
+    expect(supabaseMock.marksDelete).toHaveBeenCalled();
+    expect(supabaseMock.marksDeleteIn).toHaveBeenCalledWith('member_id', ['member-2']);
+    expect(supabaseMock.marksUpsert).toHaveBeenCalledWith(
+      [
+        {
+          member_id: 'member-1',
+          created_by: 'user-1',
+          date: '2026-03-20',
+          section: 'company',
+          score: 7,
+          uniform_score: null,
+          behaviour_score: null,
+          present: true,
+        },
+      ],
+      { onConflict: 'member_id,date' },
+    );
+  });
+
+  it('keeps the snapshot RPC error when the direct fallback also fails', async () => {
+    supabaseMock.rpcResponse = { error: { message: 'new row violates row-level security policy' } };
+    supabaseMock.marksInsertResponse = { error: { message: 'insert failed' } };
+
+    await expect(
+      saveWeeklyMarksSnapshot('company', '2026-03-20', [
+        { memberId: 'member-1', mark: { date: '2026-03-20', score: 7 } },
+      ]),
+    ).rejects.toThrow(/row-level security policy/i);
+
+    expect(supabaseMock.marksUpsert).toHaveBeenCalled();
   });
 
   it('updates member fields without touching marks or validating mark payloads', async () => {

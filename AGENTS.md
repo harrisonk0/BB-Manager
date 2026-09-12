@@ -36,6 +36,8 @@ Important database functions present in the live project:
 - `save_member_marks_patch`
 - `start_new_bb_session`
 
+`save_weekly_marks_snapshot` and `save_member_marks_patch` should run as `SECURITY DEFINER` with an app-role check after `supabase/migrations/20260912100000_fix_marks_save_rpcs.sql` is applied on the hosted project.
+
 Leftover invite helpers (`claim_invite_code`, `cleanup_old_invite_codes`, `validate_invite_code`) still exist but client roles can no longer execute them.
 
 ## Key Repository Areas

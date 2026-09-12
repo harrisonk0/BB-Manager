@@ -52,21 +52,25 @@ export const toStoredMark = (mark: Mark, section: Section) => {
 };
 
 export const mapMarkRow = (row: MarkRow): Mark => {
+  const date = row.date.slice(0, 10);
+
   if (row.present === false || row.score === null) {
-    return { date: row.date, score: -1 };
+    return { date, score: -1 };
   }
 
   const mark: Mark = {
-    date: row.date,
+    date,
     score: Number(row.score),
   };
 
-  if (row.uniform_score !== null) {
-    mark.uniformScore = Number(row.uniform_score);
-  }
+  if (row.section === 'junior') {
+    if (row.uniform_score !== null) {
+      mark.uniformScore = Number(row.uniform_score);
+    }
 
-  if (row.behaviour_score !== null) {
-    mark.behaviourScore = Number(row.behaviour_score);
+    if (row.behaviour_score !== null) {
+      mark.behaviourScore = Number(row.behaviour_score);
+    }
   }
 
   return mark;

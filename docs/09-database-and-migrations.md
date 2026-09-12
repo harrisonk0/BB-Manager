@@ -14,6 +14,7 @@ Verified on 2026-09-11:
 - Remediation SQL: `supabase/migrations/20260911120000_audit_remediations.sql`
 - Session archive SQL: `supabase/migrations/20260911140000_bb_sessions.sql`
 - Section squads and import SQL: `supabase/migrations/20260911170000_section_squads_and_import.sql`
+- Marks save RPC fix: `supabase/migrations/20260912100000_fix_marks_save_rpcs.sql` (`save_weekly_marks_snapshot` and `save_member_marks_patch` run as `SECURITY DEFINER` after checking `current_app_role()`, and replace a date’s rows with DELETE then INSERT instead of `ON CONFLICT DO UPDATE`)
 - Generated client types: `types/database.ts`
 
 The current app depends on `profiles`, `settings`, `members`, `marks`, `bb_sessions`, `archived_members`, and `archived_marks`.
@@ -32,6 +33,7 @@ The live project also contains legacy invite-code and audit-log objects, but the
 - `npm run check:db-contract` is the fast live-backend check for the client contract: sign-in, `current_app_role()`, the seeded `settings` rows for `company` and `junior`, and readable `bb_sessions`.
 - `npm run check:auth-config` confirms public signup is disabled and passkeys are enabled.
 - Isolated Playwright can validate the client contract against live data, but it cannot prove live RLS policy shape without privileged Supabase inspection.
+- `save_weekly_marks_snapshot` and `save_member_marks_patch` must keep an authorization check (`current_app_role()` in `admin` / `captain` / `officer`) because they run as `SECURITY DEFINER`. Apply `supabase/migrations/20260912100000_fix_marks_save_rpcs.sql` on the hosted project before relying on that behavior.
 - The current app no longer exposes invite-code provisioning. Do not call leftover invite RPCs from the client.
 
 ## Important Historical Note

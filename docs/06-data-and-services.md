@@ -37,7 +37,7 @@ The current app talks to these tables:
 
 ## Important Notes
 
-- The UI-facing `Boy` model is assembled from `members` and `marks`.
+- Weekly Marks saves the selected date through `save_weekly_marks_snapshot`. If that RPC is rejected, the client retries with a direct `marks` delete of cleared rows and an upsert of the remaining snapshot.
 - Role information is loaded from `profiles`, not from a separate `user_roles` table.
 - Section settings are updated in place; missing `settings` rows throw `SettingsUnavailableError` instead of inventing a Friday meeting day.
 - Captains and admins edit the `settings.squads` JSON list from Section Settings. Members store the squad number; nicknames are optional.

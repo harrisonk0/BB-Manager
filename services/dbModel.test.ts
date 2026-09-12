@@ -38,6 +38,22 @@ describe('dbModel', () => {
     });
   });
 
+  it('ignores leftover junior scores on company mark rows', () => {
+    expect(mapMarkRow({
+      id: 'mark-1',
+      member_id: 'member-1',
+      section: 'company',
+      date: '2026-03-20T00:00:00+00:00',
+      score: 8,
+      uniform_score: 0,
+      behaviour_score: 0,
+      present: true,
+    })).toEqual({
+      date: '2026-03-20',
+      score: 8,
+    });
+  });
+
   it('sorts mapped marks by date and normalizes the member shape', () => {
     const boy = mapBoyRow(
       {

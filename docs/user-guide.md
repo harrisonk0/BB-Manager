@@ -49,7 +49,8 @@ flowchart LR
 
 ## Weekly Marks
 
-- Pick the meeting date with the date control.
+- After a meeting, Weekly Marks opens on that date for the next two days so last night’s scores can be entered without paging back.
+- Pick a different meeting date with the date control.
 - Attendance starts as `Not recorded`. Cycle Present → Absent → Not recorded.
 - Enter scores for present members, then use `Save Marks`.
 - Squad attendance percentages only count members you have marked present or absent.

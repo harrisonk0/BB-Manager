@@ -1,6 +1,7 @@
 import { Boy, Mark, Section, WeeklyMarksSnapshotEntry } from '../types';
 import { supabase } from './supabaseClient';
 import * as supabaseAuth from './supabaseAuth';
+import { describeError } from './observability';
 import {
   mapBoyRow,
   MarkRow,
@@ -89,7 +90,7 @@ export const saveBoyMarks = async (
   });
 
   if (error) {
-    throw new Error(error.message || 'Failed to save member marks.');
+    throw new Error(describeError(error, 'Failed to save member marks.'));
   }
 };
 
@@ -110,22 +111,82 @@ export const saveWeeklyMarksSnapshot = async (
     'Member',
   );
 
+  const payload = snapshot.map(({ memberId, mark }) => ({
+    memberId,
+    member_id: memberId,
+    mark: mark
+      ? {
+          ...toStoredMark(mark, section),
+          date: selectedDate,
+        }
+      : null,
+  }));
+
   const { error } = await supabase.rpc('save_weekly_marks_snapshot', {
     p_section: section,
     p_meeting_date: selectedDate,
-    p_snapshot: snapshot.map(({ memberId, mark }) => ({
-      memberId,
-      mark: mark
-        ? (() => {
-            const { date: _date, ...storedMark } = toStoredMark(mark, section);
-            return storedMark;
-          })()
-        : null,
-    })),
+    p_snapshot: payload,
   });
 
-  if (error) {
-    throw new Error(error.message || 'Failed to save weekly marks.');
+  if (!error) {
+    return;
+  }
+
+  try {
+    await applyWeeklyMarksSnapshotDirectly(section, selectedDate, snapshot, authUser.id);
+  } catch {
+    throw new Error(describeError(error, 'Failed to save weekly marks.'));
+  }
+};
+
+const applyWeeklyMarksSnapshotDirectly = async (
+  section: Section,
+  selectedDate: string,
+  snapshot: WeeklyMarksSnapshotEntry[],
+  createdBy: string,
+) => {
+  const deleteIds = snapshot.filter((entry) => !entry.mark).map((entry) => entry.memberId);
+  const upsertRows = snapshot.flatMap(({ memberId, mark }) => {
+    if (!mark) {
+      return [];
+    }
+
+    const storedMark = toStoredMark(mark, section);
+    return [{
+      member_id: memberId,
+      created_by: createdBy,
+      date: selectedDate,
+      section: storedMark.section,
+      score: storedMark.score,
+      uniform_score: storedMark.uniform_score,
+      behaviour_score: storedMark.behaviour_score,
+      present: storedMark.present,
+    }];
+  });
+
+  if (deleteIds.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('marks')
+      .delete()
+      .eq('section', section)
+      .eq('date', selectedDate)
+      .in('member_id', deleteIds);
+
+    if (deleteError) {
+      throw new Error(describeError(deleteError, 'Failed to save weekly marks.'));
+    }
+  }
+
+  if (upsertRows.length === 0) {
+    return;
+  }
+
+  const { error: upsertError } = await supabase
+    .from('marks')
+    .upsert(upsertRows, { onConflict: 'member_id,date' });
+
+  if (upsertError) {
+    throw new Error(describeError(upsertError, 'Failed to save weekly marks.'));
   }
 };
 

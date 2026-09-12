@@ -11,6 +11,7 @@ Verified on 2026-09-11:
 - Passkey authentication is enabled for relying party `bb-manager.vercel.app`.
 - `anon` table privileges and leftover invite RPC `EXECUTE` are revoked from client roles.
 - `start_new_bb_session` is executable by authenticated captains and admins only; the function itself checks `current_app_role()`.
+- After `supabase/migrations/20260912100000_fix_marks_save_rpcs.sql` is applied, `save_weekly_marks_snapshot` and `save_member_marks_patch` also run as `SECURITY DEFINER` and allow any `admin` / `captain` / `officer` to save marks, not only the staff member who first created the row.
 
 The active UI relies on `profiles`, `settings`, `members`, `marks`, `bb_sessions`, `archived_members`, and `archived_marks`.
 The live database also retains legacy invite-code and audit-log objects for compatibility.

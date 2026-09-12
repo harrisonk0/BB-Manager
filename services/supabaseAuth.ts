@@ -90,7 +90,12 @@ export async function retireRememberedPasswordAfterPasskey() {
 
 export async function getCurrentUser(): Promise<User | null> {
   const { data } = await supabase.auth.getUser();
-  return data.user ?? null;
+  if (data.user) {
+    return data.user;
+  }
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  return sessionData.session?.user ?? null;
 }
 
 export function subscribeToAuth(
