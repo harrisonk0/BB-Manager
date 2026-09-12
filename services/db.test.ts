@@ -224,6 +224,24 @@ describe('db service write model', () => {
     expect(supabaseMock.rpc).not.toHaveBeenCalled();
   });
 
+  it('sends a multi-member same-date snapshot to the live snapshot RPC', async () => {
+    await expect(
+      saveWeeklyMarksSnapshot('company', '2026-09-11', [
+        { memberId: 'member-1', mark: { date: '2026-09-11', score: 7 } },
+        { memberId: 'member-2', mark: { date: '2026-09-11', score: 8 } },
+        { memberId: 'member-3', mark: { date: '2026-09-11', score: 8 } },
+      ]),
+    ).resolves.toBeUndefined();
+
+    expect(supabaseMock.rpc).toHaveBeenCalledWith(
+      'save_weekly_marks_snapshot',
+      expect.objectContaining({
+        p_section: 'company',
+        p_meeting_date: '2026-09-11',
+      }),
+    );
+  });
+
   it('sends the whole selected-date snapshot to the live snapshot RPC', async () => {
     await expect(
       saveWeeklyMarksSnapshot('company', '2026-03-20', [

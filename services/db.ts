@@ -9,6 +9,7 @@ import {
   toStoredMark,
   validateBoyMarks,
   validateMarksForSection,
+  validateWeeklyMarksSnapshot,
 } from './dbModel';
 
 export type WeeklyMarksSaveEntry = WeeklyMarksSnapshotEntry;
@@ -105,11 +106,7 @@ export const saveWeeklyMarksSnapshot = async (
   const authUser = await supabaseAuth.getCurrentUser();
   if (!authUser) throw new Error('User not authenticated');
 
-  validateMarksForSection(
-    snapshot.flatMap(({ mark }) => (mark ? [mark] : [])),
-    section,
-    'Member',
-  );
+  validateWeeklyMarksSnapshot(snapshot, section);
 
   const payload = snapshot.map(({ memberId, mark }) => ({
     memberId,

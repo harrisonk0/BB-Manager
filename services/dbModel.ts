@@ -159,3 +159,26 @@ export const validateMarksForSection = (marks: Mark[], section: Section, subject
 export const validateBoyMarks = (boy: Boy, section: Section) => {
   validateMarksForSection(boy.marks, section, boy.name);
 };
+
+export const validateWeeklyMarksSnapshot = (
+  snapshot: { memberId: string; mark: Mark | null }[],
+  section: Section,
+) => {
+  const seenMemberIds = new Set<string>();
+
+  for (const entry of snapshot) {
+    if (!entry.memberId) {
+      throw new Error('Weekly marks snapshot contains a member without an id.');
+    }
+
+    if (seenMemberIds.has(entry.memberId)) {
+      throw new Error('Weekly marks snapshot contains duplicate members.');
+    }
+
+    seenMemberIds.add(entry.memberId);
+
+    if (entry.mark) {
+      validateMarksForSection([entry.mark], section, 'Member');
+    }
+  }
+};

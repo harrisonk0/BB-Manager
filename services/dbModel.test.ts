@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { mapBoyRow, mapMarkRow, parseSchoolYear, toStoredMark, validateBoyMarks } from './dbModel';
+import { mapBoyRow, mapMarkRow, parseSchoolYear, toStoredMark, validateBoyMarks, validateWeeklyMarksSnapshot } from './dbModel';
 import type { Boy } from '../types';
 
 describe('dbModel', () => {
@@ -146,5 +146,30 @@ describe('dbModel', () => {
     };
 
     expect(() => validateBoyMarks(boy, 'company')).toThrow(/duplicate mark date/i);
+  });
+
+  it('allows the same meeting date across members in a weekly snapshot', () => {
+    expect(() =>
+      validateWeeklyMarksSnapshot(
+        [
+          { memberId: 'member-1', mark: { date: '2026-09-11', score: 7 } },
+          { memberId: 'member-2', mark: { date: '2026-09-11', score: 8 } },
+          { memberId: 'member-3', mark: null },
+        ],
+        'company',
+      ),
+    ).not.toThrow();
+  });
+
+  it('rejects a weekly snapshot with the same member twice', () => {
+    expect(() =>
+      validateWeeklyMarksSnapshot(
+        [
+          { memberId: 'member-1', mark: { date: '2026-09-11', score: 7 } },
+          { memberId: 'member-1', mark: { date: '2026-09-11', score: 8 } },
+        ],
+        'company',
+      ),
+    ).toThrow(/duplicate members/i);
   });
 });
