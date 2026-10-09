@@ -41,7 +41,7 @@ const normalizeCompanySnapshotMark = (
   }
 
   if (markState === '' || markState === undefined) {
-    return null;
+    return { date: selectedDate, score: 0 };
   }
 
   if (typeof markState !== 'string' && typeof markState !== 'number') {
@@ -76,10 +76,6 @@ const normalizeJuniorSnapshotMark = (
       : { uniform: '', behaviour: '' };
   const noUniformScore = juniorState.uniform === '' || juniorState.uniform === undefined;
   const noBehaviourScore = juniorState.behaviour === '' || juniorState.behaviour === undefined;
-
-  if (noUniformScore && noBehaviourScore) {
-    return null;
-  }
 
   const uniformScore = noUniformScore ? 0 : parseFloat(String(juniorState.uniform));
   const behaviourScore = noBehaviourScore ? 0 : parseFloat(String(juniorState.behaviour));

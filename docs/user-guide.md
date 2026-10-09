@@ -53,6 +53,7 @@ flowchart LR
 - Pick a different meeting date with the date control.
 - Attendance starts as `Not recorded`. Cycle Present → Absent → Not recorded.
 - Enter scores for present members, then use `Save Marks`.
+- Present members with blank scores are saved as present with 0 marks. Blank Junior uniform and behaviour scores each count as 0. To remove a record, set attendance to `Not recorded`.
 - Squad attendance percentages only count members you have marked present or absent.
 
 ## Dashboard

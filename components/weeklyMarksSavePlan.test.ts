@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Boy } from '../types';
+import { mapMarkRow, toStoredMark, validateWeeklyMarksSnapshot } from '../services/dbModel';
 import {
   areMarkListsEqual,
   buildWeeklyMarksSnapshot,
@@ -29,7 +30,7 @@ describe('buildWeeklyMarksSnapshot', () => {
     ).toEqual([{ memberId: 'member-1', mark: { date: '2026-03-27', score: -1 } }]);
   });
 
-  it('creates a delete entry when a saved company mark is cleared', () => {
+  it('saves zero when a present member’s saved company score is cleared', () => {
     expect(
       buildWeeklyMarksSnapshot({
         boys: [{ ...baseBoy, marks: [{ date: '2026-03-27', score: 9 }] }],
@@ -38,7 +39,7 @@ describe('buildWeeklyMarksSnapshot', () => {
         marks: { 'member-1': '' },
         activeSection: 'company',
       }),
-    ).toEqual([{ memberId: 'member-1', mark: null }]);
+    ).toEqual([{ memberId: 'member-1', mark: { date: '2026-03-27', score: 0 } }]);
   });
 
   it('builds a changed-entry snapshot for the selected date', () => {
@@ -74,12 +75,12 @@ describe('buildWeeklyMarksSnapshot', () => {
       }),
     ).toEqual([
       { memberId: 'member-1', mark: { date: '2026-03-27', score: 9 } },
-      { memberId: 'member-2', mark: null },
+      { memberId: 'member-2', mark: { date: '2026-03-27', score: 0 } },
       { memberId: 'member-3', mark: { date: '2026-03-27', score: -1 } },
     ]);
   });
 
-  it('keeps absent state in the snapshot', () => {
+  it('changes an absent member to present with zero when no score is entered', () => {
     expect(
       buildWeeklyMarksSnapshot({
         boys: [{ ...baseBoy, marks: [{ date: '2026-03-27', score: -1 }] }],
@@ -88,7 +89,49 @@ describe('buildWeeklyMarksSnapshot', () => {
         marks: { 'member-1': '' },
         activeSection: 'company',
       }),
-    ).toEqual([{ memberId: 'member-1', mark: null }]);
+    ).toEqual([{ memberId: 'member-1', mark: { date: '2026-03-27', score: 0 } }]);
+  });
+
+  it.each([
+    { section: 'company' as const, markState: '', expected: { score: 0 } },
+    { section: 'company' as const, markState: undefined, expected: { score: 0 } },
+    { section: 'junior' as const, markState: { uniform: '', behaviour: '' }, expected: { score: 0, uniformScore: 0, behaviourScore: 0 } },
+    { section: 'junior' as const, markState: undefined, expected: { score: 0, uniformScore: 0, behaviourScore: 0 } },
+  ] as const)('records present attendance with blank $section marks ($markState)', ({ section, markState, expected }) => {
+    const snapshot = buildWeeklyMarksSnapshot({
+      boys: [baseBoy],
+      selectedDate: '2026-03-27',
+      attendance: { 'member-1': 'present' },
+      marks: markState === undefined ? {} : { 'member-1': markState },
+      activeSection: section,
+    });
+
+    expect(snapshot).toEqual([
+      { memberId: 'member-1', mark: { date: '2026-03-27', ...expected } },
+    ]);
+    expect(() => validateWeeklyMarksSnapshot(snapshot, section)).not.toThrow();
+    const storedMark = toStoredMark(snapshot[0].mark!, section);
+    expect(storedMark.present).toBe(true);
+    expect(mapMarkRow({ id: 'mark-1', member_id: baseBoy.id!, ...storedMark })).toEqual(snapshot[0].mark);
+
+    // Once saved, the same blank inputs must not produce another change.
+    expect(buildWeeklyMarksSnapshot({
+      boys: [{ ...baseBoy, marks: [snapshot[0].mark!] }],
+      selectedDate: '2026-03-27',
+      attendance: { 'member-1': 'present' },
+      marks: markState === undefined ? {} : { 'member-1': markState },
+      activeSection: section,
+    })).toEqual([]);
+  });
+
+  it.each(['company', 'junior'] as const)('clears a saved mark only when attendance is not recorded in $section', (activeSection) => {
+    expect(buildWeeklyMarksSnapshot({
+      boys: [{ ...baseBoy, marks: [{ date: '2026-03-27', score: 0 }] }],
+      selectedDate: '2026-03-27',
+      attendance: {},
+      marks: {},
+      activeSection,
+    })).toEqual([{ memberId: 'member-1', mark: null }]);
   });
 
   it('builds junior totals from partial entries', () => {
