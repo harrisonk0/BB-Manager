@@ -50,6 +50,7 @@ The interface for entering weekly attendance and scores for all members.
     -   Displays all members grouped by squad.
     -   Displays real-time squad attendance statistics as marks are entered. Unmarked rows are excluded from the percentage.
     -   Defaults new rows to Not recorded rather than Present.
+    -   Saves Present rows with blank scores as 0, including both Junior score components. Only Not recorded attendance clears a saved row.
     -   Implements a read-only (locked) mode for past dates to prevent accidental edits, which can be unlocked by the user.
     -   Manages a date selector. If the last meeting was today or in the previous two days, that date is selected; otherwise it uses the next meeting day.
     -   Tracks unsaved changes and communicates this to the `App` component.
