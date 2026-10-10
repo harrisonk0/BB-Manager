@@ -140,6 +140,16 @@ export const notificationSupport = () =>
   'serviceWorker' in navigator &&
   'PushManager' in window &&
   'Notification' in window;
+export const portalNotificationsEnabled = async () => {
+  const registration = await navigator.serviceWorker.getRegistration('/');
+  const subscription = await registration?.pushManager.getSubscription();
+  if (!subscription) return false;
+  const status = await portalRequest<{ subscribed: boolean }>(
+    'subscription-status',
+    { endpoint: subscription.endpoint },
+  );
+  return status.subscribed;
+};
 export const enablePortalNotifications = async () => {
   if (!notificationSupport())
     throw new Error(
@@ -157,12 +167,21 @@ export const enablePortalNotifications = async () => {
   await navigator.serviceWorker.ready;
   const raw = atob(config.publicKey.replace(/-/g, '+').replace(/_/g, '/'));
   const key = Uint8Array.from(raw, (c) => c.charCodeAt(0));
-  const subscription =
-    (await registration.pushManager.getSubscription()) ??
-    (await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: key,
-    }));
+  let subscription = await registration.pushManager.getSubscription();
+  if (subscription) {
+    const status = await portalRequest<{ subscribed: boolean }>(
+      'subscription-status',
+      { endpoint: subscription.endpoint },
+    );
+    if (!status.subscribed) {
+      await subscription.unsubscribe();
+      subscription = null;
+    }
+  }
+  subscription ??= await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: key,
+  });
   await portalRequest('subscribe', { subscription: subscription.toJSON() });
 };
 export const disablePortalNotifications = async () => {

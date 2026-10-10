@@ -124,10 +124,10 @@ export default function CompanyCalendarPage({
   };
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex flex-wrap justify-between items-center gap-4">
+      <div className="flex flex-wrap justify-between items-center gap-4 rounded-2xl bg-gradient-to-br from-company-blue via-[#2a3e61] to-[#3b5f91] p-6 sm:p-8 text-white shadow-sm">
         <div>
           <h1 className="text-3xl font-bold">Company calendar</h1>
-          <p className="text-sm text-slate-600 mt-2">
+          <p className="text-sm text-blue-100 mt-2">
             Plan nights, share updates and create event posters.
           </p>
         </div>
@@ -138,7 +138,7 @@ export default function CompanyCalendarPage({
             setFormError('');
             setEditing(true);
           }}
-          className="bg-company-blue text-white px-5 py-3 rounded-lg disabled:opacity-50"
+          className="bg-white text-company-blue font-semibold px-5 py-3 rounded-xl shadow-sm hover:bg-blue-50 disabled:opacity-50"
         >
           Add event
         </button>

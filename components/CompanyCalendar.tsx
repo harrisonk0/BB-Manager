@@ -13,7 +13,7 @@ export function EventCard({
 }) {
   return (
     <article
-      className={`rounded-xl border p-5 ${event.cancelled ? 'border-red-200 bg-red-50' : 'border-slate-200 bg-white'}`}
+      className={`rounded-2xl border p-5 shadow-sm ${event.cancelled ? 'border-red-200 bg-red-50' : 'border-slate-200 bg-white'}`}
     >
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-semibold text-slate-900">{event.title}</h3>
@@ -34,19 +34,23 @@ export function EventCard({
         </p>
       )}
       {(onEdit || onPoster) && (
-        <div className="flex gap-4 mt-4 text-sm font-medium">
-          <button
-            onClick={onEdit}
-            className="text-company-blue hover:underline"
-          >
-            Edit event
-          </button>
-          <button
-            onClick={onPoster}
-            className="text-company-blue hover:underline"
-          >
-            Download poster PDF
-          </button>
+        <div className="flex flex-wrap gap-3 mt-4 text-sm font-medium">
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className="text-company-blue border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50"
+            >
+              Edit event
+            </button>
+          )}
+          {onPoster && (
+            <button
+              onClick={onPoster}
+              className="text-company-blue bg-blue-50 rounded-lg px-3 py-2 hover:bg-blue-100"
+            >
+              Download poster PDF
+            </button>
+          )}
         </div>
       )}
     </article>
@@ -111,7 +115,7 @@ export default function CompanyCalendar({
           ›
         </button>
       </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-3">
+      <div className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
         <div className="grid grid-cols-7 text-center text-xs text-slate-500 mb-2">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
             <span key={d}>{d}</span>
@@ -126,21 +130,42 @@ export default function CompanyCalendar({
             const nights = monthEvents.filter(
               (e) => londonDateTime(e.starts_at).slice(0, 10) === date,
             );
+            const today =
+              date === londonDateTime(new Date().toISOString()).slice(0, 10);
             return (
               <button
                 key={date}
                 aria-label={`${date}${nights.length ? `, ${nights.length} events` : ''}`}
                 aria-pressed={day === date}
+                aria-current={today ? 'date' : undefined}
                 onClick={() => setDay(day === date ? null : date)}
-                className={`h-12 rounded-lg text-sm flex flex-col items-center justify-center ${day === date ? 'bg-company-blue text-white' : 'hover:bg-slate-100'}`}
+                className={`h-12 sm:h-14 rounded-xl text-sm flex flex-col items-center justify-center ${day === date ? 'bg-company-blue text-white shadow-sm' : today ? 'bg-blue-50 text-company-blue font-bold' : 'hover:bg-slate-100'}`}
               >
                 {i + 1}
                 <span
-                  className={`h-1 w-1 rounded-full mt-1 ${nights.length ? (nights.every((e) => e.cancelled) ? 'bg-red-500' : 'bg-blue-500') : 'bg-transparent'}`}
-                />
+                  className="flex h-2 items-center gap-1 mt-1"
+                  aria-hidden="true"
+                >
+                  {nights.slice(0, 3).map((night) => (
+                    <span
+                      key={night.id}
+                      className={`h-1.5 w-1.5 rounded-full ${night.cancelled ? 'bg-red-500' : day === date ? 'bg-white' : 'bg-company-blue'}`}
+                    />
+                  ))}
+                </span>
               </button>
             );
           })}
+        </div>
+        <div className="flex flex-wrap justify-center gap-4 text-xs text-slate-500 border-t border-slate-100 mt-3 pt-3">
+          <span className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-company-blue" />
+            Night or event
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+            Cancelled
+          </span>
         </div>
       </div>
       {day && (

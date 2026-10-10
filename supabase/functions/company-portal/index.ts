@@ -292,6 +292,16 @@ Deno.serve(async (req) => {
     }
     if (!account.data.activated_at)
       return json({ error: 'Finish passkey setup first' }, 403);
+    if (action === 'subscription-status') {
+      const existing = await admin
+        .from('portal_push_subscriptions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('endpoint', String(body.endpoint))
+        .maybeSingle();
+      check(existing);
+      return json({ subscribed: !!existing.data });
+    }
     if (action === 'feed') {
       const token = Array.from(
         crypto.getRandomValues(new Uint8Array(32)),

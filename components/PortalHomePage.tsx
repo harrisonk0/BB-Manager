@@ -12,6 +12,7 @@ import {
   notificationSupport,
   enablePortalNotifications,
   disablePortalNotifications,
+  portalNotificationsEnabled,
 } from '../services/portal';
 import { registerPasskey, listPasskeys } from '../services/supabaseAuth';
 import { branding } from './branding';
@@ -73,13 +74,11 @@ export default function PortalHomePage({
     };
   }, [refresh]);
   useEffect(() => {
-    if (!notificationSupport()) return;
-    navigator.serviceWorker
-      .getRegistration('/')
-      .then((r) => r?.pushManager.getSubscription())
-      .then((s) => setNotified(!!s))
+    if (!notificationSupport() || !account?.activated_at) return;
+    portalNotificationsEnabled()
+      .then(setNotified)
       .catch(() => {});
-  }, []);
+  }, [account?.user_id, account?.activated_at]);
   const task = async (work: () => Promise<void>) => {
     setBusy(true);
     try {
@@ -104,7 +103,7 @@ export default function PortalHomePage({
     });
   const next = events.find((e) => new Date(e.ends_at).getTime() >= Date.now());
   const metric = (label: string, value: string | number) => (
-    <div className="rounded-xl bg-white border border-slate-200 p-4">
+    <div className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
       <p className="text-xs text-slate-500">{label}</p>
       <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
     </div>
@@ -165,18 +164,18 @@ export default function PortalHomePage({
             <>
               {page === 'home' && (
                 <>
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-company-blue via-[#2a3e61] to-[#3b5f91] p-5 sm:p-6 text-white shadow-sm">
                     <div>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-xs text-blue-100">
                         Your Company portal
                       </p>
-                      <h1 className="text-2xl font-bold text-slate-900">
+                      <h1 className="text-2xl font-bold text-white mt-1">
                         Hi, {summary.name.split(' ')[0]}
                       </h1>
                     </div>
                     <button
                       onClick={() => setPage('calendar')}
-                      className="rounded-lg bg-white border px-4 py-2 text-sm font-medium"
+                      className="rounded-xl bg-white text-company-blue px-4 py-2 text-sm font-semibold shadow-sm"
                     >
                       Calendar
                     </button>

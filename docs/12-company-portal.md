@@ -28,7 +28,9 @@ Staff use **Calendar** → **Weekly nights for the BB year** to set first/last d
 
 Staff can add individual events, edit title/date/times/location/details, and mark cancellations. Cancelled events stay visible. Concurrent edits are checked using the event revision; a stale save asks staff to reload instead of overwriting another staff member’s edit.
 
-**Download poster PDF** creates an A4 portrait document with BB and Company branding, title, date, times, location and details. Cancelled events have a cancellation banner. Long details may continue onto another A4 page.
+Calendar dates show dots for weekly nights and other events; cancelled events use a cancellation dot. Selecting a date shows that day's details.
+
+**Download poster PDF** creates an A4 portrait document with a dark blue gradient, BB and Company branding, title, date, times, location and details. The poster uses the Company blue palette and embeds the bundled, licensed Open Sans fonts for consistent rendering. Cancelled events have a cancellation banner. Long details may continue onto another A4 page.
 
 Boys create a private calendar subscription link from Calendar. **Open calendar app** uses `webcal:`; Google Calendar can use the copied HTTPS link with “From URL”. The feed contains calendar events only, never personal stats. Creating a new link revokes the previous one. Resets and roster deletion revoke feeds. The calendar app controls refresh frequency. Stable UIDs, revisions and cancellation status let apps update existing entries.
 

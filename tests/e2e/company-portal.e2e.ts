@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { createClient } from '@supabase/supabase-js';
-import { randomUUID } from 'node:crypto';
+import { createECDH, randomBytes, randomUUID } from 'node:crypto';
 import { fetch, ProxyAgent } from 'undici';
 
 // Opt-in: service-role access is used only by the Node test process for fixtures.
@@ -137,6 +137,51 @@ test.describe('Company portal', () => {
           .locator('body')
           .evaluate((el) => el.scrollWidth > innerWidth),
       ).toBe(false);
+      const token = await page.evaluate(() => {
+        const key = Object.keys(localStorage).find((key) =>
+          key.endsWith('-auth-token'),
+        );
+        return key ? JSON.parse(localStorage.getItem(key)!).access_token : null;
+      });
+      const portalAction = async (body: Record<string, unknown>) => {
+        const response = await request(
+          `${process.env.VITE_SUPABASE_URL}/functions/v1/company-portal`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: process.env.VITE_SUPABASE_ANON_KEY!,
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+          },
+        );
+        expect(response.status).toBe(200);
+        return response.json();
+      };
+      const endpoint = `https://fcm.googleapis.com/fcm/send/portal-test-${randomUUID()}`;
+      const keyPair = createECDH('prime256v1');
+      keyPair.generateKeys();
+      expect(
+        await portalAction({ action: 'subscription-status', endpoint }),
+      ).toEqual({ subscribed: false });
+      await portalAction({
+        action: 'subscribe',
+        subscription: {
+          endpoint,
+          keys: {
+            p256dh: keyPair.getPublicKey().toString('base64url'),
+            auth: randomBytes(16).toString('base64url'),
+          },
+        },
+      });
+      expect(
+        await portalAction({ action: 'subscription-status', endpoint }),
+      ).toEqual({ subscribed: true });
+      await portalAction({ action: 'unsubscribe', endpoint });
+      expect(
+        await portalAction({ action: 'subscription-status', endpoint }),
+      ).toEqual({ subscribed: false });
       await page.getByRole('button', { name: 'Calendar', exact: true }).click();
       await page
         .getByRole('button', { name: 'Create calendar subscription link' })
