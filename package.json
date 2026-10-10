@@ -16,7 +16,8 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "node --env-file-if-exists=.env --env-file-if-exists=.env.local ./node_modules/@playwright/test/cli.js test",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check:portal": "node --env-file-if-exists=.env.local scripts/check-company-portal.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.2",
@@ -35,6 +36,7 @@
     "postcss": "^8.5.28",
     "tailwindcss": "^3.4.4",
     "typescript": "~5.8.2",
+    "undici": "^8.11.2",
     "vite": "^6.4.2",
     "vitest": "^4.1.11"
   }

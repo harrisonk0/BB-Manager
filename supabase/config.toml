@@ -41,3 +41,7 @@ rp_origins = ["https://bb-manager.vercel.app"]
 enable_signup = false
 enable_confirmations = true
 secure_password_change = true
+
+[functions.company-portal]
+# Public setup-code exchange and private calendar feeds validate access themselves.
+verify_jwt = false

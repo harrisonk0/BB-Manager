@@ -19,6 +19,10 @@ export const useAuthAndRole = () => {
     const { data, error } = await supabase.from('profiles').select('role').eq('id', user.id).single();
 
     if (error || !data || !data.role) {
+      const portal = await supabase.from('portal_accounts').select('member_id').eq('user_id', user.id).maybeSingle();
+      if (!portal.error && portal.data) {
+        setUserRole('boy'); setNoRoleError(null); return;
+      }
       setNoRoleError('Your account does not have an assigned role. Please contact an administrator to gain access.');
       setUserRole(null);
       return;

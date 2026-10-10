@@ -2,7 +2,7 @@
 
 BB Manager is a client-side React + TypeScript single-page app for managing Boys' Brigade members, marks, and settings across the `company` and `junior` sections.
 
-The app is deployed as a static SPA on Vercel. The browser talks directly to Supabase for authentication and data access. There is no custom application server in this repo.
+The app is deployed as a static SPA on Vercel. The browser talks directly to Supabase for authentication and data access. Trusted portal account operations, calendar feeds and browser push delivery run in a Supabase Edge Function; the main staff app still reads and writes Supabase directly.
 
 ## Core Stack
 
@@ -80,6 +80,7 @@ Sources of truth:
 
 - Supabase Auth session for authentication
 - Supabase Postgres for application data
+- Company portal identity linked to a live Company roster record, with a dedicated portal summary RPC
 - `localStorage['activeSection']` for the selected section (validated to `company` | `junior`)
 - `sessionStorage` for per-section roster search/sort
 - React component and hook state for loaded records and view state
@@ -95,6 +96,8 @@ The branded session PDF generator also runs fully client-side in the browser.
 - Password reset uses `VITE_APP_URL` (or the current origin) as the Auth redirect. A reset password on production is temporary until a passkey is created.
 - Passkeys are enabled on hosted Auth for `https://bb-manager.vercel.app`. Local and preview hosts cannot complete a WebAuthn ceremony against that relying party ID, so they keep email/password and do not run the migration gate.
 - New-user onboarding is documented in [`docs/user-guide.md`](docs/user-guide.md).
+- Company boys use generated setup links to enrol passkeys. Portal accounts have no staff profile role; the app routes them directly to their own portal and never loads the staff roster.
+- Company calendar and push tables use separate RLS policies. Setup code, feed token and push delivery operations run in `supabase/functions/company-portal`.
 - Client-side role checks remain UX guardrails only.
 - `ErrorBoundary` plus `reportError` cover unexpected UI failures; there is no hosted error product configured.
 
@@ -115,3 +118,5 @@ See [docs/03-getting-started.md](docs/03-getting-started.md) and [docs/04-deploy
 - Do not add server-only deployment paths unless they are actually used in production.
 - Prefer deleting dead runtime files and dependencies over documenting them as optional.
 - Update docs in the same change when setup, schema, auth flow, or deployment behavior changes.
+
+See [Company portal](docs/12-company-portal.md) for access lifecycle, calendars, push delivery, posters and hosted deployment.
