@@ -1,6 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import type { CompanyEvent } from '../types/portal';
 import { eventDateLabel, londonDateTime } from '../services/portal';
+import {
+  CalendarIcon,
+  MapPinIcon,
+  PencilIcon,
+  ArrowDownTrayIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from './Icons';
 
 export function EventCard({
   event,
@@ -21,12 +29,23 @@ export function EventCard({
           <span className="text-xs font-semibold text-red-700">Cancelled</span>
         )}
       </div>
-      <p className="text-sm text-company-blue mt-2">
-        {eventDateLabel(event.starts_at)} –{' '}
-        {londonDateTime(event.ends_at).slice(11)}
+      <p className="text-sm text-company-blue mt-3 flex items-start gap-2">
+        <span aria-hidden="true">
+          <CalendarIcon className="w-4 h-4 mt-0.5 shrink-0" />
+        </span>
+        <span>
+          {eventDateLabel(event.starts_at)} –{' '}
+          {londonDateTime(event.starts_at).slice(0, 10) ===
+          londonDateTime(event.ends_at).slice(0, 10)
+            ? londonDateTime(event.ends_at).slice(11)
+            : eventDateLabel(event.ends_at)}
+        </span>
       </p>
       {event.location && (
-        <p className="text-sm text-slate-600 mt-1">{event.location}</p>
+        <p className="text-sm text-slate-600 mt-2 flex items-start gap-2">
+          <MapPinIcon className="w-4 h-4 mt-0.5 shrink-0" />
+          <span>{event.location}</span>
+        </p>
       )}
       {event.details && (
         <p className="text-sm text-slate-600 mt-3 whitespace-pre-wrap break-words">
@@ -38,16 +57,22 @@ export function EventCard({
           {onEdit && (
             <button
               onClick={onEdit}
-              className="text-company-blue border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50"
+              className="text-company-blue border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50 inline-flex items-center gap-2"
             >
+              <span aria-hidden="true">
+                <PencilIcon className="w-4 h-4" />
+              </span>
               Edit event
             </button>
           )}
           {onPoster && (
             <button
               onClick={onPoster}
-              className="text-company-blue bg-blue-50 rounded-lg px-3 py-2 hover:bg-blue-100"
+              className="text-company-blue bg-blue-50 rounded-lg px-3 py-2 hover:bg-blue-100 inline-flex items-center gap-2"
             >
+              <span aria-hidden="true">
+                <ArrowDownTrayIcon className="w-4 h-4" />
+              </span>
               Download poster PDF
             </button>
           )}
@@ -98,7 +123,9 @@ export default function CompanyCalendar({
           onClick={() => move(-1)}
           className="rounded-lg bg-white border px-4 py-2"
         >
-          ‹
+          <span aria-hidden="true">
+            <ChevronLeftIcon className="w-4 h-4" />
+          </span>
         </button>
         <h2 className="font-semibold">
           {first.toLocaleDateString('en-GB', {
@@ -112,7 +139,9 @@ export default function CompanyCalendar({
           onClick={() => move(1)}
           className="rounded-lg bg-white border px-4 py-2"
         >
-          ›
+          <span aria-hidden="true">
+            <ChevronRightIcon className="w-4 h-4" />
+          </span>
         </button>
       </div>
       <div className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">

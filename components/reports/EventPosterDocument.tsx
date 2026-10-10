@@ -12,6 +12,8 @@ import {
   LinearGradient,
   Stop,
   Rect,
+  Path,
+  Circle,
 } from '@react-pdf/renderer';
 import type { CompanyEvent } from '../../types/portal';
 import { branding } from '../branding';
@@ -47,6 +49,20 @@ const styles = StyleSheet.create({
     left: 0,
     width: '100%',
     height: '100%',
+  },
+  illustration: {
+    position: 'absolute',
+    top: 115,
+    right: 25,
+    width: 140,
+    height: 140,
+    opacity: 0.08,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 7,
+    gap: 7,
   },
   brand: {
     flexDirection: 'row',
@@ -89,7 +105,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: 700,
     letterSpacing: 1,
-    marginBottom: 7,
   },
   date: { fontSize: 20, fontWeight: 700, marginBottom: 7 },
   time: { fontSize: 17, color: navy, marginBottom: 19 },
@@ -169,6 +184,16 @@ export default function EventPosterDocument({
               fill="url(#bb-gradient)"
             />
           </Svg>
+          <Svg style={styles.illustration} viewBox="0 0 24 24">
+            <Path
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth={1}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
           <View style={styles.brand}>
             <View style={styles.logoTile}>
               <Image src={branding.bbLogo} style={styles.logo} />
@@ -192,7 +217,19 @@ export default function EventPosterDocument({
             <Text style={styles.cancelled}>EVENT CANCELLED</Text>
           )}
           <View style={styles.info} wrap={false}>
-            <Text style={styles.label}>WHEN</Text>
+            <View style={styles.labelRow}>
+              <Svg width="14" height="14" viewBox="0 0 24 24">
+                <Path
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  fill="none"
+                  stroke={blue}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+              <Text style={styles.label}>WHEN</Text>
+            </View>
             <Text style={styles.date}>{date}</Text>
             <Text style={styles.time}>
               {start.slice(11)} –{' '}
@@ -203,7 +240,27 @@ export default function EventPosterDocument({
             {event.location && (
               <>
                 <View style={styles.divider} />
-                <Text style={styles.label}>WHERE</Text>
+                <View style={styles.labelRow}>
+                  <Svg width="14" height="14" viewBox="0 0 24 24">
+                    <Path
+                      d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1114 0z"
+                      fill="none"
+                      stroke={blue}
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <Circle
+                      cx="12"
+                      cy="10"
+                      r="2.5"
+                      fill="none"
+                      stroke={blue}
+                      strokeWidth={2}
+                    />
+                  </Svg>
+                  <Text style={styles.label}>WHERE</Text>
+                </View>
                 <Text style={styles.location}>{event.location}</Text>
               </>
             )}

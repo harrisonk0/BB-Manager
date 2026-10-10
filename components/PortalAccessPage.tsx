@@ -3,6 +3,7 @@ import type { Boy, ToastType } from '../types';
 import type { PortalAccount, SetupLink } from '../types/portal';
 import { listPortalAccounts, provisionPortalAccount } from '../services/portal';
 import Modal from './Modal';
+import { KeyIcon, UserCircleIcon } from './Icons';
 
 export default function PortalAccessPage({
   boys,
@@ -70,7 +71,15 @@ export default function PortalAccessPage({
     <div className="space-y-6">
       <div className="flex flex-wrap justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Boys’ portal access</h1>
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="p-3 bg-blue-50 text-company-blue rounded-xl"
+            >
+              <KeyIcon className="w-6 h-6" />
+            </span>
+            <h1 className="text-3xl font-bold">Boys’ portal access</h1>
+          </div>
           <p className="text-sm text-slate-600 mt-2">
             Give each Company boy his personal link. He creates a passkey and
             signs in from the normal login page.
@@ -122,7 +131,12 @@ export default function PortalAccessPage({
             >
               <div className="flex flex-wrap justify-between gap-3">
                 <div>
-                  <h2 className="font-semibold">{boy.name}</h2>
+                  <h2 className="font-semibold flex items-center gap-2">
+                    <span aria-hidden="true">
+                      <UserCircleIcon className="w-5 h-5 text-slate-400" />
+                    </span>
+                    {boy.name}
+                  </h2>
                   <p className="text-xs text-slate-500 mt-1">
                     {!loaded
                       ? 'Loading…'

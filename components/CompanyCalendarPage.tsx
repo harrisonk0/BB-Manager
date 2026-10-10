@@ -10,6 +10,7 @@ import {
 } from '../services/portal';
 import CompanyCalendar from './CompanyCalendar';
 import Modal from './Modal';
+import { CalendarIcon, PlusIcon } from './Icons';
 
 type EventDraft = {
   id?: string;
@@ -126,7 +127,12 @@ export default function CompanyCalendarPage({
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex flex-wrap justify-between items-center gap-4 rounded-2xl bg-gradient-to-br from-company-blue via-[#2a3e61] to-[#3b5f91] p-6 sm:p-8 text-white shadow-sm">
         <div>
-          <h1 className="text-3xl font-bold">Company calendar</h1>
+          <div className="flex items-center gap-3">
+            <span aria-hidden="true" className="rounded-xl bg-white/10 p-3">
+              <CalendarIcon className="w-7 h-7" />
+            </span>
+            <h1 className="text-3xl font-bold">Company calendar</h1>
+          </div>
           <p className="text-sm text-blue-100 mt-2">
             Plan nights, share updates and create event posters.
           </p>
@@ -138,8 +144,11 @@ export default function CompanyCalendarPage({
             setFormError('');
             setEditing(true);
           }}
-          className="bg-white text-company-blue font-semibold px-5 py-3 rounded-xl shadow-sm hover:bg-blue-50 disabled:opacity-50"
+          className="bg-white text-company-blue font-semibold px-5 py-3 rounded-xl shadow-sm hover:bg-blue-50 disabled:opacity-50 inline-flex items-center gap-2"
         >
+          <span aria-hidden="true">
+            <PlusIcon className="w-5 h-5" />
+          </span>
           Add event
         </button>
       </div>

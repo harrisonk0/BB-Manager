@@ -50,6 +50,7 @@ test.describe('Company portal', () => {
     let memberId: string | undefined;
     let eventId: string | undefined;
     const name = `PORTAL-E2E-${randomUUID().slice(0, 8)} Alex`;
+    const nightDate = `${new Date().toISOString().slice(0, 7)}-20`;
     try {
       const email = `${randomUUID()}@tests.bb-manager.invalid`;
       const password = randomUUID() + 'Aa1!';
@@ -89,12 +90,18 @@ test.describe('Company portal', () => {
           p_id: null,
           p_revision: 0,
           p_title: name + ' Night',
-          p_starts_local: '2029-10-09T19:00',
-          p_ends_local: '2029-10-09T21:00',
+          p_starts_local: `${nightDate}T19:00`,
+          p_ends_local: `${nightDate}T21:00`,
           p_location: 'Test Hall',
           p_details: 'Bring trainers.',
           p_cancelled: false,
         }),
+      );
+      check(
+        await admin
+          .from('company_events')
+          .update({ meeting_date: nightDate })
+          .eq('id', eventId),
       );
       const link = check(
         await staff.functions.invoke('company-portal', {
@@ -183,6 +190,14 @@ test.describe('Company portal', () => {
         await portalAction({ action: 'subscription-status', endpoint }),
       ).toEqual({ subscribed: false });
       await page.getByRole('button', { name: 'Calendar', exact: true }).click();
+      const night = page.getByRole('button', {
+        name: new RegExp(`^${nightDate},`),
+      });
+      await expect(night.locator('span.rounded-full').first()).toBeVisible();
+      await night.click();
+      await expect(
+        page.getByRole('heading', { name: name + ' Night' }),
+      ).toBeVisible();
       await page
         .getByRole('button', { name: 'Create calendar subscription link' })
         .click();

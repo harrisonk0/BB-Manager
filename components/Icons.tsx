@@ -5,6 +5,19 @@
  */
 import React from 'react';
 
+export const MapPinIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg aria-hidden="true" className={className || 'h-5 w-5'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1114 0z" />
+    <circle cx="12" cy="10" r="2.5" />
+  </svg>
+);
+
+export const TrophyIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg aria-hidden="true" className={className || 'h-5 w-5'} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8 3h8v7a4 4 0 01-8 0V3zM8 5H4v3a4 4 0 004 4m8-7h4v3a4 4 0 01-4 4m-4 2v5m-4 2h8m-6-2h4" />
+  </svg>
+);
+
 export const PlusIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className || "h-6 w-6"} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

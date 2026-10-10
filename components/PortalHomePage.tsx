@@ -19,6 +19,15 @@ import { branding } from './branding';
 import CompanyCalendar, { EventCard } from './CompanyCalendar';
 import PasskeysCard from './PasskeysCard';
 import type { ToastType } from '../types';
+import {
+  CalendarIcon,
+  StarIcon,
+  ChartBarIcon,
+  CheckCircleIcon,
+  UserCircleIcon,
+  TrophyIcon,
+  ClipboardDocumentListIcon,
+} from './Icons';
 
 export default function PortalHomePage({
   onSignOut,
@@ -102,10 +111,36 @@ export default function PortalHomePage({
       await refresh();
     });
   const next = events.find((e) => new Date(e.ends_at).getTime() >= Date.now());
-  const metric = (label: string, value: string | number) => (
+  const maxSquadTotal = Math.max(
+    ...(summary?.squads ?? []).map((squad) => squad.total),
+    0,
+  );
+  const metric = (
+    label: string,
+    value: string | number,
+    Icon: React.FC<{ className?: string }>,
+    progress?: number,
+  ) => (
     <div className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
+      <span
+        aria-hidden="true"
+        className="inline-flex rounded-xl bg-blue-50 p-2 text-company-blue mb-3"
+      >
+        <Icon className="w-5 h-5" />
+      </span>
       <p className="text-xs text-slate-500">{label}</p>
       <p className="text-2xl font-bold text-slate-900 mt-1">{value}</p>
+      {progress !== undefined && (
+        <div
+          aria-hidden="true"
+          className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden"
+        >
+          <div
+            className="h-full bg-company-blue rounded-full"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
     </div>
   );
   return (
@@ -175,13 +210,21 @@ export default function PortalHomePage({
                     </div>
                     <button
                       onClick={() => setPage('calendar')}
-                      className="rounded-xl bg-white text-company-blue px-4 py-2 text-sm font-semibold shadow-sm"
+                      className="rounded-xl bg-white text-company-blue px-3 py-2 text-sm font-semibold shadow-sm flex items-center gap-2"
                     >
+                      <span aria-hidden="true">
+                        <CalendarIcon className="w-4 h-4" />
+                      </span>
                       Calendar
                     </button>
                   </div>
                   <section className="space-y-3">
-                    <h2 className="font-semibold text-slate-900">Next night</h2>
+                    <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+                      <span aria-hidden="true">
+                        <CalendarIcon className="w-5 h-5 text-company-blue" />
+                      </span>
+                      Next night
+                    </h2>
                     {next ? (
                       <EventCard event={next} />
                     ) : (
@@ -198,20 +241,26 @@ export default function PortalHomePage({
                       </span>
                     </h2>
                     <div className="grid grid-cols-2 gap-3">
-                      {metric('Total marks', summary.total)}
+                      {metric('Total marks', summary.total, StarIcon)}
                       {metric(
                         'Attendance',
                         summary.recorded
                           ? `${Math.round((summary.attended / summary.recorded) * 100)}%`
                           : '—',
+                        CheckCircleIcon,
+                        summary.recorded
+                          ? (summary.attended / summary.recorded) * 100
+                          : undefined,
                       )}
                       {metric(
                         'Position in my squad',
                         summary.recorded ? `#${summary.squadRank}` : '—',
+                        UserCircleIcon,
                       )}
                       {metric(
                         'Position in Company',
                         summary.recorded ? `#${summary.companyRank}` : '—',
+                        TrophyIcon,
                       )}
                     </div>
                     <p className="text-xs text-slate-500">
@@ -220,25 +269,45 @@ export default function PortalHomePage({
                     </p>
                   </section>
                   <section className="space-y-3">
-                    <h2 className="font-semibold text-slate-900">My squad</h2>
+                    <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+                      <span aria-hidden="true">
+                        <ChartBarIcon className="w-5 h-5 text-company-blue" />
+                      </span>
+                      My squad
+                    </h2>
                     <div className="bg-white rounded-xl border overflow-hidden">
                       {summary.squads.map((s) => (
                         <div
                           key={s.number}
-                          className={`flex justify-between gap-3 p-4 border-b last:border-b-0 ${s.number === summary.squad ? 'bg-blue-50' : ''}`}
+                          className={`p-4 border-b last:border-b-0 ${s.number === summary.squad ? 'bg-blue-50' : ''}`}
                         >
-                          <span className="text-sm font-medium">
-                            #
-                            {1 +
-                              summary.squads.filter(
-                                (other) => other.total > s.total,
-                              ).length}{' '}
-                            · Squad {s.number}
-                            {s.label ? ` · ${s.label}` : ''}
-                            {s.number === summary.squad ? ' · Yours' : ''}
-                          </span>
-                          <span className="text-sm">
-                            {s.total} marks ·{' '}
+                          <div className="flex justify-between gap-3 items-start">
+                            <span className="text-sm font-medium">
+                              #
+                              {1 +
+                                summary.squads.filter(
+                                  (other) => other.total > s.total,
+                                ).length}{' '}
+                              · Squad {s.number}
+                              {s.label ? ` · ${s.label}` : ''}
+                              {s.number === summary.squad ? ' · Yours' : ''}
+                            </span>
+                            <span className="text-sm font-semibold text-company-blue whitespace-nowrap">
+                              {s.total} marks
+                            </span>
+                          </div>
+                          <div
+                            aria-hidden="true"
+                            className="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden"
+                          >
+                            <div
+                              className={`h-full rounded-full ${s.number === summary.squad ? 'bg-company-blue' : 'bg-[#8ca8cd]'}`}
+                              style={{
+                                width: `${maxSquadTotal ? (s.total / maxSquadTotal) * 100 : 0}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="block mt-2 text-xs text-slate-500">
                             {s.recorded
                               ? Math.round((s.attended / s.recorded) * 100) +
                                 '%'
@@ -251,7 +320,12 @@ export default function PortalHomePage({
                   </section>
                   <details className="bg-white border rounded-xl p-5">
                     <summary className="cursor-pointer font-semibold text-sm">
-                      My weekly marks
+                      <span className="inline-flex items-center gap-2 ml-2">
+                        <span aria-hidden="true">
+                          <ClipboardDocumentListIcon className="w-4 h-4 text-company-blue" />
+                        </span>
+                        My weekly marks
+                      </span>
                     </summary>
                     <div className="mt-3 space-y-2">
                       {summary.marks.map((m) => (
