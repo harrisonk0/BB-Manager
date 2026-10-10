@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import type { ToastType } from '../types';
 import type { CalendarSettings, CompanyEvent } from '../types/portal';
 import {
@@ -53,6 +53,10 @@ export default function CompanyCalendarPage({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [formError, setFormError] = useState('');
+  // Keep the modal focus trap stable while staff type into the event fields.
+  const closeEditor = useCallback(() => {
+    if (!busy) setEditing(false);
+  }, [busy]);
   const refresh = async () => {
     const [e, s] = await Promise.all([
       listCompanyEvents(),
@@ -259,9 +263,7 @@ export default function CompanyCalendarPage({
       />
       <Modal
         isOpen={editing}
-        onClose={() => {
-          if (!busy) setEditing(false);
-        }}
+        onClose={closeEditor}
         title={draft.id ? 'Edit event' : 'Add event'}
       >
         <form onSubmit={(e) => void save(e)} className="space-y-4">
