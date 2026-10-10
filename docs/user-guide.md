@@ -56,6 +56,14 @@ flowchart LR
 - Present members with blank scores are saved as present with 0 marks. Blank Junior uniform and behaviour scores each count as 0. To remove a record, set attendance to `Not recorded`.
 - Squad attendance percentages only count members you have marked present or absent.
 
+## Company Calendar and Boys’ Portal
+
+- Company staff can open `Calendar` to generate weekly nights, add events, change details/times, mark cancellations, and download BB-branded event poster PDFs.
+- `Portal Access` generates personal setup links in bulk or individually. Give each boy his link; he creates a passkey and then signs in from the normal login page.
+- Boys see their own current-year marks, attendance and ranks, squad standings, and the calendar. They can subscribe to the calendar and enable browser notifications.
+- Any officer, captain or admin can reset lost access. Removing a boy from the roster removes his portal account.
+- See [Company portal guide](12-company-portal.md) for the full process.
+
 ## Dashboard
 
 - Use the dashboard for a quick performance summary.

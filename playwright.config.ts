@@ -17,6 +17,12 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
+      ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE }
+      : undefined,
+    proxy: process.env.PLAYWRIGHT_PROXY_SERVER
+      ? { server: process.env.PLAYWRIGHT_PROXY_SERVER }
+      : undefined,
   },
   webServer: {
     command: serverCommand,

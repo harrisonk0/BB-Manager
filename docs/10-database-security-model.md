@@ -45,3 +45,9 @@ The UI uses those roles to shape workflows, but the database remains the enforce
 - `invite_codes` and `audit_logs` are legacy history data and are not written by the current app
 
 Changes that affect any of those areas should be treated as security-sensitive and reflected in both code and docs.
+
+## Company portal
+
+Company boys have linked `portal_accounts` rather than staff roles in `profiles`. Core roster, marks and archive policies remain staff-only. `company_portal_summary` returns only the authenticated active Company boy’s own data and anonymous squad summaries. Unactivated accounts cannot read calendar or stats. Calendar editing remains officer/captain/admin only. Credential hashes, calendar feed hashes, push subscriptions and the delivery outbox are inaccessible directly to browser clients.
+
+The Edge Function validates tokens and staff roles for provisioning/reset, confirms a stored passkey before activating a boy, and limits setup-code guesses. Reset and roster removal delete the Auth identity and revoke its subscriptions. See [Company portal](12-company-portal.md).

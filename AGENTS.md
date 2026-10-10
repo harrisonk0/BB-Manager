@@ -11,7 +11,7 @@ Keep it aligned with the actual codebase, deployment model, and live Supabase sh
 - Styling: Tailwind CSS via PostCSS
 - Backend: Supabase Auth + Postgres
 - Deployment: Vercel static deployment
-- Runtime model: browser SPA talking directly to Supabase; no custom app server in this repo
+- Runtime model: browser SPA talking directly to Supabase; trusted portal operations run in the `company-portal` Supabase Edge Function; no custom app server
 
 ## Verified Live Database Shape
 
@@ -26,6 +26,7 @@ Verified against Supabase on 2026-09-11:
 - `archived_marks`
 - `invite_codes`
 - `audit_logs`
+- Company portal/calendar/push tables documented in [docs/12-company-portal.md](docs/12-company-portal.md)
 
 RLS is enabled on all of those tables.
 
@@ -108,7 +109,9 @@ Rules:
 ## Database Change Rules
 
 - Treat the live Supabase project as the source of truth for schema and RLS.
-- Prefer MCP Supabase migrations and inspection tools for schema work.
+- Prefer MCP Supabase migrations and inspection tools for schema work. The Supabase Management API is the fallback when CLI direct Postgres access is unavailable.
+- Portal identities never receive staff roles. Keep core roster/marks policies staff-only, and use the scoped portal summary RPC for boys. Preserve deletion/reset revocation and the server-side passkey check.
+- Keep VAPID and worker credentials in server secrets/Vault; do not rotate existing push keys during routine deployments.
 - Document any schema or permission change in the relevant docs.
 - Keep app code and docs aligned with the live schema names (`profiles`, `members`, `marks`), not legacy names.
 

@@ -20,10 +20,12 @@ const LoginPage: React.FC = () => {
   const [isResetting, setIsResetting] = useState(false);
   const passkeysSupported = browserSupportsPasskeys();
   const enrollmentRequired = isPasskeyEnrollmentRequired();
+  const [showPassword, setShowPassword] = useState(!passkeysSupported || !enrollmentRequired);
 
   useEffect(() => {
     if (takePasskeyMigrationNotice()) {
-      setInfo('Sign in with your current password once to create your passkey. After that, the password stops working.');
+      setShowPassword(true);
+      setInfo('Sign in once to set up your passkey.');
     }
   }, []);
 
@@ -123,25 +125,18 @@ const LoginPage: React.FC = () => {
               <KeyIcon className="h-5 w-5 mr-2" />
               {isPasskeyLoading ? 'Waiting for passkey…' : 'Sign in with passkey'}
             </button>
-            <p className="text-center text-xs text-slate-500">
-              {enrollmentRequired
-                ? 'If you already created a passkey, use it here. Password sign-in is only for the one-time migration or for recovering a lost passkey.'
-                : 'Passkeys work on the live BB Manager site after you add one. On this computer, email and password still work.'}
-            </p>
+
           </div>
         )}
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center" aria-hidden="true">
-            <div className="w-full border-t border-slate-200" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-white px-3 text-sm text-slate-500">
-              {enrollmentRequired ? 'one-time password sign-in' : 'or use email and password'}
-            </span>
-          </div>
-        </div>
-
+        {passkeysSupported && (
+          <button type="button" onClick={() => setShowPassword(v => !v)} aria-expanded={showPassword}
+            className="block mx-auto text-sm text-slate-500 hover:text-slate-900 hover:underline">
+            {showPassword ? 'Back to passkey sign-in' : "I don’t have a passkey"}
+          </button>
+        )}
+        {showPassword && <>
+        <p className="text-sm text-slate-500 text-center">Staff can sign in below. Boys should ask a staff member for a setup link.</p>
         <form className="space-y-6" onSubmit={handleSignIn}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -194,13 +189,9 @@ const LoginPage: React.FC = () => {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </div>
-          {enrollmentRequired && (
-            <p className="text-xs text-slate-500">
-              After this password sign-in you must create a passkey. The password then stops working.
-              Forgot password remains only if you lose every passkey.
-            </p>
-          )}
+
         </form>
+        </>}
       </div>
     </div>
   );

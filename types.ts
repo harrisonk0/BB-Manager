@@ -68,7 +68,7 @@ export interface Boy {
 /**
  * Represents the main pages available in the application's navigation.
  */
-export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'archives' | 'settings' | 'accountSettings';
+export type Page = 'home' | 'weeklyMarks' | 'dashboard' | 'archives' | 'settings' | 'accountSettings' | 'companyCalendar' | 'portalAccess';
 
 /**
  * A specific view type for displaying an individual boy's marks page.
@@ -125,7 +125,7 @@ export type SortByType = 'name' | 'marks' | 'attendance';
 /**
  * Defines the possible roles a user can have in the application.
  */
-export type UserRole = 'admin' | 'captain' | 'officer';
+export type UserRole = 'admin' | 'captain' | 'officer' | 'boy';
 
 /**
  * Minimal authenticated user shape for Supabase auth.

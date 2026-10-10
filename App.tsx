@@ -4,6 +4,11 @@ import WeeklyMarksPage from './components/WeeklyMarksPage';
 import BoyMarksPage from './components/BoyMarksPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
+import PortalHomePage from './components/PortalHomePage';
+import PortalSetupPage from './components/PortalSetupPage';
+import CompanyCalendarPage from './components/CompanyCalendarPage';
+import PortalAccessPage from './components/PortalAccessPage';
+import { captureSetupLink } from './services/portal';
 import DashboardPage from './components/DashboardPage';
 import SettingsPage from './components/SettingsPage';
 import ArchivesPage from './components/ArchivesPage';
@@ -48,6 +53,7 @@ const App: React.FC = () => {
     setUserRole,
   } = useAuthAndRole();
 
+  const [portalSetup, setPortalSetup] = useState(captureSetupLink);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [view, setView] = useState<View>({ page: 'home' });
   const [showPasskeyNudge, setShowPasskeyNudge] = useState(false);
@@ -57,9 +63,9 @@ const App: React.FC = () => {
   const [passkeyGateRetry, setPasskeyGateRetry] = useState(0);
   const { activeSection, setActiveSection, handleSelectSection, performSwitchSection } = useSectionManagement(setView);
   const { boys, settings, dataLoading, dataError, refreshData, setSettings } = useAppData(
-    activeSection,
+    userRole && userRole !== 'boy' ? activeSection : null,
     showToast,
-    currentUser
+    userRole && userRole !== 'boy' ? currentUser : null
   );
   const {
     setView: navigateWithProtection,
@@ -92,6 +98,7 @@ const App: React.FC = () => {
       }
       return;
     }
+    if (!userRole || userRole === 'boy' || portalSetup) { setPasskeyGate('ready'); return; }
     if (!isPasskeyEnrollmentRequired()) {
       setPasskeyGate('ready');
       return;
@@ -142,10 +149,10 @@ const App: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [currentUser, passwordRecovery, passkeyGateRetry, performSignOut, showToast]);
+  }, [currentUser, userRole, portalSetup, passwordRecovery, passkeyGateRetry, performSignOut, showToast]);
 
   useEffect(() => {
-    if (!currentUser || passwordRecovery || isPasskeyEnrollmentRequired() || !browserSupportsPasskeys()) {
+    if (!currentUser || userRole === 'boy' || portalSetup || passwordRecovery || isPasskeyEnrollmentRequired() || !browserSupportsPasskeys()) {
       setShowPasskeyNudge(false);
       return;
     }
@@ -170,7 +177,7 @@ const App: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [currentUser, passwordRecovery]);
+  }, [currentUser, userRole, portalSetup, passwordRecovery]);
 
   const renderMainContent = () => {
     if (!activeSection) return null;
@@ -178,6 +185,10 @@ const App: React.FC = () => {
     switch (view.page) {
       case 'home':
         return <HomePage boys={boys} setView={navigateWithProtection} refreshData={refreshData} activeSection={activeSection} showToast={showToast} settings={settings} />;
+      case 'companyCalendar':
+        return activeSection === 'company' ? <CompanyCalendarPage showToast={showToast} /> : null;
+      case 'portalAccess':
+        return activeSection === 'company' ? <PortalAccessPage boys={boys} showToast={showToast} /> : null;
       case 'weeklyMarks':
         return <WeeklyMarksPage boys={boys} refreshData={refreshData} setHasUnsavedChanges={setHasUnsavedChanges} activeSection={activeSection} settings={settings} showToast={showToast} />;
       case 'dashboard':
@@ -219,6 +230,7 @@ const App: React.FC = () => {
   };
 
   const renderApp = () => {
+    if (portalSetup) return <PortalSetupPage setup={portalSetup} onComplete={() => setPortalSetup(null)} />;
     if (authLoading) {
       return <HomePageSkeleton />;
     }
@@ -226,6 +238,8 @@ const App: React.FC = () => {
     if (!currentUser) {
       return <LoginPage />;
     }
+
+    if (userRole === 'boy') return <PortalHomePage onSignOut={() => void performSignOut()} showToast={showToast} />;
 
     if (passwordRecovery) {
       return (

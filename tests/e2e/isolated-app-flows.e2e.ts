@@ -100,7 +100,11 @@ test.describe('Isolated app flows', () => {
     await expect(page.getByText('Sign in to your account')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Forgot password?' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Sign in with passkey' })).toBeVisible();
-    await expect(page.getByText('or use email and password')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Back to passkey sign-in' })).toBeVisible();
+    await page.getByRole('button', { name: 'Back to passkey sign-in' }).click();
+    await expect(page.getByLabel('Email address')).toHaveCount(0);
+    await page.getByRole('button', { name: 'I don’t have a passkey' }).click();
+    await expect(page.getByLabel('Email address')).toBeVisible();
   });
 
   test('valid user reaches company roster and session survives reload', async ({ page }) => {

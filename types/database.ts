@@ -197,6 +197,78 @@ export type Database = {
         }
         Relationships: []
       }
+      company_calendar_settings: {
+        Row: {
+          ends_at: string
+          ends_on: string
+          id: boolean
+          location: string
+          starts_at: string
+          starts_on: string
+          timezone: string
+        }
+        Insert: {
+          ends_at: string
+          ends_on: string
+          id?: boolean
+          location?: string
+          starts_at: string
+          starts_on: string
+          timezone?: string
+        }
+        Update: {
+          ends_at?: string
+          ends_on?: string
+          id?: boolean
+          location?: string
+          starts_at?: string
+          starts_on?: string
+          timezone?: string
+        }
+        Relationships: []
+      }
+      company_events: {
+        Row: {
+          cancelled: boolean
+          created_at: string
+          details: string
+          ends_at: string
+          id: string
+          location: string
+          meeting_date: string | null
+          revision: number
+          starts_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cancelled?: boolean
+          created_at?: string
+          details?: string
+          ends_at: string
+          id?: string
+          location?: string
+          meeting_date?: string | null
+          revision?: number
+          starts_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cancelled?: boolean
+          created_at?: string
+          details?: string
+          ends_at?: string
+          id?: string
+          location?: string
+          meeting_date?: string | null
+          revision?: number
+          starts_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invite_codes: {
         Row: {
           code: string
@@ -330,6 +402,163 @@ export type Database = {
           },
         ]
       }
+      portal_accounts: {
+        Row: {
+          activated_at: string | null
+          code_fingerprint: string | null
+          code_hash: string | null
+          created_at: string
+          feed_hash: string | null
+          member_id: string
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          activated_at?: string | null
+          code_fingerprint?: string | null
+          code_hash?: string | null
+          created_at?: string
+          feed_hash?: string | null
+          member_id: string
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          activated_at?: string | null
+          code_fingerprint?: string | null
+          code_hash?: string | null
+          created_at?: string
+          feed_hash?: string | null
+          member_id?: string
+          user_id?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_accounts_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: true
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_attempts: {
+        Row: {
+          attempts: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          attempts?: number
+          key: string
+          window_start?: string
+        }
+        Update: {
+          attempts?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      portal_notifications: {
+        Row: {
+          body: string
+          created_at: string
+          event_id: string
+          id: string
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          event_id: string
+          id?: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_notifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "company_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_push_deliveries: {
+        Row: {
+          attempts: number
+          delivered_at: string | null
+          lease_until: string | null
+          next_attempt_at: string
+          notification_id: string
+          subscription_id: string
+        }
+        Insert: {
+          attempts?: number
+          delivered_at?: string | null
+          lease_until?: string | null
+          next_attempt_at?: string
+          notification_id: string
+          subscription_id: string
+        }
+        Update: {
+          attempts?: number
+          delivered_at?: string | null
+          lease_until?: string | null
+          next_attempt_at?: string
+          notification_id?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_push_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "portal_notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_push_deliveries_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "portal_push_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portal_push_subscriptions: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          subscription: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          subscription: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          subscription?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -395,13 +624,55 @@ export type Database = {
           assigned_section: Database["public"]["Enums"]["section"]
         }[]
       }
+      claim_portal_push: {
+        Args: never
+        Returns: {
+          body: string
+          notification_id: string
+          subscription: Json
+          subscription_id: string
+          title: string
+        }[]
+      }
       cleanup_old_invite_codes: { Args: never; Returns: number }
+      company_portal_summary: { Args: never; Returns: Json }
       current_app_role: { Args: never; Returns: string }
+      dispatch_portal_push_job: { Args: never; Returns: undefined }
+      generate_company_nights: { Args: never; Returns: number }
       get_my_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
       get_user_role: { Args: { user_uid: string }; Returns: string }
+      is_portal_member: { Args: never; Returns: boolean }
+      is_portal_staff: { Args: never; Returns: boolean }
+      portal_check_code: {
+        Args: { p_code: string; p_ip_key: string; p_username: string }
+        Returns: string
+      }
+      portal_complete_setup: { Args: { p_user_id: string }; Returns: boolean }
+      portal_issue_code: {
+        Args: {
+          p_code: string
+          p_member_id: string
+          p_user_id: string
+          p_username: string
+        }
+        Returns: string
+      }
+      save_company_event: {
+        Args: {
+          p_cancelled: boolean
+          p_details: string
+          p_ends_local: string
+          p_id: string
+          p_location: string
+          p_revision: number
+          p_starts_local: string
+          p_title: string
+        }
+        Returns: string
+      }
       save_member_marks_patch: {
         Args: {
           p_delete_dates?: string[]
@@ -419,8 +690,8 @@ export type Database = {
         }
         Returns: undefined
       }
-      start_new_bb_session: { Args: { p_label: string }; Returns: Json }
       squads_payload_is_valid: { Args: { payload: Json }; Returns: boolean }
+      start_new_bb_session: { Args: { p_label: string }; Returns: Json }
       validate_invite_code: {
         Args: { p_code: string }
         Returns: {

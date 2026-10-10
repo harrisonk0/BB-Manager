@@ -16,3 +16,5 @@ After applying schema changes, regenerate `types/database.ts` with:
 ```sh
 supabase gen types typescript --linked --schema public > types/database.ts
 ```
+
+Company portal migrations, the `company-portal` Edge Function, and scheduled Web Push delivery are described in [docs/12-company-portal.md](../docs/12-company-portal.md). Deploy the function and configure its server secrets/Vault worker credential before scheduling delivery.
