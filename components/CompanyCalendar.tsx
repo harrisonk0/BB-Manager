@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { isCalendarEventVisible } from '../supabase/functions/_shared/calendar';
 import type { CompanyEvent } from '../types/portal';
 import { eventDateLabel, londonDateTime } from '../services/portal';
 import {
@@ -90,13 +91,25 @@ export default function CompanyCalendar({
   onEdit?: (event: CompanyEvent) => void;
   onPoster?: (event: CompanyEvent) => void;
 }) {
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const update = () => setNow(Date.now());
+    const timer = window.setInterval(update, 30000);
+    window.addEventListener('focus', update);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', update);
+    };
+  }, []);
   const [month, setMonth] = useState(() =>
     londonDateTime(new Date().toISOString()).slice(0, 7),
   );
   const [day, setDay] = useState<string | null>(null);
   const monthEvents = useMemo(
-    () => events.filter((e) => londonDateTime(e.starts_at).startsWith(month)),
-    [events, month],
+    () => events.filter(
+      (e) => isCalendarEventVisible(e, now) && londonDateTime(e.starts_at).startsWith(month),
+    ),
+    [events, month, now],
   );
   const first = new Date(`${month}-01T12:00:00Z`);
   const count = new Date(
@@ -117,6 +130,9 @@ export default function CompanyCalendar({
     : monthEvents;
   return (
     <section className="space-y-5">
+      <p className="text-xs text-slate-500">
+        Events clear automatically 24 hours after they end.
+      </p>
       <div className="flex items-center justify-between">
         <button
           aria-label="Previous month"

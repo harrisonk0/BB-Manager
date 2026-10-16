@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildCalendarFeed,
+  calendarCutoff,
+  isCalendarEventVisible,
   foldCalendarLine,
   generateAccessCode,
   isAllowedPushEndpoint,
@@ -69,4 +71,30 @@ describe('Portal setup and push validation', () => {
   ])('rejects unsafe push destination %s', (value) =>
     expect(isAllowedPushEndpoint(value)).toBe(false),
   );
+});
+
+describe('Calendar event expiry', () => {
+  const end = Date.parse(event.ends_at);
+  const day = 24 * 60 * 60 * 1000;
+  it('keeps upcoming, ongoing and recently completed events', () => {
+    for (const now of [end - day, end, end + day - 1])
+      expect(isCalendarEventVisible(event, now)).toBe(true);
+  });
+  it('clears events exactly 24 hours after their end, including cancellations', () => {
+    for (const cancelled of [false, true]) {
+      const cancelledEvent = { ...event, cancelled };
+      expect(isCalendarEventVisible(cancelledEvent, end + day)).toBe(false);
+      expect(isCalendarEventVisible(cancelledEvent, end + day + 1)).toBe(false);
+    }
+    expect(calendarCutoff(end + day)).toBe(new Date(end).toISOString());
+  });
+  it('uses the end of a multi-day event rather than its start', () => {
+    expect(isCalendarEventVisible({ ...event, ends_at: '2026-10-12T20:00:00Z' },
+      Date.parse('2026-10-12T21:00:00Z'))).toBe(true);
+  });
+  it('uses elapsed hours across the London daylight-saving change', () => {
+    const dstEvent = { ends_at: '2026-10-24T21:00:00+01:00' };
+    expect(isCalendarEventVisible(dstEvent, Date.parse('2026-10-25T19:59:59Z'))).toBe(true);
+    expect(isCalendarEventVisible(dstEvent, Date.parse('2026-10-25T20:00:00Z'))).toBe(false);
+  });
 });
