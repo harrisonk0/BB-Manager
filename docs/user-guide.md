@@ -56,6 +56,14 @@ flowchart LR
 - Present members with blank scores are saved as present with 0 marks. Blank Junior uniform and behaviour scores each count as 0. To remove a record, set attendance to `Not recorded`.
 - Squad attendance percentages only count members you have marked present or absent.
 
+## Optional NCO ranks
+
+- When adding or editing a Company boy, use **Rank (optional)**. Leave **No rank** for boys without one.
+- Lance Corporal, Corporal, Sergeant and Staff Sergeant are available from Year 11 through Year 14. Younger Company boys and Junior boys cannot have a rank.
+- A small chevron badge appears beside ranked names on rosters, weekly marks, dashboards, portal screens, archives and PDF reports. Hover the badge to read the full rank; screen readers announce it too. Boys without a rank have no badge.
+- Rank is separate from **Set as Squad Leader** and gives no additional access.
+- Changing a ranked boy to below Year 11 removes the selected rank, with a notice before you save. Archived ranks are preserved and carried forward on import only if the selected destination year remains eligible.
+
 ## Company Calendar and Boys’ Portal
 
 - Company staff can open `Calendar` to generate weekly nights, add events, change details/times, mark cancellations, and download BB-branded event poster PDFs.

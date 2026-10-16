@@ -1,3 +1,4 @@
+import { parseMemberRank } from './memberRanks';
 import { Boy, Mark, Section } from '../types';
 
 export type MemberRow = {
@@ -7,6 +8,7 @@ export type MemberRow = {
   section: Section;
   school_year: string;
   is_squad_leader: boolean | null;
+  rank?: string | null;
   imported_from_archived_member_id?: string | null;
 };
 
@@ -79,6 +81,7 @@ export const mapMarkRow = (row: MarkRow): Mark => {
 export const mapBoyRow = (member: MemberRow, marks: MarkRow[]): Boy => ({
   id: member.id,
   name: member.name,
+  memberRank: parseMemberRank(member.rank),
   squad: member.squad as Boy['squad'],
   year: parseSchoolYear(member.section, member.school_year),
   marks: [...marks]

@@ -34,7 +34,7 @@ BEGIN
  IF s->>'name'<>'PORTAL SQL Boy' OR (s->>'total')::numeric<>5 OR (s->>'attended')::int<>2 OR (s->>'recorded')::int<>3 OR jsonb_array_length(s->'marks')<>3 THEN RAISE EXCEPTION 'Personal summary wrong: %',s; END IF;
  IF NOT (s->'teammates' @> '[{"name":"PORTAL SQL Teammate","isSquadLeader":true}]'::jsonb) THEN RAISE EXCEPTION 'Squad teammate missing: %',s; END IF;
  IF EXISTS(SELECT 1 FROM jsonb_array_elements(s->'teammates') t WHERE t->>'name' IN ('PORTAL SQL Boy','PORTAL SQL Pending','PORTAL SQL Junior')) THEN RAISE EXCEPTION 'Teammate scope wrong: %',s; END IF;
- IF EXISTS(SELECT 1 FROM jsonb_array_elements(s->'teammates') t WHERE t - 'name' - 'isSquadLeader' <> '{}'::jsonb) THEN RAISE EXCEPTION 'Teammate private fields leaked: %',s; END IF;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(s->'teammates') t WHERE t - 'name' - 'isSquadLeader' - 'memberRank' <> '{}'::jsonb) THEN RAISE EXCEPTION 'Teammate private fields leaked: %',s; END IF;
  IF s::text LIKE '%PORTAL SQL Pending%' THEN RAISE EXCEPTION 'Other boy name leaked'; END IF;
  BEGIN
   PERFORM public.save_company_event(NULL,0,'Forbidden','2029-10-01T19:00','2029-10-01T21:00','','',false);

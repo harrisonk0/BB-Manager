@@ -27,6 +27,7 @@ describe('sessionArchiveModel', () => {
           squad: 2,
           section: 'company',
           school_year: '11',
+          rank: 'sergeant',
           is_squad_leader: true,
         },
       ],
@@ -60,6 +61,7 @@ describe('sessionArchiveModel', () => {
       {
         id: 'archive-member-1',
         name: 'Archive Alpha',
+        memberRank: 'sergeant',
         squad: 2,
         year: 11,
         isSquadLeader: true,

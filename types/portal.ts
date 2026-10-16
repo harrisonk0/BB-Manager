@@ -1,3 +1,4 @@
+import type { MemberRank } from '../types';
 import type { CalendarEvent } from '../supabase/functions/_shared/calendar';
 export type CompanyEvent = CalendarEvent & {
   meeting_date: string | null;
@@ -26,12 +27,14 @@ export interface SetupLink {
   link: string;
 }
 export interface PortalSquadMember {
+  memberRank?: MemberRank | null;
   id: string;
   name: string;
   isSquadLeader: boolean;
   marks: { date: string; score: number }[];
 }
 export interface PortalSummary {
+  memberRank?: MemberRank | null;
   name: string;
   squad: number;
   isSquadLeader: boolean;
@@ -42,7 +45,7 @@ export interface PortalSummary {
   companyRank: number;
   squadRank: number;
   marks: { date: string; score: number }[];
-  teammates: { name: string; isSquadLeader: boolean }[];
+  teammates: { name: string; isSquadLeader: boolean; memberRank?: MemberRank | null }[];
   squads: {
     number: number;
     label: string | null;

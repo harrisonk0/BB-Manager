@@ -35,6 +35,7 @@ export const mapArchivedBoys = (members: ArchivedMemberRow[], marks: ArchivedMar
       {
         id: member.id,
         name: member.name,
+        rank: member.rank ?? null,
         squad: member.squad,
         section: member.section,
         school_year: member.school_year,

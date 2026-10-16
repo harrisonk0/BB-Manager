@@ -1,3 +1,4 @@
+import { validateMemberRank } from './memberRanks';
 import { Boy, Mark, Section, WeeklyMarksSnapshotEntry } from '../types';
 import { supabase } from './supabaseClient';
 import * as supabaseAuth from './supabaseAuth';
@@ -190,6 +191,7 @@ const applyWeeklyMarksSnapshotDirectly = async (
 export const saveWeeklyMarksForSection = saveWeeklyMarksSnapshot;
 
 export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise<Boy> => {
+  validateMemberRank(boy.memberRank, section, boy.year);
   validateBoyMarks(boy as Boy, section);
   const authUser = await supabaseAuth.getCurrentUser();
   if (!authUser) throw new Error('User not authenticated');
@@ -199,6 +201,7 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise
     .insert([
       {
         name: boy.name,
+        rank: boy.memberRank ?? null,
         squad: boy.squad,
         school_year: String(boy.year),
         is_squad_leader: boy.isSquadLeader ?? false,
@@ -206,7 +209,7 @@ export const createBoy = async (boy: Omit<Boy, 'id'>, section: Section): Promise
         imported_from_archived_member_id: boy.importedFromArchivedMemberId ?? null,
       },
     ])
-    .select('id,name,squad,section,school_year,is_squad_leader,imported_from_archived_member_id')
+    .select('id,name,squad,section,school_year,is_squad_leader,rank,imported_from_archived_member_id')
     .single();
 
   if (error || !data) {
@@ -239,7 +242,7 @@ export const fetchBoys = async (section: Section): Promise<Boy[]> => {
   const [{ data: members, error: membersError }, { data: marks, error: marksError }] = await Promise.all([
     supabase
       .from('members')
-      .select('id,name,squad,section,school_year,is_squad_leader,imported_from_archived_member_id')
+      .select('id,name,squad,section,school_year,is_squad_leader,rank,imported_from_archived_member_id')
       .eq('section', section)
       .order('name'),
     supabase
@@ -275,7 +278,7 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
   const [{ data: member, error: memberError }, { data: marks, error: marksError }] = await Promise.all([
     supabase
       .from('members')
-      .select('id,name,squad,section,school_year,is_squad_leader,imported_from_archived_member_id')
+      .select('id,name,squad,section,school_year,is_squad_leader,rank,imported_from_archived_member_id')
       .eq('id', id)
       .eq('section', section)
       .single(),
@@ -301,6 +304,7 @@ export const fetchBoyById = async (id: string, section: Section): Promise<Boy | 
 };
 
 export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
+  validateMemberRank(boy.memberRank, section, boy.year);
   if (!boy.id) throw new Error('Boy ID is required.');
   const authUser = await supabaseAuth.getCurrentUser();
   if (!authUser) throw new Error('User not authenticated');
@@ -309,6 +313,7 @@ export const updateBoy = async (boy: Boy, section: Section): Promise<Boy> => {
     .from('members')
     .update({
       name: boy.name,
+      rank: boy.memberRank ?? null,
       school_year: String(boy.year),
       section,
       squad: boy.squad,

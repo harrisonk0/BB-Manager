@@ -73,6 +73,7 @@ const supabaseMock = vi.hoisted(() => {
     from,
     rpc,
     memberUpdate,
+    memberInsert,
     memberUpdateEqId,
     memberUpdateEqSection,
     memberDelete,
@@ -146,6 +147,7 @@ vi.mock('./supabaseClient', () => ({
 
 import {
   deleteBoyById,
+  createBoy,
   saveBoyMarks,
   saveWeeklyMarksSnapshot,
   updateBoy,
@@ -327,7 +329,8 @@ describe('db service write model', () => {
         name: 'Alex',
         squad: 2,
         section: 'company',
-        school_year: '10',
+        school_year: '11',
+        rank: 'corporal',
         is_squad_leader: false,
       },
       error: null,
@@ -343,6 +346,7 @@ describe('db service write model', () => {
           year: 11,
           marks: [{ date: '2026-03-20', score: 8, uniformScore: 4 }],
           isSquadLeader: true,
+          memberRank: 'corporal',
         },
         'company',
       ),
@@ -350,7 +354,8 @@ describe('db service write model', () => {
       id: 'member-1',
       name: 'Alex',
       squad: 2,
-      year: 10,
+      year: 11,
+      memberRank: 'corporal',
       marks: [],
       isSquadLeader: false,
       importedFromArchivedMemberId: null,
@@ -359,6 +364,7 @@ describe('db service write model', () => {
     expect(supabaseMock.from).toHaveBeenCalledWith('members');
     expect(supabaseMock.memberUpdate).toHaveBeenCalledWith({
       name: 'Alex Updated',
+      rank: 'corporal',
       school_year: '11',
       section: 'company',
       squad: 3,
@@ -380,4 +386,23 @@ describe('db service write model', () => {
     expect(supabaseMock.memberDeleteEqSection).toHaveBeenCalledWith('section', 'junior');
     expect(supabaseMock.rpc).not.toHaveBeenCalled();
   });
+  it('creates a ranked boy without granting squad-leader status', async () => {
+    supabaseMock.insertSingleResponse = { data: {
+      id: 'new-boy', name: 'Jamie', squad: 1, section: 'company',
+      school_year: '11', is_squad_leader: false, rank: 'lance_corporal',
+    }, error: null };
+    const result = await createBoy({ name: 'Jamie', squad: 1, year: 11, marks: [], memberRank: 'lance_corporal' }, 'company');
+    expect(result).toMatchObject({ memberRank: 'lance_corporal', isSquadLeader: false });
+    expect(supabaseMock.memberInsert).toHaveBeenCalledWith([
+      expect.objectContaining({ rank: 'lance_corporal', school_year: '11', is_squad_leader: false }),
+    ]);
+  });
+
+  it('rejects ineligible ranks before making any database write', async () => {
+    const boy = { id: 'new-boy', name: 'Jamie', squad: 1, year: 10 as const, marks: [], memberRank: 'corporal' as const };
+    await expect(createBoy(boy, 'company')).rejects.toThrow(/Year 11/);
+    await expect(updateBoy(boy, 'company')).rejects.toThrow(/Year 11/);
+    expect(supabaseMock.from).not.toHaveBeenCalled();
+  });
+
 });

@@ -1,3 +1,4 @@
+import { NameWithRank } from './RankBadge';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Boy, Section, SectionSettings, ToastType } from '../types';
 import { saveWeeklyMarksSnapshot } from '../services/db';
@@ -467,7 +468,7 @@ const WeeklyMarksPage: React.FC<WeeklyMarksPageProps> = ({ boys, refreshData, se
                       <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                         <div className="flex-1">
                           <span className={`text-lg font-medium ${squadTextClass(activeSection, boy.squad)}`}>
-                            {boy.name}
+                            <NameWithRank name={boy.name} memberRank={boy.memberRank} />
                             {boy.isSquadLeader && (
                                 <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
                             )}

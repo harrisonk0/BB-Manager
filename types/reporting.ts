@@ -1,4 +1,4 @@
-import type { Boy, Mark, Section } from '../types';
+import type { Boy, Mark, Section, MemberRank } from '../types';
 
 export interface ReportDateRange {
   startDate: string;
@@ -14,6 +14,7 @@ export interface MemberMeetingRecord {
 }
 
 export interface MemberSessionSummary {
+  memberRank?: MemberRank | null;
   id: string;
   name: string;
   squad: Boy['squad'];
@@ -40,7 +41,7 @@ export interface SquadSessionSummary {
   attendanceRate: number;
   totalMarks: number;
   averageScoreWhenPresent: number;
-  topMember?: Pick<MemberSessionSummary, 'id' | 'name' | 'totalMarks' | 'attendanceRate'>;
+  topMember?: Pick<MemberSessionSummary, 'id' | 'name' | 'memberRank' | 'totalMarks' | 'attendanceRate'>;
   members: MemberSessionSummary[];
 }
 
@@ -78,7 +79,7 @@ export interface SessionReportData {
   range: ReportDateRange;
   meetingDates: string[];
   headlineStats: SessionHeadlineStats;
-  topMembers: Pick<MemberSessionSummary, 'id' | 'name' | 'squad' | 'totalMarks' | 'attendanceRate' | 'averageScoreWhenPresent'>[];
+  topMembers: Pick<MemberSessionSummary, 'id' | 'name' | 'memberRank' | 'squad' | 'totalMarks' | 'attendanceRate' | 'averageScoreWhenPresent'>[];
   members: MemberSessionSummary[];
   squads: SquadSessionSummary[];
   meetings: MeetingSummary[];

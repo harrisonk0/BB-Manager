@@ -112,6 +112,7 @@ Rules:
 - Prefer MCP Supabase migrations and inspection tools for schema work. The Supabase Management API is the fallback when CLI direct Postgres access is unavailable.
 - Portal identities never receive staff roles. Keep core roster/marks policies staff-only, and use the scoped portal summary RPC for boys. Only current, active Company squad leaders receive own-squad dated marks through that RPC; ordinary boys receive no teammate statistics. Preserve deletion/reset revocation and the server-side passkey check.
 - Keep VAPID and worker credentials in server secrets/Vault; do not rotate existing push keys during routine deployments.
+- Optional NCO rank is independent of squad leadership and app roles. Keep Year 11–14/Company eligibility enforced in the browser and database, and preserve rank in archives/imports and scoped portal identity data.
 - Document any schema or permission change in the relevant docs.
 - Keep app code and docs aligned with the live schema names (`profiles`, `members`, `marks`), not legacy names.
 

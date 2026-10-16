@@ -1,3 +1,4 @@
+import { NameWithRank } from './RankBadge';
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { Boy, Section, SectionSettings, ToastType } from '../types';
 import { ArchiveBoxIcon, ArrowDownTrayIcon, ChartBarIcon, ClipboardDocumentListIcon } from './Icons';
@@ -218,7 +219,7 @@ const ArchivesPage: React.FC<ArchivesPageProps> = ({ activeSection, showToast, l
                   <ul className="mt-4 space-y-2">
                     {boysBySquad[squad].map((boy) => (
                       <li key={boy.id} className="flex items-center justify-between text-sm text-slate-700">
-                        <span>{boy.name}{boy.isSquadLeader ? ' (Leader)' : ''}</span>
+                        <span><NameWithRank name={boy.name} memberRank={boy.memberRank} />{boy.isSquadLeader ? ' (Leader)' : ''}</span>
                         <span className="text-slate-500">{boy.marks.length} marks</span>
                       </li>
                     ))}

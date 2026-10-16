@@ -1,3 +1,4 @@
+import { NameWithRank } from './RankBadge';
 import React, { useEffect, useState } from 'react';
 import type { Boy, ToastType } from '../types';
 import type { PortalAccount, SetupLink } from '../types/portal';
@@ -135,7 +136,7 @@ export default function PortalAccessPage({
                     <span aria-hidden="true">
                       <UserCircleIcon className="w-5 h-5 text-slate-400" />
                     </span>
-                    {boy.name}
+                    <NameWithRank name={boy.name} memberRank={boy.memberRank} />
                   </h2>
                   <p className="text-xs text-slate-500 mt-1">
                     {!loaded
@@ -188,7 +189,7 @@ export default function PortalAccessPage({
       >
         <div className="space-y-4">
           <p>
-            Generate a fresh setup link for {reset?.name}? His existing passkeys
+            Generate a fresh setup link for {reset && <NameWithRank name={reset.name} memberRank={reset.memberRank} />}? His existing passkeys
             and calendar subscription will stop working.
           </p>
           <div className="flex justify-end gap-3">
