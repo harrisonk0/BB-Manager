@@ -163,6 +163,7 @@ describe('sessions service', () => {
       {
         id: 'archive-member-1',
         name: 'Archive Alpha',
+        memberRank: null,
         squad: 1,
         year: 10,
         isSquadLeader: false,
@@ -191,6 +192,7 @@ describe('sessions service', () => {
       {
         id: 'archive-member-1',
         name: 'Archive Alpha',
+        memberRank: null,
         squad: 1,
         section: 'company',
         year: 10,

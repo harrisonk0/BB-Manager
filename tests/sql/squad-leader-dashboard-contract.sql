@@ -51,7 +51,7 @@ BEGIN
  IF NOT (s->>'isSquadLeader')::boolean OR jsonb_typeof(s->'squadMembers')<>'array' THEN RAISE EXCEPTION 'Leader statistics missing'; END IF;
  IF jsonb_array_length(s->'squadMembers')<>(SELECT count(*) FROM expected_squad_members) THEN RAISE EXCEPTION 'Wrong squad roster size'; END IF;
  IF EXISTS(SELECT 1 FROM jsonb_array_elements(s->'squadMembers') m WHERE NOT EXISTS(SELECT 1 FROM expected_squad_members e WHERE e.id=(m->>'id')::uuid)) THEN RAISE EXCEPTION 'Other squad/section leaked'; END IF;
- IF EXISTS(SELECT 1 FROM jsonb_array_elements(s->'squadMembers') m WHERE m - 'id' - 'name' - 'isSquadLeader' - 'marks' <> '{}'::jsonb) THEN RAISE EXCEPTION 'Unnecessary member fields exposed'; END IF;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(s->'squadMembers') m WHERE m - 'id' - 'name' - 'isSquadLeader' - 'marks' - 'memberRank' <> '{}'::jsonb) THEN RAISE EXCEPTION 'Unnecessary member fields exposed'; END IF;
  IF EXISTS(SELECT 1 FROM jsonb_array_elements(s->'squadMembers') m CROSS JOIN LATERAL jsonb_array_elements(m->'marks') mk WHERE mk - 'date' - 'score' <> '{}'::jsonb) THEN RAISE EXCEPTION 'Unnecessary mark fields exposed'; END IF;
  SELECT m INTO mate FROM jsonb_array_elements(s->'squadMembers') m WHERE m->>'id'=(SELECT mate_id::text FROM squad_dashboard_fixture);
  IF mate->'marks' <> '[{"date":"2026-10-15","score":0},{"date":"2026-10-08","score":-1},{"date":"2026-10-01","score":5}]'::jsonb THEN RAISE EXCEPTION 'Weekly marks or attendance wrong'; END IF;

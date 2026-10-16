@@ -1,3 +1,4 @@
+import { NameWithRank } from './RankBadge';
 import React, { useCallback, useEffect, useState } from 'react';
 import type {
   CompanyEvent,
@@ -206,7 +207,7 @@ export default function PortalHomePage({
                         Your Company portal
                       </p>
                       <h1 className="text-2xl font-bold text-white mt-1">
-                        Hi, {summary.name.split(' ')[0]}
+                        Hi, <NameWithRank name={summary.name.split(' ')[0]} memberRank={summary.memberRank} />
                       </h1>
                     </div>
                     <button
@@ -339,7 +340,7 @@ export default function PortalHomePage({
                     <ul className="bg-white rounded-xl border divide-y">
                       {(summary.teammates ?? []).map((teammate, index) => (
                         <li key={index} className="p-4 flex items-center justify-between gap-3">
-                          <span className="text-sm font-medium">{teammate.name}</span>
+                          <span className="text-sm font-medium"><NameWithRank name={teammate.name} memberRank={teammate.memberRank} /></span>
                           {teammate.isSquadLeader && (
                             <span className="text-xs font-semibold text-company-blue bg-blue-50 rounded-full px-3 py-1">Squad leader</span>
                           )}

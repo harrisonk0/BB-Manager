@@ -1,4 +1,5 @@
-import { Boy, JuniorYear, SchoolYear, Section, SectionSquad } from '../types';
+import { isRankEligible } from './memberRanks';
+import { Boy, JuniorYear, SchoolYear, Section, SectionSquad, MemberRank } from '../types';
 import { createBoy } from './db';
 import { formatSchoolYear, resolveSquadNumber, schoolYearsForSection } from './sectionSquads';
 
@@ -8,6 +9,7 @@ export type SchoolYearPlan =
   | { status: 'left'; reason: string };
 
 export type ArchivedMemberSnapshot = {
+  memberRank?: MemberRank | null;
   id: string;
   name: string;
   squad: number;
@@ -17,6 +19,7 @@ export type ArchivedMemberSnapshot = {
 };
 
 export type ImportCandidate = {
+  memberRank?: MemberRank | null;
   archivedMemberId: string;
   name: string;
   sourceSection: Section;
@@ -127,6 +130,7 @@ export const buildImportCandidates = ({
       return {
         archivedMemberId: member.id,
         name: member.name,
+        memberRank: member.memberRank ?? null,
         sourceSection: member.section,
         sourceYear: member.year,
         sourceSquad: member.squad,
@@ -182,6 +186,7 @@ export const importArchivedMembers = async ({
       await createBoy(
         {
           name: source.name,
+          memberRank: isRankEligible(activeSection, selection.year) ? (source.memberRank ?? null) : null,
           squad: selection.squad,
           year: selection.year,
           marks: [],

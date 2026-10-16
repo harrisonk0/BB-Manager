@@ -68,6 +68,7 @@ const buildMemberSummary = (boy: Boy, section: Section, range: ReportDateRange):
   return {
     id: boy.id ?? boy.name,
     name: boy.name,
+    memberRank: boy.memberRank ?? null,
     squad: boy.squad,
     year: boy.year,
     isSquadLeader: boy.isSquadLeader ?? false,
@@ -182,6 +183,7 @@ const buildSquadSummaries = (members: MemberSessionSummary[]): SquadSessionSumma
           ? {
               id: topMember.id,
               name: topMember.name,
+              memberRank: topMember.memberRank ?? null,
               totalMarks: topMember.totalMarks,
               attendanceRate: topMember.attendanceRate,
             }
@@ -245,6 +247,7 @@ export const buildSessionReportData = ({
     topMembers: members.slice(0, 5).map((member) => ({
       id: member.id,
       name: member.name,
+      memberRank: member.memberRank ?? null,
       squad: member.squad,
       totalMarks: member.totalMarks,
       attendanceRate: member.attendanceRate,

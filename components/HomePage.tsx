@@ -1,3 +1,4 @@
+import { NameWithRank } from './RankBadge';
 import React, { useState, useMemo, useEffect } from 'react';
 import { Boy, View, Section, ToastType, SortByType, SchoolYear, JuniorYear, SectionSettings } from '../types';
 import Modal from './Modal';
@@ -335,7 +336,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
                       <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                         <div className="flex-1">
                           <p className={`text-lg font-medium ${squadTextClass(activeSection, boy.squad)}`}>
-                              {boy.name}
+                              <NameWithRank name={boy.name} memberRank={boy.memberRank} />
                               {boy.isSquadLeader && (
                                   <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
                               )}
@@ -388,7 +389,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
       <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Confirm Deletion">
         {boyToDelete && (
           <div className="space-y-4">
-            <p className="text-slate-600">Are you sure you want to delete <strong className="font-semibold text-slate-800">{boyToDelete.name}</strong>? This action cannot be undone directly.</p>
+            <p className="text-slate-600">Are you sure you want to delete <strong className="font-semibold text-slate-800"><NameWithRank name={boyToDelete.name} memberRank={boyToDelete.memberRank} /></strong>? This action cannot be undone directly.</p>
             <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
               <button
                 type="button"

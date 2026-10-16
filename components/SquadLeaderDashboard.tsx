@@ -1,3 +1,4 @@
+import { NameWithRank } from './RankBadge';
 import React, { useMemo, useState } from 'react';
 import type { PortalSquadMember, PortalSummary } from '../types/portal';
 import { buildSquadDashboard } from '../services/squadDashboard';
@@ -369,7 +370,7 @@ export default function SquadLeaderDashboard({
                           {initials(member.name)}
                         </span>
                         <span>
-                          {member.name}
+                          <NameWithRank name={member.name} memberRank={member.memberRank} />
                           {member.isSquadLeader && <small>Squad leader</small>}
                           <span className="sd-mobile-attendance">
                             {percentage(member.attendance)} attendance

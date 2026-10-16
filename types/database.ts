@@ -75,6 +75,7 @@ export type Database = {
           id: string
           is_squad_leader: boolean
           name: string
+          rank: string | null
           school_year: string
           section: Database["public"]["Enums"]["section"]
           session_id: string
@@ -87,6 +88,7 @@ export type Database = {
           id?: string
           is_squad_leader?: boolean
           name: string
+          rank?: string | null
           school_year: string
           section: Database["public"]["Enums"]["section"]
           session_id: string
@@ -99,6 +101,7 @@ export type Database = {
           id?: string
           is_squad_leader?: boolean
           name?: string
+          rank?: string | null
           school_year?: string
           section?: Database["public"]["Enums"]["section"]
           session_id?: string
@@ -365,6 +368,7 @@ export type Database = {
           imported_from_archived_member_id: string | null
           is_squad_leader: boolean
           name: string
+          rank: string | null
           school_year: string
           section: Database["public"]["Enums"]["section"]
           squad: number
@@ -376,6 +380,7 @@ export type Database = {
           imported_from_archived_member_id?: string | null
           is_squad_leader?: boolean
           name: string
+          rank?: string | null
           school_year: string
           section: Database["public"]["Enums"]["section"]
           squad: number
@@ -387,6 +392,7 @@ export type Database = {
           imported_from_archived_member_id?: string | null
           is_squad_leader?: boolean
           name?: string
+          rank?: string | null
           school_year?: string
           section?: Database["public"]["Enums"]["section"]
           squad?: number

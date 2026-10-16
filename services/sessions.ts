@@ -1,3 +1,4 @@
+import { parseMemberRank } from './memberRanks';
 import { Boy, Section } from '../types';
 import { supabase } from './supabaseClient';
 import * as supabaseAuth from './supabaseAuth';
@@ -90,7 +91,7 @@ export const fetchArchivedBoys = async (sessionId: string, section: Section): Pr
   const [{ data: members, error: membersError }, { data: marks, error: marksError }] = await Promise.all([
     supabase
       .from('archived_members')
-      .select('id,session_id,source_member_id,name,squad,section,school_year,is_squad_leader')
+      .select('id,session_id,source_member_id,name,squad,section,school_year,is_squad_leader,rank')
       .eq('session_id', sessionId)
       .eq('section', section)
       .order('name'),
@@ -118,7 +119,7 @@ export const fetchArchivedMemberSnapshots = async (sessionId: string): Promise<A
 
   const { data, error } = await supabase
     .from('archived_members')
-    .select('id,name,squad,section,school_year,is_squad_leader')
+    .select('id,name,squad,section,school_year,is_squad_leader,rank')
     .eq('session_id', sessionId)
     .order('name');
 
@@ -129,6 +130,7 @@ export const fetchArchivedMemberSnapshots = async (sessionId: string): Promise<A
   return data.map((row) => ({
     id: row.id,
     name: row.name,
+    memberRank: parseMemberRank(row.rank),
     squad: row.squad,
     section: row.section as Section,
     year: parseSchoolYear(row.section as Section, row.school_year),

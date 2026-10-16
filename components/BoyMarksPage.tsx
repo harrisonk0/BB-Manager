@@ -1,3 +1,4 @@
+import { NameWithRank } from './RankBadge';
 /**
  * @file BoyMarksPage.tsx
  * @description A detailed view showing the entire mark history for a single boy.
@@ -229,7 +230,7 @@ const BoyMarksPage: React.FC<BoyMarksPageProps> = ({ boyId, refreshData, setHasU
           >
             ← Back to members
           </button>
-          <h1 className={`text-3xl font-bold tracking-tight ${squadTextClass(activeSection, boy.squad)}`}>{boy.name}'s Marks</h1>
+          <h1 aria-label={`${boy.name}'s Marks`} className={`text-3xl font-bold tracking-tight ${squadTextClass(activeSection, boy.squad)}`}><NameWithRank name={boy.name} memberRank={boy.memberRank} />'s Marks</h1>
           <p className="mt-1 text-lg text-slate-600">
             {`Squad ${boy.squad}`}
             <span className="mx-2 text-slate-300">&bull;</span>

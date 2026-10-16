@@ -80,6 +80,7 @@ Sources of truth:
 
 - Supabase Auth session for authentication
 - Supabase Postgres for application data
+- Optional NCO ranks live on `members.rank` and `archived_members.rank`, constrained to Company Year 11–14. Rank is presentation metadata and grants no role or squad-leader access. Archives/imports and the scoped portal summary preserve eligible ranks.
 - Company portal identity linked to a live Company roster record, with a dedicated portal summary RPC returning personal stats, squad totals and names/leader flags for only the boy’s own squad; current leaders additionally receive their own squad’s dated marks for a read-only dashboard
 - `localStorage['activeSection']` for the selected section (validated to `company` | `junior`)
 - `sessionStorage` for per-section roster search/sort

@@ -5,7 +5,9 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Boy, SchoolYear, Section, JuniorYear, SectionSquad } from '../types';
+import { Boy, SchoolYear, Section, JuniorYear, SectionSquad, MemberRank } from '../types';
+import { MEMBER_RANKS, isRankEligible } from '../services/memberRanks';
+import { NameWithRank } from './RankBadge';
 import { createBoy, updateBoy } from '../services/db';
 import {
   formatSchoolYear,
@@ -52,6 +54,8 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
   const [squad, setSquad] = useState(initialSquad);
   const [year, setYear] = useState<SchoolYear | JuniorYear>(initialYear);
   const [isSquadLeader, setIsSquadLeader] = useState(false);
+  const [memberRank, setMemberRank] = useState<MemberRank | null>(null);
+  const [rankCleared, setRankCleared] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const [nameError, setNameError] = useState<string | null>(null);
@@ -64,15 +68,18 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
       setSquad(resolveSquadNumber(squadOptions, boyToEdit.squad));
       setYear(boyToEdit.year || initialYear);
       setIsSquadLeader(boyToEdit.isSquadLeader || false);
+      setMemberRank(boyToEdit.memberRank ?? null);
     } else {
       setName('');
       setSquad(resolveSquadNumber(squadOptions, undefined));
       setYear(initialYear);
       setIsSquadLeader(false);
+      setMemberRank(null);
     }
     setNameError(null);
     setSquadError(null);
     setYearError(null);
+    setRankCleared(false);
   }, [boyToEdit, activeSection, squadOptions, initialYear]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,10 +106,10 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     setIsSaving(true);
     try {
       if (boyToEdit) {
-        await updateBoy({ ...boyToEdit, name, squad, year, isSquadLeader }, activeSection);
+        await updateBoy({ ...boyToEdit, name, squad, year, isSquadLeader, memberRank }, activeSection);
         onSave(false, name);
       } else {
-        await createBoy({ name, squad, year, marks: [], isSquadLeader }, activeSection);
+        await createBoy({ name, squad, year, marks: [], isSquadLeader, memberRank }, activeSection);
         onSave(true, name);
       }
     } catch (err) {
@@ -145,6 +152,10 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
           onChange={(e) => {
             const value = isCompany ? parseInt(e.target.value, 10) : e.target.value;
             setYear(value as SchoolYear | JuniorYear);
+            if (!isRankEligible(activeSection, value as SchoolYear | JuniorYear) && memberRank) {
+              setMemberRank(null);
+              setRankCleared(true);
+            }
           }}
           className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none sm:text-sm ${yearError ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
           aria-invalid={yearError ? "true" : "false"}
@@ -158,6 +169,26 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
         </select>
         {yearError && <p id="year-error" className="text-red-500 text-xs mt-1">{yearError}</p>}
       </div>
+      {isCompany && (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <div>
+            <label htmlFor="member-rank" className="block text-sm font-medium text-slate-700">
+              Rank <span className="font-normal text-slate-400">(optional)</span>
+            </label>
+            <select id="member-rank" value={memberRank ?? ''}
+              disabled={!isRankEligible(activeSection, year)}
+              aria-describedby="member-rank-help"
+              onChange={(event) => { setMemberRank((event.target.value || null) as MemberRank | null); setRankCleared(false); }}
+              className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm disabled:bg-slate-100 disabled:text-slate-400 ${accentRing}`}>
+              <option value="">No rank</option>
+              {MEMBER_RANKS.map((rank) => <option key={rank.value} value={rank.value}>{rank.label}</option>)}
+            </select>
+            <p id="member-rank-help" className="mt-2 text-xs text-slate-500">Available from Year 11. Rank does not change squad-leader access.</p>
+          </div>
+          {rankCleared && <p role="status" className="text-xs text-amber-800">The rank will be removed when you save because this boy is below Year 11.</p>}
+          {memberRank && <div className="rounded-lg border border-amber-100 bg-white px-3 py-2 text-sm font-semibold text-slate-800"><NameWithRank name={name.trim() || 'Boy’s name'} memberRank={memberRank} /></div>}
+        </div>
+      )}
       <div>
         <label className="block text-sm font-medium text-slate-700">Squad</label>
         <div className={`mt-2 flex flex-wrap gap-4 ${squadError ? 'border border-red-500 p-2 rounded-md' : ''}`}>

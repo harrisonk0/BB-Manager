@@ -1,3 +1,4 @@
+import { NameWithRank } from './RankBadge';
 /**
  * @file DashboardPage.tsx
  * @description Displays a summary dashboard of member performance.
@@ -183,7 +184,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection, sett
                 <li key={boy.id} className="flex items-center justify-between">
                   <div className="flex items-center">
                     <span className={`w-6 text-center font-bold text-lg ${index < 3 ? 'text-slate-800' : 'text-slate-500'}`}>{index + 1}</span>
-                    <span className={`ml-3 font-medium ${squadTextClass(activeSection, boy.squad)}`}>{boy.name}</span>
+                    <span className={`ml-3 font-medium ${squadTextClass(activeSection, boy.squad)}`}><NameWithRank name={boy.name} memberRank={boy.memberRank} /></span>
                   </div>
                   <span className="font-bold text-slate-800">{boy.totalMarks}</span>
                 </li>
@@ -260,7 +261,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ boys, activeSection, sett
                 {sortedSquads.flatMap(squad => boysBySquad[squad].map(boy => (
                   <tr key={boy.id}>
                     <td className="sticky left-0 bg-white whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 z-10 w-48 min-w-[12rem]">
-                      <div className={`${squadTextClass(activeSection, boy.squad)}`}>{boy.name}</div>
+                      <div className={`${squadTextClass(activeSection, boy.squad)}`}><NameWithRank name={boy.name} memberRank={boy.memberRank} /></div>
                     </td>
                     {allMonths.map(month => (
                       <td key={`${boy.id}-${month}`} className="whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500">

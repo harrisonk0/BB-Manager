@@ -1,3 +1,4 @@
+import { NameWithRank } from './RankBadge';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Boy, JuniorYear, SchoolYear, Section, SectionSquad, ToastType } from '../types';
 import {
@@ -239,7 +240,7 @@ const ImportFromSessionModal: React.FC<ImportFromSessionModalProps> = ({
           />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="font-medium text-slate-800">{candidate.name}</p>
+              <p className="font-medium text-slate-800"><NameWithRank name={candidate.name} memberRank={candidate.memberRank} /></p>
               <p className="text-sm text-slate-500">{describeYearChange(candidate)}</p>
             </div>
             {candidate.ineligibleReason && (

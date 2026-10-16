@@ -104,6 +104,7 @@ describe('importFromSession', () => {
       {
         id: 'live-1',
         name: 'Sam Example',
+        memberRank: null,
         squad: 2,
         year: 11,
         marks: [],
@@ -136,6 +137,7 @@ describe('importFromSession', () => {
     expect(createBoy).toHaveBeenCalledWith(
       {
         name: 'Sam Example',
+        memberRank: null,
         squad: 3,
         year: 11,
         marks: [],
@@ -145,4 +147,18 @@ describe('importFromSession', () => {
       'company',
     );
   });
+  it('preserves an archived rank only when the selected destination year is eligible', async () => {
+    const ranked = { ...archived, year: 11 as const, memberRank: 'corporal' as const };
+    await importArchivedMembers({
+      activeSection: 'company', archivedMembers: [ranked],
+      selections: [{ archivedMemberId: ranked.id, squad: 1, year: 12, isSquadLeader: false }],
+    });
+    expect(createBoy).toHaveBeenLastCalledWith(expect.objectContaining({ memberRank: 'corporal' }), 'company');
+    await importArchivedMembers({
+      activeSection: 'company', archivedMembers: [ranked],
+      selections: [{ archivedMemberId: ranked.id, squad: 1, year: 10, isSquadLeader: false }],
+    });
+    expect(createBoy).toHaveBeenLastCalledWith(expect.objectContaining({ memberRank: null }), 'company');
+  });
+
 });

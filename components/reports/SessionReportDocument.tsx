@@ -1,9 +1,13 @@
+import type { MemberRank } from '../../types';
+import { rankChevronPaths } from '../../services/memberRanks';
 import React from 'react';
 import {
   Document,
   Image,
   Page,
   StyleSheet,
+  Svg,
+  Path,
   Text,
   View,
 } from '@react-pdf/renderer';
@@ -461,7 +465,18 @@ const renderHorizontalBars = (
   </View>
 );
 
-const renderPageHeader = (report: SessionReportData, title: string) => {
+const PdfRank = ({ rank }: { rank?: MemberRank | null }) => rank ? (
+  <Svg viewBox="0 0 24 26" width={12} height={14}>
+    {rankChevronPaths(rank).map((path, index) => <Path key={index} d={path} fill="#9a6b19" />)}
+  </Svg>
+) : null;
+const PdfName = ({ name, memberRank }: { name: string; memberRank?: MemberRank | null }) => (
+  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+    <Text style={{ flexShrink: 1 }}>{name}</Text><PdfRank rank={memberRank} />
+  </View>
+);
+
+const renderPageHeader = (report: SessionReportData, title: string, memberRank?: MemberRank | null) => {
   const accent = getAccent(report.section);
 
   return (
@@ -470,7 +485,7 @@ const renderPageHeader = (report: SessionReportData, title: string) => {
         <Image src={BB_LOGO_URL} style={styles.headerLogo} />
         <Image src={accent.sectionLogo} style={styles.sectionLogo} />
         <View style={styles.headerTextBlock}>
-          <Text style={styles.headerTitle}>{title}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Text style={styles.headerTitle}>{title}</Text><PdfRank rank={memberRank} /></View>
           <Text style={styles.keyLabel}>{report.sectionLabel}</Text>
         </View>
       </View>
@@ -507,7 +522,7 @@ const renderMemberTable = (members: MemberSessionSummary[], section: SessionRepo
     </View>
     {members.map((member, index) => (
       <View key={member.id} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : null]}>
-        <Text style={[styles.tableCell, { width: section === 'junior' ? '24%' : '28%' }]}>{member.name}</Text>
+        <View style={[styles.tableCell, { width: section === 'junior' ? '24%' : '28%' }]}><PdfName name={member.name} memberRank={member.memberRank} /></View>
         <Text style={[styles.tableCell, { width: section === 'junior' ? '8%' : '10%' }]}>{String(member.squad)}</Text>
         <Text style={[styles.tableCell, { width: section === 'junior' ? '8%' : '10%' }]}>{String(member.year)}</Text>
         <Text style={[styles.tableCell, { width: section === 'junior' ? '8%' : '10%' }]}>{member.attendanceCount}</Text>
@@ -546,9 +561,9 @@ const renderSquadCard = (squad: SquadSessionSummary) => (
     </View>
     <View style={[styles.keyRow, { borderBottom: 0 }]}>
       <Text style={styles.keyLabel}>Leading member</Text>
-      <Text style={styles.keyValue}>
-        {squad.topMember ? `${squad.topMember.name} (${formatNumber(squad.topMember.totalMarks)})` : 'N/A'}
-      </Text>
+      <View style={styles.keyValue}>
+        {squad.topMember ? <PdfName name={`${squad.topMember.name} (${formatNumber(squad.topMember.totalMarks)})`} memberRank={squad.topMember.memberRank} /> : <Text>N/A</Text>}
+      </View>
     </View>
   </View>
 );
@@ -685,7 +700,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
               {report.topMembers.map((member, index) => (
                 <View key={member.id} style={styles.rankRow}>
                   <View>
-                    <Text style={styles.rankLabel}>{`${index + 1}. ${member.name}`}</Text>
+                    <View style={styles.rankLabel}><PdfName name={`${index + 1}. ${member.name}`} memberRank={member.memberRank} /></View>
                     <Text style={styles.rankMeta}>{`Squad ${member.squad} • Attendance ${formatNumber(member.attendanceRate)}% • Avg ${formatNumber(member.averageScoreWhenPresent)}`}</Text>
                   </View>
                   <Text style={styles.rankValue}>{formatNumber(member.totalMarks)}</Text>
@@ -815,7 +830,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
 
         return [
           <Page key={member.id} size="A4" style={styles.page}>
-            {renderPageHeader(report, `${member.name} Session Detail`)}
+            {renderPageHeader(report, `${member.name} Session Detail`, member.memberRank)}
 
             <View style={styles.memberMetricsRow} wrap={false}>
               <View style={styles.memberMetricsCard}>
@@ -931,7 +946,7 @@ const SessionReportDocument: React.FC<SessionReportDocumentProps> = ({ report })
           </Page>,
           ...continuationChunks.map((meetingChunk, index) => (
             <Page key={`${member.id}-continued-${index}`} size="A4" style={styles.page}>
-              {renderPageHeader(report, `${member.name} Session Detail Continued`)}
+              {renderPageHeader(report, `${member.name} Session Detail Continued`, member.memberRank)}
               <Text style={styles.sectionCopy}>
                 Continued meeting-by-meeting record for this member.
               </Text>
