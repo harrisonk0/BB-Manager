@@ -1,0 +1,18 @@
+[
+  {
+    "content": [
+      {
+        "type": "text",
+        "text": "Found 9 items matching \"dialog\" in registries @shadcn:\n\nShowing items 1-3 of 9:\n\n- dialog (registry:ui) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/dialog`\n\n- dialog-demo (registry:example) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/dialog-demo`\n\n- alert-dialog (registry:ui) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/alert-dialog`\n\nMore items available. Use offset: 3 to see the next page."
+      }
+    ]
+  },
+  {
+    "content": [
+      {
+        "type": "text",
+        "text": "Item Details:\n\n## dialog\n**Type:** registry:ui\n**Files:** 1 file(s)\n**Dependencies:** cn, radix-ui\n\n---\n\n## alert-dialog\n**Type:** registry:ui\n**Files:** 1 file(s)\n**Dependencies:** cn, radix-ui\n\n---\n\n## button\n**Type:** registry:ui\n**Files:** 1 file(s)\n**Dependencies:** cn, radix-ui\n\n---\n\n## field\n**Type:** registry:ui\n**Files:** 1 file(s)\n**Dependencies:** cn"
+      }
+    ]
+  }
+]

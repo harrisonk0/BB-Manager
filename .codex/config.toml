@@ -1,0 +1,20 @@
+# Audit/research tools only; do not use component installation during the audit.
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@0.0.83", "--headless", "--isolated"]
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "NODE_EXTRA_CA_CERTS", "PLAYWRIGHT_MCP_EXECUTABLE_PATH", "PLAYWRIGHT_MCP_NO_SANDBOX"]
+startup_timeout_sec = 60
+
+[mcp_servers.shadcn]
+command = "npx"
+args = ["-y", "shadcn@4.22.0", "mcp"]
+env_vars = ["HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "NODE_EXTRA_CA_CERTS"]
+enabled_tools = ["get_project_registries", "list_items_in_registries", "search_items_in_registries", "view_items_in_registries", "get_item_examples_from_registries", "get_audit_checklist"]
+startup_timeout_sec = 60
+
+# Optional: export TWENTY_FIRST_API_KEY before starting Codex.
+# Disabled until a user-issued key is available; no credential belongs in this file.
+[mcp_servers.twenty_first]
+url = "https://21st.dev/api/mcp/readonly"
+bearer_token_env_var = "TWENTY_FIRST_API_KEY"
+enabled = false
