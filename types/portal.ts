@@ -25,9 +25,17 @@ export interface SetupLink {
   code: string;
   link: string;
 }
+export interface PortalSquadMember {
+  id: string;
+  name: string;
+  isSquadLeader: boolean;
+  marks: { date: string; score: number }[];
+}
 export interface PortalSummary {
   name: string;
   squad: number;
+  isSquadLeader: boolean;
+  squadMembers: PortalSquadMember[] | null;
   total: number;
   attended: number;
   recorded: number;

@@ -62,6 +62,7 @@ flowchart LR
 - Events clear from the calendar 24 hours after they end; subscribed calendar apps update on their next refresh.
 - `Portal Access` generates personal setup links in bulk or individually. Give each boy his link; he creates a passkey and then signs in from the normal login page.
 - Boys see their own current-year marks, attendance and ranks, squad standings, their squad teammates and leaders, and the calendar. They can subscribe to the calendar and enable browser notifications.
+- Squad leaders have a read-only `Squad dashboard` with weekly results for each boy, running marks totals, attendance trends and overall standings. Staff still record all attendance and marks.
 - Any officer, captain or admin can reset lost access. Removing a boy from the roster removes his portal account.
 - See [Company portal guide](12-company-portal.md) for the full process.
 

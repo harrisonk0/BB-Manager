@@ -18,6 +18,7 @@ import { registerPasskey, listPasskeys } from '../services/supabaseAuth';
 import { branding } from './branding';
 import CompanyCalendar, { EventCard } from './CompanyCalendar';
 import PasskeysCard from './PasskeysCard';
+import SquadLeaderDashboard from './SquadLeaderDashboard';
 import type { ToastType } from '../types';
 import {
   CalendarIcon,
@@ -39,7 +40,7 @@ export default function PortalHomePage({
   const [account, setAccount] = useState<PortalAccount | null>(null);
   const [summary, setSummary] = useState<PortalSummary | null>(null);
   const [events, setEvents] = useState<CompanyEvent[]>([]);
-  const [page, setPage] = useState<'home' | 'calendar' | 'account'>('home');
+  const [page, setPage] = useState<'home' | 'calendar' | 'account' | 'squad'>('home');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -146,7 +147,7 @@ export default function PortalHomePage({
   return (
     <div className="min-h-screen bg-slate-100">
       <header className="bg-company-blue text-white">
-        <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between gap-3">
+        <div className={`${page === 'squad' ? 'max-w-6xl' : 'max-w-2xl'} mx-auto px-5 py-4 flex items-center justify-between gap-3`}>
           <button
             onClick={() => setPage('home')}
             className="flex items-center gap-3"
@@ -166,7 +167,7 @@ export default function PortalHomePage({
           </button>
         </div>
       </header>
-      <main className="max-w-2xl mx-auto p-5 sm:p-8 space-y-6">
+      <main className={`${page === 'squad' ? 'max-w-6xl' : 'max-w-2xl'} mx-auto p-5 sm:p-8 space-y-6`}>
         {loading ? (
           <p>Loading your portal…</p>
         ) : error ? (
@@ -218,6 +219,18 @@ export default function PortalHomePage({
                       Calendar
                     </button>
                   </div>
+                  {summary.isSquadLeader && summary.squadMembers && (
+                    <button
+                      onClick={() => setPage('squad')}
+                      className="w-full rounded-2xl border border-blue-200 bg-blue-50 p-5 text-left flex items-center gap-4 hover:bg-blue-100"
+                    >
+                      <ChartBarIcon className="w-6 h-6 shrink-0 text-company-blue" aria-hidden="true" />
+                      <span>
+                        <span className="block font-semibold text-company-blue">Squad dashboard</span>
+                        <span className="block text-sm text-slate-600 mt-1">Weekly marks, attendance and overall squad performance</span>
+                      </span>
+                    </button>
+                  )}
                   <section className="space-y-3">
                     <h2 className="font-semibold text-slate-900 flex items-center gap-2">
                       <span aria-hidden="true">
@@ -321,7 +334,7 @@ export default function PortalHomePage({
                   <section className="space-y-3">
                     <h2 className="font-semibold text-slate-900">My squad teammates</h2>
                     <p className="text-xs text-slate-500">
-                      The other boys in your squad. Individual marks stay private.
+                      The other boys in your squad. Squad leaders can view weekly squad stats.
                     </p>
                     <ul className="bg-white rounded-xl border divide-y">
                       {(summary.teammates ?? []).map((teammate, index) => (
@@ -374,6 +387,25 @@ export default function PortalHomePage({
                       )}
                     </div>
                   </details>
+                </>
+              )}
+              {page === 'squad' && (
+                <>
+                  <button onClick={() => setPage('home')} className="text-sm text-company-blue">
+                    ‹ Home
+                  </button>
+                  {summary.isSquadLeader && summary.squadMembers ? (
+                    <SquadLeaderDashboard
+                      key={summary.squad}
+                      squad={summary.squad}
+                      squads={summary.squads}
+                      members={summary.squadMembers}
+                    />
+                  ) : (
+                    <p className="bg-white border rounded-xl p-5 text-sm text-slate-600">
+                      The squad dashboard is available to current squad leaders only.
+                    </p>
+                  )}
                 </>
               )}
               {page === 'calendar' && (

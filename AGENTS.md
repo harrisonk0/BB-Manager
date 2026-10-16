@@ -110,7 +110,7 @@ Rules:
 
 - Treat the live Supabase project as the source of truth for schema and RLS.
 - Prefer MCP Supabase migrations and inspection tools for schema work. The Supabase Management API is the fallback when CLI direct Postgres access is unavailable.
-- Portal identities never receive staff roles. Keep core roster/marks policies staff-only, and use the scoped portal summary RPC for boys. Preserve deletion/reset revocation and the server-side passkey check.
+- Portal identities never receive staff roles. Keep core roster/marks policies staff-only, and use the scoped portal summary RPC for boys. Only current, active Company squad leaders receive own-squad dated marks through that RPC; ordinary boys receive no teammate statistics. Preserve deletion/reset revocation and the server-side passkey check.
 - Keep VAPID and worker credentials in server secrets/Vault; do not rotate existing push keys during routine deployments.
 - Document any schema or permission change in the relevant docs.
 - Keep app code and docs aligned with the live schema names (`profiles`, `members`, `marks`), not legacy names.
