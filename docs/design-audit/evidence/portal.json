@@ -1,0 +1,659 @@
+{
+  "case": "portal",
+  "componentView": "portal",
+  "section": "company",
+  "state": "populated",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 320,
+        "bodyHeight": 1609,
+        "headings": [
+          {
+            "text": "Hi, Alex",
+            "font": "24px"
+          },
+          {
+            "text": "Next night",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "My stats This BB year",
+            "font": "16px"
+          },
+          {
+            "text": "Squad standings",
+            "font": "16px"
+          },
+          {
+            "text": "My squad teammates",
+            "font": "16px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nYour Company portal\n\nHi, Alex\nCalendar\nSquad dashboard\nWeekly marks, attendance and overall squad performance\nNext night\nCompany Activity Night\n\nFri, 23 Oc"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".font-normal"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(4) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                ".border-b.last\\:border-b-0.bg-blue-50 > .block.mt-2.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.37 (foreground color: #64748b, background color: #eff6ff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(6) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "bodyHeight": 1537,
+        "headings": [
+          {
+            "text": "Hi, Alex",
+            "font": "24px"
+          },
+          {
+            "text": "Next night",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "My stats This BB year",
+            "font": "16px"
+          },
+          {
+            "text": "Squad standings",
+            "font": "16px"
+          },
+          {
+            "text": "My squad teammates",
+            "font": "16px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nYour Company portal\n\nHi, Alex\nCalendar\nSquad dashboard\nWeekly marks, attendance and overall squad performance\nNext night\nCompany Activity Night\n\nFri, 23 Oc"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".font-normal"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(4) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                ".border-b.last\\:border-b-0.bg-blue-50 > .block.mt-2.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.37 (foreground color: #64748b, background color: #eff6ff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(6) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "bodyHeight": 1537,
+        "headings": [
+          {
+            "text": "Hi, Alex",
+            "font": "24px"
+          },
+          {
+            "text": "Next night",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "My stats This BB year",
+            "font": "16px"
+          },
+          {
+            "text": "Squad standings",
+            "font": "16px"
+          },
+          {
+            "text": "My squad teammates",
+            "font": "16px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nYour Company portal\n\nHi, Alex\nCalendar\nSquad dashboard\nWeekly marks, attendance and overall squad performance\nNext night\nCompany Activity Night\n\nFri, 23 Oc"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".font-normal"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(4) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                ".border-b.last\\:border-b-0.bg-blue-50 > .block.mt-2.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.37 (foreground color: #64748b, background color: #eff6ff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(6) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 1521,
+        "headings": [
+          {
+            "text": "Hi, Alex",
+            "font": "24px"
+          },
+          {
+            "text": "Next night",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "My stats This BB year",
+            "font": "16px"
+          },
+          {
+            "text": "Squad standings",
+            "font": "16px"
+          },
+          {
+            "text": "My squad teammates",
+            "font": "16px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nYour Company portal\n\nHi, Alex\nCalendar\nSquad dashboard\nWeekly marks, attendance and overall squad performance\nNext night\nCompany Activity Night\n\nFri, 23 Oc"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".font-normal"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(4) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                ".border-b.last\\:border-b-0.bg-blue-50 > .block.mt-2.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.37 (foreground color: #64748b, background color: #eff6ff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(6) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 1517,
+        "headings": [
+          {
+            "text": "Hi, Alex",
+            "font": "24px"
+          },
+          {
+            "text": "Next night",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "My stats This BB year",
+            "font": "16px"
+          },
+          {
+            "text": "Squad standings",
+            "font": "16px"
+          },
+          {
+            "text": "My squad teammates",
+            "font": "16px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nYour Company portal\n\nHi, Alex\nCalendar\nSquad dashboard\nWeekly marks, attendance and overall squad performance\nNext night\nCompany Activity Night\n\nFri, 23 Oc"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".font-normal"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(4) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                ".border-b.last\\:border-b-0.bg-blue-50 > .block.mt-2.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.37 (foreground color: #64748b, background color: #eff6ff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(6) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 1517,
+        "headings": [
+          {
+            "text": "Hi, Alex",
+            "font": "24px"
+          },
+          {
+            "text": "Next night",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "My stats This BB year",
+            "font": "16px"
+          },
+          {
+            "text": "Squad standings",
+            "font": "16px"
+          },
+          {
+            "text": "My squad teammates",
+            "font": "16px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nYour Company portal\n\nHi, Alex\nCalendar\nSquad dashboard\nWeekly marks, attendance and overall squad performance\nNext night\nCompany Activity Night\n\nFri, 23 Oc"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".font-normal"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(4) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                ".border-b.last\\:border-b-0.bg-blue-50 > .block.mt-2.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.37 (foreground color: #64748b, background color: #eff6ff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(6) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 1517,
+        "headings": [
+          {
+            "text": "Hi, Alex",
+            "font": "24px"
+          },
+          {
+            "text": "Next night",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "My stats This BB year",
+            "font": "16px"
+          },
+          {
+            "text": "Squad standings",
+            "font": "16px"
+          },
+          {
+            "text": "My squad teammates",
+            "font": "16px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nYour Company portal\n\nHi, Alex\nCalendar\nSquad dashboard\nWeekly marks, attendance and overall squad performance\nNext night\nCompany Activity Night\n\nFri, 23 Oc"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".font-normal"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(4) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                ".border-b.last\\:border-b-0.bg-blue-50 > .block.mt-2.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.37 (foreground color: #64748b, background color: #eff6ff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "section:nth-child(6) > .text-slate-500.text-xs"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 4.34 (foreground color: #64748b, background color: #f1f5f9, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,568 @@
+{
+  "case": "account",
+  "componentView": "accountSettings",
+  "section": "company",
+  "state": "populated",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 320,
+        "bodyHeight": 962,
+        "headings": [
+          {
+            "text": "Account Settings",
+            "font": "30px"
+          },
+          {
+            "text": "Passkeys",
+            "font": "20px"
+          },
+          {
+            "text": "Change Password",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add a passkey",
+            "width": 127,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "current-password",
+            "width": 240,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "new-password",
+            "width": 240,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "confirm-new-password",
+            "width": 240,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Change Password",
+            "width": 160,
+            "height": 38,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nAccount Settings\nPasskeys\n\nPasskeys sign you in with this device's fingerprint, face, PIN, or a password manager. They are bound to bb-manager.vercel.app, so add the"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "bodyHeight": 962,
+        "headings": [
+          {
+            "text": "Account Settings",
+            "font": "30px"
+          },
+          {
+            "text": "Passkeys",
+            "font": "20px"
+          },
+          {
+            "text": "Change Password",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add a passkey",
+            "width": 127,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "current-password",
+            "width": 295,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "new-password",
+            "width": 295,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "confirm-new-password",
+            "width": 295,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Change Password",
+            "width": 160,
+            "height": 38,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nAccount Settings\nPasskeys\n\nPasskeys sign you in with this device's fingerprint, face, PIN, or a password manager. They are bound to bb-manager.vercel.app, so add the"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "bodyHeight": 942,
+        "headings": [
+          {
+            "text": "Account Settings",
+            "font": "30px"
+          },
+          {
+            "text": "Passkeys",
+            "font": "20px"
+          },
+          {
+            "text": "Change Password",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add a passkey",
+            "width": 127,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "current-password",
+            "width": 310,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "new-password",
+            "width": 310,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "confirm-new-password",
+            "width": 310,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Change Password",
+            "width": 160,
+            "height": 38,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nAccount Settings\nPasskeys\n\nPasskeys sign you in with this device's fingerprint, face, PIN, or a password manager. They are bound to bb-manager.vercel.app, so add the"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 942,
+        "headings": [
+          {
+            "text": "Account Settings",
+            "font": "30px"
+          },
+          {
+            "text": "Passkeys",
+            "font": "20px"
+          },
+          {
+            "text": "Change Password",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add a passkey",
+            "width": 127,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "current-password",
+            "width": 350,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "new-password",
+            "width": 350,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "confirm-new-password",
+            "width": 350,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Change Password",
+            "width": 160,
+            "height": 38,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nAccount Settings\nPasskeys\n\nPasskeys sign you in with this device's fingerprint, face, PIN, or a password manager. They are bound to bb-manager.vercel.app, so add the"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 922,
+        "headings": [
+          {
+            "text": "Account Settings",
+            "font": "30px"
+          },
+          {
+            "text": "Passkeys",
+            "font": "20px"
+          },
+          {
+            "text": "Change Password",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add a passkey",
+            "width": 127,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "current-password",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "new-password",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "confirm-new-password",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Change Password",
+            "width": 160,
+            "height": 38,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nAccount Settings\nPasskeys\n\nPasskeys sign you in with this device's fingerprint, face, PIN, or a password manager. They are bound to bb-manager.vercel.app, so add the"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 922,
+        "headings": [
+          {
+            "text": "Account Settings",
+            "font": "30px"
+          },
+          {
+            "text": "Passkeys",
+            "font": "20px"
+          },
+          {
+            "text": "Change Password",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add a passkey",
+            "width": 127,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "current-password",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "new-password",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "confirm-new-password",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Change Password",
+            "width": 160,
+            "height": 38,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\nAccount Settings\nPasskeys\n\nPasskeys sign you in with this device's fingerprint, face, PIN, or a password manager. They a"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 922,
+        "headings": [
+          {
+            "text": "Account Settings",
+            "font": "30px"
+          },
+          {
+            "text": "Passkeys",
+            "font": "20px"
+          },
+          {
+            "text": "Change Password",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Weekly Marks",
+            "width": 115,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Portal Access",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add a passkey",
+            "width": 127,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "current-password",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "new-password",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "confirm-new-password",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Change Password",
+            "width": 160,
+            "height": 38,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\nAccount Settings\nPasskeys\n\nPasskeys sign you in with this device's fingerprint, face, PIN, or a password manager. They a"
+      },
+      "violations": [],
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "status": "proposed pairs only, not implemented styles",
+  "pairs": [
+    {
+      "foreground": "#ffffff",
+      "background": "#222943",
+      "ratio": 14.32,
+      "normalTextAA": true
+    },
+    {
+      "foreground": "#ffffff",
+      "background": "#284e8b",
+      "ratio": 8.23,
+      "normalTextAA": true
+    },
+    {
+      "foreground": "#ffffff",
+      "background": "#166534",
+      "ratio": 7.13,
+      "normalTextAA": true
+    },
+    {
+      "foreground": "#ffffff",
+      "background": "#b91c1c",
+      "ratio": 6.47,
+      "normalTextAA": true
+    },
+    {
+      "foreground": "#475569",
+      "background": "#f8fafc",
+      "ratio": 7.24,
+      "normalTextAA": true
+    },
+    {
+      "foreground": "#64748b",
+      "background": "#ffffff",
+      "ratio": 4.76,
+      "normalTextAA": true
+    },
+    {
+      "foreground": "#64748b",
+      "background": "#f8fafc",
+      "ratio": 4.55,
+      "normalTextAA": true
+    }
+  ]
+}

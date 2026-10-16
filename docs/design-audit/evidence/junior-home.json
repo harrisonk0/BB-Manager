@@ -1,0 +1,715 @@
+{
+  "case": "junior-home",
+  "componentView": "home",
+  "section": "junior",
+  "state": "populated",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 320,
+        "bodyHeight": 1436,
+        "headings": [
+          {
+            "text": "Members",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 1",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 2",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 3",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Toggle search bar",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Open sort and filter options",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Import",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add Boy",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nMembers\nSquad 1\n\nTotal Marks: 42\n\nAvg Attendance: 100%\n\nAlex ExampleLEADER\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance: 100%\n\nRobin Fixture\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "div:nth-child(1) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(2) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(3) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "bodyHeight": 1316,
+        "headings": [
+          {
+            "text": "Members",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 1",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 2",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 3",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Toggle search bar",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Open sort and filter options",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Import",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add Boy",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nMembers\nSquad 1\n\nTotal Marks: 42\n\nAvg Attendance: 100%\n\nAlex ExampleLEADER\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance: 100%\n\nRobin Fixture\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "div:nth-child(1) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(2) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(3) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "bodyHeight": 1316,
+        "headings": [
+          {
+            "text": "Members",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 1",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 2",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 3",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Toggle search bar",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Open sort and filter options",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Import",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add Boy",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nMembers\nSquad 1\n\nTotal Marks: 42\n\nAvg Attendance: 100%\n\nAlex ExampleLEADER\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance: 100%\n\nRobin Fixture\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "div:nth-child(1) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(2) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(3) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 1316,
+        "headings": [
+          {
+            "text": "Members",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 1",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 2",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 3",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Toggle search bar",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Open sort and filter options",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Import",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add Boy",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nMembers\nSquad 1\n\nTotal Marks: 42\n\nAvg Attendance: 100%\n\nAlex ExampleLEADER\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance: 100%\n\nRobin Fixture\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "div:nth-child(1) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(2) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(3) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 902,
+        "headings": [
+          {
+            "text": "Members",
+            "font": "30px"
+          },
+          {
+            "text": "Squad 1",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 2",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 3",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Toggle search bar",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Open sort and filter options",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Import",
+            "width": 104,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add Boy",
+            "width": 110,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nMembers\nImport\nAdd Boy\nSquad 1\n\nTotal Marks: 42\n\nAvg Attendance: 100%\n\nAlex ExampleLEADER\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance: 100%\n\nRobin Fixture\n\nP5\n\u2022\nTotal Marks: "
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "div:nth-child(1) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(2) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(3) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Members",
+            "font": "30px"
+          },
+          {
+            "text": "Squad 1",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 2",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 3",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Weekly Marks",
+            "width": 115,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Toggle search bar",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Open sort and filter options",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Import",
+            "width": 104,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add Boy",
+            "width": 110,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nMembers\nImport\nAdd Boy\nSquad 1\n\nTotal Marks: 42\n\nAvg Attendance: 100%\n\nAlex ExampleLEADER\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance: 100%\n\nRobin Fixtu"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "div:nth-child(1) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(2) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(3) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Members",
+            "font": "30px"
+          },
+          {
+            "text": "Squad 1",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 2",
+            "font": "24px"
+          },
+          {
+            "text": "Squad 3",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Weekly Marks",
+            "width": 115,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Toggle search bar",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Open sort and filter options",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Import",
+            "width": 104,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add Boy",
+            "width": 110,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nMembers\nImport\nAdd Boy\nSquad 1\n\nTotal Marks: 42\n\nAvg Attendance: 100%\n\nAlex ExampleLEADER\n\nP5\n\u2022\nTotal Marks: 21\n\u2022\nAttendance: 100%\n\nRobin Fixtu"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "div:nth-child(1) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(2) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "div:nth-child(3) > .items-baseline.mb-4.justify-between > .text-right > p:nth-child(2)"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    }
+  ]
+}
