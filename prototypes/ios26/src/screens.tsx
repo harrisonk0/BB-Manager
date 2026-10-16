@@ -10,7 +10,14 @@ import {
   emptyEntry,
   type RankedMember,
 } from "./model";
-import { useUI, Icon, IconButton, Avatar, MemberName } from "./foundation";
+import {
+  useUI,
+  rememberTrigger,
+  Icon,
+  IconButton,
+  Avatar,
+  MemberName,
+} from "./foundation";
 import bbLogo from "../../native-ios/assets/bb-blue.png";
 export function Members() {
   const m = useModel();
@@ -183,7 +190,10 @@ export function Marks() {
         />
         <button
           className="meeting-label"
-          onClick={() => m.setOverlay({ kind: "date" })}
+          onClick={(event) => {
+            rememberTrigger(event.currentTarget);
+            m.setOverlay({ kind: "date" });
+          }}
         >
           <Icon name="calendar" size={18} />
           {m.date === "2026-10-16"
@@ -603,7 +613,9 @@ export function Settings() {
                   <Icon name="next" size={15} />
                 </span>
               }
-              onClick={() => m.setOverlay({ kind: "date" })}
+              onClick={() => {
+                m.setOverlay({ kind: "date" });
+              }}
             />
             <Row
               media={icon("members", "blue")}
@@ -717,7 +729,10 @@ export function MemberDetail({ id }: { id: string }) {
         {m.role === "staff" && (
           <button
             className="text-action"
-            onClick={() => m.setOverlay({ kind: "editor", id })}
+            onClick={(event) => {
+              rememberTrigger(event.currentTarget);
+              m.setOverlay({ kind: "editor", id });
+            }}
           >
             Edit
           </button>

@@ -246,8 +246,6 @@
   border-radius: 36px 36px 0 0;
   background: #f2f2f7;
   max-height: 94dvh;
-  display: flex;
-  flex-direction: column;
 }
 .f7-experiment .sheet-grab {
   height: 22px;

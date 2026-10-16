@@ -10,25 +10,6 @@
   },
   {
     "variant": "framework7",
-    "scenario": "sheet-detents",
-    "passed": true,
-    "assertions": [
-      "accessible detent changes sheet position: 166 \u2192 329.27325439453125",
-      "detent returns to initial position: 166 \u2192 166"
-    ]
-  },
-  {
-    "variant": "framework7",
-    "scenario": "filter-and-focus",
-    "passed": true,
-    "assertions": [
-      "one modal",
-      "filtered roster",
-      "focus restored"
-    ]
-  },
-  {
-    "variant": "framework7",
     "scenario": "marks-validation-save",
     "passed": true,
     "assertions": [
@@ -125,25 +106,6 @@
   },
   {
     "variant": "native-plus",
-    "scenario": "sheet-detents",
-    "passed": true,
-    "assertions": [
-      "accessible detent changes sheet position: 346.7206115722656 \u2192 273.99407958984375",
-      "detent returns to initial position: 346.7206115722656 \u2192 345.4759826660156"
-    ]
-  },
-  {
-    "variant": "native-plus",
-    "scenario": "filter-and-focus",
-    "passed": true,
-    "assertions": [
-      "one modal",
-      "filtered roster",
-      "focus restored"
-    ]
-  },
-  {
-    "variant": "native-plus",
     "scenario": "marks-validation-save",
     "passed": true,
     "assertions": [
@@ -231,16 +193,6 @@
   },
   {
     "variant": "framework7",
-    "scenario": "editor-rank-and-delete",
-    "passed": true,
-    "assertions": [
-      "younger member rank disabled",
-      "new ranked member details",
-      "confirmed removal"
-    ]
-  },
-  {
-    "variant": "framework7",
     "scenario": "switch-keyboard",
     "passed": true,
     "assertions": [
@@ -259,16 +211,6 @@
   },
   {
     "variant": "native-plus",
-    "scenario": "editor-rank-and-delete",
-    "passed": true,
-    "assertions": [
-      "younger member rank disabled",
-      "new ranked member details",
-      "confirmed removal"
-    ]
-  },
-  {
-    "variant": "native-plus",
     "scenario": "switch-keyboard",
     "passed": true,
     "assertions": [
@@ -283,6 +225,106 @@
     "assertions": [
       "motion preference",
       "opaque navigation"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "skip-navigation",
+    "passed": true,
+    "assertions": [
+      "skip focuses main",
+      "skip keeps current task",
+      "skip retains Marks destination"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "sheet-focus-loop",
+    "passed": true,
+    "assertions": [
+      "modal Tab wraps",
+      "modal Shift+Tab wraps",
+      "closed sheet is absent from keyboard/AT navigation"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "filter-and-focus",
+    "passed": true,
+    "assertions": [
+      "one modal",
+      "filtered roster",
+      "focus restored"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "editor-rank-and-delete",
+    "passed": true,
+    "assertions": [
+      "younger member rank disabled",
+      "new ranked member details",
+      "confirmed removal",
+      "removal restores focus within main"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "skip-navigation",
+    "passed": true,
+    "assertions": [
+      "skip focuses main",
+      "skip keeps current task",
+      "skip retains Marks destination"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "sheet-detents",
+    "passed": true,
+    "assertions": [
+      "accessible detent changes sheet position: 346.7206115722656 \u2192 241.55307006835938",
+      "detent returns to initial position: 346.7206115722656 \u2192 343.5445251464844"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "sheet-focus-loop",
+    "passed": true,
+    "assertions": [
+      "modal Tab wraps",
+      "modal Shift+Tab wraps",
+      "closed sheet is absent from keyboard/AT navigation"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "filter-and-focus",
+    "passed": true,
+    "assertions": [
+      "one modal",
+      "filtered roster",
+      "focus restored"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "editor-rank-and-delete",
+    "passed": true,
+    "assertions": [
+      "younger member rank disabled",
+      "new ranked member details",
+      "confirmed removal",
+      "removal restores focus within main"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "sheet-detents",
+    "passed": true,
+    "assertions": [
+      "accessible detent changes sheet position: 166 \u2192 280.73895263671875",
+      "detent returns to initial position: 166 \u2192 166"
     ]
   }
 ]

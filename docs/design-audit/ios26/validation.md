@@ -4,9 +4,9 @@ The official Playwright MCP rendered real, built React applications. Captures us
 
 | Evidence set | Capture states | Workflow scenarios | Assertions |
 | --- | ---: | ---: | ---: |
-| chromium | 140 | 30 | 76 |
-| webkit | 140 | 30 | 76 |
-| webkit-phone | 20 | 20 | 48 |
+| chromium | 140 | 34 | 90 |
+| webkit | 140 | 34 | 90 |
+| webkit-phone | 20 | 24 | 62 |
 
 All stored capture states have zero recorded page exceptions, configured axe WCAG A/AA violations, detected document overflow and measured enabled visible controls below the 44px product target. This is scoped automated evidence, not a complete WCAG certification. Switch and sheet-handle hit areas also need consideration beyond glyph/track geometry; keyboard and touch checks exercise them.
 
@@ -32,7 +32,7 @@ The table below links equivalent WebKit core screens. Each cell contains Framewo
 
 ## Working interactions
 
-The recorded scenarios cover search retention across tabs; scoped filtering and restored focus; accessible sheet detents; adding an eligible NCO and confirmed deletion; invalid/decimal scores; three attendance states and present-blank-zero; failed save/draft retention/retry; Junior behaviour limits and correct error-field focus; empty-date prevention; dirty-date protection; motion/solid-material preferences; keyboard-operable switches; contextual squad back navigation; own-squad leader presentation; and ordinary-portal presentation. Touch-emulated checks additionally tap outside the visible switch track to exercise its expanded hit area.
+The recorded scenarios cover current-task skip navigation; modal Tab/Shift+Tab containment and Escape dismissal; search retention across tabs; scoped filtering and restored focus; accessible sheet detents; adding an eligible NCO and confirmed deletion; invalid/decimal scores; three attendance states and present-blank-zero; failed save/draft retention/retry; Junior behaviour limits and correct error-field focus; empty-date prevention; dirty-date protection; motion/solid-material preferences; keyboard-operable switches; contextual squad back navigation; own-squad leader presentation; and ordinary-portal presentation. Touch-emulated checks additionally tap outside the visible switch track to exercise its expanded hit area.
 
 See the actual assertions in [Chromium](../../../prototypes/ios26/evidence/chromium/interactions.json), [WebKit](../../../prototypes/ios26/evidence/webkit/interactions.json) and [touch emulation](../../../prototypes/ios26/evidence/webkit-phone/interactions.json). Role checks verify synthetic presentation only; they do not validate or replace production server authorisation.
 
@@ -45,6 +45,7 @@ See the actual assertions in [Chromium](../../../prototypes/ios26/evidence/chrom
 - The 320px member form put its completion action below the visible fields. Add/Save now lives in the sheet header, remaining reachable while the form scrolls.
 - Framework7's Toggle needed React state synchronisation and a visible-to-AT native checkbox. The real input now remains keyboard accessible with a 44px hit area and a visible label focus ring. Native+ extends the hit area without enlarging its native-size track.
 - Framework7's disabled button styling did not supply native disabled semantics. The adapter now supplies both semantics and an action guard.
+- Closed Framework7 sheets retain the framework’s hidden display state, preventing off-screen tab stops. Sheets contain keyboard focus, restore it after removal and select their initial full detent before the next paint. Skip navigation focuses the active application main without changing the task.
 - Search semantics, dialog naming, focus origin/restoration on Safari-style pointer focus, valid list structure and field-specific Junior validation associations were corrected.
 - Generic/over-decorated card compositions were avoided: roster grouping supplies the structure, report metrics remain compact, and glass stays in navigation/functional layers.
 

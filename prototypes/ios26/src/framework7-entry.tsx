@@ -38,9 +38,11 @@ import "./framework7.css";
 import { ModelProvider, useModel, initialScreen, type Screen } from "./model";
 import {
   FoundationContext,
+  SkipLink,
   useUI,
   overlayOrigin,
   rememberTrigger,
+  restoreFocus,
   Icon,
   IconButton,
   WorkspaceControl,
@@ -113,7 +115,14 @@ function F7Button({
       className={`native-button ${danger ? "destructive-button" : ""}`}
       disabled={disabled}
       aria-disabled={disabled || undefined}
-      onClick={disabled ? undefined : onClick}
+      onClick={
+        disabled
+          ? undefined
+          : (event) => {
+              rememberTrigger(event.currentTarget);
+              onClick?.();
+            }
+      }
       type={type}
       {...{ form }}
     >
@@ -239,6 +248,37 @@ function F7Detail({ f7route }: { f7route: any }) {
     </Page>
   );
 }
+function containSheetFocus(root: HTMLElement, event: KeyboardEvent) {
+  if (event.key !== "Tab") return;
+  const controls = [
+    ...root.querySelectorAll<HTMLElement>(
+      "a[href],button,input,select,textarea,[tabindex]",
+    ),
+  ].filter(
+    (el) =>
+      !el.matches(':disabled,[tabindex="-1"]') &&
+      el.getClientRects().length &&
+      getComputedStyle(el).visibility !== "hidden",
+  );
+  if (!controls.length) {
+    event.preventDefault();
+    root.querySelector<HTMLElement>("h2")?.focus();
+    return;
+  }
+  const first = controls[0],
+    last = controls[controls.length - 1];
+  if (
+    event.shiftKey &&
+    (document.activeElement === first ||
+      !controls.includes(document.activeElement as HTMLElement))
+  ) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
 function F7Overlay() {
   const m = useModel();
   const ref = useRef<any>(null);
@@ -251,8 +291,17 @@ function F7Overlay() {
         ? overlayOrigin.current
         : (document.activeElement as HTMLElement);
     }
+    if (m.overlay && wasOpen.current)
+      ref.current?.el?.querySelector("h2")?.focus({ preventScroll: true });
     wasOpen.current = !!m.overlay;
   }, [m.overlay]);
+  useEffect(() => {
+    const root = ref.current?.el as HTMLElement | undefined;
+    if (!root) return;
+    const trap = (event: KeyboardEvent) => containSheetFocus(root, event);
+    root.addEventListener("keydown", trap);
+    return () => root.removeEventListener("keydown", trap);
+  }, []);
   const close = () => m.setOverlay(null);
   return (
     <Sheet
@@ -271,21 +320,25 @@ function F7Overlay() {
         onSheetBreakpoint: (_instance: unknown, value: number) =>
           setDetent(value),
       }}
-      onSheetOpened={() => {
-        ref.current?.f7Sheet()?.setBreakpoint(1);
+      onSheetOpen={() => {
+        // Framework7 initializes its first detent later in the open event.
+        // Apply the intended full detent before the next paint.
+        queueMicrotask(() => ref.current?.f7Sheet()?.setBreakpoint(1));
         const el = ref.current?.el;
         el?.setAttribute("role", "dialog");
         el?.setAttribute("aria-modal", "true");
         el?.setAttribute("aria-labelledby", "sheet-title");
-        el?.querySelector("h2")?.focus();
         document.querySelector(".app-surface")?.setAttribute("inert", "");
       }}
-      onSheetClose={() => {
-        document.querySelector(".app-surface")?.removeAttribute("inert");
+      onSheetOpened={() => {
+        const el = ref.current?.el as HTMLElement | undefined;
+        if (el && !el.contains(document.activeElement))
+          el.querySelector<HTMLElement>("h2")?.focus({ preventScroll: true });
       }}
       onSheetClosed={() => {
+        document.querySelector(".app-surface")?.removeAttribute("inert");
         close();
-        trigger.current?.focus();
+        restoreFocus(trigger.current, "f7-main");
       }}
     >
       <div className="sheet-grab">
@@ -395,12 +448,15 @@ function Experiment() {
           back,
         }}
       >
-        <a href="#view-members" className="skip-link">
-          Skip to content
-        </a>
+        <SkipLink target="f7-main" />
         <div className="app-surface">
           <Sidebar screen={screen} navigate={navigate} />
-          <Views tabs className="experiment-views tabs">
+          <Views
+            id="f7-main"
+            {...{ role: "main" }}
+            tabs
+            className="experiment-views tabs"
+          >
             {pages.map((s) => (
               <View
                 id={"view-" + s}

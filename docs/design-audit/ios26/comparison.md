@@ -17,7 +17,7 @@ This recommends a design/architecture direction. It does not authorise productio
 
 ## Measured cost
 
-`evidence/bundle.json` measures each built entry plus its shared imports with gzip level 9. Framework7 is approximately **166 KiB JavaScript + 32 KiB CSS**; Native+ is approximately **119 KiB JavaScript + 20 KiB CSS**. These are prototype entry totals, not incremental production costs or full network transfer. Official images, HTML and the optional 352KB Inter fallback font are excluded. Apple devices use the platform font when available.
+`evidence/bundle.json` measures each built entry plus its shared imports with gzip level 9. Framework7 is approximately **166 KiB JavaScript + 32 KiB CSS**; Native+ is approximately **120 KiB JavaScript + 20 KiB CSS**. These are prototype entry totals, not incremental production costs or full network transfer. Official images, HTML and the optional 352KB Inter fallback font are excluded. Apple devices use the platform font when available.
 
 The browser timing probe records 15 attendance changes through the same 18-member fixture and measures time to the next animation frame. It is an unthrottled Linux VM probe, not an iPhone benchmark or an INP measurement. In the recorded run, both variants had a median of approximately 17ms to the next frame; that does not establish a device-level speed advantage. Raw samples and navigation timing are retained in `evidence/chromium/performance.json`. Native+ has a smaller and lighter foundation; Framework7's additional cost buys navigation behaviour, not only a different border radius. A 100-member real-device profile and route-level lazy loading are production gates.
 

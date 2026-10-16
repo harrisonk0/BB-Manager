@@ -25,8 +25,10 @@ import "./native-plus.css";
 import { ModelProvider, useModel, initialScreen, type Screen } from "./model";
 import {
   FoundationContext,
+  SkipLink,
   overlayOrigin,
   rememberTrigger,
+  restoreFocus,
   Icon,
   IconButton,
   WorkspaceControl,
@@ -193,6 +195,12 @@ function PlusOverlay() {
       setSnap(m.overlay?.kind === "editor" ? 1 : 0.68);
     }
   }, [open]);
+  useEffect(() => {
+    if (m.overlay)
+      document
+        .querySelector<HTMLElement>("[data-sheet-title]")
+        ?.focus({ preventScroll: true });
+  }, [m.overlay?.kind]);
   const close = () => m.setOverlay(null);
   return (
     <Drawer.Root
@@ -220,7 +228,7 @@ function PlusOverlay() {
           }}
           onCloseAutoFocus={(e) => {
             e.preventDefault();
-            trigger.current?.focus();
+            restoreFocus(trigger.current, "plus-main");
           }}
         >
           <Drawer.Handle className="vaul-handle" aria-label="Drag sheet" />
@@ -319,13 +327,12 @@ function Experiment() {
           back,
         }}
       >
-        <a href="#plus-main" className="skip-link">
-          Skip to content
-        </a>
+        <SkipLink target="plus-main" />
         <div className="app-surface">
           <Sidebar screen={screen} navigate={navigate} />
           <main
             id="plus-main"
+            tabIndex={-1}
             className={`plus-main ${member ? "has-detail" : ""}`}
           >
             <div className="plus-pages" inert={!!member}>

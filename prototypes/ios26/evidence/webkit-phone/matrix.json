@@ -1,38 +1,6 @@
 [
   {
     "variant": "framework7",
-    "case": "roster",
-    "width": 390,
-    "metrics": {
-      "viewport": 390,
-      "documentWidth": 390,
-      "contentWidth": 390,
-      "smallControls": [],
-      "backdropSupported": true,
-      "navigationFilter": "saturate(1.8) blur(16px)"
-    },
-    "violations": [],
-    "errors": [],
-    "fixtureLoadMs": 3373
-  },
-  {
-    "variant": "framework7",
-    "case": "filters",
-    "width": 390,
-    "metrics": {
-      "viewport": 390,
-      "documentWidth": 390,
-      "contentWidth": 390,
-      "smallControls": [],
-      "backdropSupported": true,
-      "navigationFilter": "saturate(1.8) blur(16px)"
-    },
-    "violations": [],
-    "errors": [],
-    "fixtureLoadMs": 5196
-  },
-  {
-    "variant": "framework7",
     "case": "detail",
     "width": 390,
     "metrics": {
@@ -94,54 +62,6 @@
     "violations": [],
     "errors": [],
     "fixtureLoadMs": 2596
-  },
-  {
-    "variant": "framework7",
-    "case": "workspace",
-    "width": 390,
-    "metrics": {
-      "viewport": 390,
-      "documentWidth": 390,
-      "contentWidth": 390,
-      "smallControls": [],
-      "backdropSupported": true,
-      "navigationFilter": "saturate(1.8) blur(16px)"
-    },
-    "violations": [],
-    "errors": [],
-    "fixtureLoadMs": 4682
-  },
-  {
-    "variant": "framework7",
-    "case": "destructive",
-    "width": 390,
-    "metrics": {
-      "viewport": 390,
-      "documentWidth": 390,
-      "contentWidth": 390,
-      "smallControls": [],
-      "backdropSupported": true,
-      "navigationFilter": "saturate(1.8) blur(16px)"
-    },
-    "violations": [],
-    "errors": [],
-    "fixtureLoadMs": 5808
-  },
-  {
-    "variant": "native-plus",
-    "case": "roster",
-    "width": 390,
-    "metrics": {
-      "viewport": 390,
-      "documentWidth": 390,
-      "contentWidth": 390,
-      "smallControls": [],
-      "backdropSupported": true,
-      "navigationFilter": "blur(16px)"
-    },
-    "violations": [],
-    "errors": [],
-    "fixtureLoadMs": 2173
   },
   {
     "variant": "native-plus",
@@ -272,22 +192,6 @@
     "fixtureLoadMs": 2961
   },
   {
-    "variant": "framework7",
-    "case": "editor",
-    "width": 390,
-    "metrics": {
-      "viewport": 390,
-      "documentWidth": 390,
-      "contentWidth": 390,
-      "smallControls": [],
-      "backdropSupported": true,
-      "navigationFilter": "saturate(1.8) blur(16px)"
-    },
-    "violations": [],
-    "errors": [],
-    "fixtureLoadMs": 5036
-  },
-  {
     "variant": "native-plus",
     "case": "settings",
     "width": 390,
@@ -318,5 +222,101 @@
     "violations": [],
     "errors": [],
     "fixtureLoadMs": 3444
+  },
+  {
+    "variant": "framework7",
+    "case": "roster",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2668
+  },
+  {
+    "variant": "native-plus",
+    "case": "roster",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 1553
+  },
+  {
+    "variant": "framework7",
+    "case": "filters",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2538
+  },
+  {
+    "variant": "framework7",
+    "case": "workspace",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2297
+  },
+  {
+    "variant": "framework7",
+    "case": "editor",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2056
+  },
+  {
+    "variant": "framework7",
+    "case": "destructive",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2728
   }
 ]

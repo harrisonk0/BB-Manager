@@ -1,20 +1,20 @@
 {
   "framework7.html": {
     "files": [
-      "assets/framework7-CQRKUNHo.css",
-      "assets/framework7-Dt5mMca0.js",
-      "assets/shell-B0xYg6hu.js"
+      "assets/framework7-B3_xwVA-.css",
+      "assets/framework7-BvcBRxYI.js",
+      "assets/shell-CD1ifbtd.js"
     ],
-    "javascriptGzipBytes": 169729,
-    "cssGzipBytes": 32994
+    "javascriptGzipBytes": 170273,
+    "cssGzipBytes": 32991
   },
   "native-plus.html": {
     "files": [
-      "assets/nativePlus--0YflFx3.js",
       "assets/nativePlus-CVploLwx.css",
-      "assets/shell-B0xYg6hu.js"
+      "assets/nativePlus-CqkPxuDB.js",
+      "assets/shell-CD1ifbtd.js"
     ],
-    "javascriptGzipBytes": 122424,
+    "javascriptGzipBytes": 122689,
     "cssGzipBytes": 20089
   },
   "notes": {

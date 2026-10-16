@@ -61,7 +61,46 @@ const icons = {
 // Explicit origin survives Safari's choice not to focus a tapped button.
 export const overlayOrigin: { current: HTMLElement | null } = { current: null };
 export function rememberTrigger(element: HTMLElement) {
-  overlayOrigin.current = element;
+  overlayOrigin.current = element.matches(
+    "a[href],button,input,select,textarea,[tabindex]",
+  )
+    ? element
+    : element.querySelector<HTMLElement>(
+        "a[href],button,input,select,textarea,[tabindex]",
+      ) || element;
+}
+export function restoreFocus(trigger: HTMLElement | null, mainId: string) {
+  if (trigger?.isConnected && !trigger.closest("[inert],[hidden]")) {
+    trigger.focus({ preventScroll: true });
+    if (
+      document.activeElement === trigger ||
+      trigger.contains(document.activeElement)
+    )
+      return;
+  }
+  const main = document.getElementById(mainId);
+  if (main) {
+    main.tabIndex = -1;
+    main.focus({ preventScroll: true });
+  }
+}
+export function SkipLink({ target }: { target: string }) {
+  return (
+    <a
+      className="skip-link external"
+      href={"#" + target}
+      onClick={(event) => {
+        event.preventDefault();
+        const main = document.getElementById(target);
+        if (main) {
+          main.tabIndex = -1;
+          main.focus({ preventScroll: true });
+        }
+      }}
+    >
+      Skip to content
+    </a>
+  );
 }
 export function Icon({
   name,
