@@ -1,0 +1,458 @@
+[
+  {
+    "case": "members",
+    "width": 320,
+    "metrics": {
+      "viewport": 320,
+      "scrollWidth": 320,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "members",
+    "width": 375,
+    "metrics": {
+      "viewport": 375,
+      "scrollWidth": 375,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "members",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "members",
+    "width": 430,
+    "metrics": {
+      "viewport": 430,
+      "scrollWidth": 430,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "members",
+    "width": 768,
+    "metrics": {
+      "viewport": 768,
+      "scrollWidth": 768,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "members",
+    "width": 1024,
+    "metrics": {
+      "viewport": 1024,
+      "scrollWidth": 1024,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "members",
+    "width": 1440,
+    "metrics": {
+      "viewport": 1440,
+      "scrollWidth": 1440,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "marks",
+    "width": 320,
+    "metrics": {
+      "viewport": 320,
+      "scrollWidth": 320,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "marks",
+    "width": 375,
+    "metrics": {
+      "viewport": 375,
+      "scrollWidth": 375,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "marks",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "marks",
+    "width": 430,
+    "metrics": {
+      "viewport": 430,
+      "scrollWidth": 430,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "marks",
+    "width": 768,
+    "metrics": {
+      "viewport": 768,
+      "scrollWidth": 768,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "marks",
+    "width": 1024,
+    "metrics": {
+      "viewport": 1024,
+      "scrollWidth": 1024,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "marks",
+    "width": 1440,
+    "metrics": {
+      "viewport": 1440,
+      "scrollWidth": 1440,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "leader",
+    "width": 320,
+    "metrics": {
+      "viewport": 320,
+      "scrollWidth": 320,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "leader",
+    "width": 375,
+    "metrics": {
+      "viewport": 375,
+      "scrollWidth": 375,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "leader",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "leader",
+    "width": 430,
+    "metrics": {
+      "viewport": 430,
+      "scrollWidth": 430,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "leader",
+    "width": 768,
+    "metrics": {
+      "viewport": 768,
+      "scrollWidth": 768,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "leader",
+    "width": 1024,
+    "metrics": {
+      "viewport": 1024,
+      "scrollWidth": 1024,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "leader",
+    "width": 1440,
+    "metrics": {
+      "viewport": 1440,
+      "scrollWidth": 1440,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "settings",
+    "width": 320,
+    "metrics": {
+      "viewport": 320,
+      "scrollWidth": 320,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "settings",
+    "width": 375,
+    "metrics": {
+      "viewport": 375,
+      "scrollWidth": 375,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "settings",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "settings",
+    "width": 430,
+    "metrics": {
+      "viewport": 430,
+      "scrollWidth": 430,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "settings",
+    "width": 768,
+    "metrics": {
+      "viewport": 768,
+      "scrollWidth": 768,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "settings",
+    "width": 1024,
+    "metrics": {
+      "viewport": 1024,
+      "scrollWidth": 1024,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "settings",
+    "width": 1440,
+    "metrics": {
+      "viewport": 1440,
+      "scrollWidth": 1440,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "junior",
+    "width": 320,
+    "metrics": {
+      "viewport": 320,
+      "scrollWidth": 320,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "filters",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "editor",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "member-detail",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "pending",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "calendar",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "portal",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "workspace",
+    "width": 768,
+    "metrics": {
+      "viewport": 768,
+      "scrollWidth": 768,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "save-error",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  },
+  {
+    "case": "focused-marks",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "scrollWidth": 390,
+      "smallControls": [],
+      "mainFont": "-apple-system, BlinkMacSystemFont, Inter, \"Segoe UI\", sans-serif"
+    },
+    "violations": [],
+    "errors": []
+  }
+]
