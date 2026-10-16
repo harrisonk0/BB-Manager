@@ -1,0 +1,24 @@
+{
+  "provider": "Vercel",
+  "deploymentId": "dpl_5p55iVQ7XqbwARZQ5oiNgew5c4ze",
+  "url": "https://bb-manager-5sdrgn2ep-harrison-kerrs-projects.vercel.app",
+  "environment": "preview",
+  "readyState": "READY",
+  "sourceCommit": "f56416fc818a0d58ae2edd0ed37579222f776d2a",
+  "content": "Prebuilt isolated prototype only; synthetic records; no backend connection",
+  "access": "Deployment-scoped share link supplied in chat; no project-wide protection change",
+  "verification": {
+    "entryHttp": 200,
+    "javascriptHttp": 200,
+    "stylesheetHttp": 200,
+    "chromiumWidth": 390,
+    "rosterMembers": 18,
+    "save": "passed",
+    "settings": "passed",
+    "leaderRows": 6,
+    "pageErrors": [],
+    "documentWidth": 390,
+    "projectSettingsUnchanged": true,
+    "productionDeploymentUnchanged": true
+  }
+}

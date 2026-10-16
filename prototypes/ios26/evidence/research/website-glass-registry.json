@@ -1,0 +1,100 @@
+[
+  {
+    "url": "https://websiteglass.com/r/glass-dock.json",
+    "name": "glass-dock",
+    "dependencies": null,
+    "registryDependencies": [
+      "https://websiteglass.com/r/glass.json"
+    ],
+    "files": [
+      {
+        "path": "registry/new-york/ui/glass-dock/glass-dock.tsx",
+        "length": 17411
+      }
+    ]
+  },
+  {
+    "url": "https://websiteglass.com/r/glass-button.json",
+    "name": "glass-button",
+    "dependencies": null,
+    "registryDependencies": [
+      "https://websiteglass.com/r/glass.json"
+    ],
+    "files": [
+      {
+        "path": "registry/new-york/ui/glass-button/glass-button.tsx",
+        "length": 2234
+      }
+    ]
+  },
+  {
+    "url": "https://websiteglass.com/r/glass-switch.json",
+    "name": "glass-switch",
+    "dependencies": null,
+    "registryDependencies": [
+      "https://websiteglass.com/r/glass.json"
+    ],
+    "files": [
+      {
+        "path": "registry/new-york/ui/glass-switch/glass-switch.tsx",
+        "length": 6790
+      }
+    ]
+  },
+  {
+    "url": "https://websiteglass.com/r/glass-input.json",
+    "name": "glass-input",
+    "dependencies": null,
+    "registryDependencies": [
+      "https://websiteglass.com/r/glass.json"
+    ],
+    "files": [
+      {
+        "path": "registry/new-york/ui/glass-input/glass-input.tsx",
+        "length": 2230
+      }
+    ]
+  },
+  {
+    "url": "https://websiteglass.com/r/glass-popover.json",
+    "name": "glass-popover",
+    "dependencies": null,
+    "registryDependencies": [
+      "https://websiteglass.com/r/glass.json"
+    ],
+    "files": [
+      {
+        "path": "registry/new-york/ui/glass-popover/glass-popover.tsx",
+        "length": 6260
+      }
+    ]
+  },
+  {
+    "url": "https://websiteglass.com/r/glass-sheet.json",
+    "name": "glass-sheet",
+    "dependencies": null,
+    "registryDependencies": [
+      "https://websiteglass.com/r/glass.json"
+    ],
+    "files": [
+      {
+        "path": "registry/new-york/ui/glass-sheet/glass-sheet.tsx",
+        "length": 4210
+      }
+    ]
+  },
+  {
+    "url": "https://websiteglass.com/r/glass-tabs.json",
+    "name": "glass-tabs",
+    "dependencies": null,
+    "registryDependencies": [
+      "https://websiteglass.com/r/glass.json"
+    ],
+    "files": [
+      {
+        "path": "registry/new-york/ui/glass-tabs/glass-tabs.tsx",
+        "length": 5944
+      }
+    ]
+  }
+]

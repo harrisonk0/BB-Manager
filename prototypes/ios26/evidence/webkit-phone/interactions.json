@@ -1,0 +1,232 @@
+[
+  {
+    "variant": "framework7",
+    "scenario": "marks-validation-save",
+    "passed": true,
+    "assertions": [
+      "out-of-range rejected",
+      "explicit saved state",
+      "decimal retained"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "attendance-three-states",
+    "passed": true,
+    "assertions": [
+      "absent disables score",
+      "unrecorded distinct from absent",
+      "present blank normalizes zero"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "junior-validation",
+    "passed": true,
+    "assertions": [
+      "Junior behaviour max five",
+      "focus moves to the invalid Junior field",
+      "leading-dot decimal accepted"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "empty-date-guard",
+    "passed": true,
+    "assertions": [
+      "empty date cannot crash task",
+      "valid date remains selectable"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "marks-validation-save",
+    "passed": true,
+    "assertions": [
+      "out-of-range rejected",
+      "explicit saved state",
+      "decimal retained"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "attendance-three-states",
+    "passed": true,
+    "assertions": [
+      "absent disables score",
+      "unrecorded distinct from absent",
+      "present blank normalizes zero"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "junior-validation",
+    "passed": true,
+    "assertions": [
+      "Junior behaviour max five",
+      "focus moves to the invalid Junior field",
+      "leading-dot decimal accepted"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "empty-date-guard",
+    "passed": true,
+    "assertions": [
+      "empty date cannot crash task",
+      "valid date remains selectable"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "switch-touch-hitarea",
+    "passed": true,
+    "assertions": [
+      "switch accepts touch outside its visual track"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "switch-keyboard",
+    "passed": true,
+    "assertions": [
+      "keyboard changes native checkbox",
+      "switch has visible keyboard focus"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "settings-preferences",
+    "passed": true,
+    "assertions": [
+      "motion preference",
+      "opaque navigation"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "switch-touch-hitarea",
+    "passed": true,
+    "assertions": [
+      "switch accepts touch outside its visual track"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "switch-keyboard",
+    "passed": true,
+    "assertions": [
+      "keyboard changes native checkbox",
+      "switch has visible keyboard focus"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "settings-preferences",
+    "passed": true,
+    "assertions": [
+      "motion preference",
+      "opaque navigation"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "skip-navigation",
+    "passed": true,
+    "assertions": [
+      "skip focuses main",
+      "skip keeps current task",
+      "skip retains Marks destination"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "sheet-focus-loop",
+    "passed": true,
+    "assertions": [
+      "modal Tab wraps",
+      "modal Shift+Tab wraps",
+      "closed sheet is absent from keyboard/AT navigation"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "filter-and-focus",
+    "passed": true,
+    "assertions": [
+      "one modal",
+      "filtered roster",
+      "focus restored"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "skip-navigation",
+    "passed": true,
+    "assertions": [
+      "skip focuses main",
+      "skip keeps current task",
+      "skip retains Marks destination"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "sheet-detents",
+    "passed": true,
+    "assertions": [
+      "accessible detent changes sheet position: 346.75994873046875 \u2192 96.2153549194336",
+      "detent returns to initial position: 346.75994873046875 \u2192 346.7031555175781"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "sheet-focus-loop",
+    "passed": true,
+    "assertions": [
+      "modal Tab wraps",
+      "modal Shift+Tab wraps",
+      "closed sheet is absent from keyboard/AT navigation"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "filter-and-focus",
+    "passed": true,
+    "assertions": [
+      "one modal",
+      "filtered roster",
+      "focus restored"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "editor-rank-and-delete",
+    "passed": true,
+    "assertions": [
+      "younger member rank disabled",
+      "new ranked member details",
+      "confirmed removal",
+      "removal restores focus within main"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "sheet-detents",
+    "passed": true,
+    "assertions": [
+      "accessible detent changes sheet position: 166 \u2192 411",
+      "detent returns to initial position: 166 \u2192 166"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "editor-rank-and-delete",
+    "passed": true,
+    "assertions": [
+      "younger member rank disabled",
+      "new ranked member details",
+      "confirmed removal",
+      "removal restores focus within main"
+    ]
+  }
+]

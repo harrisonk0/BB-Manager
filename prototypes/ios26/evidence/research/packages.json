@@ -1,0 +1,71 @@
+{
+  "liquid-glass-react": {
+    "version": "1.1.1",
+    "license": "MIT",
+    "peerDependencies": {
+      "react": ">=19",
+      "react-dom": ">=19"
+    },
+    "repository": {
+      "url": "",
+      "type": "git"
+    },
+    "releaseDate": null
+  },
+  "framework7-react": {
+    "version": "9.2.0",
+    "license": "MIT",
+    "peerDependencies": null,
+    "repository": {
+      "url": "git+https://github.com/framework7io/framework7.git",
+      "type": "git"
+    },
+    "releaseDate": "September 28, 2026"
+  },
+  "@ionic/react": {
+    "version": "9.0.8",
+    "license": "MIT",
+    "peerDependencies": {
+      "react": "^18 || ^19",
+      "react-dom": "^18 || ^19"
+    },
+    "repository": {
+      "url": "git+https://github.com/ionic-team/ionic-framework.git",
+      "type": "git"
+    },
+    "releaseDate": null
+  },
+  "framework7": {
+    "version": "9.2.0",
+    "license": "MIT",
+    "peerDependencies": null,
+    "repository": {
+      "url": "git+https://github.com/framework7io/framework7.git",
+      "type": "git"
+    },
+    "releaseDate": "September 28, 2026"
+  },
+  "vaul": {
+    "version": "1.1.2",
+    "license": "MIT",
+    "peerDependencies": {
+      "react": "^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc",
+      "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc"
+    },
+    "repository": {
+      "url": "git+https://github.com/emilkowalski/vaul.git",
+      "type": "git"
+    },
+    "releaseDate": null
+  },
+  "konsta": {
+    "version": "5.5.0",
+    "license": "MIT",
+    "peerDependencies": null,
+    "repository": {
+      "url": "git+https://github.com/konstaui/konsta.git",
+      "type": "git"
+    },
+    "releaseDate": "September 28, 2026"
+  }
+}

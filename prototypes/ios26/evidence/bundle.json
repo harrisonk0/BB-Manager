@@ -1,0 +1,25 @@
+{
+  "framework7.html": {
+    "files": [
+      "assets/framework7-B3_xwVA-.css",
+      "assets/framework7-BvcBRxYI.js",
+      "assets/shell-CD1ifbtd.js"
+    ],
+    "javascriptGzipBytes": 170273,
+    "cssGzipBytes": 32991
+  },
+  "native-plus.html": {
+    "files": [
+      "assets/nativePlus-CVploLwx.css",
+      "assets/nativePlus-CqkPxuDB.js",
+      "assets/shell-CD1ifbtd.js"
+    ],
+    "javascriptGzipBytes": 122689,
+    "cssGzipBytes": 20089
+  },
+  "notes": {
+    "compression": "gzip level 9; includes shared entry imports; not full network transfer",
+    "font": "Inter fallback 352240 bytes WOFF2, used when earlier system fonts are unavailable; no Apple fonts shipped",
+    "images": "official BB assets load where referenced; excluded from JS/CSS figures"
+  }
+}

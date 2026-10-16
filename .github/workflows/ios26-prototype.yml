@@ -1,0 +1,31 @@
+name: iOS 26 Prototype
+
+on:
+  pull_request:
+    paths:
+      - 'prototypes/ios26/**'
+      - 'prototypes/native-ios/src/data.ts'
+      - 'prototypes/native-ios/assets/**'
+      - '.github/workflows/ios26-prototype.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-prototype:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: prototypes/ios26/package-lock.json
+      - name: Install isolated dependencies
+        run: npm ci --prefix prototypes/ios26
+      - name: Type-check isolated prototype
+        run: npm run typecheck --prefix prototypes/ios26
+      - name: Build both variants
+        run: npm run build --prefix prototypes/ios26

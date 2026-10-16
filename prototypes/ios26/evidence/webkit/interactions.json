@@ -1,0 +1,330 @@
+[
+  {
+    "variant": "framework7",
+    "scenario": "search-preserved",
+    "passed": true,
+    "assertions": [
+      "two matching names",
+      "search retained across tabs"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "marks-validation-save",
+    "passed": true,
+    "assertions": [
+      "out-of-range rejected",
+      "explicit saved state",
+      "decimal retained"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "attendance-three-states",
+    "passed": true,
+    "assertions": [
+      "absent disables score",
+      "unrecorded distinct from absent",
+      "present blank normalizes zero"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "offline-retains-draft",
+    "passed": true,
+    "assertions": [
+      "failed save exposes retry",
+      "failed save keeps draft",
+      "retry succeeds"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "junior-validation",
+    "passed": true,
+    "assertions": [
+      "Junior behaviour max five",
+      "focus moves to the invalid Junior field",
+      "leading-dot decimal accepted"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "empty-date-guard",
+    "passed": true,
+    "assertions": [
+      "empty date cannot crash task",
+      "valid date remains selectable"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "dirty-date-guard",
+    "passed": true,
+    "assertions": [
+      "dirty date change asks",
+      "stay retains draft"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "leader-contextual-back",
+    "passed": true,
+    "assertions": [
+      "no staff actions in leader detail",
+      "contextual squad back label",
+      "back restores dated squad roster"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "leader-scope",
+    "passed": true,
+    "assertions": [
+      "own squad dated roster",
+      "no other squad selector",
+      "no staff tabs"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "boy-scope",
+    "passed": true,
+    "assertions": [
+      "no teammate marks",
+      "personal tabs only"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "search-preserved",
+    "passed": true,
+    "assertions": [
+      "two matching names",
+      "search retained across tabs"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "marks-validation-save",
+    "passed": true,
+    "assertions": [
+      "out-of-range rejected",
+      "explicit saved state",
+      "decimal retained"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "attendance-three-states",
+    "passed": true,
+    "assertions": [
+      "absent disables score",
+      "unrecorded distinct from absent",
+      "present blank normalizes zero"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "offline-retains-draft",
+    "passed": true,
+    "assertions": [
+      "failed save exposes retry",
+      "failed save keeps draft",
+      "retry succeeds"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "junior-validation",
+    "passed": true,
+    "assertions": [
+      "Junior behaviour max five",
+      "focus moves to the invalid Junior field",
+      "leading-dot decimal accepted"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "empty-date-guard",
+    "passed": true,
+    "assertions": [
+      "empty date cannot crash task",
+      "valid date remains selectable"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "dirty-date-guard",
+    "passed": true,
+    "assertions": [
+      "dirty date change asks",
+      "stay retains draft"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "leader-contextual-back",
+    "passed": true,
+    "assertions": [
+      "no staff actions in leader detail",
+      "contextual squad back label",
+      "back restores dated squad roster"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "leader-scope",
+    "passed": true,
+    "assertions": [
+      "own squad dated roster",
+      "no other squad selector",
+      "no staff tabs"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "boy-scope",
+    "passed": true,
+    "assertions": [
+      "no teammate marks",
+      "personal tabs only"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "switch-keyboard",
+    "passed": true,
+    "assertions": [
+      "keyboard changes native checkbox",
+      "switch has visible keyboard focus"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "settings-preferences",
+    "passed": true,
+    "assertions": [
+      "motion preference",
+      "opaque navigation"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "switch-keyboard",
+    "passed": true,
+    "assertions": [
+      "keyboard changes native checkbox",
+      "switch has visible keyboard focus"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "settings-preferences",
+    "passed": true,
+    "assertions": [
+      "motion preference",
+      "opaque navigation"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "skip-navigation",
+    "passed": true,
+    "assertions": [
+      "skip focuses main",
+      "skip keeps current task",
+      "skip retains Marks destination"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "sheet-focus-loop",
+    "passed": true,
+    "assertions": [
+      "modal Tab wraps",
+      "modal Shift+Tab wraps",
+      "closed sheet is absent from keyboard/AT navigation"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "filter-and-focus",
+    "passed": true,
+    "assertions": [
+      "one modal",
+      "filtered roster",
+      "focus restored"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "editor-rank-and-delete",
+    "passed": true,
+    "assertions": [
+      "younger member rank disabled",
+      "new ranked member details",
+      "confirmed removal",
+      "removal restores focus within main"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "skip-navigation",
+    "passed": true,
+    "assertions": [
+      "skip focuses main",
+      "skip keeps current task",
+      "skip retains Marks destination"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "sheet-detents",
+    "passed": true,
+    "assertions": [
+      "accessible detent changes sheet position: 346.7206115722656 \u2192 149.66844177246094",
+      "detent returns to initial position: 346.7206115722656 \u2192 343.2821350097656"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "sheet-focus-loop",
+    "passed": true,
+    "assertions": [
+      "modal Tab wraps",
+      "modal Shift+Tab wraps",
+      "closed sheet is absent from keyboard/AT navigation"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "filter-and-focus",
+    "passed": true,
+    "assertions": [
+      "one modal",
+      "filtered roster",
+      "focus restored"
+    ]
+  },
+  {
+    "variant": "native-plus",
+    "scenario": "editor-rank-and-delete",
+    "passed": true,
+    "assertions": [
+      "younger member rank disabled",
+      "new ranked member details",
+      "confirmed removal",
+      "removal restores focus within main"
+    ]
+  },
+  {
+    "variant": "framework7",
+    "scenario": "sheet-detents",
+    "passed": true,
+    "assertions": [
+      "accessible detent changes sheet position: 166 \u2192 342.10980224609375",
+      "detent returns to initial position: 166 \u2192 166"
+    ]
+  }
+]
