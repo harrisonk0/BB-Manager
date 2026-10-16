@@ -9,7 +9,7 @@ npm ci
 npx vite --config prototypes/native-ios/vite.config.mts
 ```
 
-Open <http://127.0.0.1:4175/>. Use `?page=marks`, `?page=more`, `?page=squad&role=leader`, `?page=mine&role=boy`, or `?page=marks&section=junior`. Settings → About this design prototype exposes the role and simulated offline controls. No public preview is deployed.
+Open <http://127.0.0.1:4175/>. Use `?page=marks`, `?page=more`, `?page=squad&role=leader`, `?page=mine&role=boy`, or `?page=marks&section=junior`. Settings → About this design prototype exposes the role and simulated offline controls. A phone-accessible Vercel preview is available using the share link supplied in this chat. It serves only this prebuilt prototype; the production deployment and project protection settings are unchanged. The share token is not committed to source. See `evidence/phone-preview.json` for deployment and verification metadata.
 
 Build separately:
 

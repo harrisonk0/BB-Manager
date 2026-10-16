@@ -47,3 +47,7 @@ These are local presentation/interaction tests, not security or database tests. 
 - Dark appearance, real passkeys/push/logout, durable drafts/offline data, imports/PDF/archive rollover and full administration are not live integrations. The Junior marks task is interactive; aggregate Junior reporting needs a dedicated adapter. Detail/filter URLs are future route work.
 - The staff example is a synthetic management workspace, not evidence that every officer/captain/admin authorization gate has been retested. Role filtering illustrates the intended presentation only.
 - The user has not yet approved Assembly. Review the working task flows and actual screenshots before any full production migration. The roadmap preserves all original verified audit defects as mandatory acceptance criteria.
+
+## Phone-accessible preview
+
+A separate static Vercel preview was deployed from prototype commit `f56416f` at the user’s request. The deployment-scoped share link is supplied in chat; its access token is not committed. A fresh proxied Chromium session at 390px verified 18 roster members, local score Save, Settings, six own-squad leader rows, document width 390px and no page errors. Entry, JavaScript and stylesheet returned HTTP 200 using the share link. Project framework/build/output/protection settings and the production deployment ID were compared before and after and remained unchanged. This verifies remote delivery; physical iPhone testing remains pending. See [deployment evidence](../../../prototypes/native-ios/evidence/phone-preview.json).
