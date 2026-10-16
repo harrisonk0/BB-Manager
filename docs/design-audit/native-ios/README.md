@@ -1,5 +1,7 @@
 # BB-Manager — native iOS creative direction
 
+The subsequent [iOS 26 fidelity experiments](../ios26/README.md) compare Framework7 Native with Assembly Native+. They extend this original direction without replacing its prototype.
+
 16 October 2026 · Isolated design exploration following [PR #53](https://github.com/harrisonk0/BB-Manager/pull/53).
 
 **Recommendation: Assembly.** Make BB-Manager a task-focused application built around a roster, a marks workspace and a readable squad report. System typography, inset grouped lists, explicit selection, adaptive sheets and a quiet functional navigation layer make the whole product feel related. Branding supplies identity; it does not compete with the work.

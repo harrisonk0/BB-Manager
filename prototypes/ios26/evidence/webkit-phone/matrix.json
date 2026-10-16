@@ -1,0 +1,322 @@
+[
+  {
+    "variant": "framework7",
+    "case": "roster",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 3373
+  },
+  {
+    "variant": "framework7",
+    "case": "filters",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 5196
+  },
+  {
+    "variant": "framework7",
+    "case": "detail",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 5410
+  },
+  {
+    "variant": "framework7",
+    "case": "marks-save",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 3865
+  },
+  {
+    "variant": "framework7",
+    "case": "marks-focused",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2884
+  },
+  {
+    "variant": "framework7",
+    "case": "squad",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 456,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2596
+  },
+  {
+    "variant": "framework7",
+    "case": "workspace",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 4682
+  },
+  {
+    "variant": "framework7",
+    "case": "destructive",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 5808
+  },
+  {
+    "variant": "native-plus",
+    "case": "roster",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2173
+  },
+  {
+    "variant": "native-plus",
+    "case": "filters",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 3398
+  },
+  {
+    "variant": "native-plus",
+    "case": "detail",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2997
+  },
+  {
+    "variant": "native-plus",
+    "case": "marks-save",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2683
+  },
+  {
+    "variant": "native-plus",
+    "case": "marks-focused",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2517
+  },
+  {
+    "variant": "native-plus",
+    "case": "squad",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 456,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2099
+  },
+  {
+    "variant": "native-plus",
+    "case": "workspace",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2894
+  },
+  {
+    "variant": "native-plus",
+    "case": "destructive",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 4546
+  },
+  {
+    "variant": "framework7",
+    "case": "settings",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2961
+  },
+  {
+    "variant": "framework7",
+    "case": "editor",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "saturate(1.8) blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 5036
+  },
+  {
+    "variant": "native-plus",
+    "case": "settings",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 2678
+  },
+  {
+    "variant": "native-plus",
+    "case": "editor",
+    "width": 390,
+    "metrics": {
+      "viewport": 390,
+      "documentWidth": 390,
+      "contentWidth": 390,
+      "smallControls": [],
+      "backdropSupported": true,
+      "navigationFilter": "blur(16px)"
+    },
+    "violations": [],
+    "errors": [],
+    "fixtureLoadMs": 3444
+  }
+]

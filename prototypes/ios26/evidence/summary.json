@@ -1,0 +1,32 @@
+{
+  "chromium": {
+    "captureStates": 140,
+    "workflowScenarios": 30,
+    "workflowAssertions": 76,
+    "pageExceptions": 0,
+    "axeViolations": 0,
+    "detectedDocumentOverflow": 0,
+    "measuredSmallEnabledControls": 0
+  },
+  "webkit": {
+    "captureStates": 140,
+    "workflowScenarios": 30,
+    "workflowAssertions": 76,
+    "pageExceptions": 0,
+    "axeViolations": 0,
+    "detectedDocumentOverflow": 0,
+    "measuredSmallEnabledControls": 0
+  },
+  "webkit-phone": {
+    "captureStates": 20,
+    "workflowScenarios": 20,
+    "workflowAssertions": 48,
+    "pageExceptions": 0,
+    "axeViolations": 0,
+    "detectedDocumentOverflow": 0,
+    "measuredSmallEnabledControls": 0
+  },
+  "totalCaptures": 300,
+  "totalWorkflowScenarios": 80,
+  "totalWorkflowAssertions": 200
+}

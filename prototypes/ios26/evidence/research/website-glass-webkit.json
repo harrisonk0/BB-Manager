@@ -1,0 +1,8 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "### Result\n{\"url\":\"https://websiteglass.com/\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15\",\"filters\":[{\"tag\":\"DIV\",\"filter\":\"blur(6px) saturate(1.5)\"},{\"tag\":\"DIV\",\"filter\":\"blur(6px) saturate(1.5)\"},{\"tag\":\"DIV\",\"filter\":\"blur(6px) saturate(1.5)\"},{\"tag\":\"DIV\",\"filter\":\"blur(8.96px) saturate(1.24)\"},{\"tag\":\"DIV\",\"filter\":\"blur(8.96px) saturate(1.24)\"},{\"tag\":\"DIV\",\"filter\":\"blur(8.54px) saturate(1.21)\"},{\"tag\":\"DIV\",\"filter\":\"blur(6px) saturate(1.5)\"},{\"tag\":\"DIV\",\"filter\":\"blur(8.96px) saturate(1.24)\"},{\"tag\":\"DIV\",\"filter\":\"blur(8px) saturate(1.6)\"},{\"tag\":\"DIV\",\"filter\":\"blur(8px) saturate(1.6)\"}]}\n### Ran Playwright code\n```js\nawait (async(page)=>{await page.setViewportSize({width:390,height:844});await page.goto('https://websiteglass.com/',{waitUntil:'domcontentloaded',timeout:45000});await page.waitForTimeout(3000);await page.screenshot({path:'/workspace/BB-Manager/prototypes/ios26/evidence/research/website-glass-live.png'});return {url:page.url(),userAgent:await page.evaluate(()=>navigator.userAgent),filters:await page.evaluate(()=>[...document.querySelectorAll('*')].map(e=>({tag:e.tagName,filter:getComputedStyle(e).backdropFilter||getComputedStyle(e).webkitBackdropFilter})).filter(e=>e.filter&&e.filter!=='none').slice(0,30))}})(page);\n```\n### Page\n- Page URL: https://websiteglass.com/\n- Page Title: website-glass — Apple Liquid Glass for React"
+    }
+  ]
+}

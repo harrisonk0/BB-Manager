@@ -1,4 +1,4 @@
-# Audit/research tools only; do not use component installation during the audit.
+# Research and isolated prototype tools. Production component installation remains out of scope.
 [mcp_servers.playwright]
 command = "npx"
 args = ["-y", "@playwright/mcp@0.0.83", "--headless", "--isolated"]
@@ -18,3 +18,9 @@ startup_timeout_sec = 60
 url = "https://21st.dev/api/mcp/readonly"
 bearer_token_env_var = "TWENTY_FIRST_API_KEY"
 enabled = false
+
+# Official Framework7 v9 research server; prototype experiments only.
+[mcp_servers.framework7]
+url = "https://framework7.io/mcp"
+http_headers = { "User-Agent" = "Mozilla/5.0 BB-Manager-design-research" }
+startup_timeout_sec = 60

@@ -1,0 +1,22 @@
+{
+  "id": "/framework7",
+  "name": "BB Manager \u00b7 Framework7 Native",
+  "short_name": "BB Native",
+  "start_url": "/framework7.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f2f2f7",
+  "theme_color": "#f2f2f7",
+  "icons": [
+    {
+      "src": "/bb-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/bb-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
