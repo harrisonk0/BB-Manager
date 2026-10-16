@@ -9,6 +9,14 @@ export interface CalendarEvent {
   revision: number;
   updated_at: string;
 }
+// Keep completed events visible for exactly 24 hours after their end instant.
+export const calendarCutoff = (now = Date.now()) =>
+  new Date(now - 24 * 60 * 60 * 1000).toISOString();
+export const isCalendarEventVisible = (
+  event: Pick<CalendarEvent, 'ends_at'>,
+  now = Date.now(),
+) => new Date(event.ends_at).getTime() > new Date(calendarCutoff(now)).getTime();
+
 const escapeText = (s: string) =>
   s
     .replace(/\\/g, '\\\\')

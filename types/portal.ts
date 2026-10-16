@@ -34,6 +34,7 @@ export interface PortalSummary {
   companyRank: number;
   squadRank: number;
   marks: { date: string; score: number }[];
+  teammates: { name: string; isSquadLeader: boolean }[];
   squads: {
     number: number;
     label: string | null;

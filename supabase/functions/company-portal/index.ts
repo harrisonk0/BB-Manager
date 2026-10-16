@@ -2,6 +2,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.116.0';
 import webpush from 'npm:web-push@3.6.7';
 import {
   buildCalendarFeed,
+  calendarCutoff,
   generateAccessCode,
   isAllowedPushEndpoint,
 } from '../_shared/calendar.ts';
@@ -123,6 +124,7 @@ Deno.serve(async (req) => {
       const events = await admin
         .from('company_events')
         .select('*')
+        .gt('ends_at', calendarCutoff())
         .order('starts_at');
       check(events);
       return new Response(buildCalendarFeed(events.data ?? []), {

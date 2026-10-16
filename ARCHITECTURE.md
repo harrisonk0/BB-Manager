@@ -80,7 +80,7 @@ Sources of truth:
 
 - Supabase Auth session for authentication
 - Supabase Postgres for application data
-- Company portal identity linked to a live Company roster record, with a dedicated portal summary RPC
+- Company portal identity linked to a live Company roster record, with a dedicated portal summary RPC returning personal stats, squad totals and names/leader flags for only the boy’s own squad
 - `localStorage['activeSection']` for the selected section (validated to `company` | `junior`)
 - `sessionStorage` for per-section roster search/sort
 - React component and hook state for loaded records and view state
@@ -97,6 +97,7 @@ The branded session PDF generator also runs fully client-side in the browser.
 - Passkeys are enabled on hosted Auth for `https://bb-manager.vercel.app`. Local and preview hosts cannot complete a WebAuthn ceremony against that relying party ID, so they keep email/password and do not run the migration gate.
 - New-user onboarding is documented in [`docs/user-guide.md`](docs/user-guide.md).
 - Company boys use generated setup links to enrol passkeys. Portal accounts have no staff profile role; the app routes them directly to their own portal and never loads the staff roster.
+- Calendar reads and subscription feeds omit events 24 hours after their end; records remain stored to preserve recurring-generation exceptions.
 - Company calendar and push tables use separate RLS policies. Setup code, feed token and push delivery operations run in `supabase/functions/company-portal`.
 - Client-side role checks remain UX guardrails only.
 - `ErrorBoundary` plus `reportError` cover unexpected UI failures; there is no hosted error product configured.

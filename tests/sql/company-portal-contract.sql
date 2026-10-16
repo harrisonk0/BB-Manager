@@ -1,7 +1,7 @@
 -- Run as database owner through the Management API. All fixtures roll back.
 BEGIN;
 CREATE TEMP TABLE portal_fixture AS SELECT gen_random_uuid() AS staff_id,gen_random_uuid() AS boy_id,
- gen_random_uuid() AS pending_id,gen_random_uuid() AS member_id,gen_random_uuid() AS pending_member_id;
+ gen_random_uuid() AS teammate_id,gen_random_uuid() AS junior_id,gen_random_uuid() AS pending_id,gen_random_uuid() AS member_id,gen_random_uuid() AS pending_member_id;
 GRANT SELECT ON portal_fixture TO authenticated;
 INSERT INTO auth.users(id,email,email_confirmed_at,aud,role)
  SELECT staff_id,'portal-test-staff-'||staff_id||'@bb-manager.invalid',now(),'authenticated','authenticated' FROM portal_fixture
@@ -11,6 +11,9 @@ UPDATE public.profiles SET role='officer' WHERE id=(SELECT staff_id FROM portal_
 INSERT INTO public.members(id,name,section,squad,school_year)
  SELECT member_id,'PORTAL SQL Boy','company'::public.section,1,'10' FROM portal_fixture
  UNION ALL SELECT pending_member_id,'PORTAL SQL Pending','company'::public.section,2,'11' FROM portal_fixture;
+INSERT INTO public.members(id,name,section,squad,school_year,is_squad_leader)
+ SELECT teammate_id,'PORTAL SQL Teammate','company'::public.section,1,'10',true FROM portal_fixture
+ UNION ALL SELECT junior_id,'PORTAL SQL Junior','junior'::public.section,1,'5',false FROM portal_fixture;
 INSERT INTO public.portal_accounts(member_id,user_id,username,activated_at)
  SELECT member_id,boy_id,'test.'||replace(member_id::text,'-',''),now() FROM portal_fixture
  UNION ALL SELECT pending_member_id,pending_id,'test.'||replace(pending_member_id::text,'-',''),NULL FROM portal_fixture;
@@ -29,6 +32,9 @@ BEGIN
  IF has_function_privilege('authenticated','public.portal_complete_setup(uuid)','EXECUTE') THEN RAISE EXCEPTION 'Activation RPC exposed'; END IF;
  s=public.company_portal_summary();
  IF s->>'name'<>'PORTAL SQL Boy' OR (s->>'total')::numeric<>5 OR (s->>'attended')::int<>2 OR (s->>'recorded')::int<>3 OR jsonb_array_length(s->'marks')<>3 THEN RAISE EXCEPTION 'Personal summary wrong: %',s; END IF;
+ IF NOT (s->'teammates' @> '[{"name":"PORTAL SQL Teammate","isSquadLeader":true}]'::jsonb) THEN RAISE EXCEPTION 'Squad teammate missing: %',s; END IF;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(s->'teammates') t WHERE t->>'name' IN ('PORTAL SQL Boy','PORTAL SQL Pending','PORTAL SQL Junior')) THEN RAISE EXCEPTION 'Teammate scope wrong: %',s; END IF;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(s->'teammates') t WHERE t - 'name' - 'isSquadLeader' <> '{}'::jsonb) THEN RAISE EXCEPTION 'Teammate private fields leaked: %',s; END IF;
  IF s::text LIKE '%PORTAL SQL Pending%' THEN RAISE EXCEPTION 'Other boy name leaked'; END IF;
  BEGIN
   PERFORM public.save_company_event(NULL,0,'Forbidden','2029-10-01T19:00','2029-10-01T21:00','','',false);

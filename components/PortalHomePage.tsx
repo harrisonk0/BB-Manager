@@ -273,7 +273,7 @@ export default function PortalHomePage({
                       <span aria-hidden="true">
                         <ChartBarIcon className="w-5 h-5 text-company-blue" />
                       </span>
-                      My squad
+                      Squad standings
                     </h2>
                     <div className="bg-white rounded-xl border overflow-hidden">
                       {summary.squads.map((s) => (
@@ -317,6 +317,25 @@ export default function PortalHomePage({
                         </div>
                       ))}
                     </div>
+                  </section>
+                  <section className="space-y-3">
+                    <h2 className="font-semibold text-slate-900">My squad teammates</h2>
+                    <p className="text-xs text-slate-500">
+                      The other boys in your squad. Individual marks stay private.
+                    </p>
+                    <ul className="bg-white rounded-xl border divide-y">
+                      {(summary.teammates ?? []).map((teammate, index) => (
+                        <li key={index} className="p-4 flex items-center justify-between gap-3">
+                          <span className="text-sm font-medium">{teammate.name}</span>
+                          {teammate.isSquadLeader && (
+                            <span className="text-xs font-semibold text-company-blue bg-blue-50 rounded-full px-3 py-1">Squad leader</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                    {!summary.teammates?.length && (
+                      <p className="text-sm text-slate-500">No other boys are in your squad yet.</p>
+                    )}
                   </section>
                   <details className="bg-white border rounded-xl p-5">
                     <summary className="cursor-pointer font-semibold text-sm">

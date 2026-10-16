@@ -1,3 +1,4 @@
+import { calendarCutoff } from '../supabase/functions/_shared/calendar';
 import { supabase } from './supabaseClient';
 import type {
   CalendarSettings,
@@ -56,6 +57,7 @@ export const listCompanyEvents = async (): Promise<CompanyEvent[]> => {
   const r = await supabase
     .from('company_events')
     .select('*')
+    .gt('ends_at', calendarCutoff())
     .order('starts_at');
   if (r.error) throw r.error;
   return r.data;

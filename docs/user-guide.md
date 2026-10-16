@@ -59,8 +59,9 @@ flowchart LR
 ## Company Calendar and Boys’ Portal
 
 - Company staff can open `Calendar` to generate weekly nights, add events, change details/times, mark cancellations, and download BB-branded event poster PDFs.
+- Events clear from the calendar 24 hours after they end; subscribed calendar apps update on their next refresh.
 - `Portal Access` generates personal setup links in bulk or individually. Give each boy his link; he creates a passkey and then signs in from the normal login page.
-- Boys see their own current-year marks, attendance and ranks, squad standings, and the calendar. They can subscribe to the calendar and enable browser notifications.
+- Boys see their own current-year marks, attendance and ranks, squad standings, their squad teammates and leaders, and the calendar. They can subscribe to the calendar and enable browser notifications.
 - Any officer, captain or admin can reset lost access. Removing a boy from the roster removes his portal account.
 - See [Company portal guide](12-company-portal.md) for the full process.
 
