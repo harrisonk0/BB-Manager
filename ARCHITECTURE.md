@@ -80,7 +80,7 @@ Sources of truth:
 
 - Supabase Auth session for authentication
 - Supabase Postgres for application data
-- Company portal identity linked to a live Company roster record, with a dedicated portal summary RPC returning personal stats, squad totals and names/leader flags for only the boy’s own squad
+- Company portal identity linked to a live Company roster record, with a dedicated portal summary RPC returning personal stats, squad totals and names/leader flags for only the boy’s own squad; current leaders additionally receive their own squad’s dated marks for a read-only dashboard
 - `localStorage['activeSection']` for the selected section (validated to `company` | `junior`)
 - `sessionStorage` for per-section roster search/sort
 - React component and hook state for loaded records and view state
