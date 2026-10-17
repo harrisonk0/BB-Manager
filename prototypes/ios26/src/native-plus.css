@@ -1,0 +1,419 @@
+@import "tailwindcss";
+@import "konsta/react/theme.css";
+@import "./shared.css";
+@source './';
+@theme {
+  --color-primary: #224b8e;
+  --color-ios-primary: #224b8e;
+  --color-ios-light-surface: #f2f2f7;
+  --color-ios-light-surface-1: #fff;
+  --color-ios-light-primary: #224b8e;
+}
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+.plus-experiment {
+  font-family:
+    -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif !important;
+  background: var(--canvas);
+  height: 100dvh;
+  min-height: 0;
+  color: var(--ink);
+}
+[hidden] {
+  display: none !important;
+}
+.plus-main,
+.plus-pages,
+.plus-page {
+  height: 100%;
+  min-height: 0;
+}
+.plus-scroll {
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior-y: auto;
+  scroll-padding-bottom: 200px;
+}
+.plus-navbar {
+  position: sticky !important;
+  top: 0;
+  z-index: 20;
+  padding-top: max(16px, env(safe-area-inset-top, 0px));
+  --color-ios-light-surface: #f2f2f7;
+}
+.plus-navbar h1 {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+.plus-experiment .native-group {
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 26px !important;
+}
+.plus-experiment .native-row > div,
+.plus-experiment .native-row > a,
+.plus-experiment .native-row > button {
+  min-width: 0;
+}
+.plus-experiment .native-row .person-meta {
+  font-size: 13px;
+  line-height: 19px;
+}
+.plus-experiment .native-row [class*="items-center"] {
+  min-width: 0;
+}
+.plus-experiment .native-row [class*="whitespace-nowrap"] {
+  white-space: normal;
+}
+.plus-experiment .native-row [class*="shrink-0"] {
+  max-width: 48%;
+}
+.plus-experiment .native-row {
+  min-height: 76px;
+}
+.plus-experiment .native-row > div {
+  min-height: 76px;
+}
+.plus-experiment .settings-body .native-row,
+.plus-experiment .settings-body .native-row > div {
+  min-height: 59px;
+}
+.plus-experiment .workspace-group .native-row,
+.plus-experiment .workspace-group .native-row > div {
+  min-height: 90px;
+}
+.plus-experiment .native-search {
+  flex: 1;
+  min-width: 0;
+}
+.plus-experiment .native-search > form,
+.plus-experiment .native-search > div {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: none !important;
+}
+.plus-experiment .native-search input {
+  min-height: 46px;
+  font-size: 17px;
+  background: #e7e7ed !important;
+  border-radius: 16px !important;
+  color: var(--ink);
+}
+.plus-experiment .native-search input::placeholder {
+  color: #686c78;
+}
+.plus-experiment .native-segment {
+  border-radius: 24px !important;
+  padding: 3px !important;
+  background: #e5e5ec !important;
+  min-height: 50px;
+}
+.plus-experiment .native-segment > button {
+  min-height: 44px;
+  font-size: 14px;
+  line-height: 20px;
+  border-radius: 22px;
+  color: #555b69;
+  flex: 1;
+  min-width: 0;
+}
+.plus-experiment .native-segment > button[aria-pressed="true"] {
+  color: var(--ink);
+}
+.plus-experiment .native-switch {
+  min-height: 44px;
+  min-width: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.plus-experiment .native-switch input {
+  min-height: 44px;
+}
+.plus-experiment .native-button {
+  min-height: 48px;
+  height: auto;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 28px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.2px;
+  padding: 11px 18px;
+  background: var(--brand);
+  color: white;
+}
+.plus-experiment .destructive-button {
+  background: #ffebee;
+  color: #ae2331;
+}
+.plus-experiment .native-tabs {
+  position: fixed;
+  bottom: calc(8px + var(--safe-bottom));
+  left: 12px;
+  right: 12px;
+  width: calc(100% - 24px);
+  height: 68px;
+  padding: 0;
+  z-index: 40;
+  background: none;
+  display: flex;
+  align-items: center;
+  max-width: 460px;
+  margin: 0 auto;
+}
+.plus-experiment .native-tabs > div {
+  width: 100%;
+  height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 36px;
+}
+.plus-experiment .native-tabs button {
+  flex: 1;
+  min-width: 0;
+  min-height: 58px;
+  border: 0;
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #626674;
+  background: none;
+  border-radius: 30px;
+}
+.plus-experiment .native-tabs button[aria-current="page"] {
+  color: var(--brand);
+}
+.plus-experiment .native-tabs button svg {
+  width: 23px;
+  height: 23px;
+}
+.plus-experiment .report-row,
+.plus-experiment .report-row > div {
+  min-height: 74px;
+}
+.plus-detail {
+  position: absolute;
+  inset: 0;
+  background: #f2f2f7;
+  z-index: 25;
+  animation: stack-push 340ms cubic-bezier(0.22, 0.8, 0.25, 1);
+}
+.plus-main {
+  position: relative;
+  overflow: hidden;
+}
+.back-control {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--brand);
+  background: none;
+  border: 0;
+  min-height: 44px;
+  font-size: 17px;
+  padding: 0;
+}
+.plus-detail .plus-scroll {
+  background: #f2f2f7;
+}
+.vaul-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 22, 34, 0.3);
+  z-index: 2000;
+}
+.sheet-shell {
+  position: fixed;
+  z-index: 2001;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 94dvh;
+  max-height: 94dvh;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  background: #f2f2f7;
+  border-radius: 36px 36px 0 0;
+  box-shadow: 0 -6px 40px #10182d15;
+}
+.vaul-handle {
+  width: 36px;
+  height: 5px;
+  background: #b8bbc5;
+  border: 0;
+  border-radius: 8px;
+  flex-shrink: 0;
+  margin: 11px auto 10px;
+  position: relative;
+  touch-action: none;
+}
+.vaul-handle:before {
+  content: "";
+  position: absolute;
+  inset: -10px -18px;
+}
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px 12px;
+  flex-shrink: 0;
+}
+.sheet-header h2 {
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 29px;
+  letter-spacing: -0.6px;
+  outline: none;
+  min-width: 0;
+}
+.sheet-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sheet-header .round-control {
+  background: #e5e6ed;
+  color: #686c77;
+}
+.sheet-header .detent-control {
+  font-size: 14px;
+  min-height: 44px;
+}
+.sheet-content {
+  padding: 7px 22px calc(24px + var(--safe-bottom));
+  overflow: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+}
+.sheet-content .native-segment {
+  margin: 0;
+}
+.system-reduce-motion *,
+.system-reduce-motion *::before,
+.system-reduce-motion *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.keyboard-open .native-tabs {
+  display: none;
+}
+.keyboard-open .save-accessory {
+  bottom: calc(var(--keyboard-inset, 0px) + 10px);
+}
+.keyboard-open .sheet-shell {
+  max-height: calc(100dvh - var(--keyboard-inset, 0px) - 12px);
+}
+@keyframes stack-push {
+  from {
+    transform: translateX(36px);
+    opacity: 0.5;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@media (min-width: 768px) {
+  .plus-main {
+    margin-left: 218px;
+    width: calc(100% - 218px);
+  }
+  .plus-experiment .native-tabs {
+    display: none;
+  }
+  .sheet-shell {
+    left: calc(50% - 250px);
+    right: auto;
+    width: 500px;
+    bottom: 4dvh;
+    border-radius: 34px;
+    height: 86dvh;
+    max-height: 86dvh;
+  }
+  .plus-navbar {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .plus-experiment .plus-detail .plus-scroll {
+    padding-top: 14px;
+  }
+  .plus-experiment .plus-page {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .plus-experiment .native-row,
+  .plus-experiment .native-row > div {
+    min-height: 78px;
+  }
+  .plus-experiment .report-row,
+  .plus-experiment .report-row > div {
+    min-height: 74px;
+  }
+}
+@media (min-width: 1024px) {
+  .plus-main {
+    margin-left: 244px;
+    width: calc(100% - 244px);
+  }
+}
+
+.plus-experiment .native-row,
+.plus-experiment .native-row button,
+.plus-experiment .native-row a {
+  color: var(--ink);
+}
+.plus-experiment .native-tabs button > * {
+  color: inherit;
+}
+.plus-experiment .native-tabs button span {
+  font-size: 11px;
+  line-height: 14px;
+  color: inherit;
+}
+.plus-experiment .navigation-pane {
+  box-shadow:
+    0 4px 25px #20294418,
+    inset 0 0 0 0.5px #fff,
+    inset 0 1px 3px #fff !important;
+}
+.plus-experiment .native-tabs .k-tabbar-link-content {
+  color: inherit;
+}
+
+@media (min-width: 768px) {
+  .sheet-shell[data-vaul-drawer]::after {
+    display: none !important;
+  }
+}
+/* Keep the native-size switch track while expanding its touch target. */
+.plus-experiment .native-switch label {
+  position: relative;
+}
+.plus-experiment .native-switch label::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 44px;
+  transform: translateY(-50%);
+}

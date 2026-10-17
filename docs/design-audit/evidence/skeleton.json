@@ -1,0 +1,325 @@
+{
+  "case": "skeleton",
+  "componentView": "skeleton",
+  "section": "company",
+  "state": "populated",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 424,
+        "bodyHeight": 916,
+        "headings": [],
+        "smallControls": [],
+        "overflow": [
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 288,
+            "right": 328
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 336,
+            "right": 376
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 288,
+            "right": 328
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 336,
+            "right": 376
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 288,
+            "right": 328
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 336,
+            "right": 376
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          }
+        ],
+        "text": ""
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 424,
+        "bodyHeight": 916,
+        "headings": [],
+        "smallControls": [],
+        "overflow": [
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          }
+        ],
+        "text": ""
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 424,
+        "bodyHeight": 916,
+        "headings": [],
+        "smallControls": [],
+        "overflow": [
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "flex space-x-2",
+            "left": 288,
+            "right": 424
+          },
+          {
+            "tag": "DIV",
+            "class": "bg-slate-300 rounded animate-pulse h-10 w-10 rounded-full",
+            "left": 384,
+            "right": 424
+          }
+        ],
+        "text": ""
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 916,
+        "headings": [],
+        "smallControls": [],
+        "overflow": [],
+        "text": ""
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 916,
+        "headings": [],
+        "smallControls": [],
+        "overflow": [],
+        "text": ""
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 916,
+        "headings": [],
+        "smallControls": [],
+        "overflow": [],
+        "text": ""
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 916,
+        "headings": [],
+        "smallControls": [],
+        "overflow": [],
+        "text": ""
+      },
+      "violations": [],
+      "errors": []
+    }
+  ]
+}

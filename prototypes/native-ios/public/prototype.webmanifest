@@ -1,0 +1,24 @@
+{
+  "name": "BB Manager \u00b7 Design prototype",
+  "short_name": "BB Prototype",
+  "start_url": "./?page=members",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f2f7",
+  "theme_color": "#f2f2f7",
+  "description": "Isolated interactive design study using synthetic data. No live account or member access.",
+  "icons": [
+    {
+      "src": "./bb-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./bb-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

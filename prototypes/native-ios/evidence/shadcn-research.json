@@ -1,0 +1,57 @@
+{
+  "tools": [
+    "get_project_registries",
+    "list_items_in_registries",
+    "search_items_in_registries",
+    "view_items_in_registries",
+    "get_item_examples_from_registries",
+    "get_add_command_for_items",
+    "get_audit_checklist"
+  ],
+  "results": [
+    {
+      "query": "sheet",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Found 7 items matching \"sheet\" in registries @shadcn:\n\nShowing items 1-2 of 7:\n\n- sheet (registry:ui) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/sheet`\n\n- sheet-demo (registry:example) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/sheet-demo`\n\nMore items available. Use offset: 2 to see the next page."
+          }
+        ]
+      }
+    },
+    {
+      "query": "drawer",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Found 3 items matching \"drawer\" in registries @shadcn:\n\nShowing items 1-2 of 3:\n\n- drawer (registry:ui) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/drawer`\n\n- drawer-demo (registry:example) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/drawer-demo`\n\nMore items available. Use offset: 2 to see the next page."
+          }
+        ]
+      }
+    },
+    {
+      "query": "toggle-group",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Found 8 items matching \"toggle-group\" in registries @shadcn:\n\nShowing items 1-2 of 8:\n\n- toggle-group (registry:ui) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/toggle-group`\n\n- toggle-group-sm (registry:example) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/toggle-group-sm`\n\nMore items available. Use offset: 2 to see the next page."
+          }
+        ]
+      }
+    },
+    {
+      "query": "navigation-menu",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "Found 2 items matching \"navigation-menu\" in registries @shadcn:\n\nShowing items 1-2 of 2:\n\n- navigation-menu (registry:ui) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/navigation-menu`\n\n- navigation-menu-demo (registry:example) [@shadcn] \n  Add command: `npx shadcn@latest add @shadcn/navigation-menu-demo`"
+          }
+        ]
+      }
+    }
+  ]
+}

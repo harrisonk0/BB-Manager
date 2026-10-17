@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>BB Manager · iOS 26 experiments</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f2f2f7;
+        color: #171a23;
+        font-family:
+          -apple-system, BlinkMacSystemFont, Inter, system-ui, sans-serif;
+      }
+      main {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 64px 24px;
+      }
+      img {
+        width: 180px;
+        height: auto;
+        margin-bottom: 42px;
+      }
+      h1 {
+        font-size: 38px;
+        letter-spacing: -1.4px;
+        line-height: 1.1;
+        margin: 0 0 18px;
+      }
+      p {
+        font-size: 17px;
+        line-height: 1.55;
+        color: #626777;
+      }
+      .experiments {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 34px;
+      }
+      article {
+        padding: 28px;
+        background: white;
+        border-radius: 28px;
+        border: 0.5px solid #e2e5ed;
+      }
+      small {
+        font-size: 13px;
+        color: #626777;
+      }
+      h2 {
+        font-size: 25px;
+        letter-spacing: -0.6px;
+        margin: 12px 0;
+      }
+      a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        background: #224b8e;
+        color: white;
+        border-radius: 28px;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 25px;
+      }
+      a:focus-visible {
+        outline: 3px solid #224b8e;
+        outline-offset: 4px;
+      }
+      .note {
+        font-size: 14px;
+        margin-top: 28px;
+      }
+      @media (max-width: 600px) {
+        main {
+          padding-top: 34px;
+        }
+        h1 {
+          font-size: 32px;
+        }
+        .experiments {
+          grid-template-columns: 1fr;
+        }
+        article {
+          padding: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/bb-blue.png" alt="The Boys’ Brigade" />
+      <h1>The same Company.<br />Two native directions.</h1>
+      <p>
+        Explore two interactive iOS 26 experiments. Same people, marks and
+        workflows. Different foundations.
+      </p>
+      <div class="experiments">
+        <article>
+          <small>Variant A</small>
+          <h2>Framework7 Native</h2>
+          <p>
+            A complete mobile application foundation: native-style navigation
+            stacks, collapsing titles, glass toolbars and sheets.
+          </p>
+          <a href="/framework7.html">Open Framework7 Native →</a>
+        </article>
+        <article>
+          <small>Variant B</small>
+          <h2>Assembly Native+</h2>
+          <p>
+            Assembly’s React architecture, refined with Konsta iOS 26 controls
+            and Vaul’s responsive, draggable sheets.
+          </p>
+          <a href="/native-plus.html">Open Assembly Native+ →</a>
+        </article>
+      </div>
+      <p class="note">
+        Synthetic data only. Edits reset on reload. Production is unchanged. Use
+        Settings → Preview options to explore role presentation or simulate a
+        failed save.
+      </p>
+    </main>
+  </body>
+</html>

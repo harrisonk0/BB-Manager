@@ -1,0 +1,2868 @@
+{
+  "components": [
+    {
+      "file": "components/AccountSettingsPage.tsx",
+      "lines": 231,
+      "imports": [
+        "react",
+        "../types",
+        "../services/supabaseAuth",
+        "../services/passkeyMigration",
+        "./PasskeysCard"
+      ],
+      "elements": {
+        "form": 1,
+        "input": 3,
+        "button": 1
+      },
+      "landmarks_states": [
+        [
+          85,
+          "if (error) {"
+        ],
+        [
+          119,
+          "<h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>"
+        ],
+        [
+          129,
+          "{generalError && <p className=\"text-red-500 text-sm\">{generalError}</p>}"
+        ],
+        [
+          146,
+          "{currentPasswordError && <p id=\"current-password-error\" className=\"text-red-500 text-xs mt-1\">{currentPasswordError}</p>}"
+        ],
+        [
+          165,
+          "{newPasswordError && <p id=\"new-password-error\" className=\"text-red-500 text-xs mt-1\">{newPasswordError}</p>}"
+        ],
+        [
+          183,
+          "{newPasswordConfirmError && <p id=\"confirm-new-password-error\" className=\"text-red-500 text-xs mt-1\">{newPasswordConfirmError}</p>}"
+        ],
+        [
+          203,
+          "<h1 className=\"text-3xl font-bold tracking-tight text-slate-900 text-center\">Reset Password</h1>"
+        ],
+        [
+          212,
+          "<h1 className=\"text-3xl font-bold tracking-tight text-slate-900\">Account Settings</h1>"
+        ],
+        [
+          217,
+          "<h2 className={`text-xl font-semibold border-b pb-2 ${accentText}`}>Password</h2>"
+        ]
+      ]
+    },
+    {
+      "file": "components/ArchivesPage.tsx",
+      "lines": 259,
+      "imports": [
+        "react",
+        "../types",
+        "./Icons",
+        "../services/sessions",
+        "./ImportFromSessionModal",
+        "../services/sectionSquads"
+      ],
+      "elements": {
+        "button": 4
+      },
+      "landmarks_states": [
+        [
+          29,
+          "const [isLoadingList, setIsLoadingList] = useState(true);"
+        ],
+        [
+          30,
+          "const [isLoadingSession, setIsLoadingSession] = useState(false);"
+        ],
+        [
+          47,
+          "setIsLoadingList(true);"
+        ],
+        [
+          60,
+          "setIsLoadingList(false);"
+        ],
+        [
+          81,
+          "setIsLoadingSession(true);"
+        ],
+        [
+          95,
+          "setIsLoadingSession(false);"
+        ],
+        [
+          123,
+          "<h1 className=\"text-3xl font-bold tracking-tight text-slate-900\">Past Sessions</h1>"
+        ],
+        [
+          125,
+          "Closed BB years keep their members and marks here. The live Home and Weekly Marks pages stay empty until you add the new session&apos;s roster."
+        ],
+        [
+          140,
+          "{isLoadingList ? ("
+        ],
+        [
+          141,
+          "<div className=\"rounded-lg bg-white p-8 text-center text-slate-500 shadow-md\">Loading past sessions...</div>"
+        ],
+        [
+          145,
+          "<h2 className=\"mt-4 text-xl font-semibold text-slate-900\">No archived sessions yet</h2>"
+        ],
+        [
+          161,
+          "<h2 className={`text-xl font-semibold ${accentText}`}>{session.label}</h2>"
+        ],
+        [
+          178,
+          "<h2 className={`text-xl font-semibold ${accentText}`}>{selectedSession.label}</h2>"
+        ],
+        [
+          187,
+          "disabled={isLoadingSession || archivedBoys.length === 0}"
+        ],
+        [
+          196,
+          "disabled={isLoadingSession || archivedBoys.length === 0}"
+        ],
+        [
+          205,
+          "{isLoadingSession ? ("
+        ],
+        [
+          206,
+          "<div className=\"rounded-lg bg-white p-8 text-center text-slate-500 shadow-md\">Loading archived members...</div>"
+        ],
+        [
+          210,
+          "<h3 className=\"mt-4 text-lg font-semibold text-slate-900\">No {sectionLabel} members in this archive</h3>"
+        ],
+        [
+          217,
+          "<h3 className=\"text-lg font-semibold text-slate-800\">Squad {squad}</h3>"
+        ]
+      ]
+    },
+    {
+      "file": "components/BarChart.tsx",
+      "lines": 92,
+      "imports": [
+        "react"
+      ],
+      "elements": {},
+      "landmarks_states": [
+        [
+          36,
+          "role=\"img\""
+        ]
+      ]
+    },
+    {
+      "file": "components/BoyForm.tsx",
+      "lines": 212,
+      "imports": [
+        "react",
+        "../types",
+        "../services/db",
+        "../services/sectionSquads"
+      ],
+      "elements": {
+        "form": 1,
+        "input": 3,
+        "select": 1,
+        "button": 2
+      },
+      "landmarks_states": [
+        [
+          87,
+          "setNameError('Name cannot be empty.');"
+        ],
+        [
+          136,
+          "{nameError && <p id=\"name-error\" className=\"text-red-500 text-xs mt-1\">{nameError}</p>}"
+        ],
+        [
+          159,
+          "{yearError && <p id=\"year-error\" className=\"text-red-500 text-xs mt-1\">{yearError}</p>}"
+        ],
+        [
+          179,
+          "{squadError && <p id=\"squad-error\" className=\"text-red-500 text-xs mt-1\">{squadError}</p>}"
+        ]
+      ]
+    },
+    {
+      "file": "components/BoyMarksPage.tsx",
+      "lines": 362,
+      "imports": [
+        "react",
+        "../types",
+        "./Icons",
+        "./SkeletonLoaders",
+        "../services/db",
+        "./weeklyMarksSavePlan",
+        "../services/sectionSquads"
+      ],
+      "elements": {
+        "button": 4,
+        "input": 3
+      },
+      "landmarks_states": [
+        [
+          41,
+          "const [loading, setLoading] = useState(true);"
+        ],
+        [
+          50,
+          "setLoading(true);"
+        ],
+        [
+          67,
+          "setLoading(false);"
+        ],
+        [
+          128,
+          "// FIX: Use Number() to correctly compare score which could be an empty string."
+        ],
+        [
+          199,
+          "// FIX: Use Number() to correctly compare score which could be an empty string."
+        ],
+        [
+          215,
+          "if (error) return <div className=\"text-center p-8 text-red-500\">{error}</div>;"
+        ],
+        [
+          232,
+          "<h1 className={`text-3xl font-bold tracking-tight ${squadTextClass(activeSection, boy.squad)}`}>{boy.name}'s Marks</h1>"
+        ]
+      ]
+    },
+    {
+      "file": "components/CompanyCalendar.tsx",
+      "lines": 241,
+      "imports": [
+        "react",
+        "../supabase/functions/_shared/calendar",
+        "../types/portal",
+        "../services/portal",
+        "./Icons"
+      ],
+      "elements": {
+        "button": 6
+      },
+      "landmarks_states": [
+        [
+          28,
+          "<h3 className=\"font-semibold text-slate-900\">{event.title}</h3>"
+        ],
+        [
+          146,
+          "<h2 className=\"font-semibold\">"
+        ]
+      ]
+    },
+    {
+      "file": "components/CompanyCalendarPage.tsx",
+      "lines": 366,
+      "imports": [
+        "react",
+        "../types",
+        "../types/portal",
+        "../services/portal",
+        "./CompanyCalendar",
+        "./Modal",
+        "./Icons"
+      ],
+      "elements": {
+        "button": 4,
+        "details": 1,
+        "form": 2,
+        "input": 10,
+        "textarea": 1
+      },
+      "landmarks_states": [
+        [
+          25,
+          "const emptyDraft: EventDraft = {"
+        ],
+        [
+          33,
+          "const emptySettings: CalendarSettings = {"
+        ],
+        [
+          50,
+          "const [settings, setSettings] = useState<CalendarSettings>(emptySettings);"
+        ],
+        [
+          52,
+          "const [draft, setDraft] = useState<EventDraft>(emptyDraft);"
+        ],
+        [
+          138,
+          "<h1 className=\"text-3xl font-bold\">Company calendar</h1>"
+        ],
+        [
+          147,
+          "setDraft(emptyDraft);"
+        ],
+        [
+          159,
+          "{error && ("
+        ],
+        [
+          160,
+          "<p role=\"alert\" className=\"bg-red-50 text-red-700 rounded-lg p-4\">"
+        ],
+        [
+          264,
+          "<Modal"
+        ],
+        [
+          270,
+          "{formError && ("
+        ],
+        [
+          271,
+          "<p role=\"alert\" className=\"bg-red-50 text-red-700 rounded-lg p-3\">"
+        ]
+      ]
+    },
+    {
+      "file": "components/DashboardPage.tsx",
+      "lines": 295,
+      "imports": [
+        "react",
+        "../types",
+        "./Icons",
+        "./BarChart",
+        "../services/sectionSquads"
+      ],
+      "elements": {
+        "button": 1,
+        "table": 2
+      },
+      "landmarks_states": [
+        [
+          32,
+          "<h1 className=\"text-3xl font-bold tracking-tight text-slate-900\">Dashboard</h1>"
+        ],
+        [
+          35,
+          "<h3 className=\"mt-4 text-xl font-semibold text-slate-900\">No Data to Display</h3>"
+        ],
+        [
+          154,
+          "<h1 className=\"text-3xl font-bold tracking-tight text-slate-900\">Dashboard</h1>"
+        ],
+        [
+          177,
+          "<h2 className=\"text-xl font-semibold text-slate-800 mb-4 flex items-center\">"
+        ],
+        [
+          197,
+          "<h2 className=\"text-xl font-semibold text-slate-800 mb-4\">Squad Performance (Total Marks)</h2>"
+        ],
+        [
+          204,
+          "<h2 className=\"text-xl font-semibold text-slate-800 mb-4\">Squad Attendance Trend</h2>"
+        ],
+        [
+          206,
+          "<table className=\"min-w-full border-separate border-spacing-px\">"
+        ],
+        [
+          246,
+          "<h2 className=\"text-2xl font-semibold mb-4 text-slate-800\">Marks Breakdown by Month</h2>"
+        ],
+        [
+          249,
+          "<table className=\"min-w-full bg-white\">"
+        ]
+      ]
+    },
+    {
+      "file": "components/DatePicker.tsx",
+      "lines": 34,
+      "imports": [
+        "react"
+      ],
+      "elements": {
+        "input": 1
+      },
+      "landmarks_states": []
+    },
+    {
+      "file": "components/ErrorBoundary.tsx",
+      "lines": 47,
+      "imports": [
+        "react",
+        "../services/observability"
+      ],
+      "elements": {
+        "button": 1
+      },
+      "landmarks_states": [
+        [
+          31,
+          "<h1 className=\"text-2xl font-bold text-slate-900\">Something went wrong</h1>"
+        ]
+      ]
+    },
+    {
+      "file": "components/Header.tsx",
+      "lines": 212,
+      "imports": [
+        "react",
+        "./Icons",
+        "./branding",
+        "../types"
+      ],
+      "elements": {
+        "button": 23
+      },
+      "landmarks_states": [
+        [
+          143,
+          "<div className=\"origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none\" role=\"menu\" aria-orientation=\"vertical\" aria-labelledby=\"user-menu-button\">"
+        ],
+        [
+          146,
+          "<button onClick={() => handleNavClick('accountSettings')} className={dropdownItemClasses} role=\"menuitem\">"
+        ],
+        [
+          150,
+          "<button onClick={() => { onSwitchSection(); setIsProfileMenuOpen(false); }} className={dropdownItemClasses} role=\"menuitem\">"
+        ],
+        [
+          154,
+          "<button onClick={() => { onSignOut(); setIsProfileMenuOpen(false); }} className={dropdownItemClasses} role=\"menuitem\">"
+        ]
+      ]
+    },
+    {
+      "file": "components/HomePage.tsx",
+      "lines": 461,
+      "imports": [
+        "react",
+        "../types",
+        "./Modal",
+        "./BoyForm",
+        "./ImportFromSessionModal",
+        "./Icons",
+        "../services/db",
+        "../hooks/rosterFilters",
+        "../services/sectionSquads"
+      ],
+      "elements": {
+        "button": 12,
+        "input": 1,
+        "select": 3
+      },
+      "landmarks_states": [
+        [
+          215,
+          "<h1 className=\"text-2xl sm:text-3xl font-bold tracking-tight text-slate-900\">Members</h1>"
+        ],
+        [
+          274,
+          "{/* Conditional rendering for empty or no-result states */}"
+        ],
+        [
+          278,
+          "<h3 className=\"mt-4 text-xl font-semibold text-slate-900\">Your Roster is Empty</h3>"
+        ],
+        [
+          303,
+          "<h3 className=\"text-lg font-medium text-slate-900\">No members found</h3>"
+        ],
+        [
+          319,
+          "<h2 className=\"text-2xl font-semibold text-slate-800\">{squadDisplayName(configuredSquads, squad)}</h2>"
+        ],
+        [
+          384,
+          "<Modal isOpen={isFormModalOpen} onClose={handleCloseFormModal} title={boyToEdit ? 'Edit Boy' : 'Add New Boy'}>"
+        ],
+        [
+          388,
+          "<Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title=\"Confirm Deletion\">"
+        ],
+        [
+          411,
+          "<Modal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} title=\"Sort & Filter\">"
+        ]
+      ]
+    },
+    {
+      "file": "components/Icons.tsx",
+      "lines": 194,
+      "imports": [
+        "react"
+      ],
+      "elements": {},
+      "landmarks_states": []
+    },
+    {
+      "file": "components/ImportFromSessionModal.tsx",
+      "lines": 396,
+      "imports": [
+        "react",
+        "../types",
+        "../services/importFromSession",
+        "../services/sessions",
+        "../services/sectionSquads",
+        "./Modal"
+      ],
+      "elements": {
+        "input": 2,
+        "select": 3,
+        "button": 4
+      },
+      "landmarks_states": [
+        [
+          51,
+          "const [isLoadingList, setIsLoadingList] = useState(false);"
+        ],
+        [
+          52,
+          "const [isLoadingMembers, setIsLoadingMembers] = useState(false);"
+        ],
+        [
+          70,
+          "setIsLoadingList(true);"
+        ],
+        [
+          90,
+          "if (!cancelled) setIsLoadingList(false);"
+        ],
+        [
+          108,
+          "setIsLoadingMembers(true);"
+        ],
+        [
+          122,
+          "if (!cancelled) setIsLoadingMembers(false);"
+        ],
+        [
+          309,
+          "<Modal isOpen={isOpen} onClose={isImporting ? () => undefined : onClose} title=\"Import from a past session\" size=\"lg\">"
+        ],
+        [
+          315,
+          "{isLoadingList ? ("
+        ],
+        [
+          316,
+          "<p className=\"text-sm text-slate-500\">Loading past sessions...</p>"
+        ],
+        [
+          336,
+          "{isLoadingMembers ? ("
+        ],
+        [
+          337,
+          "<p className=\"text-sm text-slate-500\">Loading members...</p>"
+        ]
+      ]
+    },
+    {
+      "file": "components/LoginPage.tsx",
+      "lines": 200,
+      "imports": [
+        "react",
+        "../services/supabaseAuth",
+        "./branding",
+        "../services/passkeyErrors",
+        "../services/passkeyMigration",
+        "./Icons"
+      ],
+      "elements": {
+        "button": 4,
+        "form": 1,
+        "input": 2
+      },
+      "landmarks_states": [
+        [
+          18,
+          "const [isLoading, setIsLoading] = useState(false);"
+        ],
+        [
+          19,
+          "const [isPasskeyLoading, setIsPasskeyLoading] = useState(false);"
+        ],
+        [
+          34,
+          "setIsLoading(true);"
+        ],
+        [
+          50,
+          "setIsLoading(false);"
+        ],
+        [
+          55,
+          "setIsPasskeyLoading(true);"
+        ],
+        [
+          67,
+          "setIsPasskeyLoading(false);"
+        ],
+        [
+          101,
+          "<h2 className=\"text-xl text-slate-600\">"
+        ],
+        [
+          106,
+          "{error && ("
+        ],
+        [
+          122,
+          "disabled={isPasskeyLoading || isLoading}"
+        ],
+        [
+          126,
+          "{isPasskeyLoading ? 'Waiting for passkey\u2026' : 'Sign in with passkey'}"
+        ],
+        [
+          186,
+          "disabled={isLoading || isPasskeyLoading}"
+        ],
+        [
+          189,
+          "{isLoading ? 'Signing in...' : 'Sign In'}"
+        ]
+      ]
+    },
+    {
+      "file": "components/Modal.tsx",
+      "lines": 134,
+      "imports": [
+        "react"
+      ],
+      "elements": {
+        "button": 1
+      },
+      "landmarks_states": [
+        [
+          23,
+          "const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md' }) => {"
+        ],
+        [
+          107,
+          "role=\"dialog\""
+        ],
+        [
+          117,
+          "<h2 className=\"text-xl font-semibold text-slate-900\">{title}</h2>"
+        ]
+      ]
+    },
+    {
+      "file": "components/PasskeyEnrollmentGate.tsx",
+      "lines": 136,
+      "imports": [
+        "react",
+        "./branding",
+        "./Icons",
+        "../services/passkeyErrors",
+        "../services/supabaseAuth"
+      ],
+      "elements": {
+        "button": 3
+      },
+      "landmarks_states": [
+        [
+          86,
+          "<h2 className=\"text-xl font-semibold text-slate-800\">Create your passkey</h2>"
+        ],
+        [
+          98,
+          "{error && ("
+        ]
+      ]
+    },
+    {
+      "file": "components/PasskeysCard.tsx",
+      "lines": 231,
+      "imports": [
+        "react",
+        "../types",
+        "../services/supabaseAuth",
+        "../services/supabaseAuth",
+        "../services/passkeyErrors",
+        "../services/passkeyMigration",
+        "./Modal"
+      ],
+      "elements": {
+        "input": 1,
+        "button": 7
+      },
+      "landmarks_states": [
+        [
+          25,
+          "const [isLoading, setIsLoading] = useState(true);"
+        ],
+        [
+          40,
+          "setIsLoading(true);"
+        ],
+        [
+          47,
+          "setIsLoading(false);"
+        ],
+        [
+          59,
+          "if (error) {"
+        ],
+        [
+          108,
+          "<h2 className={`text-xl font-semibold border-b pb-2 ${accentText}`}>Passkeys</h2>"
+        ],
+        [
+          119,
+          "{isLoading ? ("
+        ],
+        [
+          120,
+          "<p className=\"text-sm text-slate-500\">Loading passkeys...</p>"
+        ],
+        [
+          198,
+          "<Modal"
+        ]
+      ]
+    },
+    {
+      "file": "components/PortalAccessPage.tsx",
+      "lines": 214,
+      "imports": [
+        "react",
+        "../types",
+        "../types/portal",
+        "../services/portal",
+        "./Modal",
+        "./Icons"
+      ],
+      "elements": {
+        "button": 6,
+        "input": 1
+      },
+      "landmarks_states": [
+        [
+          81,
+          "<h1 className=\"text-3xl font-bold\">Boys\u2019 portal access</h1>"
+        ],
+        [
+          94,
+          "? 'Loading access\u2026'"
+        ],
+        [
+          105,
+          "{error && ("
+        ],
+        [
+          106,
+          "<p role=\"alert\" className=\"bg-red-50 text-red-700 p-4 rounded-lg\">"
+        ],
+        [
+          134,
+          "<h2 className=\"font-semibold flex items-center gap-2\">"
+        ],
+        [
+          142,
+          "? 'Loading\u2026'"
+        ],
+        [
+          182,
+          "<Modal"
+        ]
+      ]
+    },
+    {
+      "file": "components/PortalHomePage.tsx",
+      "lines": 530,
+      "imports": [
+        "react",
+        "../types/portal",
+        "../services/portal",
+        "../services/supabaseAuth",
+        "./branding",
+        "./CompanyCalendar",
+        "./PasskeysCard",
+        "./SquadLeaderDashboard",
+        "../types",
+        "./Icons"
+      ],
+      "elements": {
+        "button": 14,
+        "details": 1,
+        "input": 1
+      },
+      "landmarks_states": [
+        [
+          44,
+          "const [loading, setLoading] = useState(true);"
+        ],
+        [
+          74,
+          "setLoading(false);"
+        ],
+        [
+          109,
+          "if (r.error) throw r.error;"
+        ],
+        [
+          172,
+          "<p>Loading your portal\u2026</p>"
+        ],
+        [
+          174,
+          "<div role=\"alert\" className=\"bg-red-50 p-5 rounded-xl space-y-3\">"
+        ],
+        [
+          185,
+          "<h1 className=\"text-2xl font-bold\">Finish setting up</h1>"
+        ],
+        [
+          208,
+          "<h1 className=\"text-2xl font-bold text-white mt-1\">"
+        ],
+        [
+          235,
+          "<h2 className=\"font-semibold text-slate-900 flex items-center gap-2\">"
+        ],
+        [
+          250,
+          "<h2 className=\"font-semibold text-slate-900\">"
+        ],
+        [
+          285,
+          "<h2 className=\"font-semibold text-slate-900 flex items-center gap-2\">"
+        ],
+        [
+          335,
+          "<h2 className=\"font-semibold text-slate-900\">My squad teammates</h2>"
+        ],
+        [
+          419,
+          "<h1 className=\"text-2xl font-bold\">Calendar</h1>"
+        ],
+        [
+          474,
+          "<h1 className=\"text-2xl font-bold\">Account</h1>"
+        ],
+        [
+          480,
+          "<h2 className=\"font-semibold\">Notifications</h2>"
+        ]
+      ]
+    },
+    {
+      "file": "components/PortalSetupPage.tsx",
+      "lines": 96,
+      "imports": [
+        "react",
+        "./branding",
+        "../services/supabaseClient",
+        "../services/supabaseAuth",
+        "../services/passkeyErrors",
+        "../services/portal"
+      ],
+      "elements": {
+        "button": 1
+      },
+      "landmarks_states": [
+        [
+          24,
+          "if (signedOut.error) throw signedOut.error;"
+        ],
+        [
+          33,
+          "if (verified.error) throw verified.error;"
+        ],
+        [
+          38,
+          "if (r.error) throw r.error;"
+        ],
+        [
+          63,
+          "<h1 className=\"text-2xl font-bold text-slate-900\">"
+        ],
+        [
+          69,
+          "{error && ("
+        ],
+        [
+          71,
+          "role=\"alert\""
+        ]
+      ]
+    },
+    {
+      "file": "components/SectionSelectPage.tsx",
+      "lines": 59,
+      "imports": [
+        "react",
+        "../types",
+        "./Icons",
+        "./branding"
+      ],
+      "elements": {
+        "button": 3
+      },
+      "landmarks_states": [
+        [
+          23,
+          "<h1 className=\"text-3xl font-bold text-slate-900 mb-2\">Select a Section</h1>"
+        ]
+      ]
+    },
+    {
+      "file": "components/SessionReportModal.tsx",
+      "lines": 202,
+      "imports": [
+        "react",
+        "@react-pdf/renderer",
+        "./Modal",
+        "./reports/SessionReportDocument",
+        "./reports/reportConstants",
+        "../services/reporting/sessionReport",
+        "../types"
+      ],
+      "elements": {
+        "input": 2,
+        "button": 1
+      },
+      "landmarks_states": [
+        [
+          90,
+          "<Modal isOpen={isOpen} onClose={onClose} title=\"Master Session PDF\" size=\"lg\">"
+        ],
+        [
+          100,
+          "<h3 className=\"text-lg font-semibold text-slate-900\">Single Master Report</h3>"
+        ]
+      ]
+    },
+    {
+      "file": "components/SettingsPage.tsx",
+      "lines": 301,
+      "imports": [
+        "react",
+        "../types",
+        "../services/settings",
+        "../services/sessions",
+        "../services/sessionArchiveModel",
+        "./Modal",
+        "./SquadsSettingsCard"
+      ],
+      "elements": {
+        "select": 1,
+        "button": 5,
+        "input": 3
+      },
+      "landmarks_states": [
+        [
+          119,
+          "`Archived ${result.label}: ${result.memberCount} members and ${result.markCount} marks. The live roster is now empty.`,"
+        ],
+        [
+          140,
+          "<h1 className=\"text-3xl font-bold tracking-tight text-slate-900\">Section Settings</h1>"
+        ],
+        [
+          147,
+          "<h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>General Settings</h2>"
+        ],
+        [
+          169,
+          "{error && <p className=\"text-red-500 text-sm\">{error}</p>}"
+        ],
+        [
+          197,
+          "<h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Start a new BB session</h2>"
+        ],
+        [
+          199,
+          "Archive the current Company and Junior members and marks, then open empty live rosters for the next year."
+        ],
+        [
+          233,
+          "<h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Your Account</h2>"
+        ],
+        [
+          246,
+          "<Modal isOpen={isConfirmOpen} onClose={closeConfirmModal} title=\"Start a new BB session?\" size=\"lg\">"
+        ],
+        [
+          253,
+          "<li>Home, Weekly Marks, and Dashboard for both sections become empty.</li>"
+        ]
+      ]
+    },
+    {
+      "file": "components/SkeletonLoaders.tsx",
+      "lines": 101,
+      "imports": [
+        "react"
+      ],
+      "elements": {},
+      "landmarks_states": []
+    },
+    {
+      "file": "components/SquadLeaderDashboard.tsx",
+      "lines": 452,
+      "imports": [
+        "react",
+        "../types/portal",
+        "../services/squadDashboard",
+        "./Icons"
+      ],
+      "elements": {
+        "button": 2,
+        "select": 1,
+        "table": 1,
+        "details": 1
+      },
+      "landmarks_states": [
+        [
+          65,
+          "// An empty selection follows the latest recorded night when staff add marks."
+        ],
+        [
+          90,
+          "<h1>Squad dashboard</h1>"
+        ],
+        [
+          102,
+          "<h2>{squadName}</h2>"
+        ],
+        [
+          178,
+          "<h2 id=\"squad-trend-heading\">Squad progress</h2>"
+        ],
+        [
+          190,
+          "role=\"group\""
+        ],
+        [
+          222,
+          "<div className=\"sd-empty\">"
+        ],
+        [
+          235,
+          "<h2 id=\"squad-comparison-heading\">Squad standings</h2>"
+        ],
+        [
+          286,
+          "<h2 id=\"squad-weekly-heading\">Your squad, in detail</h2>"
+        ],
+        [
+          333,
+          "role=\"region\""
+        ],
+        [
+          336,
+          "<table>"
+        ]
+      ]
+    },
+    {
+      "file": "components/SquadsSettingsCard.tsx",
+      "lines": 204,
+      "imports": [
+        "react",
+        "../types",
+        "../services/settings",
+        "../services/sectionSquads",
+        "./Icons"
+      ],
+      "elements": {
+        "input": 1,
+        "button": 4
+      },
+      "landmarks_states": [
+        [
+          113,
+          "<h2 className={`text-xl font-semibold border-b pb-2 mb-4 ${accentText}`}>Squads</h2>"
+        ]
+      ]
+    },
+    {
+      "file": "components/Toast.tsx",
+      "lines": 71,
+      "imports": [
+        "react",
+        "../types",
+        "./Icons"
+      ],
+      "elements": {
+        "button": 1
+      },
+      "landmarks_states": [
+        [
+          43,
+          "role=\"alert\""
+        ],
+        [
+          44,
+          "aria-live=\"assertive\""
+        ]
+      ]
+    },
+    {
+      "file": "components/WeeklyMarksPage.tsx",
+      "lines": 602,
+      "imports": [
+        "react",
+        "../types",
+        "../services/db",
+        "../services/observability",
+        "./Icons",
+        "./DatePicker",
+        "./Modal",
+        "./weeklyMarksDates",
+        "./weeklyMarksSavePlan",
+        "./weeklyMarksDateChange",
+        "../services/sectionSquads"
+      ],
+      "elements": {
+        "button": 8,
+        "input": 3
+      },
+      "landmarks_states": [
+        [
+          155,
+          "error = undefined; // No error for empty string"
+        ],
+        [
+          360,
+          "return <div className=\"text-center p-8\">Loading settings...</div>;"
+        ],
+        [
+          368,
+          "<h1 className=\"text-3xl font-bold tracking-tight text-slate-900\">Weekly Marks</h1>"
+        ],
+        [
+          371,
+          "<h3 className=\"mt-4 text-xl font-semibold text-slate-900\">No Members to Mark</h3>"
+        ],
+        [
+          388,
+          "<h1 className=\"text-3xl font-bold tracking-tight text-slate-900\">Weekly Marks</h1>"
+        ],
+        [
+          437,
+          "<h2 className=\"text-2xl font-semibold text-slate-800\">{squadDisplayName(configuredSquads, Number(squad))}</h2>"
+        ],
+        [
+          575,
+          "<Modal isOpen={isDateChangeConfirmOpen} onClose={cancelDateChange} title=\"Discard unsaved marks?\">"
+        ]
+      ]
+    },
+    {
+      "file": "components/reports/EventPosterDocument.tsx",
+      "lines": 288,
+      "imports": [
+        "react",
+        "@react-pdf/renderer",
+        "../../types/portal",
+        "../branding",
+        "../../services/portal"
+      ],
+      "elements": {},
+      "landmarks_states": []
+    },
+    {
+      "file": "components/reports/SessionReportDocument.tsx",
+      "lines": 979,
+      "imports": [
+        "react",
+        "@react-pdf/renderer",
+        "../../types/reporting",
+        "../../assets/branding/bb-logo.png",
+        "../../assets/branding/bb-background.jpg",
+        "../../assets/branding/company-logo.png",
+        "../../assets/branding/junior-logo.png",
+        "./reportConstants"
+      ],
+      "elements": {},
+      "landmarks_states": []
+    }
+  ],
+  "classFrequency": [
+    [
+      "text-sm",
+      153
+    ],
+    [
+      "flex",
+      116
+    ],
+    [
+      "items-center",
+      76
+    ],
+    [
+      "text-slate-500",
+      73
+    ],
+    [
+      "bg-white",
+      59
+    ],
+    [
+      "font-medium",
+      56
+    ],
+    [
+      "font-semibold",
+      55
+    ],
+    [
+      "rounded-lg",
+      53
+    ],
+    [
+      "py-2",
+      48
+    ],
+    [
+      "rounded-md",
+      47
+    ],
+    [
+      "h-5",
+      44
+    ],
+    [
+      "text-slate-700",
+      42
+    ],
+    [
+      "text-slate-600",
+      40
+    ],
+    [
+      "text-xs",
+      40
+    ],
+    [
+      "text-slate-900",
+      39
+    ],
+    [
+      "w-5",
+      38
+    ],
+    [
+      "block",
+      37
+    ],
+    [
+      "px-4",
+      36
+    ],
+    [
+      "border",
+      36
+    ],
+    [
+      "shadow-md",
+      33
+    ],
+    [
+      "text-center",
+      31
+    ],
+    [
+      "justify-between",
+      31
+    ],
+    [
+      "mt-1",
+      27
+    ],
+    [
+      "focus:outline-none",
+      27
+    ],
+    [
+      "text-white",
+      26
+    ],
+    [
+      "focus:ring-2",
+      24
+    ],
+    [
+      "gap-3",
+      24
+    ],
+    [
+      "w-full",
+      23
+    ],
+    [
+      "focus:ring-offset-2",
+      23
+    ],
+    [
+      "gap-2",
+      23
+    ],
+    [
+      "disabled:opacity-50",
+      23
+    ],
+    [
+      "p-4",
+      22
+    ],
+    [
+      "px-3",
+      22
+    ],
+    [
+      "mt-2",
+      21
+    ],
+    [
+      "text-company-blue",
+      21
+    ],
+    [
+      "font-bold",
+      20
+    ],
+    [
+      "bg-slate-100",
+      20
+    ],
+    [
+      "rounded-xl",
+      20
+    ],
+    [
+      "mx-auto",
+      19
+    ],
+    [
+      "space-y-6",
+      18
+    ],
+    [
+      "justify-end",
+      18
+    ],
+    [
+      "p-6",
+      17
+    ],
+    [
+      "border-slate-200",
+      17
+    ],
+    [
+      "justify-center",
+      17
+    ],
+    [
+      "mt-4",
+      17
+    ],
+    [
+      "rounded-full",
+      17
+    ],
+    [
+      "flex-col",
+      16
+    ],
+    [
+      "text-slate-800",
+      16
+    ],
+    [
+      "gap-4",
+      15
+    ],
+    [
+      "mr-2",
+      15
+    ],
+    [
+      "inline-flex",
+      15
+    ],
+    [
+      "h-4",
+      15
+    ],
+    [
+      "grid",
+      14
+    ],
+    [
+      "space-y-3",
+      14
+    ],
+    [
+      "space-y-4",
+      14
+    ],
+    [
+      "text-red-500",
+      13
+    ],
+    [
+      "w-4",
+      13
+    ],
+    [
+      "border-t",
+      12
+    ],
+    [
+      "text-3xl",
+      12
+    ],
+    [
+      "sm:flex-row",
+      12
+    ],
+    [
+      "focus:ring-slate-400",
+      12
+    ],
+    [
+      "p-8",
+      12
+    ],
+    [
+      "text-slate-400",
+      12
+    ],
+    [
+      "shadow-sm",
+      12
+    ],
+    [
+      "bg-company-blue",
+      12
+    ],
+    [
+      "h-6",
+      12
+    ],
+    [
+      "relative",
+      12
+    ],
+    [
+      "border-slate-300",
+      11
+    ],
+    [
+      "items-start",
+      11
+    ],
+    [
+      "p-5",
+      11
+    ],
+    [
+      "text-2xl",
+      11
+    ],
+    [
+      "text-xl",
+      10
+    ],
+    [
+      "flex-wrap",
+      10
+    ],
+    [
+      "disabled:cursor-not-allowed",
+      10
+    ],
+    [
+      "mb-4",
+      10
+    ],
+    [
+      "w-6",
+      10
+    ],
+    [
+      "pt-4",
+      9
+    ],
+    [
+      "tracking-tight",
+      9
+    ],
+    [
+      "hover:bg-slate-200",
+      9
+    ],
+    [
+      "text-lg",
+      9
+    ],
+    [
+      "px-2",
+      9
+    ],
+    [
+      "space-x-2",
+      9
+    ],
+    [
+      "text-red-700",
+      9
+    ],
+    [
+      "underline",
+      9
+    ],
+    [
+      "sm:p-8",
+      8
+    ],
+    [
+      "uppercase",
+      8
+    ],
+    [
+      "divide-y",
+      8
+    ],
+    [
+      "sticky",
+      8
+    ],
+    [
+      "py-3",
+      8
+    ],
+    [
+      "mt-3",
+      8
+    ],
+    [
+      "min-h-screen",
+      7
+    ],
+    [
+      "px-6",
+      7
+    ],
+    [
+      "sm:items-center",
+      7
+    ],
+    [
+      "text-md",
+      7
+    ],
+    [
+      "p-3",
+      7
+    ],
+    [
+      "bg-red-50",
+      7
+    ],
+    [
+      "w-48",
+      7
+    ],
+    [
+      "py-1",
+      7
+    ],
+    [
+      "grid-cols-1",
+      6
+    ],
+    [
+      "ml-2",
+      6
+    ],
+    [
+      "divide-slate-200",
+      6
+    ],
+    [
+      "p-2",
+      6
+    ],
+    [
+      "hover:bg-slate-100",
+      6
+    ],
+    [
+      "z-10",
+      6
+    ],
+    [
+      "sm:px-6",
+      6
+    ],
+    [
+      "lg:px-8",
+      6
+    ],
+    [
+      "rounded-2xl",
+      6
+    ],
+    [
+      "mb-2",
+      6
+    ],
+    [
+      "space-y-8",
+      6
+    ],
+    [
+      "overflow-hidden",
+      6
+    ],
+    [
+      "h-10",
+      6
+    ],
+    [
+      "mr-3",
+      6
+    ],
+    [
+      "flex-1",
+      6
+    ],
+    [
+      "bg-red-600",
+      6
+    ],
+    [
+      "focus:ring-junior-blue",
+      6
+    ],
+    [
+      "bg-slate-200",
+      5
+    ],
+    [
+      "space-y-2",
+      5
+    ],
+    [
+      "w-16",
+      5
+    ],
+    [
+      "rounded",
+      5
+    ],
+    [
+      "text-slate-300",
+      5
+    ],
+    [
+      "bg-blue-50",
+      5
+    ],
+    [
+      "py-4",
+      5
+    ],
+    [
+      "left-0",
+      5
+    ],
+    [
+      "bg-junior-blue",
+      5
+    ],
+    [
+      "hidden",
+      5
+    ],
+    [
+      "hover:bg-red-700",
+      5
+    ],
+    [
+      "focus:ring-red-500",
+      5
+    ],
+    [
+      "bg-amber-50",
+      5
+    ],
+    [
+      "border-amber-200",
+      5
+    ],
+    [
+      "!bg-slate-500",
+      5
+    ],
+    [
+      "sm:justify-between",
+      4
+    ],
+    [
+      "py-16",
+      4
+    ],
+    [
+      "h-16",
+      4
+    ],
+    [
+      "text-left",
+      4
+    ],
+    [
+      "hover:bg-slate-50",
+      4
+    ],
+    [
+      "border-b",
+      4
+    ],
+    [
+      "mt-6",
+      4
+    ],
+    [
+      "shrink-0",
+      4
+    ],
+    [
+      "px-5",
+      4
+    ],
+    [
+      "w-28",
+      4
+    ],
+    [
+      "whitespace-nowrap",
+      4
+    ],
+    [
+      "hover:brightness-90",
+      4
+    ],
+    [
+      "sr-only",
+      4
+    ],
+    [
+      "pt-2",
+      4
+    ],
+    [
+      "items-baseline",
+      4
+    ],
+    [
+      "group",
+      4
+    ],
+    [
+      "border-transparent",
+      4
+    ],
+    [
+      "text-amber-800",
+      4
+    ],
+    [
+      "tracking-wide",
+      4
+    ],
+    [
+      "h-8",
+      4
+    ],
+    [
+      "sd-eyebrow",
+      4
+    ],
+    [
+      "max-w-2xl",
+      3
+    ],
+    [
+      "md:grid-cols-2",
+      3
+    ],
+    [
+      "overflow-x-auto",
+      3
+    ],
+    [
+      "space-x-3",
+      3
+    ],
+    [
+      "mb-6",
+      3
+    ],
+    [
+      "mx-2",
+      3
+    ],
+    [
+      "tracking-wider",
+      3
+    ],
+    [
+      "bg-yellow-400",
+      3
+    ],
+    [
+      "text-yellow-900",
+      3
+    ],
+    [
+      "py-0.5",
+      3
+    ],
+    [
+      "gap-1",
+      3
+    ],
+    [
+      "h-2",
+      3
+    ],
+    [
+      "h-1.5",
+      3
+    ],
+    [
+      "mt-8",
+      3
+    ],
+    [
+      "w-20",
+      3
+    ],
+    [
+      "py-3.5",
+      3
+    ],
+    [
+      "pl-4",
+      3
+    ],
+    [
+      "w-24",
+      3
+    ],
+    [
+      "right-0",
+      3
+    ],
+    [
+      "max-w-md",
+      3
+    ],
+    [
+      "h-20",
+      3
+    ],
+    [
+      "absolute",
+      3
+    ],
+    [
+      "sm:text-sm",
+      3
+    ],
+    [
+      "-ml-1",
+      3
+    ],
+    [
+      "text-right",
+      3
+    ],
+    [
+      "sm:space-y-0",
+      3
+    ],
+    [
+      "pt-6",
+      3
+    ],
+    [
+      "bg-cover",
+      3
+    ],
+    [
+      "bg-center",
+      3
+    ],
+    [
+      "flex-shrink-0",
+      3
+    ],
+    [
+      "w-32",
+      3
+    ],
+    [
+      "w-56",
+      3
+    ],
+    [
+      "space-x-4",
+      3
+    ],
+    [
+      "w-40",
+      3
+    ],
+    [
+      "w-10",
+      3
+    ],
+    [
+      "sd-muted",
+      3
+    ],
+    [
+      "sd-panel",
+      3
+    ],
+    [
+      "sd-panel-heading",
+      3
+    ],
+    [
+      "sd-score",
+      3
+    ],
+    [
+      "max-w-lg",
+      2
+    ],
+    [
+      "sm:items-end",
+      2
+    ],
+    [
+      "max-w-3xl",
+      2
+    ],
+    [
+      "sm:items-start",
+      2
+    ],
+    [
+      "h-12",
+      2
+    ],
+    [
+      "w-12",
+      2
+    ],
+    [
+      "gap-8",
+      2
+    ],
+    [
+      "xl:grid-cols-3",
+      2
+    ],
+    [
+      "pb-4",
+      2
+    ],
+    [
+      "mb-3",
+      2
+    ],
+    [
+      "hover:text-slate-900",
+      2
+    ],
+    [
+      "sm:grid-cols-3",
+      2
+    ],
+    [
+      "sm:space-x-4",
+      2
+    ],
+    [
+      "hover:text-red-600",
+      2
+    ],
+    [
+      "bottom-0",
+      2
+    ],
+    [
+      "-mx-4",
+      2
+    ],
+    [
+      "sm:-mx-6",
+      2
+    ],
+    [
+      "lg:-mx-8",
+      2
+    ],
+    [
+      "bg-slate-200/95",
+      2
+    ],
+    [
+      "backdrop-blur",
+      2
+    ],
+    [
+      "animate-spin",
+      2
+    ],
+    [
+      "opacity-25",
+      2
+    ],
+    [
+      "opacity-75",
+      2
+    ],
+    [
+      "mt-0.5",
+      2
+    ],
+    [
+      "hover:bg-blue-100",
+      2
+    ],
+    [
+      "space-y-5",
+      2
+    ],
+    [
+      "grid-cols-7",
+      2
+    ],
+    [
+      "border-slate-100",
+      2
+    ],
+    [
+      "pt-3",
+      2
+    ],
+    [
+      "w-1.5",
+      2
+    ],
+    [
+      "bg-gradient-to-br",
+      2
+    ],
+    [
+      "from-company-blue",
+      2
+    ],
+    [
+      "via-[#2a3e61]",
+      2
+    ],
+    [
+      "to-[#3b5f91]",
+      2
+    ],
+    [
+      "w-7",
+      2
+    ],
+    [
+      "h-7",
+      2
+    ],
+    [
+      "text-blue-100",
+      2
+    ],
+    [
+      "cursor-pointer",
+      2
+    ],
+    [
+      "grid-cols-2",
+      2
+    ],
+    [
+      "sm:grid-cols-2",
+      2
+    ],
+    [
+      "leading-6",
+      2
+    ],
+    [
+      "gap-6",
+      2
+    ],
+    [
+      "min-w-full",
+      2
+    ],
+    [
+      "bg-white/75",
+      2
+    ],
+    [
+      "backdrop-blur-sm",
+      2
+    ],
+    [
+      "pr-3",
+      2
+    ],
+    [
+      "sm:pl-6",
+      2
+    ],
+    [
+      "min-w-[12rem]",
+      2
+    ],
+    [
+      "min-w-[7rem]",
+      2
+    ],
+    [
+      "container",
+      2
+    ],
+    [
+      "lg:flex",
+      2
+    ],
+    [
+      "border-white/20",
+      2
+    ],
+    [
+      "shadow-lg",
+      2
+    ],
+    [
+      "ring-1",
+      2
+    ],
+    [
+      "ring-black",
+      2
+    ],
+    [
+      "ring-opacity-5",
+      2
+    ],
+    [
+      "space-y-1",
+      2
+    ],
+    [
+      "text-base",
+      2
+    ],
+    [
+      "sm:mr-2",
+      2
+    ],
+    [
+      "sm:-ml-1",
+      2
+    ],
+    [
+      "sm:inline",
+      2
+    ],
+    [
+      "min-w-0",
+      2
+    ],
+    [
+      "overflow-y-auto",
+      2
+    ],
+    [
+      "bg-red-100",
+      2
+    ],
+    [
+      "hover:underline",
+      2
+    ],
+    [
+      "placeholder-slate-500",
+      2
+    ],
+    [
+      "focus:border-junior-blue",
+      2
+    ],
+    [
+      "focus:z-10",
+      2
+    ],
+    [
+      "ml-3",
+      2
+    ],
+    [
+      "max-w-sm",
+      2
+    ],
+    [
+      "hover:shadow-xl",
+      2
+    ],
+    [
+      "transform",
+      2
+    ],
+    [
+      "hover:-translate-y-1",
+      2
+    ],
+    [
+      "transition-all",
+      2
+    ],
+    [
+      "duration-300",
+      2
+    ],
+    [
+      "focus:ring-offset-slate-200",
+      2
+    ],
+    [
+      "focus:ring-white",
+      2
+    ],
+    [
+      "text-slate-200",
+      2
+    ],
+    [
+      "text-amber-900",
+      2
+    ],
+    [
+      "max-w-7xl",
+      2
+    ],
+    [
+      "py-8",
+      2
+    ],
+    [
+      "h-9",
+      2
+    ],
+    [
+      "w-64",
+      2
+    ],
+    [
+      "ml-4",
+      2
+    ],
+    [
+      "self-start",
+      1
+    ],
+    [
+      "transition",
+      1
+    ],
+    [
+      "hover:shadow-lg",
+      1
+    ],
+    [
+      "sm:text-right",
+      1
+    ],
+    [
+      "py-12",
+      1
+    ],
+    [
+      "align-middle",
+      1
+    ],
+    [
+      "sm:col-span-1",
+      1
+    ],
+    [
+      "sm:col-span-2",
+      1
+    ],
+    [
+      "sm:justify-end",
+      1
+    ],
+    [
+      "w-44",
+      1
+    ],
+    [
+      "whitespace-pre-wrap",
+      1
+    ],
+    [
+      "break-words",
+      1
+    ],
+    [
+      "sm:p-5",
+      1
+    ],
+    [
+      "bg-red-500",
+      1
+    ],
+    [
+      "py-5",
+      1
+    ],
+    [
+      "bg-white/10",
+      1
+    ],
+    [
+      "hover:bg-blue-50",
+      1
+    ],
+    [
+      "mt-5",
+      1
+    ],
+    [
+      "lg:grid-cols-3",
+      1
+    ],
+    [
+      "lg:col-span-1",
+      1
+    ],
+    [
+      "text-yellow-500",
+      1
+    ],
+    [
+      "lg:col-span-2",
+      1
+    ],
+    [
+      "border-separate",
+      1
+    ],
+    [
+      "border-spacing-px",
+      1
+    ],
+    [
+      "px-1",
+      1
+    ],
+    [
+      "lg:space-x-4",
+      1
+    ],
+    [
+      "h-14",
+      1
+    ],
+    [
+      "border-l",
+      1
+    ],
+    [
+      "origin-top-right",
+      1
+    ],
+    [
+      "truncate",
+      1
+    ],
+    [
+      "lg:hidden",
+      1
+    ],
+    [
+      "pb-3",
+      1
+    ],
+    [
+      "sm:px-3",
+      1
+    ],
+    [
+      "text-gray-200",
+      1
+    ],
+    [
+      "sm:text-3xl",
+      1
+    ],
+    [
+      "sm:gap-2",
+      1
+    ],
+    [
+      "top-1.5",
+      1
+    ],
+    [
+      "right-1.5",
+      1
+    ],
+    [
+      "w-2",
+      1
+    ],
+    [
+      "bg-amber-400",
+      1
+    ],
+    [
+      "sm:rounded-md",
+      1
+    ],
+    [
+      "sm:border",
+      1
+    ],
+    [
+      "sm:border-slate-300",
+      1
+    ],
+    [
+      "sm:bg-white",
+      1
+    ],
+    [
+      "sm:px-4",
+      1
+    ],
+    [
+      "sm:py-2",
+      1
+    ],
+    [
+      "sm:font-medium",
+      1
+    ],
+    [
+      "sm:shadow-sm",
+      1
+    ],
+    [
+      "sm:hover:bg-slate-50",
+      1
+    ],
+    [
+      "inset-y-0",
+      1
+    ],
+    [
+      "pl-3",
+      1
+    ],
+    [
+      "pointer-events-none",
+      1
+    ],
+    [
+      "sm:flex-wrap",
+      1
+    ],
+    [
+      "sm:w-auto",
+      1
+    ],
+    [
+      "py-10",
+      1
+    ],
+    [
+      "gap-x-2",
+      1
+    ],
+    [
+      "text-amber-700",
+      1
+    ],
+    [
+      "max-h-80",
+      1
+    ],
+    [
+      "pr-1",
+      1
+    ],
+    [
+      "-space-y-px",
+      1
+    ],
+    [
+      "rounded-t-md",
+      1
+    ],
+    [
+      "rounded-b-md",
+      1
+    ],
+    [
+      "text-junior-blue",
+      1
+    ],
+    [
+      "hover:text-slate-600",
+      1
+    ],
+    [
+      "font-light",
+      1
+    ],
+    [
+      "flex-grow",
+      1
+    ],
+    [
+      "divide-slate-100",
+      1
+    ],
+    [
+      "h-full",
+      1
+    ],
+    [
+      "ml-5",
+      1
+    ],
+    [
+      "sm:p-6",
+      1
+    ],
+    [
+      "border-blue-200",
+      1
+    ],
+    [
+      "font-normal",
+      1
+    ],
+    [
+      "tracking-widest",
+      1
+    ],
+    [
+      "mb-8",
+      1
+    ],
+    [
+      "focus:ring-slate-500",
+      1
+    ],
+    [
+      "bg-slate-50",
+      1
+    ],
+    [
+      "sm:grid-cols-4",
+      1
+    ],
+    [
+      "border-red-200",
+      1
+    ],
+    [
+      "sm:mb-0",
+      1
+    ],
+    [
+      "list-disc",
+      1
+    ],
+    [
+      "pl-5",
+      1
+    ],
+    [
+      "bg-slate-400",
+      1
+    ],
+    [
+      "w-36",
+      1
+    ],
+    [
+      "md:flex",
+      1
+    ],
+    [
+      "md:hidden",
+      1
+    ],
+    [
+      "mb-1",
+      1
+    ],
+    [
+      "first:pt-0",
+      1
+    ],
+    [
+      "w-8",
+      1
+    ],
+    [
+      "sd-stat",
+      1
+    ],
+    [
+      "sd-stat-value",
+      1
+    ],
+    [
+      "sd-stat-detail",
+      1
+    ],
+    [
+      "squad-dashboard",
+      1
+    ],
+    [
+      "sd-page-heading",
+      1
+    ],
+    [
+      "sd-year",
+      1
+    ],
+    [
+      "sd-hero",
+      1
+    ],
+    [
+      "sd-hero-copy",
+      1
+    ],
+    [
+      "sd-hero-tag",
+      1
+    ],
+    [
+      "sd-hero-meta",
+      1
+    ],
+    [
+      "sd-attendance-ring",
+      1
+    ],
+    [
+      "sd-stats-grid",
+      1
+    ],
+    [
+      "sd-chart-grid",
+      1
+    ],
+    [
+      "sd-trend",
+      1
+    ],
+    [
+      "sd-chart-legend",
+      1
+    ],
+    [
+      "sd-selected-dot",
+      1
+    ],
+    [
+      "sd-bars",
+      1
+    ],
+    [
+      "sd-bar-track",
+      1
+    ],
+    [
+      "sd-bar",
+      1
+    ],
+    [
+      "sd-bar-date",
+      1
+    ],
+    [
+      "sd-chart-hint",
+      1
+    ],
+    [
+      "sd-empty",
+      1
+    ],
+    [
+      "sd-standings",
+      1
+    ],
+    [
+      "sd-position",
+      1
+    ],
+    [
+      "sd-standing-detail",
+      1
+    ],
+    [
+      "sd-standing-track",
+      1
+    ],
+    [
+      "sd-standings-note",
+      1
+    ],
+    [
+      "sd-roster",
+      1
+    ],
+    [
+      "sd-date-picker",
+      1
+    ],
+    [
+      "sd-week-summary",
+      1
+    ],
+    [
+      "sd-no-marks",
+      1
+    ],
+    [
+      "sd-table-scroll",
+      1
+    ],
+    [
+      "sd-member-name",
+      1
+    ],
+    [
+      "sd-avatar",
+      1
+    ],
+    [
+      "sd-mobile-attendance",
+      1
+    ],
+    [
+      "sd-score-missing",
+      1
+    ],
+    [
+      "sd-score-absent",
+      1
+    ],
+    [
+      "sd-score-present",
+      1
+    ],
+    [
+      "sd-member-total",
+      1
+    ],
+    [
+      "sd-attendance-value",
+      1
+    ],
+    [
+      "sd-attendance-detail",
+      1
+    ],
+    [
+      "sd-table-footer",
+      1
+    ],
+    [
+      "sd-history",
+      1
+    ],
+    [
+      "sd-footnote",
+      1
+    ],
+    [
+      "sm:flex-col",
+      1
+    ],
+    [
+      "hover:bg-red-50",
+      1
+    ],
+    [
+      "hover:text-red-700",
+      1
+    ],
+    [
+      "disabled:opacity-40",
+      1
+    ],
+    [
+      "mr-1",
+      1
+    ],
+    [
+      "text-green-500",
+      1
+    ],
+    [
+      "text-blue-500",
+      1
+    ],
+    [
+      "pointer-events-auto",
+      1
+    ],
+    [
+      "pt-0.5",
+      1
+    ],
+    [
+      "hover:text-slate-500",
+      1
+    ],
+    [
+      "pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+      1
+    ]
+  ]
+}

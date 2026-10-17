@@ -1,0 +1,8 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Item Details:\n\n## sheet\n**Type:** registry:ui\n**Files:** 1 file(s)\n**Dependencies:** cn, radix-ui\n\n---\n\n## drawer\n**Type:** registry:ui\n**Files:** 1 file(s)\n**Dependencies:** cn, vaul\n\n---\n\n## toggle-group\n**Type:** registry:ui\n**Files:** 1 file(s)\n**Dependencies:** cn, radix-ui"
+    }
+  ]
+}

@@ -1,0 +1,1408 @@
+{
+  "case": "session-confirm",
+  "componentView": "settings",
+  "section": "company",
+  "state": "populated",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 320,
+        "bodyHeight": 2174,
+        "headings": [
+          {
+            "text": "Section Settings",
+            "font": "30px"
+          },
+          {
+            "text": "General Settings",
+            "font": "20px"
+          },
+          {
+            "text": "Squads",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session",
+            "font": "20px"
+          },
+          {
+            "text": "Your Account",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session?",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "SELECT",
+            "label": "SundayMondayTuesdayWednesdayThursdayFridaySaturday",
+            "width": 240,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save",
+            "width": 112,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 214,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 1",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 214,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 2",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 214,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 3",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add squad",
+            "width": 126,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "session-label",
+            "width": 240,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Start new session",
+            "width": 149,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Go to Account Settings",
+            "width": 184,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 16,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 240,
+            "height": 42,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nSection Settings\nGeneral Settings\nWeekly Meeting Day\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\n\nSet the default day for the Weekly Marks page.\n\nSave\nS"
+      },
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 1\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 2\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 3\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "bodyHeight": 2082,
+        "headings": [
+          {
+            "text": "Section Settings",
+            "font": "30px"
+          },
+          {
+            "text": "General Settings",
+            "font": "20px"
+          },
+          {
+            "text": "Squads",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session",
+            "font": "20px"
+          },
+          {
+            "text": "Your Account",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session?",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "SELECT",
+            "label": "SundayMondayTuesdayWednesdayThursdayFridaySaturday",
+            "width": 295,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save",
+            "width": 112,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 269,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 1",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 269,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 2",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 269,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 3",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add squad",
+            "width": 126,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "session-label",
+            "width": 295,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Start new session",
+            "width": 149,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Go to Account Settings",
+            "width": 184,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 16,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 295,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 76,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archive and start fresh",
+            "width": 181,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nSection Settings\nGeneral Settings\nWeekly Meeting Day\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\n\nSet the default day for the Weekly Marks page.\n\nSave\nS"
+      },
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 1\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 2\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 3\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "bodyHeight": 2014,
+        "headings": [
+          {
+            "text": "Section Settings",
+            "font": "30px"
+          },
+          {
+            "text": "General Settings",
+            "font": "20px"
+          },
+          {
+            "text": "Squads",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session",
+            "font": "20px"
+          },
+          {
+            "text": "Your Account",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session?",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "SELECT",
+            "label": "SundayMondayTuesdayWednesdayThursdayFridaySaturday",
+            "width": 310,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save",
+            "width": 112,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 284,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 1",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 284,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 2",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 284,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 3",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add squad",
+            "width": 126,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "session-label",
+            "width": 310,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Start new session",
+            "width": 149,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Go to Account Settings",
+            "width": 184,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 16,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 310,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 76,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archive and start fresh",
+            "width": 181,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nSection Settings\nGeneral Settings\nWeekly Meeting Day\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\n\nSet the default day for the Weekly Marks page.\n\nSave\nS"
+      },
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 1\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 2\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 3\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 2014,
+        "headings": [
+          {
+            "text": "Section Settings",
+            "font": "30px"
+          },
+          {
+            "text": "General Settings",
+            "font": "20px"
+          },
+          {
+            "text": "Squads",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session",
+            "font": "20px"
+          },
+          {
+            "text": "Your Account",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session?",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "SELECT",
+            "label": "SundayMondayTuesdayWednesdayThursdayFridaySaturday",
+            "width": 350,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save",
+            "width": 112,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 324,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 1",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 324,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 2",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 324,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 3",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add squad",
+            "width": 126,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "session-label",
+            "width": 350,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Start new session",
+            "width": 149,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Go to Account Settings",
+            "width": 184,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 16,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 350,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 76,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archive and start fresh",
+            "width": 181,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nSection Settings\nGeneral Settings\nWeekly Meeting Day\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\n\nSet the default day for the Weekly Marks page.\n\nSave\nS"
+      },
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 1\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 2\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 3\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 1671,
+        "headings": [
+          {
+            "text": "Section Settings",
+            "font": "30px"
+          },
+          {
+            "text": "General Settings",
+            "font": "20px"
+          },
+          {
+            "text": "Squads",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session",
+            "font": "20px"
+          },
+          {
+            "text": "Your Account",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session?",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "SELECT",
+            "label": "SundayMondayTuesdayWednesdayThursdayFridaySaturday",
+            "width": 123,
+            "height": 39,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save",
+            "width": 112,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 373,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 1",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 373,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 2",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 373,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 3",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add squad",
+            "width": 126,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "session-label",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Start new session",
+            "width": 149,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Go to Account Settings",
+            "width": 184,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 16,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 624,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 76,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archive and start fresh",
+            "width": 181,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nSection Settings\nGeneral Settings\nWeekly Meeting Day\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\n\nSet the default day for the Weekly Marks page.\n\nSave\nS"
+      },
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 1\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 2\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 3\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 1671,
+        "headings": [
+          {
+            "text": "Section Settings",
+            "font": "30px"
+          },
+          {
+            "text": "General Settings",
+            "font": "20px"
+          },
+          {
+            "text": "Squads",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session",
+            "font": "20px"
+          },
+          {
+            "text": "Your Account",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session?",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "SELECT",
+            "label": "SundayMondayTuesdayWednesdayThursdayFridaySaturday",
+            "width": 123,
+            "height": 39,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save",
+            "width": 112,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 373,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 1",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 373,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 2",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 373,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 3",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add squad",
+            "width": 126,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "session-label",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Start new session",
+            "width": 149,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Go to Account Settings",
+            "width": 184,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 16,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 624,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 76,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archive and start fresh",
+            "width": 181,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\nSection Settings\nGeneral Settings\nWeekly Meeting Day\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\n\nSet the d"
+      },
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 1\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 2\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 3\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 1671,
+        "headings": [
+          {
+            "text": "Section Settings",
+            "font": "30px"
+          },
+          {
+            "text": "General Settings",
+            "font": "20px"
+          },
+          {
+            "text": "Squads",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session",
+            "font": "20px"
+          },
+          {
+            "text": "Your Account",
+            "font": "20px"
+          },
+          {
+            "text": "Start a new BB session?",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Weekly Marks",
+            "width": 115,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Portal Access",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "SELECT",
+            "label": "SundayMondayTuesdayWednesdayThursdayFridaySaturday",
+            "width": 123,
+            "height": 39,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save",
+            "width": 112,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 373,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 1",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 373,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 2",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 373,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete Squad 3",
+            "width": 89,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Add squad",
+            "width": 126,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "session-label",
+            "width": 608,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Start new session",
+            "width": 149,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Go to Account Settings",
+            "width": 184,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 16,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 624,
+            "height": 42,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 76,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archive and start fresh",
+            "width": 181,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\nSection Settings\nGeneral Settings\nWeekly Meeting Day\nSunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\n\nSet the d"
+      },
+      "violations": [
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 1\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 2\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"Delete Squad 3\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

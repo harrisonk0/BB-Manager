@@ -1,0 +1,1 @@
+{"check":"Chromium, system dark preference while reviewing the explicit Light appearance","framework7":{"axeViolations":[]},"native-plus":{"axeViolations":[]},"note":"A dark application theme is not implemented; the prototype explicitly presents Light."}

@@ -1,0 +1,644 @@
+{
+  "auditDate": "2026-10-16",
+  "browser": "Chromium 154.0.8037.57",
+  "viewportHeight": 900,
+  "axeVersion": "4.14.0",
+  "cases": [
+    {
+      "case": "access",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "account",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "add-dialog",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "archives",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "calendar",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "dashboard",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "scrollable-region-focusable"
+      ]
+    },
+    {
+      "case": "empty-archives",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "empty-dashboard",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "empty-home",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "empty-weekly",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "error-calendar",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "error-portal",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "event-dialog",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "filter-dialog",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "home",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "junior-home",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "junior-member",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [
+        {
+          "width": 320,
+          "scrollWidth": 326
+        }
+      ],
+      "axeRules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "junior-weekly",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [
+        {
+          "width": 320,
+          "scrollWidth": 370
+        }
+      ],
+      "axeRules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "loading-portal",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "login",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "member",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "mobile-menu",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "passkey",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "pdf-dialog",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "scrollable-region-focusable"
+      ]
+    },
+    {
+      "case": "portal-account",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "portal-calendar",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "portal",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "sections",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "session-confirm",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "settings",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "setup",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": []
+    },
+    {
+      "case": "skeleton",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [
+        {
+          "width": 320,
+          "scrollWidth": 424
+        },
+        {
+          "width": 375,
+          "scrollWidth": 424
+        },
+        {
+          "width": 390,
+          "scrollWidth": 424
+        }
+      ],
+      "axeRules": []
+    },
+    {
+      "case": "squad",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [],
+      "axeRules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ]
+    },
+    {
+      "case": "weekly",
+      "widths": [
+        320,
+        375,
+        390,
+        430,
+        768,
+        1024,
+        1440
+      ],
+      "captureErrors": [],
+      "pageErrors": [],
+      "overflow": [
+        {
+          "width": 320,
+          "scrollWidth": 370
+        }
+      ],
+      "axeRules": [
+        "color-contrast",
+        "label-content-name-mismatch"
+      ]
+    }
+  ],
+  "captureCount": 236,
+  "screenshotCount": 238,
+  "toolingChecks": {
+    "typecheck": "passed",
+    "productionBuild": "passed, existing chunk-size warnings",
+    "projectTOML": "parsed",
+    "applicationTrackedFilesChanged": [],
+    "auditServerRoot": "403",
+    "auditHarnessURL": "200",
+    "installedSkillHashes": "verified",
+    "shadcnPublicRegistryResearch": "passed",
+    "twentyFirstAnonymousInitialize": "401, disabled pending user credential"
+  }
+}

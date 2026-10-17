@@ -1,0 +1,84 @@
+{
+  "host": "https://bb-manager-olzjnk0mr-harrison-kerrs-projects.vercel.app",
+  "sourceCommit": "bff28e42c864751c666c72924bd96004a816d03d",
+  "target": "preview",
+  "productionConfigurationUnchanged": true,
+  "records": [
+    {
+      "browser": "chromium",
+      "variant": "framework7",
+      "toolbarMarkupInjected": false,
+      "status": 200,
+      "members": 18,
+      "save": "passed",
+      "filter": "passed",
+      "manifest": {
+        "status": 200,
+        "display": "standalone",
+        "startUrl": "/framework7.html"
+      },
+      "width": 390,
+      "assets": [
+        "/assets/framework7-BvcBRxYI.js"
+      ],
+      "errors": []
+    },
+    {
+      "browser": "chromium",
+      "variant": "native-plus",
+      "toolbarMarkupInjected": false,
+      "status": 200,
+      "members": 18,
+      "save": "passed",
+      "filter": "passed",
+      "manifest": {
+        "status": 200,
+        "display": "standalone",
+        "startUrl": "/native-plus.html"
+      },
+      "width": 390,
+      "assets": [
+        "/assets/nativePlus-CqkPxuDB.js"
+      ],
+      "errors": []
+    },
+    {
+      "browser": "webkit-phone",
+      "variant": "framework7",
+      "toolbarMarkupInjected": false,
+      "status": 200,
+      "members": 18,
+      "save": "passed",
+      "filter": "passed",
+      "manifest": {
+        "status": 200,
+        "display": "standalone",
+        "startUrl": "/framework7.html"
+      },
+      "width": 390,
+      "assets": [
+        "/assets/framework7-BvcBRxYI.js"
+      ],
+      "errors": []
+    },
+    {
+      "browser": "webkit-phone",
+      "variant": "native-plus",
+      "toolbarMarkupInjected": false,
+      "status": 200,
+      "members": 18,
+      "save": "passed",
+      "filter": "passed",
+      "manifest": {
+        "status": 200,
+        "display": "standalone",
+        "startUrl": "/native-plus.html"
+      },
+      "width": 390,
+      "assets": [
+        "/assets/nativePlus-CqkPxuDB.js"
+      ],
+      "errors": []
+    }
+  ]
+}

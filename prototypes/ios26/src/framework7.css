@@ -1,0 +1,410 @@
+:root.ios,
+:root {
+  --f7-theme-color: #224b8e;
+  --f7-theme-color-rgb: 34, 75, 142;
+  --f7-page-bg-color: #f2f2f7;
+  --f7-font-family:
+    -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif;
+  --f7-navbar-large-title-font-size: 34px;
+  --f7-navbar-large-title-font-weight: 700;
+  --f7-list-inset-border-radius: 26px;
+  --f7-list-item-min-height: 64px;
+  --f7-list-item-title-font-size: 17px;
+  --f7-list-item-after-font-size: 15px;
+  --f7-list-item-subtitle-font-size: 13px;
+  --f7-navbar-bg-color: rgba(242, 242, 247, 0.8);
+  --f7-list-bg-color: #fff;
+  --f7-list-chevron-icon-color: #858793;
+  --f7-button-large-height: 48px;
+  --f7-sheet-border-radius: 36px;
+  --f7-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+.f7-experiment {
+  color: var(--ink);
+}
+.f7-experiment .page {
+  background: #f2f2f7;
+}
+.f7-experiment .page-content {
+  scroll-padding-bottom: 200px;
+}
+.f7-experiment .navbar-large .navbar-inner {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+.f7-experiment .navbar-large-title {
+  letter-spacing: -1.05px;
+}
+.f7-experiment .navbar-large-title-inner {
+  padding-left: 20px;
+}
+.f7-experiment .navbar .round-control,
+.f7-experiment .navbar .workspace-control {
+  box-shadow:
+    0 1px 6px #11122205,
+    inset 0 0 0 0.5px #fff;
+  background: rgba(255, 255, 255, 0.76);
+}
+.f7-experiment .navbar-large .title {
+  font-weight: 600;
+}
+.f7-experiment .native-group {
+  margin: 0 !important;
+  border-radius: 26px;
+  overflow: hidden;
+}
+.f7-experiment .native-group > ul {
+  border-radius: 26px;
+}
+.f7-experiment .native-row .item-inner {
+  min-height: 76px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  min-width: 0;
+}
+.f7-experiment .native-row .item-title {
+  white-space: normal;
+  min-width: 0;
+}
+.f7-experiment .native-row .item-after {
+  align-self: center;
+  max-width: 48%;
+  padding-left: 9px;
+  color: #80838d;
+}
+.f7-experiment .native-row .item-title-row {
+  align-items: center;
+}
+.f7-experiment .native-row .item-media {
+  padding-top: 0;
+  padding-bottom: 0;
+  min-width: 40px;
+}
+.f7-experiment .native-row .person-meta {
+  font-size: 13px;
+  line-height: 19px;
+}
+.f7-experiment .settings-body .native-row .item-inner {
+  min-height: 59px;
+}
+.f7-experiment .settings-body .native-row .item-media {
+  min-width: 30px;
+}
+.f7-experiment .settings-body .workspace-group .item-inner {
+  min-height: 90px;
+}
+.f7-experiment .native-search {
+  flex: 1;
+  min-width: 0;
+}
+.f7-experiment .native-search .searchbar {
+  background: none;
+  margin: 0;
+  height: 46px;
+  padding: 0;
+  box-shadow: none;
+}
+.f7-experiment .searchbar-input-wrap {
+  height: 46px;
+}
+.f7-experiment .searchbar input {
+  font-size: 17px;
+  background: #e7e7ed;
+  border-radius: 16px;
+  color: var(--ink);
+}
+.f7-experiment .searchbar input::placeholder {
+  color: #686c78;
+}
+.f7-experiment .native-segment .segmented {
+  padding: 3px;
+  background: #e5e5ec;
+  border-radius: 24px;
+  min-height: 46px;
+}
+.f7-experiment .native-segment .button {
+  min-height: 44px;
+  height: auto;
+  font-size: 14px;
+  line-height: 20px;
+  border-radius: 21px;
+  color: #515766;
+  z-index: 1;
+}
+.f7-experiment .native-segment .button-active {
+  color: var(--ink);
+}
+.f7-experiment .segmented-highlight {
+  border-radius: 22px;
+  background: white;
+}
+.f7-experiment .native-tabs {
+  --f7-toolbar-height: 68px;
+  --f7-tabbar-labels-height: 68px;
+  --f7-toolbar-bg-color: transparent;
+  --f7-tabbar-link-active-color: var(--brand);
+  padding: 0 12px 0;
+  bottom: calc(8px + var(--safe-bottom));
+  height: 68px;
+  background: none;
+}
+.f7-experiment .native-tabs:before,
+.f7-experiment .native-tabs:after {
+  display: none;
+}
+.f7-experiment .native-tabs .toolbar-inner {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+.f7-experiment .native-tabs .toolbar-pane {
+  width: 100%;
+  height: 66px;
+  border-radius: 36px;
+  justify-content: space-between;
+  box-shadow:
+    0 3px 24px #14213b16,
+    inset 0 0 0 0.5px #fff;
+}
+.f7-experiment .native-tabs .tab-link {
+  flex: 1;
+  height: 58px;
+  min-width: 0;
+  gap: 4px;
+  justify-content: center;
+  flex-direction: column;
+  padding: 4px 0;
+  color: #626674;
+  border-radius: 30px;
+}
+.f7-experiment .tabbar-label {
+  font-size: 11px !important;
+  line-height: 14px !important;
+  font-weight: 500;
+}
+.f7-experiment .native-tabs .tab-link-active {
+  color: var(--brand);
+}
+.f7-experiment .native-tabs .tab-link-active .tabbar-label {
+  font-weight: 600;
+}
+.f7-experiment .native-button {
+  border: 0;
+  font-size: 16px;
+  min-height: 48px;
+  height: auto;
+  line-height: 22px;
+  padding: 11px 18px;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand);
+  color: #fff;
+  letter-spacing: -0.2px;
+}
+.f7-experiment .native-button:not(.button-fill) {
+  background: #e8edf6;
+  color: var(--brand);
+}
+.f7-experiment .destructive-button {
+  background: #ffebee;
+  color: #ae2331;
+}
+.f7-experiment .native-switch {
+  display: inline-flex;
+  min-width: 58px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+.f7-experiment .native-switch .toggle {
+  height: 32px;
+  width: 54px;
+}
+.f7-experiment .native-switch .toggle input {
+  min-height: 44px;
+  position: absolute;
+  top: -6px;
+}
+.f7-experiment .report-date .round-control {
+  background: none;
+}
+.f7-experiment .report-row .item-inner {
+  min-height: 74px;
+}
+.f7-experiment .report-row .item-media {
+  min-width: 32px;
+}
+.f7-experiment .report-row .item-after {
+  max-width: 42%;
+  padding-left: 5px;
+}
+.f7-experiment .sheet-modal {
+  border-radius: 36px 36px 0 0;
+  background: #f2f2f7;
+  max-height: 94dvh;
+}
+.f7-experiment .sheet-grab {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  touch-action: none;
+}
+.sheet-grab > span {
+  width: 36px;
+  height: 5px;
+  border-radius: 10px;
+  background: #b8bbc5;
+}
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 20px 12px;
+  flex-shrink: 0;
+}
+.sheet-header h2 {
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 29px;
+  letter-spacing: -0.6px;
+}
+.sheet-header .round-control {
+  background: #e5e6ed;
+  color: #686c77;
+}
+.sheet-content {
+  padding: 7px 22px calc(24px + var(--safe-bottom));
+  overflow: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+}
+.sheet-header h2:focus {
+  outline: none;
+}
+.f7-experiment .sheet-content .native-segment {
+  margin: 0;
+}
+.f7-experiment .sheet-backdrop {
+  background: rgba(19, 23, 34, 0.32);
+}
+.system-reduce-motion *,
+.system-reduce-motion *::before,
+.system-reduce-motion *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.keyboard-open .native-tabs {
+  display: none;
+}
+.keyboard-open .save-accessory {
+  bottom: calc(var(--keyboard-inset, 0px) + 10px);
+}
+.keyboard-open .sheet-modal {
+  max-height: calc(100dvh - var(--keyboard-inset, 0px) - 12px);
+  bottom: var(--keyboard-inset, 0px);
+}
+@media (min-width: 768px) {
+  .f7-experiment .experiment-views {
+    margin-left: 218px;
+    width: calc(100% - 218px);
+  }
+  .f7-experiment .native-tabs {
+    display: none;
+  }
+  .f7-experiment .navbar-large .navbar-inner {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+  .f7-experiment .navbar-large-title-inner {
+    padding-left: 32px;
+  }
+  .f7-experiment .sheet-modal {
+    width: 500px;
+    left: calc(50% - 250px);
+    bottom: 5dvh;
+    border-radius: 34px;
+    max-height: 86dvh;
+  }
+  .f7-experiment .native-row .item-inner {
+    min-height: 78px;
+  }
+  .f7-experiment .page-content .screen-body {
+    max-width: 1100px;
+  }
+  .f7-experiment .navbar-inner,
+  .f7-experiment .navbar-large-title {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .f7-experiment .report-row .item-inner {
+    min-height: 74px;
+  }
+}
+@media (min-width: 1024px) {
+  .f7-experiment .experiment-views {
+    margin-left: 244px;
+    width: calc(100% - 244px);
+  }
+}
+@media (max-width: 359px) {
+  .f7-experiment .report-row .item-media {
+    display: none;
+  }
+  .f7-experiment .native-row .item-inner {
+    margin-left: 10px;
+  }
+  .f7-experiment .report-row .item-inner {
+    margin-left: 0;
+  }
+  .f7-experiment .navbar-large-title {
+    font-size: 32px;
+  }
+}
+
+.f7-experiment .native-tabs {
+  position: fixed;
+  z-index: 6000;
+}
+
+.f7-experiment .sheet-modal .sheet-modal-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.f7-experiment .sheet-modal .sheet-content {
+  flex: 1;
+}
+.f7-experiment .sheet-modal.modal-in-breakpoint .sheet-modal-inner {
+  height: calc(100% - var(--f7-sheet-breakpoint, 0px));
+}
+.f7-experiment .profile-header .text-action {
+  width: auto;
+  flex-shrink: 0;
+}
+
+.experiment-views > .view:not(.tab-active) {
+  display: none !important;
+}
+.f7-experiment .save-accessory {
+  z-index: 6001;
+}
+/* Preserve the real checkbox for keyboard/AT and a 44px touch area. */
+.f7-experiment .native-switch .toggle input[type="checkbox"] {
+  display: block;
+  position: absolute;
+  top: -6px;
+  left: 0;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  opacity: 0;
+  z-index: 2;
+  cursor: pointer;
+}

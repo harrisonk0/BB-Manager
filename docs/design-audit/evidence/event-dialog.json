@@ -1,0 +1,1891 @@
+{
+  "case": "event-dialog",
+  "componentView": "companyCalendar",
+  "section": "company",
+  "state": "populated",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 320,
+        "bodyHeight": 1251,
+        "headings": [
+          {
+            "text": "Company calendar",
+            "font": "30px"
+          },
+          {
+            "text": "October 2026",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "Add event",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 246,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Previous month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Next month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-01",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-02",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-03",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-04",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-05",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-06",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-07",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-08",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-09",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-10",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-11",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-12",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-13",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-14",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-15",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-16",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-17",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-18",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-19",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-20",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-21",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-22",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-23, 1 events",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-24",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-25",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-26",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-27",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-28",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-29",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-30",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-31",
+            "width": 34,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Edit event",
+            "width": 115,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Download poster PDF",
+            "width": 190,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 240,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 240,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 13,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 82,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save event",
+            "width": 113,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nCompany calendar\n\nPlan nights, share updates and create event posters.\n\nAdd event\nWeekly nights for the BB year\n\nEvents clear automatically 24 hours after they end.\n"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "section > .text-xs.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"2026-10-01\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-02\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-03\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-04\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-05\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-06\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-07\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-08\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-09\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "bodyHeight": 1207,
+        "headings": [
+          {
+            "text": "Company calendar",
+            "font": "30px"
+          },
+          {
+            "text": "October 2026",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "Add event",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 301,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save and generate weekly nights",
+            "width": 279,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Previous month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Next month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-01",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-02",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-03",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-04",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-05",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-06",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-07",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-08",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-09",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-10",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-11",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-12",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-13",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-14",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-15",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-16",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-17",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-18",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-19",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-20",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-21",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-22",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-23, 1 events",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-24",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-25",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-26",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-27",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-28",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-29",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-30",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "2026-10-31",
+            "width": 42,
+            "height": 48,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Edit event",
+            "width": 115,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Download poster PDF",
+            "width": 190,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 295,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 295,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 13,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 82,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save event",
+            "width": 113,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nCompany calendar\n\nPlan nights, share updates and create event posters.\n\nAdd event\nWeekly nights for the BB year\n\nEvents clear automatically 24 hours after they end.\n"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "section > .text-xs.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"2026-10-01\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-02\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-03\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-04\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-05\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-06\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-07\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-08\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-09\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "bodyHeight": 1207,
+        "headings": [
+          {
+            "text": "Company calendar",
+            "font": "30px"
+          },
+          {
+            "text": "October 2026",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "Add event",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 316,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save and generate weekly nights",
+            "width": 279,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Previous month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Next month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Edit event",
+            "width": 115,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Download poster PDF",
+            "width": 190,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 310,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 310,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 13,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 82,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save event",
+            "width": 113,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nCompany calendar\n\nPlan nights, share updates and create event posters.\n\nAdd event\nWeekly nights for the BB year\n\nEvents clear automatically 24 hours after they end.\n"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "section > .text-xs.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"2026-10-01\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-02\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-03\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-04\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-05\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-06\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-07\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-08\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-09\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 1119,
+        "headings": [
+          {
+            "text": "Company calendar",
+            "font": "30px"
+          },
+          {
+            "text": "October 2026",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "Add event",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 356,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save and generate weekly nights",
+            "width": 279,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Previous month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Next month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Edit event",
+            "width": 115,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Download poster PDF",
+            "width": 190,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 350,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 350,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 13,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 82,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save event",
+            "width": 113,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nCompany calendar\n\nPlan nights, share updates and create event posters.\n\nAdd event\nWeekly nights for the BB year\n\nEvents clear automatically 24 hours after they end.\n"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "section > .text-xs.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"2026-10-01\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-02\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-03\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-04\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-05\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-06\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-07\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-08\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-09\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 1127,
+        "headings": [
+          {
+            "text": "Company calendar",
+            "font": "30px"
+          },
+          {
+            "text": "October 2026",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "Add event",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 678,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save and generate weekly nights",
+            "width": 279,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Previous month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Next month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Edit event",
+            "width": 115,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Download poster PDF",
+            "width": 190,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 400,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 400,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 13,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 82,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save event",
+            "width": 113,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nCompany calendar\n\nPlan nights, share updates and create event posters.\n\nAdd event\nWeekly nights for the BB year\n\nEvents clear automatically 24 hours after they end.\n"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "section > .text-xs.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"2026-10-01\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-02\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-03\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-04\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-05\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-06\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-07\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-08\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-09\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 1127,
+        "headings": [
+          {
+            "text": "Company calendar",
+            "font": "30px"
+          },
+          {
+            "text": "October 2026",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "Add event",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 726,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save and generate weekly nights",
+            "width": 279,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Previous month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Next month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Edit event",
+            "width": 115,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Download poster PDF",
+            "width": 190,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 400,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 400,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 13,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 82,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save event",
+            "width": 113,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\nCompany calendar\n\nPlan nights, share updates and create event posters.\n\nAdd event\nWeekly nights for the BB year\n\nEvents "
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "section > .text-xs.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"2026-10-01\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-02\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-03\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-04\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-05\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-06\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-07\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-08\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-09\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 1127,
+        "headings": [
+          {
+            "text": "Company calendar",
+            "font": "30px"
+          },
+          {
+            "text": "October 2026",
+            "font": "16px"
+          },
+          {
+            "text": "Company Activity Night",
+            "font": "16px"
+          },
+          {
+            "text": "Add event",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Weekly Marks",
+            "width": 115,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Portal Access",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 726,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save and generate weekly nights",
+            "width": 279,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Previous month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Next month",
+            "width": 50,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Edit event",
+            "width": 115,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Download poster PDF",
+            "width": 190,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Close modal",
+            "width": 17,
+            "height": 36,
+            "font": "30px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 400,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 400,
+            "height": 42,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "",
+            "width": 13,
+            "height": 13,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Cancel",
+            "width": 82,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Save event",
+            "width": 113,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\nCompany calendar\n\nPlan nights, share updates and create event posters.\n\nAdd event\nWeekly nights for the BB year\n\nEvents "
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                "section > .text-xs.text-slate-500"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "button[aria-label=\"2026-10-01\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-02\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-03\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-04\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-05\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-06\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-07\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-08\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "button[aria-label=\"2026-10-09\"]"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

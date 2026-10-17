@@ -1,0 +1,295 @@
+{
+  "case": "archives",
+  "componentView": "archives",
+  "section": "company",
+  "state": "populated",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 320,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Past Sessions",
+            "font": "30px"
+          },
+          {
+            "text": "2025/26",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nPast Sessions\n\nClosed BB years keep their members and marks here. The live Home and Weekly Marks pages stay empty until you add the new session's roster. Reports bel"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Past Sessions",
+            "font": "30px"
+          },
+          {
+            "text": "2025/26",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nPast Sessions\n\nClosed BB years keep their members and marks here. The live Home and Weekly Marks pages stay empty until you add the new session's roster. Reports bel"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Past Sessions",
+            "font": "30px"
+          },
+          {
+            "text": "2025/26",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nPast Sessions\n\nClosed BB years keep their members and marks here. The live Home and Weekly Marks pages stay empty until you add the new session's roster. Reports bel"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Past Sessions",
+            "font": "30px"
+          },
+          {
+            "text": "2025/26",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nPast Sessions\n\nClosed BB years keep their members and marks here. The live Home and Weekly Marks pages stay empty until you add the new session's roster. Reports bel"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Past Sessions",
+            "font": "30px"
+          },
+          {
+            "text": "2025/26",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nPast Sessions\n\nClosed BB years keep their members and marks here. The live Home and Weekly Marks pages stay empty until you add the new session's roster. Reports bel"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Past Sessions",
+            "font": "30px"
+          },
+          {
+            "text": "2025/26",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\nPast Sessions\n\nClosed BB years keep their members and marks here. The live Home and Weekly Marks pages stay empty until "
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Past Sessions",
+            "font": "30px"
+          },
+          {
+            "text": "2025/26",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Weekly Marks",
+            "width": 115,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Portal Access",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\nPast Sessions\n\nClosed BB years keep their members and marks here. The live Home and Weekly Marks pages stay empty until "
+      },
+      "violations": [],
+      "errors": []
+    }
+  ]
+}

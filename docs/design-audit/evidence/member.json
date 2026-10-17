@@ -1,0 +1,1156 @@
+{
+  "case": "member",
+  "componentView": "boyMarks",
+  "section": "company",
+  "state": "populated",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 320,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Alex Example's Marks",
+            "font": "30px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "\u2190 Back to members",
+            "width": 133,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 16, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 16, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 16, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 9, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 9, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 9, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 2, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 2, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 2, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\n\u2190 Back to members\nAlex Example's Marks\n\nSquad 1\u2022Year 8\u2022LEADER\n\nTotal Marks: 21\u2022Attendance: 100%\n\nOctober 16, 2026\nPresent\nOctober 9, 2026\nPresent\nOctober 2, 2026\nPre"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".mt-2"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Alex Example's Marks",
+            "font": "30px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "\u2190 Back to members",
+            "width": 133,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 16, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 16, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 16, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 9, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 9, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 9, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 2, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 2, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 2, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\n\u2190 Back to members\nAlex Example's Marks\n\nSquad 1\u2022Year 8\u2022LEADER\n\nTotal Marks: 21\u2022Attendance: 100%\n\nOctober 16, 2026\nPresent\nOctober 9, 2026\nPresent\nOctober 2, 2026\nPre"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".mt-2"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Alex Example's Marks",
+            "font": "30px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "\u2190 Back to members",
+            "width": 133,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 16, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 16, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 16, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 9, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 9, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 9, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 2, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 2, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 2, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\n\u2190 Back to members\nAlex Example's Marks\n\nSquad 1\u2022Year 8\u2022LEADER\n\nTotal Marks: 21\u2022Attendance: 100%\n\nOctober 16, 2026\nPresent\nOctober 9, 2026\nPresent\nOctober 2, 2026\nPre"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".mt-2"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Alex Example's Marks",
+            "font": "30px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "\u2190 Back to members",
+            "width": 133,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 16, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 16, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 16, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 9, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 9, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 9, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 2, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 2, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 2, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\n\u2190 Back to members\nAlex Example's Marks\n\nSquad 1\u2022Year 8\u2022LEADER\n\nTotal Marks: 21\u2022Attendance: 100%\n\nOctober 16, 2026\nPresent\nOctober 9, 2026\nPresent\nOctober 2, 2026\nPre"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".mt-2"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Alex Example's Marks",
+            "font": "30px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "\u2190 Back to members",
+            "width": 133,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 16, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 16, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 16, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 9, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 9, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 9, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 2, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 2, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 2, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\n\u2190 Back to members\nAlex Example's Marks\n\nSquad 1\u2022Year 8\u2022LEADER\n\nTotal Marks: 21\u2022Attendance: 100%\n\nOctober 16, 2026\nPresent\nOctober 9, 2026\nPresent\nOctober 2, 2026\nPre"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".mt-2"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Alex Example's Marks",
+            "font": "30px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "\u2190 Back to members",
+            "width": 133,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 16, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 16, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 16, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 9, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 9, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 9, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 2, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 2, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 2, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\n\u2190 Back to members\nAlex Example's Marks\n\nSquad 1\u2022Year 8\u2022LEADER\n\nTotal Marks: 21\u2022Attendance: 100%\n\nOctober 16, 2026\nPresen"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".mt-2"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Alex Example's Marks",
+            "font": "30px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Weekly Marks",
+            "width": 115,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Portal Access",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "\u2190 Back to members",
+            "width": 133,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 16, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 16, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 16, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 9, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 9, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 9, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Mark for October 2, 2026 as absent",
+            "width": 80,
+            "height": 28,
+            "font": "14px"
+          },
+          {
+            "tag": "INPUT",
+            "label": "Score for October 2, 2026",
+            "width": 80,
+            "height": 34,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Delete mark for October 2, 2026",
+            "width": 36,
+            "height": 36,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\n\u2190 Back to members\nAlex Example's Marks\n\nSquad 1\u2022Year 8\u2022LEADER\n\nTotal Marks: 21\u2022Attendance: 100%\n\nOctober 16, 2026\nPresen"
+      },
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+          "nodes": [
+            {
+              "target": [
+                ".mt-2"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.86 (foreground color: #64748b, background color: #e2e8f0, font size: 12.0pt (16px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 3.29 (foreground color: #ffffff, background color: #16a34a, font size: 10.5pt (14px), font weight: normal). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        },
+        {
+          "id": "label-content-name-mismatch",
+          "impact": "serious",
+          "description": "Ensure that elements labelled through their content must have their visible text as part of their accessible name",
+          "nodes": [
+            {
+              "target": [
+                "li:nth-child(1) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(2) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            },
+            {
+              "target": [
+                "li:nth-child(3) > .sm\\:col-span-2.sm\\:justify-end.sm\\:space-x-4 > .transition-colors.bg-green-600.hover\\:bg-green-700"
+              ],
+              "summary": "Fix any of the following:\n  Text inside the element is not included in the accessible name"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    }
+  ]
+}
