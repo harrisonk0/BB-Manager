@@ -22,11 +22,11 @@ The reviewed build's static HTML/import graph is recorded in `tests/frontend/evi
 
 | Initial transfer graph | Production main `e060fce` | Framework7 migration |
 | --- | ---: | ---: |
-| JavaScript, raw / gzip | 621,516 / 169,510 bytes | 882,382 / 249,806 bytes |
+| JavaScript, raw / gzip | 621,516 / 169,510 bytes | 882,437 / 249,819 bytes |
 | CSS, raw / gzip | 45,998 / 9,060 bytes | 199,740 / 34,179 bytes |
-| Combined gzip | 178,570 bytes | 283,985 bytes |
+| Combined gzip | 178,570 bytes | 283,998 bytes |
 
-The initial gzip graph grows by 105,415 bytes (59%). This is a material cost of the integrated native foundation, not a claim of performance parity. PDF remains a separately lazy-loaded engine (approximately 1.58 MB raw / 530 kB Vite gzip) and is excluded from startup totals. Optional images/fonts, network/TLS and browser parse time are also excluded; transfer bytes are not a navigation timing benchmark. Root build output identifies the hashed assets; the JSON preserves the exact measured graph.
+The initial gzip graph grows by 105,428 bytes (59%). This is a material cost of the integrated native foundation, not a claim of performance parity. PDF remains a separately lazy-loaded engine (approximately 1.58 MB raw / 530 kB Vite gzip) and is excluded from startup totals. Optional images/fonts, network/TLS and browser parse time are also excluded; transfer bytes are not a navigation timing benchmark. Root build output identifies the hashed assets; the JSON preserves the exact measured graph.
 
 `interaction-performance-memoized.json` records a quiet serial run after extracting the unchanged marks row into `React.memo` with stable handlers. Each case used three warmup interactions and fifteen measured clicks against the real marks component with synthetic intercepted services, at 390px:
 

@@ -51,6 +51,8 @@ Independent testing returned defects rather than accepting changed code as proof
 
 ## Verification evidence
 
+Local typecheck, architecture check, 20 unit suites /152 tests and build passed. H’s final coherent functional run passed118/118 across Chromium/WebKit, with14/14 additional long-name/report/name checks and four separately measured performance cases. F’s final corrective checks passed42/42 roster/leader cases and14/14 WebKit native-entry readiness repeats; the historical full matrix was250/254 and is not relabelled green. CI must pass at the final PR head.
+
 Final local/CI counts and evidence are recorded in the [review register](review-register.md), [testing standard](testing-and-regressions.md), [audit register](audit-acceptance.md) and `tests/frontend/evidence/`. Browser tests render production components/hooks/services against fully intercepted synthetic HTTP, rejecting unknown external requests. They do not prove server authorization or actual persistence.
 
 Visual coverage includes 17 page families at 320, 375, 390, 430, 768, 1024 and 1440px, top/lower scrolling content and eight representative integrated sheets. Chromium baselines live in `tests/frontend/visual.e2e.ts-snapshots/`; WebKit provides separate rendered compatibility/axe/interaction evidence. Playwright MCP was also used for direct inspection. All screenshots use synthetic information.
@@ -60,6 +62,12 @@ Visual coverage includes 17 page families at 320, 375, 390, 430, 768, 1024 and 1
 ## Cross-page visual references
 
 Reviewed synthetic 390px Chromium baselines: [Members](../../tests/frontend/visual.e2e.ts-snapshots/members-390-chromium-linux.png), [Junior Members](../../tests/frontend/visual.e2e.ts-snapshots/junior-members-390-chromium-linux.png), [Marks](../../tests/frontend/visual.e2e.ts-snapshots/marks-390-chromium-linux.png), [History](../../tests/frontend/visual.e2e.ts-snapshots/history-390-chromium-linux.png), [Dashboard](../../tests/frontend/visual.e2e.ts-snapshots/dashboard-390-chromium-linux.png), [Calendar](../../tests/frontend/visual.e2e.ts-snapshots/calendar-390-chromium-linux.png), [Settings](../../tests/frontend/visual.e2e.ts-snapshots/settings-390-chromium-linux.png), [Ordinary portal](../../tests/frontend/visual.e2e.ts-snapshots/portal-390-chromium-linux.png), [Squad Leader](../../tests/frontend/visual.e2e.ts-snapshots/leader-390-chromium-linux.png), [Editor sheet](../../tests/frontend/visual.e2e.ts-snapshots/sheet-editor-390-chromium-linux.png). The same directory contains every target width and representative overlays; these are application captures, not marketing mockups.
+
+## Review build and commits
+
+[PR #55](https://github.com/harrisonk0/BB-Manager/pull/55) contains the migration. `c87dbe4` preserves approved audit/prototype references and `ccebf6a` contains the production foundation/features/governance; subsequent commits record final independent remediation/evidence. Review the PR commit list for final hashes and checks. No merge or production deployment was performed.
+
+The repository's existing Vercel integration automatically created a [branch preview](https://bb-manager-git-feat-framework7-p-16aa34-harrison-kerrs-projects.vercel.app). Open it in iPhone Safari and authenticate to Vercel if prompted: an unauthenticated HTTP check returned the Vercel SSO redirect. The alias updates with this branch; it is not a dedicated staging backend. Its configured backend and normal application authorization still apply. Synthetic demonstrations/tests run locally through isolated HTTP fixtures, not through a production auth bypass on that preview. For local synthetic review, run `npm run test:frontend`; no backend credentials are required.
 
 ## Outstanding release acceptance
 

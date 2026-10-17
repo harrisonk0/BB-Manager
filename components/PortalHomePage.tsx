@@ -306,7 +306,7 @@ export default function PortalHomePage({
               }
               trailing={
                 <NativeSwitch
-                  label="Event update notifications"
+                  label="Event updates"
                   checked={notified}
                   disabled={busy}
                   onChange={() =>

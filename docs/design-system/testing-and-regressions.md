@@ -50,6 +50,19 @@ Run safe unit/type/build/architecture checks for frontend changes and browser fi
 - `mobile.e2e.ts`: iPhone-emulated touch tabs/attendance/switches, ordinary/leader portal navigation and synthetic VisualViewport keyboard inset/pinch-zoom handling. Native iPhone keyboard and compositor acceptance remain separate.
 - `security.e2e.ts`: independently authored deferred auth/data requests, cached view clearing, account/role changes, portal demotion/revocation/feed recovery and setup credentials. These client tests supplement separately required server enforcement tests.
 - `visual.e2e.ts`: independently authored page-family matrix with reviewed Chromium baselines, WebKit captures, overflow, control geometry, lower-scroll content, axe and page errors.
+- `report-layout.e2e.ts`: seven-width leader report name geometry and retained metric fields in both engines, plus the portal notification checkbox accessible name. This catches sidebar-reduced canvas defects that document-overflow and axe checks can miss.
 - `performance.e2e.ts`: 30/100-member actual marks interactions; raw timing samples and environmental limitations are recorded, without representing them as field-device INP.
 
 The fixture's fake session expiry is deliberately fixed far in the future so installing a deterministic screenshot clock cannot accidentally expire it. This is test-only data, not a relaxation of production sessions or a test of expiry security. Each browser context starts fresh; fixture seeding occurs once, so reloading after logout does not silently authenticate again.
+
+## Evidence summaries
+
+`tests/frontend/evidence/` retains synthetic aggregate results, the implementation source fingerprint and bundle/interaction measurements. Generate a sanitized suite/browser summary with `node tests/frontend/summarize-evidence.mjs <results.json>`. Preserve the raw CI report and failure traces as artifacts; the committed summary excludes authentication payloads, request bodies and browser logs. A passing aggregate records only the exercised client behaviours, not complete backend authorisation or real-device acceptance.
+
+## Acceptance checkpoint: 17 October 2026
+
+The final coherent functional run passed **118/118** cases (59 in bundled Chromium 145 and 59 in Playwright WebKit 26), with no skipped, retried or flaky cases, in 10.8 minutes. Per engine: adapters 9, actual roster/marks 9, authentication 2, iPhone touch/VisualViewport 5, asynchronous workspace scopes 3, independently authored security races 11 and production workflow scenarios 20. The last isolated leader stylesheet and notification accessible-name corrections received a separate **14/14** targeted run across all seven widths in both engines. These counts describe this checkpoint, not a permanent minimum test-count rule.
+
+`functional-acceptance.json` and `report-layout-acceptance.json` retain the sanitized per-suite counts. The separate quiet performance run passed four cases and records measurements rather than physical-device performance acceptance. Root typecheck, architecture checks, 20 unit files/152 tests and production build passed after the last production changes. The independent visual review records its full matrix, corrected transition-readiness cases and final no-update comparisons separately in `accessibility-review.json`; do not substitute one passing screenshot for that complete record.
+
+Remaining acceptance includes physical iPhone/VoiceOver, installed PWA/push/real keyboard, hosted passkey ceremonies, live persistence and server-enforced permissions against an explicitly designated safe backend. No such access was available or used. Passing synthetic client tests does not close these gates or authorise production deployment.

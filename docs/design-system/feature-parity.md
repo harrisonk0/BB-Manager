@@ -62,6 +62,27 @@ Status legend: **P** pending implementation assessment; **R** implemented and in
 | SEC01 | Staff core table RLS; admin/captain-only settings/archive; portal summaries/Edge enforce role and active account | migrations; `tests/sql/company-portal-contract.sql`; `tests/sql/squad-leader-dashboard-contract.sql` | G | R | Source diff and safe SQL contract execution; hidden tabs alone not proof |
 | SEC02 | No protected cached page after logout/role change/account switch; late response cannot rehydrate old identity | `App.tsx`; auth/data hooks; new F7 lifecycle | E/Lead/G | R | Deferred promises, Back/Forward, cached tabs/sheets, revoked portal focus |
 
+## Current verification map
+
+All 53 rows link to their owner slice in the [independent review register](review-register.md). The final browser evidence summary and CI links there supersede chronological checkpoints below; those checkpoints retain remediation history. This map identifies concrete frontend evidence without upgrading an entire broad row merely because one path passed.
+
+| Matrix families | Executed/source evidence | Acceptance limit |
+|---|---|---|
+| AUTH01–AUTH07 | `auth.e2e.ts`, `security.e2e.ts`, setup workflow; existing passkey policy/error unit suites; G/E source review | Real hosted ceremony, hardware enrollment, email delivery and recovery exchange remain pending |
+| NAV01–NAV03 | `scope.e2e.ts`, dirty Back/Forward and sheet-handoff workflows, unknown/forbidden bookmarks, security revocation cases; F rendered families | Physical browser edge gestures/resume and system unload prompts need device review |
+| MEM01–MEM05 | Roster seven-width/100-member search, real create/edit/delete payloads, rank unit tests, editor invalid/draft/busy interactions | Real persistence and server-triggered revocation need safe backend verification |
+| MARK01–MARK06 | Actual Company/Junior save/failure/retry/attendance payloads; existing date/date-change/save-plan/db-model tests; numeric focus/viewport tests | Backend readback/concurrency and physical keyboard remain pending |
+| HIST01–HIST02 | Actual dated correction/delete/failure preservation workflow, scoped detail/logout tests, seven-width top/lower captures | Every live historical record variant is not asserted by one synthetic workflow |
+| REP01–REP03 | Domain helpers, F dashboard/heatmap/table captures, actual generated master-PDF download checked as PDF bytes | Pixel capture is not a complete PDF-content equivalence proof; original document/calculation sources retained |
+| ARCH01–ARCH04 | Archive failure/retry/empty, import leader/selection/busy, typed archive-start safeguards; existing session/archive/import unit tests | Full real archive/import transactions and rollback behavior need disposable backend fixtures |
+| SET01–SET02 | Meeting/squad source handlers retained; settings/squad unit tests, role deep-link tests, deferred settings scope and rendered settings | Every occupied/last/max/error/autosave UI branch has not been live-verified |
+| CAL01–CAL05 | Actual London-local save/generation payloads, real poster download, calendar unit suite, seven-width calendar and portal agenda | Real revision conflicts/subscriptions and physical date picker remain pending |
+| PORT01–PORT03 | Actual reset/confirmation/setup-link, guarded failed account-list readiness, security revocation cases; unchanged service/Edge review | Real reset/revocation/provisioning batch backend effects unverified |
+| BOY01–BOY05 | Ordinary portal touch navigation, scoped-summary/revocation/feed clearing/retry, account accessible switch, all portal families rendered | Push/feed delivery, hardware passkeys and live scoped RPC enforcement unverified |
+| SQUAD01–SQUAD03 | Leader source/service unit review, demotion/revocation cases, all-width charts and long-name metric geometry test | SQL/RLS own-squad enforcement requires separately safe contract execution |
+| PWA01–PWA03 | Manifest/viewport/source inspection, real keyboard-focus behavior with synthetic VisualViewport, reduced-motion renders | Worker blocked in fixture contexts; actual Home Screen, push and native keyboard remain pending |
+| SEC01–SEC02 | Unchanged services/SQL/Edge diff; actual-App deferred/logout/role/section/account/cache/secret tests | Client tests cannot certify server RLS/Edge authorization; no staging available |
+
 ## Evidence and acceptance policy
 
 Each row must link a review-register entry before completion. A passing unit test verifies its specified contract only. An intercepted synthetic browser test verifies frontend behavior only; it cannot prove RLS, passkey hardware behavior or real persistence. Staging verification requires a designated safe project/account, explicit fixture isolation and teardown. Do not run the production-mutating smoke suite (`E2E_ALLOW_PRODUCTION_MUTATION=1`) or backend-mutating SQL against hosted production.

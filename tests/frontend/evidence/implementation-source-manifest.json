@@ -1,5 +1,5 @@
 {
-  "description": "SHA256 source manifest for final synthetic functional acceptance. Documentation-only changes do not affect this implementation fingerprint. No credentials or member information included.",
+  "description": "SHA256 source manifest for final synthetic acceptance, including the independently retested final leader CSS and portal accessible-name corrections after the base implementation commit. Documentation-only changes do not affect this fingerprint.",
   "baseCommit": "e060fcecb504a2c9b5d36fe40f304c4ce9f05877",
   "files": {
     "App.tsx": "7da151241fcdf1401733918168332144213b80de7f58663ad7377b43b6718b24",
@@ -21,14 +21,14 @@
     "components/PasskeyEnrollmentGate.tsx": "ae480823a2d4c0ac87d2f6e17d11c53c39a401eda3679a9842b5dc88c6d9bc7b",
     "components/PasskeysCard.tsx": "68a5be256425a3b2c6a1988b7696a26f3d247f5fd13040ee253508f852c8efab",
     "components/PortalAccessPage.tsx": "719a0f98cd137ea0572a6d91913edfeb4a3ab467d8dc8d3978ea510d85950948",
-    "components/PortalHomePage.tsx": "990ee9cd06ba832f3686fb94c43d2c88454dcdad574d3c6b7104e6f21fbc7b69",
+    "components/PortalHomePage.tsx": "b6d0256f6385f9661a3ed5595d7a6ab73dece5ddb428e09efee8e430645cbe6d",
     "components/PortalSetupPage.tsx": "972399baa8764f8281de5bb834334b00137ab8c1a9a7d76c2bd7f007bc2ac47f",
     "components/RankBadge.tsx": "60cd7a4d3a05952d27038cf7e7c1b537226966e9b6ac6ff913643854f863e97e",
     "components/SectionSelectPage.tsx": "9fe805c31ef8f9726ea0ec86e942b66e8209a179d8639c8c13971339d3d474c9",
     "components/SessionReportModal.tsx": "afcdb1422f665342ad55ed2c6c2b91e7b04bbfd984b9fdbe1062b16b81c5ce87",
     "components/SettingsPage.tsx": "bcc0764dafd6ab31fcb6e44601e48d8cbee0d961556c68df0daaf6766575cbf7",
     "components/SkeletonLoaders.tsx": "fd244f8ff048bdacbed062f56e7089eecd4b551460195b8b3ed9677761d2ba75",
-    "components/SquadLeaderDashboard.css": "8a9940bc0e865d29589099a6cbdb73f7ccc0bdb3776a3137a31261be1ea37bb6",
+    "components/SquadLeaderDashboard.css": "cf8587ee2d6514eec2282e2990003b470816ae82685011e2465235b2921a8687",
     "components/SquadLeaderDashboard.tsx": "11b24c540529aab9b8b09aa0abcc666e275b6108fde78066d7be5aaac7b7bb6e",
     "components/SquadsSettingsCard.tsx": "f9531d317a488b3739e82f2ed3f2f9d15e284f76e82942c49cdeeb4c688837a4",
     "components/Toast.tsx": "a90c4ee5945e88fed92158b9ef7087c4692c8de74ce533499b0ac218012a7bf5",
@@ -41,9 +41,9 @@
     "components/reports/reportConstants.ts": "1f8030bdafabafb69fb4908ecbf53136c6444b494e1e2b22ed8f019b73823fe6",
     "components/shell/KeyboardViewport.tsx": "0a1a552bd2c6a276188eb194a2b13394999f1a9ccee840a7604f99fa88a8b78c",
     "components/shell/PortalShell.tsx": "b2f2cb33ca3efa74af960ccbfd2b5798020cb6dfbdcb86eb41a128374f6b7038",
-    "components/shell/StaffShell.tsx": "dbbdc00516c957d7fd911bb0e2f3b630410bb6224c3bdd46fa463f673ff7c521",
-    "components/shell/navigation.test.ts": "1ad8318ac78ae65372af62a6d554a5a79e9f0bdaf5c01a4a928f2086612da0e6",
-    "components/shell/navigation.ts": "601ecb1cf8c774f1a4fbd5085ccc6d6845c5bccb8ce492355841d1ccb539aff9",
+    "components/shell/StaffShell.tsx": "2e7193ac366932ecc0c1d8e09883ff80fc1949da0cce790d50b67760f87654d9",
+    "components/shell/navigation.test.ts": "eb9698ee9f24438dad5835d110bccfc892c5bb4874ec3f7a001f6eeb6b480c6d",
+    "components/shell/navigation.ts": "7f445fad1c71bde34c70d4fbc307ac3b3467cdc2f933cec8b09112b19094eb51",
     "components/shell/staff-shell.css": "2c58707088fe0ff918ec1d779210d8545031c697d99765156d232702059c509d",
     "components/staff/MarksEntryRow.tsx": "58b5be93a6722e8490924eefe15afcaf77cf6469911d12ea98d3eb68f57747c2",
     "components/staff/staff.css": "a9e5dfe0564bfbe2992e53281aade448add177e806f832b4b2e1d13c17775c16",
@@ -106,5 +106,6 @@
     "types/portal.ts": "f1432817aadbe4741ce7a2e134d8954be6accba515d16862ac71b2408e35a7cd",
     "types/reporting.ts": "abea35aaf39e86b11a335112a05ef9bcd48ab8dfa11df7787558ad30cd748170"
   },
-  "combinedSha256": "7d0906bb4ba9e7dc6f4b978b67f3d78b72d32543af7b17af511478365e7d06ad"
+  "combinedSha256": "155d48cb529f0b69050462f4fe02572f2c6f076d9f21a61b0ad4291dae5a034c",
+  "baseImplementationCommit": "ccebf6a9f2245a43b7cfee82554d80203dbea0cd"
 }

@@ -6,12 +6,12 @@ Baseline: production main `e060fce`; re-fetched unchanged during final integrati
 
 | Slice | Implementer | Independent reviewer | Independent tester | Affected functionality/files | Disposition |
 | --- | --- | --- | --- | --- | --- |
-| Foundation/adapters | A | F visual/accessibility; G source/security; Lead integration | H | `components/ui`, `styles/design-system.css`; native buttons/switches, lists, sheets | Implementation/source reviewed; final integrated browser evidence below |
-| Staff roster/marks/history | B | F + G; Lead | H | HomePage/BoyForm/WeeklyMarks/BoyMarks and `components/staff` | Implementation/source reviewed; real service calls retained; final synthetic workflow evidence below |
-| Reporting/archives/settings | C | F + G; Lead | H | Dashboard/BarChart/Archives/Import/SessionReport/Settings/Squads | Implementation/source reviewed; original computations/documents retained; final synthetic evidence below |
-| Calendar/portal | D | F + G; Lead | H | Calendar/PortalAccess/PortalHome/SquadLeader/PortalShell | Implementation/source reviewed; scoped services retained; final synthetic evidence below |
-| Auth/navigation/PWA | E + Lead | G security; F accessibility; E reviewed Lead data-scope guards | H | App, shell, auth/data/dirty hooks, login/account/passkeys/manifest | Source reviewed; final actual-App auth/history/security evidence below; hardware/hosted paths pending |
-| Governance/integration | Lead, G staging CI; H test infrastructure | C independent governance; G fixture/import boundary; Lead CI review | H | AGENTS/docs, AST rule, CI, entry/dependencies | Architecture and staging preflight mutation tests passed; runtime/visual evidence below |
+| Foundation/adapters | A | F visual/accessibility; G source/security; Lead integration | H | `components/ui`, `styles/design-system.css`; native buttons/switches, lists, sheets | Lead accepted frontend implementation/source review with bounded synthetic evidence below |
+| Staff roster/marks/history | B | F + G; Lead | H | HomePage/BoyForm/WeeklyMarks/BoyMarks and `components/staff` | Lead accepted frontend implementation; retained services and independent synthetic workflows below |
+| Reporting/archives/settings | C | F + G; Lead | H | Dashboard/BarChart/Archives/Import/SessionReport/Settings/Squads | Lead accepted frontend implementation; original computations/documents retained; synthetic evidence below |
+| Calendar/portal | D | F + G; Lead | H | Calendar/PortalAccess/PortalHome/SquadLeader/PortalShell | Lead accepted frontend implementation; scoped services retained; synthetic evidence below |
+| Auth/navigation/PWA | E + Lead | G security; F accessibility; E reviewed Lead data-scope guards | H | App, shell, auth/data/dirty hooks, login/account/passkeys/manifest | Lead accepted frontend source and actual-App auth/history/security evidence; hosted/hardware paths pending |
+| Governance/integration | Lead, G staging CI; H test infrastructure | C independent governance; G fixture/import boundary; Lead CI review | H | AGENTS/docs, AST rule, CI, entry/dependencies | Lead accepted objective governance and independently tested preflight; evidence below |
 
 ## Reproduced findings and independent remediation
 
@@ -36,10 +36,12 @@ Changed code alone never closes a finding. Specific corrected workflows are reru
 ## Verification checkpoint
 
 - Lead final local commands: `npm run typecheck`, `npm run check:design-system`, `npm run test:run`, `npm run build` — passed; 20 unit files /152 tests. H separately re-executed architecture/staging-preflight suites after additional core-import mutation assertions (16/16).
-- H final coherent functional Chromium/WebKit run: **in progress**; final sanitized evidence will replace this checkpoint.
-- F final seven-width visual/accessibility comparison: **in progress**; reviewed Chromium baselines committed, separate WebKit compatibility captures.
+- H final coherent functional Chromium/WebKit run: **118/118 passed**, no retries/skips/failures, 10.8 minutes. Seven suites exercise real production hooks/services against intercepted HTTP; all 22 security cases included. See `tests/frontend/evidence/functional-acceptance.json`. A separate **14/14** seven-width report/name/notification-label run passes both engines; quiet performance cases are separately **4/4**, not added to the functional total.
+- F seven-width comparison: original coherent matrix **250/254 passed**, with four Portal Access transition-readiness scan failures retained honestly. Final native-lifecycle/computed-opacity readiness produced **14/14** WebKit corrective repeats; final Company/Junior roster/leader baseline/axe/geometry checks passed **42/42** in both engines. All 127 Chromium baselines are reviewed/committed. See `tests/frontend/evidence/accessibility-review.json`; no axe rules suppressed. Original 49 audit IDs are reconciled with manual limits explicit.
 - Source diff: no changes to `services/`, `supabase/`, `types.ts`, `types/`, PDF document source or push-only `public/portal-sw.js`.
 - Performance: H quiet 30/100-member measurements and initial graph gzip evidence in `tests/frontend/evidence/`; see [performance](performance.md).
+
+CI on the final PR head remains a separate required gate; consult [PR #55 checks](https://github.com/harrisonk0/BB-Manager/pull/55/checks). Initial CI Infrastructure, contracts and CodeQL passed on `ccebf6a`; final-head status must not be inferred from that earlier run.
 
 ## Explicit release limits
 

@@ -1,5 +1,7 @@
 /* Domain composition only. All colours, curvature and interaction timing use the shared system. */
 .squad-dashboard {
+  container-name: squad-dashboard;
+  container-type: inline-size;
   color: var(--bb-ink);
   display: grid;
   gap: 24px;
@@ -321,6 +323,7 @@
 }
 .sd-roster table {
   width: 100%;
+  min-width: 700px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -493,4 +496,27 @@
   .sd-bar {
     transition: none;
   }
+}
+
+/* A tablet sidebar reduces the report canvas below the viewport breakpoint.
+   Preserve every metric in the existing roster layout until the table fits. */
+@container squad-dashboard (max-width: 720px) {
+  .sd-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sd-chart-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sd-mobile-roster {
+    display: grid;
+  }
+  .sd-table-scroll {
+    display: none;
+  }
+  .sd-date-picker {
+    width: 100%;
+  }
+}
+.sd-roster table th:nth-child(2) {
+  min-width: 200px;
 }
