@@ -1,32 +1,32 @@
-import { NameWithRank } from './RankBadge';
-import React, { useMemo, useState } from 'react';
-import type { PortalSquadMember, PortalSummary } from '../types/portal';
-import { buildSquadDashboard } from '../services/squadDashboard';
+import { NameWithRank } from "./RankBadge";
+import React, { useMemo, useState } from "react";
+import type { PortalSquadMember, PortalSummary } from "../types/portal";
+import { buildSquadDashboard } from "../services/squadDashboard";
 import {
   ChartBarIcon,
   CheckCircleIcon,
   StarIcon,
   TrophyIcon,
   UserCircleIcon,
-} from './Icons';
-import './SquadLeaderDashboard.css';
+} from "./Icons";
+import "./SquadLeaderDashboard.css";
 
 const formatDate = (date: string, short = false) =>
-  new Date(`${date}T12:00:00Z`).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    ...(short ? {} : { year: 'numeric' }),
-    timeZone: 'UTC',
+  new Date(`${date}T12:00:00Z`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    ...(short ? {} : { year: "numeric" }),
+    timeZone: "UTC",
   });
 const percentage = (value: number | null) =>
-  value === null ? '—' : `${value}%`;
+  value === null ? "—" : `${value}%`;
 const initials = (name: string) =>
   name
     .trim()
     .split(/\s+/)
     .map((word) => word[0])
     .slice(0, 2)
-    .join('');
+    .join("");
 
 function Stat({
   label,
@@ -59,12 +59,12 @@ export default function SquadLeaderDashboard({
   members,
 }: {
   squad: number;
-  squads: PortalSummary['squads'];
+  squads: PortalSummary["squads"];
   members: PortalSquadMember[];
 }) {
   const dashboard = useMemo(() => buildSquadDashboard(members), [members]);
   // An empty selection follows the latest recorded night when staff add marks.
-  const [chosenDate, setChosenDate] = useState('');
+  const [chosenDate, setChosenDate] = useState("");
   const week =
     dashboard.weeks.find((entry) => entry.date === chosenDate) ??
     dashboard.weeks[0];
@@ -87,8 +87,7 @@ export default function SquadLeaderDashboard({
     <div className="squad-dashboard">
       <div className="sd-page-heading">
         <div>
-          <p className="sd-eyebrow">COMPANY SECTION / SQUAD LEADER</p>
-          <h1>Squad dashboard</h1>
+          <p className="sd-eyebrow">Company Section · Squad leader</p>
         </div>
         <span className="sd-year">
           <span aria-hidden="true" /> This BB year
@@ -115,7 +114,7 @@ export default function SquadLeaderDashboard({
               cy="60"
               r="51"
               fill="none"
-              stroke="rgba(255,255,255,.12)"
+              stroke="var(--bb-divider)"
               strokeWidth="6"
             />
             <circle
@@ -123,7 +122,7 @@ export default function SquadLeaderDashboard({
               cy="60"
               r="51"
               fill="none"
-              stroke="#8de1c0"
+              stroke="var(--bb-brand)"
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray={`${(dashboard.overall.attendance ?? 0) * 3.2044} 320.44`}
@@ -140,14 +139,14 @@ export default function SquadLeaderDashboard({
       <section aria-label="Overall squad statistics" className="sd-stats-grid">
         <Stat
           label="Squad marks"
-          value={dashboard.overall.total.toLocaleString('en-GB')}
+          value={dashboard.overall.total.toLocaleString("en-GB")}
           detail="Total earned this BB year"
           Icon={StarIcon}
           tone="mint"
         />
         <Stat
           label="Company position"
-          value={hasCompanyMarks ? `#${companyRank}` : '—'}
+          value={hasCompanyMarks ? `#${companyRank}` : "—"}
           detail={`Across ${squads.length} Company squads`}
           Icon={TrophyIcon}
           tone="gold"
@@ -161,7 +160,7 @@ export default function SquadLeaderDashboard({
         />
         <Stat
           label="Average marks"
-          value={dashboard.overall.averageMarks ?? '—'}
+          value={dashboard.overall.averageMarks ?? "—"}
           detail="Per boy, per night when present"
           Icon={ChartBarIcon}
           tone="lilac"
@@ -183,7 +182,7 @@ export default function SquadLeaderDashboard({
           {recentWeeks.length ? (
             <>
               <div className="sd-chart-legend">
-                <span /> Squad marks <span className="sd-selected-dot" />{' '}
+                <span /> Squad marks <span className="sd-selected-dot" />{" "}
                 Selected night
               </div>
               <div
@@ -197,7 +196,7 @@ export default function SquadLeaderDashboard({
                     onClick={() => setChosenDate(entry.date)}
                     aria-label={`${formatDate(entry.date)}: ${entry.total} marks, ${percentage(entry.attendance)} attendance. View weekly results`}
                     aria-pressed={week?.date === entry.date}
-                    className={`sd-bar-column ${week?.date === entry.date ? 'sd-bar-selected' : ''}`}
+                    className={`sd-bar-column ${week?.date === entry.date ? "sd-bar-selected" : ""}`}
                   >
                     <span className="sd-bar-track">
                       <span
@@ -243,22 +242,22 @@ export default function SquadLeaderDashboard({
               .map((entry) => (
                 <li
                   key={entry.number}
-                  className={entry.number === squad ? 'sd-own-squad' : ''}
+                  className={entry.number === squad ? "sd-own-squad" : ""}
                 >
                   <span className="sd-position">
                     {hasCompanyMarks
                       ? 1 +
                         squads.filter((other) => other.total > entry.total)
                           .length
-                      : '—'}
+                      : "—"}
                   </span>
                   <div className="sd-standing-detail">
                     <div>
                       <span>
-                        {entry.label || `Squad ${entry.number}`}{' '}
+                        {entry.label || `Squad ${entry.number}`}{" "}
                         {entry.number === squad && <small>YOURS</small>}
                       </span>
-                      <strong>{entry.total.toLocaleString('en-GB')}</strong>
+                      <strong>{entry.total.toLocaleString("en-GB")}</strong>
                     </div>
                     <div className="sd-standing-track" aria-hidden="true">
                       <span
@@ -313,7 +312,7 @@ export default function SquadLeaderDashboard({
             <span>
               <strong>
                 {week.attended} / {week.recorded}
-              </strong>{' '}
+              </strong>{" "}
               present
             </span>
             <span>
@@ -328,6 +327,67 @@ export default function SquadLeaderDashboard({
             No weekly marks recorded for your squad yet.
           </p>
         )}
+        <ul
+          className="sd-mobile-roster"
+          aria-label="Squad member marks and attendance"
+        >
+          {dashboard.members.map((member) => {
+            const mark = member.marks.find(
+              (entry) => entry.date === week?.date,
+            );
+            return (
+              <li className="sd-mobile-member" key={member.id}>
+                <div className="sd-mobile-member-heading">
+                  <span className="sd-member-name">
+                    <span className="sd-avatar" aria-hidden="true">
+                      {initials(member.name)}
+                    </span>
+                    <span>
+                      <NameWithRank
+                        name={member.name}
+                        memberRank={member.memberRank}
+                      />
+                      {member.isSquadLeader && <small>Squad leader</small>}
+                    </span>
+                  </span>
+                  <span className="sd-member-rank">
+                    {member.rank === null ? "—" : `#${member.rank}`}
+                  </span>
+                </div>
+                <dl className="sd-mobile-member-metrics">
+                  <div>
+                    <dt>{week ? formatDate(week.date, true) : "This night"}</dt>
+                    <dd>
+                      <span
+                        className={`sd-score ${!mark ? "sd-score-missing" : mark.score < 0 ? "sd-score-absent" : "sd-score-present"}`}
+                      >
+                        {!mark
+                          ? "Not recorded"
+                          : mark.score < 0
+                            ? "Absent"
+                            : `${mark.score} marks`}
+                      </span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Total so far</dt>
+                    <dd>{member.total.toLocaleString("en-GB")} marks</dd>
+                  </div>
+                  <div>
+                    <dt>Year attendance</dt>
+                    <dd>{percentage(member.attendance)}</dd>
+                  </div>
+                  <div>
+                    <dt>Present / recorded</dt>
+                    <dd>
+                      {member.attended} / {member.recorded} nights
+                    </dd>
+                  </div>
+                </dl>
+              </li>
+            );
+          })}
+        </ul>
         <div
           className="sd-table-scroll"
           tabIndex={0}
@@ -336,10 +396,10 @@ export default function SquadLeaderDashboard({
         >
           <table>
             <caption className="sr-only">
-              Squad members ranked by overall marks.{' '}
+              Squad members ranked by overall marks.{" "}
               {week
                 ? `Weekly results for ${formatDate(week.date)}.`
-                : 'No marks recorded yet.'}
+                : "No marks recorded yet."}
             </caption>
             <thead>
               <tr>
@@ -359,9 +419,9 @@ export default function SquadLeaderDashboard({
                   <tr key={member.id}>
                     <td>
                       <span
-                        className={`sd-member-rank ${member.rank === 1 ? 'sd-first-rank' : ''}`}
+                        className={`sd-member-rank ${member.rank === 1 ? "sd-first-rank" : ""}`}
                       >
-                        {member.rank === null ? '—' : `#${member.rank}`}
+                        {member.rank === null ? "—" : `#${member.rank}`}
                       </span>
                     </td>
                     <th scope="row">
@@ -370,7 +430,10 @@ export default function SquadLeaderDashboard({
                           {initials(member.name)}
                         </span>
                         <span>
-                          <NameWithRank name={member.name} memberRank={member.memberRank} />
+                          <NameWithRank
+                            name={member.name}
+                            memberRank={member.memberRank}
+                          />
                           {member.isSquadLeader && <small>Squad leader</small>}
                           <span className="sd-mobile-attendance">
                             {percentage(member.attendance)} attendance
@@ -393,7 +456,7 @@ export default function SquadLeaderDashboard({
                     </td>
                     <td>
                       <div className="sd-member-total">
-                        <strong>{member.total.toLocaleString('en-GB')}</strong>
+                        <strong>{member.total.toLocaleString("en-GB")}</strong>
                         <span aria-hidden="true">
                           <span
                             style={{
@@ -433,7 +496,7 @@ export default function SquadLeaderDashboard({
                   >
                     <span>{formatDate(entry.date)}</span>
                     <span>
-                      {entry.total} marks · {percentage(entry.attendance)}{' '}
+                      {entry.total} marks · {percentage(entry.attendance)}{" "}
                       attendance
                     </span>
                   </button>

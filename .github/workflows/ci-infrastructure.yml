@@ -6,67 +6,95 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      run_staging_checks:
+        description: 'Run authenticated checks and sentinel writes against explicitly configured synthetic staging only'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 jobs:
   ci-checks:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Automatic checks never receive real backend credentials, even on same-repository PRs.
     env:
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-      E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
-      E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
-
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_ANON_KEY: synthetic-public-key-not-a-secret
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: 'npm'
-
       - name: Install dependencies
         run: npm ci
-
-      - name: Provide dummy Vite env when live secrets are missing
-        run: |
-          if [ -z "$VITE_SUPABASE_URL" ]; then
-            echo "VITE_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"
-          fi
-          if [ -z "$VITE_SUPABASE_ANON_KEY" ]; then
-            echo "VITE_SUPABASE_ANON_KEY=dummy.anon.key" >> "$GITHUB_ENV"
-          fi
-
       - name: Type-check app and tests
         run: npm run typecheck
-
       - name: Run unit tests
         run: npm run test:run
-
       - name: Build production bundle
         run: npm run build
 
-      - name: Check live Auth and database contract
-        if: ${{ env.E2E_TEST_EMAIL != '' && env.E2E_TEST_PASSWORD != '' }}
+  staging-contracts:
+    # Existing sentinel flows INSERT/UPDATE/DELETE their fixtures. They must never
+    # run merely because production credentials happen to exist on a PR runner.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_staging_checks == true && vars.E2E_TARGET_ENVIRONMENT == 'staging' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: staging
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.E2E_STAGING_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.E2E_STAGING_SUPABASE_ANON_KEY }}
+      E2E_TEST_EMAIL: ${{ secrets.E2E_STAGING_TEST_EMAIL }}
+      E2E_TEST_PASSWORD: ${{ secrets.E2E_STAGING_TEST_PASSWORD }}
+      E2E_ALLOW_PRODUCTION_MUTATION: '0'
+      E2E_MEMBER_PREFIX: ZZZ-E2E-STAGING-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Verify explicit staging target before any authenticated operation
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          ALLOWED_STAGING_URL: ${{ vars.E2E_STAGING_SUPABASE_URL }}
+          PRODUCTION_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         run: |
-          test -n "$VITE_SUPABASE_URL"
-          test -n "$VITE_SUPABASE_ANON_KEY"
+          node --input-type=module <<'NODE'
+          const required = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'E2E_TEST_EMAIL', 'E2E_TEST_PASSWORD', 'ALLOWED_STAGING_URL', 'PRODUCTION_SUPABASE_URL'];
+          for (const name of required) {
+            if (!process.env[name]?.trim()) throw new Error(`Staging preflight requires ${name}; no authenticated checks were started.`);
+          }
+          const normalize = value => {
+            const url = new URL(value);
+            if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || url.pathname !== '/') {
+              throw new Error('Staging/production target must be an HTTPS origin; no authenticated checks were started.');
+            }
+            return url.origin;
+          };
+          const target = normalize(process.env.VITE_SUPABASE_URL);
+          if (target !== normalize(process.env.ALLOWED_STAGING_URL) || target === normalize(process.env.PRODUCTION_SUPABASE_URL)) {
+            throw new Error('Staging target is not explicitly allowlisted or matches production; no authenticated checks were started.');
+          }
+          console.log('Dedicated staging target accepted. Production-mutating smoke tests remain disabled.');
+          NODE
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build staging bundle
+        run: npm run build
+      - name: Check staging Auth and database contract
+        run: |
           npm run check:auth-config
-          node --input-type=module -e "import { createServer } from 'vite'; const server = await createServer({ server: { middlewareMode: true }, optimizeDeps: { noDiscovery: true } }); try { await server.ssrLoadModule('/services/supabaseClient.ts'); console.log('Supabase client startup smoke test passed'); } finally { await server.close(); }"
           npm run check:db-contract
-
       - name: Install Playwright browser dependencies
-        if: ${{ env.E2E_TEST_EMAIL != '' && env.E2E_TEST_PASSWORD != '' }}
         run: npx playwright install --with-deps chromium
-
-      - name: Run isolated browser tests
-        if: ${{ env.E2E_TEST_EMAIL != '' && env.E2E_TEST_PASSWORD != '' }}
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      - name: Run isolated staging sentinel browser tests
         run: npm run test:e2e -- tests/e2e/isolated-app-flows.e2e.ts

@@ -1,0 +1,493 @@
+/* Task geometry only. Colours, surfaces, controls and type come from the shared system. */
+.staff-workflow {
+  container-type: inline-size;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.staff-task-toolbar,
+.staff-actions,
+.staff-form-actions,
+.staff-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.staff-task-toolbar,
+.staff-switch-row {
+  justify-content: space-between;
+}
+.staff-context {
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--bb-secondary);
+  margin: 0;
+}
+.staff-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.staff-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.staff-form-actions {
+  justify-content: flex-end;
+  padding-top: 12px;
+}
+.staff-roster-groups {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.staff-member-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.staff-member-main {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+  padding: 14px 12px;
+  min-height: 76px;
+  font: inherit;
+  cursor: pointer;
+}
+.staff-member-main:active {
+  background: var(--bb-surface-pressed, var(--bb-canvas));
+}
+.staff-avatar {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--bb-brand-surface);
+  color: var(--bb-brand);
+}
+.staff-member-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.staff-member-name {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+.staff-member-name .inline-flex {
+  min-width: 0;
+}
+.staff-member-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0;
+  padding-right: 4px;
+}
+.staff-member-actions .bb-button {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+.staff-disclosure {
+  font-size: 24px;
+  color: var(--bb-secondary);
+}
+.staff-leader {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bb-brand);
+}
+.staff-empty-row {
+  padding: 20px;
+  color: var(--bb-secondary);
+}
+.staff-meeting-picker {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 8px;
+  max-width: 440px;
+  width: 100%;
+  align-self: center;
+}
+.staff-meeting-picker .bb-button {
+  padding: 0;
+  min-width: 44px;
+}
+.staff-date-input {
+  font-size: 17px;
+  min-width: 0;
+  width: 100%;
+  min-height: 48px;
+  text-align: center;
+}
+.staff-marks-row,
+.staff-history-row {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.staff-score-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.staff-score-controls > .bb-field {
+  flex: 1;
+  min-width: 72px;
+  max-width: 140px;
+  margin: 0;
+}
+.staff-score-controls .bb-input {
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  min-height: 48px;
+  padding: 8px;
+}
+.staff-score-controls .bb-field > label {
+  font-size: 14px;
+}
+.staff-score-controls .bb-field-error {
+  max-width: 140px;
+  font-size: 14px;
+}
+.staff-score-controls .staff-attendance {
+  width: 112px;
+  min-width: 112px;
+  min-height: 48px;
+  flex-shrink: 0;
+}
+.staff-attendance--present {
+  color: var(--bb-success) !important;
+  background: var(--bb-success-surface, var(--bb-canvas)) !important;
+}
+.staff-attendance--absent {
+  color: var(--bb-danger) !important;
+  background: var(--bb-danger-surface, var(--bb-canvas)) !important;
+}
+.staff-member-header h2 {
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+.staff-history-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.staff-history-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.staff-history-stats strong {
+  font-size: 25px;
+  font-variant-numeric: tabular-nums;
+}
+.staff-history-stats span {
+  font-size: 14px;
+  color: var(--bb-secondary);
+}
+.staff-history-date {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+}
+.staff-history-date .bb-button {
+  padding: 0;
+  width: 44px;
+  flex-shrink: 0;
+}
+@container (min-width: 720px) {
+  .staff-roster-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .staff-marks-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .staff-score-controls {
+    flex-wrap: nowrap;
+  }
+  .staff-score-controls > .bb-field {
+    width: 110px;
+  }
+  .staff-history-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+@media (max-width: 374px) {
+  .staff-member-row {
+    flex-wrap: wrap;
+  }
+  .staff-member-actions {
+    margin-left: auto;
+    padding-bottom: 4px;
+  }
+  .staff-score-controls {
+    gap: 8px;
+  }
+  .staff-score-controls .staff-attendance {
+    min-width: 100px;
+  }
+  .staff-marks-row {
+    padding: 12px;
+  }
+  .staff-score-controls > .bb-field {
+    min-width: 68px;
+  }
+}
+.staff-rank-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 27px;
+  border-radius: 6px;
+  background: var(--bb-brand-surface);
+  color: var(--bb-brand);
+  vertical-align: middle;
+}
+.staff-ranked-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.staff-ranked-name > span:first-child {
+  min-width: 0;
+}
+/* Roster controls stay intrinsic; Framework7 buttons default to block width. */
+.staff-roster-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.staff-roster-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.staff-roster-tools .staff-compact-action,
+.staff-roster-search .staff-compact-action {
+  display: inline-flex;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  position: relative;
+}
+.staff-roster-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 10px;
+  align-items: center;
+}
+.staff-roster-search .bb-search.searchbar {
+  margin: 0;
+  min-width: 0;
+  width: 100%;
+}
+.staff-roster-menu,
+.staff-member-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+.staff-roster-menu > summary,
+.staff-member-menu > summary {
+  width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--bb-radius-pill);
+  color: var(--bb-brand);
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+.staff-roster-menu > summary::-webkit-details-marker,
+.staff-member-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.staff-roster-menu > summary:active,
+.staff-member-menu > summary:active {
+  background: var(--bb-surface-pressed);
+}
+.staff-roster-menu[open],
+.staff-member-menu[open] {
+  z-index: 8;
+}
+.staff-inline-menu {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  width: 240px;
+  max-width: calc(100vw - 48px);
+  border-radius: var(--bb-radius-control);
+  background: var(--bb-surface);
+  box-shadow: var(--bb-shadow-navigation);
+  border: 1px solid var(--bb-divider);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.staff-inline-menu .bb-button {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+  height: auto;
+  min-height: 44px;
+  font-size: 16px;
+  padding: 10px;
+  gap: 10px;
+}
+.staff-filter-dot {
+  position: absolute;
+  right: 5px;
+  top: -3px;
+  color: var(--bb-brand);
+}
+.roster-workflow .staff-member-row {
+  flex-wrap: nowrap;
+  position: relative;
+  overflow: visible;
+}
+.roster-workflow .staff-member-main {
+  padding: 14px 4px 14px 12px;
+  gap: 10px;
+}
+.roster-workflow .staff-member-menu {
+  margin-right: 4px;
+}
+.roster-workflow .staff-member-name {
+  font-size: 17px;
+}
+.roster-workflow .staff-context {
+  font-size: 14px;
+}
+/* Member actions expand in document flow so long rosters and the tab bar never clip them. */
+.roster-workflow .staff-member-row:has(.staff-member-menu[open]) {
+  flex-wrap: wrap;
+}
+.roster-workflow
+  .staff-member-row:has(.staff-member-menu[open])
+  > .staff-member-main {
+  flex-basis: calc(100% - 48px);
+  margin-right: 48px;
+}
+.roster-workflow .staff-member-menu[open] {
+  position: static;
+  flex-basis: 100%;
+  margin: 0 12px 12px 62px;
+  min-width: 0;
+}
+.roster-workflow .staff-member-menu[open] > summary {
+  position: absolute;
+  right: 4px;
+  top: 16px;
+}
+.roster-workflow .staff-member-menu .staff-inline-menu {
+  position: static;
+  width: 100%;
+  max-width: none;
+  box-shadow: none;
+  background: var(--bb-canvas);
+  border: 0;
+  padding: 4px;
+}
+/* Roster More expands below the caption, never beneath Framework7's search layer. */
+.staff-roster-heading:has(.staff-roster-menu[open]) {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px 44px;
+  gap: 8px;
+  align-items: center;
+}
+.staff-roster-heading:has(.staff-roster-menu[open]) .staff-roster-tools {
+  display: contents;
+}
+.staff-roster-heading:has(.staff-roster-menu[open])
+  .staff-roster-tools
+  > .staff-compact-action {
+  grid-column: 3;
+  grid-row: 1;
+}
+.staff-roster-heading .staff-roster-menu[open] {
+  position: static;
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+.staff-roster-heading .staff-roster-menu[open] > summary {
+  position: absolute;
+  top: 0;
+  right: 52px;
+}
+.staff-roster-heading .staff-roster-menu .staff-inline-menu {
+  position: static;
+  width: 100%;
+  max-width: none;
+  box-shadow: none;
+}
+/* Inset hairlines align with member text, matching native grouped roster geometry. */
+.staff-roster-groups .staff-member-row {
+  position: relative;
+}
+.staff-roster-groups .staff-member-row:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 64px;
+  inset-inline-end: 12px;
+  bottom: 0;
+  height: 1px;
+  transform: scaleY(0.5);
+  transform-origin: bottom;
+  background: var(--bb-divider);
+  pointer-events: none;
+}

@@ -1,0 +1,71 @@
+name: Frontend Design System
+on:
+  pull_request:
+    paths:
+      - 'App.tsx'
+      - 'index.*'
+      - 'components/**'
+      - 'hooks/**'
+      - 'services/**'
+      - 'types.ts'
+      - 'types/**'
+      - 'assets/**'
+      - 'styles/**'
+      - 'public/**'
+      - 'tests/frontend/**'
+      - 'scripts/design-system-check.mjs'
+      - 'package*.json'
+      - '*config*'
+      - 'AGENTS.md'
+      - 'docs/design-system/**'
+      - '.github/workflows/frontend-design-system.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_ANON_KEY: synthetic-public-key-not-a-secret
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run check:design-system
+      - run: npm run typecheck
+      - run: npm run test:run
+      - run: npm run build
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    env:
+      VITE_SUPABASE_URL: https://example.supabase.co
+      VITE_SUPABASE_ANON_KEY: synthetic-public-key-not-a-secret
+      FRONTEND_WEBKIT: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Synthetic interactions, accessibility and reviewed visual baselines
+        run: npm run test:frontend -- --project=${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-evidence-${{ matrix.browser }}
+          path: |
+            test-results/frontend
+            test-results/frontend-visual
+          if-no-files-found: ignore

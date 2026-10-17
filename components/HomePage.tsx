@@ -1,19 +1,35 @@
-import { NameWithRank } from './RankBadge';
-import React, { useState, useMemo, useEffect } from 'react';
-import { Boy, View, Section, ToastType, SortByType, SchoolYear, JuniorYear, SectionSettings } from '../types';
-import Modal from './Modal';
-import BoyForm from './BoyForm';
-import ImportFromSessionModal from './ImportFromSessionModal';
-import { PencilIcon, ChartBarIcon, PlusIcon, TrashIcon, SearchIcon, FilterIcon, ClipboardDocumentListIcon, ArrowDownTrayIcon } from './Icons';
-import { deleteBoyById } from '../services/db';
-import { readRosterFilters, writeRosterFilters } from '../hooks/rosterFilters';
+import {
+  NativeButton,
+  NativeSearch,
+  NativeField,
+  GroupedList,
+  EmptyState,
+} from "./ui";
+import "./staff/staff.css";
+import { NameWithRank } from "./RankBadge";
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  Boy,
+  View,
+  Section,
+  ToastType,
+  SortByType,
+  SchoolYear,
+  JuniorYear,
+  SectionSettings,
+} from "../types";
+import Modal from "./Modal";
+import BoyForm from "./BoyForm";
+import ImportFromSessionModal from "./ImportFromSessionModal";
+import { PencilIcon, PlusIcon, TrashIcon, FilterIcon } from "./Icons";
+import { deleteBoyById } from "../services/db";
+import { readRosterFilters, writeRosterFilters } from "../hooks/rosterFilters";
 import {
   formatSchoolYear,
   rosterSquadNumbers,
   squadDisplayName,
-  squadTextClass,
   withSettingsSquads,
-} from '../services/sectionSquads';
+} from "../services/sectionSquads";
 
 interface HomePageProps {
   /** The list of all boys for the active section. */
@@ -30,24 +46,40 @@ interface HomePageProps {
   settings: SectionSettings | null;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeSection, showToast, settings }) => {
+const HomePage: React.FC<HomePageProps> = ({
+  boys,
+  setView,
+  refreshData,
+  activeSection,
+  showToast,
+  settings,
+}) => {
   // --- STATE MANAGEMENT ---
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [boyToEdit, setBoyToEdit] = useState<Boy | null>(null);
   const [boyToDelete, setBoyToDelete] = useState<Boy | null>(null);
-  
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditorBusy, setIsEditorBusy] = useState(false);
+  const [isEditorDirty, setIsEditorDirty] = useState(false);
+
   const initialFilters = readRosterFilters(activeSection);
   const [searchQuery, setSearchQuery] = useState(initialFilters.searchQuery);
-  const [isSearchVisible, setIsSearchVisible] = useState(!!initialFilters.searchQuery);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<SortByType>(initialFilters.sortBy);
-  const [filterSquad, setFilterSquad] = useState<string>(initialFilters.filterSquad);
-  const [filterYear, setFilterYear] = useState<string>(initialFilters.filterYear);
+  const [filterSquad, setFilterSquad] = useState<string>(
+    initialFilters.filterSquad,
+  );
+  const [filterYear, setFilterYear] = useState<string>(
+    initialFilters.filterYear,
+  );
 
-  const isCompany = activeSection === 'company';
-  const configuredSquads = withSettingsSquads(settings, activeSection);
+  const isCompany = activeSection === "company";
+  const configuredSquads = useMemo(
+    () => withSettingsSquads(settings, activeSection),
+    [settings, activeSection],
+  );
 
   useEffect(() => {
     const stored = readRosterFilters(activeSection);
@@ -55,36 +87,44 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     setSortBy(stored.sortBy);
     setFilterSquad(stored.filterSquad);
     setFilterYear(stored.filterYear);
-    setIsSearchVisible(!!stored.searchQuery);
   }, [activeSection]);
 
   useEffect(() => {
-    writeRosterFilters(activeSection, { searchQuery, sortBy, filterSquad, filterYear });
+    writeRosterFilters(activeSection, {
+      searchQuery,
+      sortBy,
+      filterSquad,
+      filterYear,
+    });
   }, [activeSection, searchQuery, sortBy, filterSquad, filterYear]);
-
-  useEffect(() => {
-    setIsSearchVisible((visible) => visible || !!searchQuery);
-  }, [searchQuery]);
 
   // --- UTILITY FUNCTIONS ---
   const calculateTotalMarks = (boy: Boy) => {
-    return boy.marks.reduce((total, mark) => total + (mark.score > 0 ? mark.score : 0), 0);
+    return boy.marks.reduce(
+      (total, mark) => total + (mark.score > 0 ? mark.score : 0),
+      0,
+    );
   };
-  
+
   const calculateAttendancePercentage = (boy: Boy) => {
     if (boy.marks.length === 0) return 0;
-    const attendedCount = boy.marks.filter(m => m.score >= 0).length;
+    const attendedCount = boy.marks.filter((m) => m.score >= 0).length;
     return Math.round((attendedCount / boy.marks.length) * 100);
   };
-  
+
   // --- MEMOIZED COMPUTATIONS ---
   const { uniqueYears, uniqueSquads } = useMemo(() => {
     const years = new Set<SchoolYear | JuniorYear>();
-    boys.forEach(boy => {
-        years.add(boy.year);
+    boys.forEach((boy) => {
+      years.add(boy.year);
     });
-    const sortedYears = Array.from(years).sort((a,b) => String(b).localeCompare(String(a), undefined, { numeric: true }));
-    return { uniqueYears: sortedYears, uniqueSquads: rosterSquadNumbers(configuredSquads, boys) };
+    const sortedYears = Array.from(years).sort((a, b) =>
+      String(b).localeCompare(String(a), undefined, { numeric: true }),
+    );
+    return {
+      uniqueYears: sortedYears,
+      uniqueSquads: rosterSquadNumbers(configuredSquads, boys),
+    };
   }, [boys, configuredSquads]);
 
   /**
@@ -92,9 +132,15 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
    */
   const filteredBoys = useMemo(() => {
     return boys
-      .filter(boy => filterSquad === 'all' || String(boy.squad) === filterSquad)
-      .filter(boy => filterYear === 'all' || String(boy.year) === filterYear)
-      .filter(boy => !searchQuery.trim() || boy.name.toLowerCase().includes(searchQuery.toLowerCase().trim()));
+      .filter(
+        (boy) => filterSquad === "all" || String(boy.squad) === filterSquad,
+      )
+      .filter((boy) => filterYear === "all" || String(boy.year) === filterYear)
+      .filter(
+        (boy) =>
+          !searchQuery.trim() ||
+          boy.name.toLowerCase().includes(searchQuery.toLowerCase().trim()),
+      );
   }, [boys, searchQuery, filterSquad, filterYear]);
 
   /**
@@ -102,53 +148,74 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
    */
   const boysBySquad = useMemo(() => {
     const grouped: Record<string, Boy[]> = {};
-    filteredBoys.forEach(boy => {
-        if (!grouped[boy.squad]) {
-            grouped[boy.squad] = [];
-        }
-        grouped[boy.squad].push(boy);
+    filteredBoys.forEach((boy) => {
+      if (!grouped[boy.squad]) {
+        grouped[boy.squad] = [];
+      }
+      grouped[boy.squad].push(boy);
     });
-    
+
     // Sort members within each squad based on the selected sort criteria
     for (const squad in grouped) {
-        grouped[squad].sort((a, b) => {
-            switch(sortBy) {
-                case 'marks':
-                    return calculateTotalMarks(b) - calculateTotalMarks(a) || a.name.localeCompare(b.name);
-                case 'attendance':
-                    return calculateAttendancePercentage(b) - calculateAttendancePercentage(a) || a.name.localeCompare(b.name);
-                case 'name': // Default sort
-                default:
-                    // Sort by School Year (descending), then by Name (ascending)
-                    const yearCompare = String(b.year).localeCompare(String(a.year), undefined, { numeric: true });
-                    if (yearCompare !== 0) return yearCompare;
-                    return a.name.localeCompare(b.name);
-            }
-        });
+      grouped[squad].sort((a, b) => {
+        switch (sortBy) {
+          case "marks":
+            return (
+              calculateTotalMarks(b) - calculateTotalMarks(a) ||
+              a.name.localeCompare(b.name)
+            );
+          case "attendance":
+            return (
+              calculateAttendancePercentage(b) -
+                calculateAttendancePercentage(a) || a.name.localeCompare(b.name)
+            );
+          case "name": // Default sort
+          default:
+            // Sort by School Year (descending), then by Name (ascending)
+            const yearCompare = String(b.year).localeCompare(
+              String(a.year),
+              undefined,
+              { numeric: true },
+            );
+            if (yearCompare !== 0) return yearCompare;
+            return a.name.localeCompare(b.name);
+        }
+      });
     }
 
     return grouped;
   }, [filteredBoys, sortBy]);
-  
+
   const squadStats = useMemo(() => {
-    const stats: Record<string, { totalMarks: number; avgAttendance: number }> = {};
+    const stats: Record<string, { totalMarks: number; avgAttendance: number }> =
+      {};
 
     Object.keys(boysBySquad).forEach((squad) => {
       const squadBoys = boysBySquad[squad];
       stats[squad] = {
-        totalMarks: squadBoys.reduce((total, boy) => total + calculateTotalMarks(boy), 0),
+        totalMarks: squadBoys.reduce(
+          (total, boy) => total + calculateTotalMarks(boy),
+          0,
+        ),
         avgAttendance: (() => {
-          const totalPossibleAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.length, 0);
+          const totalPossibleAttendances = squadBoys.reduce(
+            (acc, boy) => acc + boy.marks.length,
+            0,
+          );
           if (totalPossibleAttendances === 0) return 0;
-          const totalActualAttendances = squadBoys.reduce((acc, boy) => acc + boy.marks.filter((m) => m.score >= 0).length, 0);
-          return Math.round((totalActualAttendances / totalPossibleAttendances) * 100);
+          const totalActualAttendances = squadBoys.reduce(
+            (acc, boy) => acc + boy.marks.filter((m) => m.score >= 0).length,
+            0,
+          );
+          return Math.round(
+            (totalActualAttendances / totalPossibleAttendances) * 100,
+          );
         })(),
       };
     });
 
     return stats;
   }, [boysBySquad]);
-
 
   // --- EVENT HANDLERS ---
   const handleAddBoy = () => {
@@ -163,6 +230,8 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
 
   const handleCloseFormModal = () => {
     setIsFormModalOpen(false);
+    setIsEditorBusy(false);
+    setIsEditorDirty(false);
     setBoyToEdit(null);
   };
 
@@ -170,281 +239,334 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
     setBoyToDelete(boy);
     setIsDeleteModalOpen(true);
   };
-  
+
   const handleCloseDeleteModal = () => {
     setBoyToDelete(null);
     setIsDeleteModalOpen(false);
   };
-  
-  const handleDeleteBoy = async () => {
-    if (!boyToDelete) return;
 
+  const handleDeleteBoy = async () => {
+    if (!boyToDelete || isDeleting) return;
+    setIsDeleting(true);
     try {
       await deleteBoyById(boyToDelete.id!, activeSection);
-      
-      showToast(`'${boyToDelete.name}' was deleted.`, 'success');
+
+      showToast(`'${boyToDelete.name}' was deleted.`, "success");
       refreshData();
       handleCloseDeleteModal();
     } catch (error) {
-        console.error("Failed to delete boy:", error);
-        showToast('Failed to delete member.', 'error');
+      console.error("Failed to delete boy:", error);
+      showToast("Failed to delete member.", "error");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   /** Callback for the BoyForm, triggers a data refresh after saving. */
   const handleSave = (isNew: boolean, name: string) => {
     handleCloseFormModal();
-    const message = isNew ? `Added '${name}' successfully.` : `Updated '${name}' successfully.`;
-    showToast(message, 'success');
+    const message = isNew
+      ? `Added '${name}' successfully.`
+      : `Updated '${name}' successfully.`;
+    showToast(message, "success");
     refreshData();
-  }
+  };
 
   // --- RENDER LOGIC ---
-  const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
-  const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
-  const accentTextHover = isCompany ? 'hover:text-company-blue' : 'hover:text-junior-blue';
-  const hasActiveFilters = filterSquad !== 'all' || filterYear !== 'all' || searchQuery !== '';
-  const hasNonDefaultSortOrFilter = filterSquad !== 'all' || filterYear !== 'all' || sortBy !== 'name';
-  const sortedSquads = (hasActiveFilters
-    ? Object.keys(boysBySquad).map(Number)
-    : rosterSquadNumbers(configuredSquads, filteredBoys)
+  const hasActiveFilters =
+    filterSquad !== "all" || filterYear !== "all" || searchQuery !== "";
+  const hasNonDefaultSortOrFilter =
+    filterSquad !== "all" || filterYear !== "all" || sortBy !== "name";
+  const sortedSquads = (
+    hasActiveFilters
+      ? Object.keys(boysBySquad).map(Number)
+      : rosterSquadNumbers(configuredSquads, filteredBoys)
   ).sort((a, b) => a - b);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Members</h1>
-        <div className="flex items-center gap-1 sm:gap-2">
-            <button
-                onClick={() => setIsSearchVisible(!isSearchVisible)}
-                className={`p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isSearchVisible ? 'bg-slate-100' : ''} ${accentRing}`}
-                aria-label="Toggle search bar"
-            >
-                <SearchIcon className="h-5 w-5"/>
-            </button>
-             <button
-                onClick={() => setIsFilterModalOpen(true)}
-                className={`relative p-2 rounded-full text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-offset-2 ${hasNonDefaultSortOrFilter ? 'bg-slate-100' : ''} ${accentRing}`}
-                aria-label="Open sort and filter options"
-                aria-pressed={hasNonDefaultSortOrFilter}
-            >
-                <FilterIcon className="h-5 w-5"/>
-                {hasNonDefaultSortOrFilter && (
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-400" aria-hidden="true" />
-                )}
-            </button>
-            {boys.length > 0 && (
-              <>
-                <button
-                  onClick={() => setIsImportModalOpen(true)}
-                  className="inline-flex items-center justify-center rounded-full p-2 text-slate-700 hover:bg-slate-100 sm:rounded-md sm:border sm:border-slate-300 sm:bg-white sm:px-4 sm:py-2 sm:text-sm sm:font-medium sm:shadow-sm sm:hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
-                  aria-label="Import"
-                >
-                  <ArrowDownTrayIcon className="h-5 w-5 sm:mr-2 sm:-ml-1"/>
-                  <span className="hidden sm:inline">Import</span>
-                </button>
-                <button
-                  onClick={handleAddBoy}
-                  className={`inline-flex items-center justify-center rounded-full p-2 text-white ${accentBg} hover:brightness-90 sm:rounded-md sm:px-4 sm:py-2 sm:text-sm sm:font-medium sm:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
-                  aria-label="Add Boy"
-                >
-                  <PlusIcon className="h-5 w-5 sm:mr-2 sm:-ml-1"/>
-                  <span className="hidden sm:inline">Add Boy</span>
-                </button>
-              </>
-            )}
+    <div className="staff-workflow roster-workflow">
+      <div className="staff-roster-heading">
+        <p className="staff-context">
+          {boys.length} members · {isCompany ? "Company" : "Junior"} section
+        </p>
+        <div className="staff-roster-tools">
+          <details className="staff-roster-menu">
+            <summary aria-label="More roster actions">
+              <span aria-hidden="true">•••</span>
+            </summary>
+            <div className="staff-inline-menu">
+              <NativeButton
+                variant="plain"
+                onClick={(event) => {
+                  event.currentTarget
+                    .closest("details")
+                    ?.removeAttribute("open");
+                  setIsImportModalOpen(true);
+                }}
+              >
+                Import from a past session
+              </NativeButton>
+            </div>
+          </details>
+          <NativeButton
+            className="staff-compact-action"
+            onClick={handleAddBoy}
+            aria-label="Add Boy"
+          >
+            <PlusIcon className="staff-icon" />
+          </NativeButton>
         </div>
       </div>
-      
-      {isSearchVisible && (
-         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <SearchIcon className="h-5 w-5 text-slate-400" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search members..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md leading-5 bg-white text-slate-900 placeholder-slate-500 focus:outline-none focus:placeholder-slate-400 focus:ring-1 sm:text-sm ${accentRing}`}
-            aria-label="Search members"
-          />
-        </div>
-      )}
-
-      {/* Conditional rendering for empty or no-result states */}
+      <div className="staff-roster-search">
+        <NativeSearch
+          label="Search members"
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search members"
+        />
+        <NativeButton
+          className="staff-compact-action"
+          variant="secondary"
+          onClick={() => setIsFilterModalOpen(true)}
+          aria-label="Open sort and filter options"
+          aria-pressed={hasNonDefaultSortOrFilter}
+        >
+          <FilterIcon className="staff-icon" />
+          {hasNonDefaultSortOrFilter && (
+            <span className="staff-filter-dot" aria-hidden="true">
+              •
+            </span>
+          )}
+        </NativeButton>
+      </div>
       {boys.length === 0 && (
-        <div className="text-center py-16 px-6 bg-white rounded-lg shadow-md mt-8">
-            <ClipboardDocumentListIcon className="mx-auto h-16 w-16 text-slate-400" />
-            <h3 className="mt-4 text-xl font-semibold text-slate-900">Your Roster is Empty</h3>
-            <p className="mt-2 text-md text-slate-500">
-                Add a new member, or import returning boys from a past session. School year moves on by one when you import.
-            </p>
-            <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3">
-                <button
-                    onClick={handleAddBoy}
-                    className={`inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
-                >
-                    <PlusIcon className="h-5 w-5 mr-3 -ml-1"/>
-                    Add your first member
-                </button>
-                <button
-                    onClick={() => setIsImportModalOpen(true)}
-                    className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 border border-slate-300 text-base font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
-                >
-                    <ArrowDownTrayIcon className="h-5 w-5 mr-3 -ml-1"/>
-                    Import from a past session
-                </button>
-            </div>
-        </div>
+        <EmptyState
+          title="Your roster is empty"
+          action={
+            <NativeButton onClick={handleAddBoy}>
+              Add your first member
+            </NativeButton>
+          }
+        >
+          Add a member, or use Import to bring back members from a past session.
+          School year advances by one on import.
+        </EmptyState>
       )}
-
       {boys.length > 0 && filteredBoys.length === 0 && (
-          <div className="text-center py-10 px-6 bg-white rounded-lg shadow-md">
-              <h3 className="text-lg font-medium text-slate-900">No members found</h3>
-              <p className="mt-1 text-sm text-slate-500">{hasActiveFilters ? "Your filters did not match any members." : "No members match your search."}</p>
-          </div>
+        <EmptyState
+          title="No members found"
+          action={
+            <NativeButton
+              variant="plain"
+              onClick={() => {
+                setSearchQuery("");
+                setFilterSquad("all");
+                setFilterYear("all");
+              }}
+            >
+              Clear filters
+            </NativeButton>
+          }
+        >
+          Try another name, squad or school year.
+        </EmptyState>
       )}
-
-      {/* Main content: list of squads and their members */}
-      {boys.length > 0 && (
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+      <div className="staff-roster-groups">
         {sortedSquads.map((squad) => {
-            const squadBoys = boysBySquad[squad] || [];
-            if (hasActiveFilters && squadBoys.length === 0) {
-                return null;
-            }
-            return (
-              <div key={squad}>
-                <div className="flex justify-between items-baseline mb-4">
-                  <h2 className="text-2xl font-semibold text-slate-800">{squadDisplayName(configuredSquads, squad)}</h2>
-                  <div className="text-right">
-                    <p className="font-semibold text-slate-600">
-                      Total Marks: {squadStats[squad]?.totalMarks ?? 0}
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      Avg Attendance: {squadStats[squad]?.avgAttendance ?? 0}%
-                    </p>
-                  </div>
-                </div>
-                <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                    {squadBoys.length === 0 ? (
-                      <p className="p-4 text-sm text-slate-500">No members in this squad yet.</p>
-                    ) : (
-                    <ul className="divide-y divide-slate-200">
-                    {squadBoys.map((boy) => (
-                      <li key={boy.id} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-                        <div className="flex-1">
-                          <p className={`text-lg font-medium ${squadTextClass(activeSection, boy.squad)}`}>
-                              <NameWithRank name={boy.name} memberRank={boy.memberRank} />
-                              {boy.isSquadLeader && (
-                                  <span className="ml-2 text-xs font-semibold uppercase tracking-wider bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">Leader</span>
-                              )}
-                          </p>
-                          <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-slate-500">
-                            <span>{formatSchoolYear(activeSection, boy.year)}</span>
-                            <span className="text-slate-300">&bull;</span>
-                            <span>Total Marks: {calculateTotalMarks(boy)}</span>
-                            <span className="text-slate-300">&bull;</span>
-                            <span>Attendance: {calculateAttendancePercentage(boy)}%</span>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => setView({ page: 'boyMarks', boyId: boy.id! })}
-                            className={`p-3 text-slate-500 rounded-full hover:bg-slate-100 ${accentTextHover}`}
-                            aria-label={`View marks for ${boy.name}`}
-                          >
-                            <ChartBarIcon />
-                          </button>
-                          <button
-                            onClick={() => handleEditBoy(boy)}
-                            className={`p-3 text-slate-500 rounded-full hover:bg-slate-100 ${accentTextHover}`}
-                            aria-label={`Edit ${boy.name}`}
-                          >
-                            <PencilIcon />
-                          </button>
-                           <button
-                            onClick={() => handleOpenDeleteModal(boy)}
-                            className="p-3 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100"
-                            aria-label={`Delete ${boy.name}`}
-                          >
-                            <TrashIcon />
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                    )}
-                </div>
-              </div>
-            )
+          const members = boysBySquad[squad] || [];
+          if (hasActiveFilters && !members.length) return null;
+          return (
+            <GroupedList
+              key={squad}
+              title={squadDisplayName(configuredSquads, squad)}
+              footer={`${squadStats[squad]?.totalMarks ?? 0} marks · ${squadStats[squad]?.avgAttendance ?? 0}% attendance`}
+            >
+              {!members.length && (
+                <li className="staff-empty-row">
+                  No members in this squad yet.
+                </li>
+              )}
+              {members.map((boy) => (
+                <li key={boy.id} className="staff-member-row">
+                  <button
+                    type="button"
+                    className="staff-member-main"
+                    onClick={() =>
+                      setView({ page: "boyMarks", boyId: boy.id! })
+                    }
+                    aria-label={`View marks for ${boy.name}`}
+                  >
+                    <span className="staff-avatar" aria-hidden="true">
+                      {boy.name
+                        .split(" ")
+                        .map((part) => part[0])
+                        .slice(0, 2)
+                        .join("")}
+                    </span>
+                    <span className="staff-member-copy">
+                      <span className="staff-member-name">
+                        <NameWithRank
+                          name={boy.name}
+                          memberRank={boy.memberRank}
+                        />
+                        {boy.isSquadLeader && (
+                          <span className="staff-leader">Leader</span>
+                        )}
+                      </span>
+                      <span className="staff-context">
+                        {formatSchoolYear(activeSection, boy.year)} ·{" "}
+                        {calculateTotalMarks(boy)} marks ·{" "}
+                        {calculateAttendancePercentage(boy)}%
+                      </span>
+                    </span>
+                    <span className="staff-disclosure" aria-hidden="true">
+                      ›
+                    </span>
+                  </button>
+                  <details className="staff-member-menu">
+                    <summary aria-label={`Actions for ${boy.name}`}>
+                      <span aria-hidden="true">•••</span>
+                    </summary>
+                    <div className="staff-inline-menu">
+                      <NativeButton
+                        variant="plain"
+                        onClick={(event) => {
+                          event.currentTarget
+                            .closest("details")
+                            ?.removeAttribute("open");
+                          handleEditBoy(boy);
+                        }}
+                        aria-label={`Edit ${boy.name}`}
+                      >
+                        <PencilIcon className="staff-icon" /> Edit member
+                      </NativeButton>
+                      <NativeButton
+                        variant="plain"
+                        danger
+                        onClick={(event) => {
+                          event.currentTarget
+                            .closest("details")
+                            ?.removeAttribute("open");
+                          handleOpenDeleteModal(boy);
+                        }}
+                        aria-label={`Delete ${boy.name}`}
+                      >
+                        <TrashIcon className="staff-icon" /> Delete member
+                      </NativeButton>
+                    </div>
+                  </details>
+                </li>
+              ))}
+            </GroupedList>
+          );
         })}
       </div>
-      )}
-      <Modal isOpen={isFormModalOpen} onClose={handleCloseFormModal} title={boyToEdit ? 'Edit Boy' : 'Add New Boy'}>
-        <BoyForm boyToEdit={boyToEdit} onSave={handleSave} onClose={handleCloseFormModal} activeSection={activeSection} squads={configuredSquads} />
+      <Modal
+        isOpen={isFormModalOpen}
+        dismissible={!isEditorBusy && !isEditorDirty}
+        onClose={handleCloseFormModal}
+        title={boyToEdit ? "Edit member" : "Add member"}
+      >
+        {isFormModalOpen && (
+          <BoyForm
+            onBusyChange={setIsEditorBusy}
+            onDirtyChange={setIsEditorDirty}
+            boyToEdit={boyToEdit}
+            onSave={handleSave}
+            onClose={handleCloseFormModal}
+            activeSection={activeSection}
+            squads={configuredSquads}
+          />
+        )}
       </Modal>
-
-      <Modal isOpen={isDeleteModalOpen} onClose={handleCloseDeleteModal} title="Confirm Deletion">
+      <Modal
+        isOpen={isDeleteModalOpen}
+        dismissible={!isDeleting}
+        onClose={() => {
+          if (!isDeleting) handleCloseDeleteModal();
+        }}
+        title="Delete member?"
+      >
         {boyToDelete && (
-          <div className="space-y-4">
-            <p className="text-slate-600">Are you sure you want to delete <strong className="font-semibold text-slate-800"><NameWithRank name={boyToDelete.name} memberRank={boyToDelete.memberRank} /></strong>? This action cannot be undone directly.</p>
-            <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-              <button
-                type="button"
+          <div className="staff-form">
+            <p>
+              Delete{" "}
+              <strong>
+                <NameWithRank
+                  name={boyToDelete.name}
+                  memberRank={boyToDelete.memberRank}
+                />
+              </strong>{" "}
+              and their records? This cannot be undone directly.
+            </p>
+            <div className="staff-form-actions">
+              <NativeButton
+                variant="secondary"
+                disabled={isDeleting}
                 onClick={handleCloseDeleteModal}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
               >
                 Cancel
-              </button>
-              <button
-                onClick={handleDeleteBoy}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
+              </NativeButton>
+              <NativeButton danger busy={isDeleting} onClick={handleDeleteBoy}>
                 Delete
-              </button>
+              </NativeButton>
             </div>
           </div>
         )}
       </Modal>
-
-      <Modal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)} title="Sort & Filter">
-          <div className="space-y-4">
-               <div>
-                    <label htmlFor="sort-by" className="block text-sm font-medium text-slate-700">Sort By</label>
-                    <select id="sort-by" value={sortBy} onChange={e => setSortBy(e.target.value as SortByType)} className={`mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none sm:text-sm rounded-md ${accentRing}`}>
-                        <option value="name">Year, then Name (A-Z)</option>
-                        <option value="marks">Total Marks (High-Low)</option>
-                        <option value="attendance">Attendance (High-Low)</option>
-                    </select>
-                </div>
-                <div>
-                    <label htmlFor="filter-squad" className="block text-sm font-medium text-slate-700">Filter by Squad</label>
-                    <select id="filter-squad" value={filterSquad} onChange={e => setFilterSquad(e.target.value)} className={`mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none sm:text-sm rounded-md ${accentRing}`}>
-                        <option value="all">All Squads</option>
-                        {uniqueSquads.map(s => <option key={s} value={s}>{squadDisplayName(configuredSquads, s)}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label htmlFor="filter-year" className="block text-sm font-medium text-slate-700">Filter by Year</label>
-                    <select id="filter-year" value={filterYear} onChange={e => setFilterYear(e.target.value)} className={`mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none sm:text-sm rounded-md ${accentRing}`}>
-                        <option value="all">All Years</option>
-                        {uniqueYears.map(y => <option key={y} value={y}>{formatSchoolYear(activeSection, y)}</option>)}
-                    </select>
-                </div>
-          </div>
-          <div className="flex justify-end pt-6">
-              <button
-                type="button"
-                onClick={() => setIsFilterModalOpen(false)}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 ${accentBg} ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
-              >
-                Done
-              </button>
-          </div>
+      <Modal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        title="Sort & filter"
+      >
+        <div className="staff-form">
+          <NativeField label="Sort by" htmlFor="sort-by">
+            <select
+              className="bb-input"
+              id="sort-by"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortByType)}
+            >
+              <option value="name">Year, then name (A–Z)</option>
+              <option value="marks">Total marks (high–low)</option>
+              <option value="attendance">Attendance (high–low)</option>
+            </select>
+          </NativeField>
+          <NativeField label="Squad" htmlFor="filter-squad">
+            <select
+              className="bb-input"
+              id="filter-squad"
+              value={filterSquad}
+              onChange={(e) => setFilterSquad(e.target.value)}
+            >
+              <option value="all">All squads</option>
+              {uniqueSquads.map((s) => (
+                <option key={s} value={s}>
+                  {squadDisplayName(configuredSquads, s)}
+                </option>
+              ))}
+            </select>
+          </NativeField>
+          <NativeField label="School year" htmlFor="filter-year">
+            <select
+              className="bb-input"
+              id="filter-year"
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+            >
+              <option value="all">All years</option>
+              {uniqueYears.map((y) => (
+                <option key={y} value={y}>
+                  {formatSchoolYear(activeSection, y)}
+                </option>
+              ))}
+            </select>
+          </NativeField>
+          <NativeButton onClick={() => setIsFilterModalOpen(false)}>
+            Done
+          </NativeButton>
+        </div>
       </Modal>
-
       <ImportFromSessionModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
@@ -454,9 +576,7 @@ const HomePage: React.FC<HomePageProps> = ({ boys, setView, refreshData, activeS
         showToast={showToast}
         refreshData={refreshData}
       />
-
     </div>
   );
 };
-
 export default HomePage;

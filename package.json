@@ -17,15 +17,21 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "node --env-file-if-exists=.env --env-file-if-exists=.env.local ./node_modules/@playwright/test/cli.js test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "check:portal": "node --env-file-if-exists=.env.local scripts/check-company-portal.mjs"
+    "check:portal": "node --env-file-if-exists=.env.local scripts/check-company-portal.mjs",
+    "test:frontend": "playwright test --config tests/frontend/playwright.config.ts",
+    "check:design-system": "node scripts/design-system-check.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.2",
     "@supabase/supabase-js": "^2.116.0",
+    "framework7": "9.2.0",
+    "framework7-react": "9.2.0",
+    "lucide-react": "0.468.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.11.1",
     "@playwright/test": "^1.58.2",
     "@types/node": "^22.14.0",
     "@types/react": "^19.3.0",

@@ -8,7 +8,7 @@ Keep it aligned with the actual codebase, deployment model, and live Supabase sh
 ## Current Stack
 
 - Frontend: React 19 + TypeScript + Vite
-- Styling: Tailwind CSS via PostCSS
+- Styling: Framework7 v9 React iOS theme + shared semantic CSS; Tailwind CSS v3 utilities via PostCSS
 - Backend: Supabase Auth + Postgres
 - Deployment: Vercel static deployment
 - Runtime model: browser SPA talking directly to Supabase; trusted portal operations run in the `company-portal` Supabase Edge Function; no custom app server
@@ -62,6 +62,8 @@ npm run typecheck
 npm run test
 npm run test:run
 npm run test:coverage
+npm run test:frontend
+npm run check:design-system
 npm run test:e2e
 npm run check:db-contract
 npm run check:auth-config
@@ -81,6 +83,8 @@ CI/browser test variables:
 - `E2E_TEST_PASSWORD`
 
 `npm run test:e2e` runs isolated sentinel flows by default. `tests/e2e/smoke.e2e.ts` mutates live settings/marks and is ignored unless `E2E_ALLOW_PRODUCTION_MUTATION=1`.
+
+Even the isolated sentinel suite creates/deletes its member fixtures. Run credential-dependent browser/SQL mutation tests only against an explicitly designated non-production staging project; UI verification must never mutate real member records. Automatic CI uses synthetic HTTP fixtures; authenticated staging checks require explicit manual opt-in and a distinct allowlisted staging target.
 
 See [docs/11-audit-remediation.md](./docs/11-audit-remediation.md) for the 2026-09-11 finding closeout.
 
@@ -103,7 +107,7 @@ Rules:
 - Do all change work on a git branch, not directly on `main`.
 - Create or switch to an appropriate branch before making repo changes.
 - When the task is complete, open a pull request for that branch before asking for final operator action.
-- After the pull request exists, ask the operator whether they want the PR merged to `main` and the branch deleted.
+- After the pull request exists, report the review link. Ask about merging and branch deletion only when the operator has not explicitly deferred or prohibited those actions.
 - Do not merge to `main` or delete the branch without explicit operator approval.
 
 ## Database Change Rules
@@ -132,3 +136,25 @@ When changing behavior:
 - Prefer deleting dead files over documenting unused paths.
 - Keep dependencies aligned with actual runtime usage.
 - Remove legacy terminology when the underlying system has changed.
+
+
+## Frontend Design System & UI/UX Standards
+
+Framework7 Native (Framework7 v9 React, iOS theme) is BB-Manager’s approved frontend foundation, with an iOS 26-inspired, mobile-first visual and interaction language. Follow [the canonical design system](docs/design-system/README.md) and [contribution contracts](docs/design-system/contributing.md). The iPhone portrait experience is primary; adapt to an iPad-style workspace at 768px and productive desktop content at 1024px. Preserve official Boys’ Brigade branding and Company/Junior distinctions.
+
+- Use shared `components/ui` primitives and semantic `--bb-*` tokens from `styles/design-system.css`. Reuse established components before adding variants. One coherent shell and hierarchy take precedence over an isolated component’s aesthetics. Do not introduce competing navigation, modal or visual libraries without a scoped, reviewed architectural exception.
+- Typography: `-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`; platform system fonts only. Large titles approximately34px/700, section headings20px/600, body17px, secondary15px; avoid text below13px. Use tabular numerals for scores/statistics. Do not redistribute Apple fonts/symbols.
+- Colour: semantic accent/surface/text/separator/status tokens; section identity comes from Company/Junior context. No arbitrary unrelated palettes. Normal text contrast >=4.5:1, large text and essential controls >=3:1. Status requires text or shape as well as colour.
+- Layout: shared content containers,16px phone gutters, safe-area-aware navigation, bottom content clearance and keyboard-friendly forms. Start at390px and validate320/375/390/430/768/1024/1440px. Use native navigation/header patterns; never squeeze desktop toolbars onto phones.
+- Components: use Framework7 through documented adapters. Maintain real native disabled semantics, React19 Toggle synchronisation and 44px touch targets. Shared sheets handle names, containment, scroll, dismissal and focus restoration. Keep attendance’s present/absent/unrecorded semantics, accessible score labels, real Save accessories and canonical empty/loading/error/retry patterns.
+- Interaction: use the single shell navigation owner; preserve deep links, browser Back/Forward, place/scroll and dirty-change protection. Restore meaningful focus after closing dialogs or removing rows. Keep inputs >=16px, support keyboard navigation, announce save/error feedback, and respect reduced motion. Animate hierarchy/feedback purposefully without delaying data entry.
+- Avoid generic SaaS dashboards, unnecessary card nesting, random gradients, arbitrary radii, one-off buttons, duplicate form primitives, unapproved libraries, giant glass data containers, microtypography, unnecessary animation and desktop-first composition. Do not remove functionality for visual simplicity.
+- Accessibility and performance are first-class requirements. Glass belongs primarily to navigation/overlays, never at the expense of data readability or browser support. Authentication, role permissions, sensitive-token handling and backend contracts may never be weakened for design convenience. Protected views/data must be cleared when identity/role/section changes; do not introduce persistent member-data caching or offline queues without a reviewed security design.
+
+**Any future UI change must conform to the approved design system and be validated against relevant mobile, accessibility and visual regression checks before completion.** Follow source-backed parity requirements and retain the audit acceptance register. Report actual verification separately from staging, physical-device or assistive-technology checks still pending.
+
+### Multi-agent frontend workflow
+
+Where supported, delegate independent feature ownership after defining component interfaces. One owner edits dependency files, app entry points, router, global styles and this guide; coordinate changes to shared files. Prefer separate worktrees for conflicting work; disjoint file ownership is acceptable in a shared worktree. Another agent reviews substantial implementations and a testing agent independently exercises them. Record implementer/reviewer, files, commands, browser evidence, design/accessibility/security/parity findings, remediation and lead acceptance in `docs/design-system/review-register.md`. A fix is not closed until reverified. If subagents are unavailable, use separated implementation and review passes and explicitly record that independence limitation. Never claim synthetic UI tests establish server RLS.
+
+Instruction precedence: system/developer and user instructions govern first; root AGENTS applies repository-wide, nested AGENTS narrows its own directory and complements this guide. Canonical design documentation describes code contracts; historical audit/prototype guidance is reference material, not permission to bypass current security or workflow rules.

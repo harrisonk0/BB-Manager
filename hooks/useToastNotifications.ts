@@ -1,21 +1,33 @@
-import { useState, useCallback } from 'react';
-import { ToastMessage, ToastType } from '../types';
+import { useState, useCallback, useEffect, useRef } from "react";
+import { ToastMessage, ToastType } from "../types";
 
-/**
- * Custom hook for managing toast notifications.
- * Provides state for toasts and functions to show and remove them.
- */
-export const useToastNotifications = () => {
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
-
-  const showToast = useCallback((message: string, type: ToastType = 'info') => {
-    const id = crypto.randomUUID();
-    setToasts(prev => [...prev, { id, message, type }]);
-  }, []);
-  
+/** Transient feedback is scoped too: stale mutation callbacks cannot expose names after logout. */
+export const useToastNotifications = (scope = "public") => {
+  const currentScope = useRef(scope);
+  currentScope.current = scope;
+  const [stored, setStored] = useState<(ToastMessage & { scope: string })[]>(
+    [],
+  );
+  const showToast = useCallback(
+    (message: string, type: ToastType = "info") => {
+      if (currentScope.current !== scope) return;
+      const id = crypto.randomUUID();
+      setStored((previous) => [
+        ...previous.filter((item) => item.scope === scope),
+        { id, message, type, scope },
+      ]);
+    },
+    [scope],
+  );
+  useEffect(() => {
+    setStored((previous) => previous.filter((item) => item.scope === scope));
+  }, [scope]);
   const removeToast = useCallback((id: string) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+    setStored((previous) => previous.filter((toast) => toast.id !== id));
   }, []);
-
-  return { toasts, showToast, removeToast };
+  return {
+    toasts: stored.filter((toast) => toast.scope === scope),
+    showToast,
+    removeToast,
+  };
 };

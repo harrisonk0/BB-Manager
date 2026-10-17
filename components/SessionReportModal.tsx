@@ -1,14 +1,20 @@
-import React, { useMemo, useState } from 'react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+import React, { useMemo, useState } from "react";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 
-import Modal from './Modal';
-import SessionReportDocument from './reports/SessionReportDocument';
+import Modal from "./Modal";
+import { NativeButton, NativeInput, InlineNotice, EmptyState } from "./ui";
+import "./reporting/reporting.css";
+import SessionReportDocument from "./reports/SessionReportDocument";
 import {
   MEMBER_DETAIL_CONTINUED_ROWS,
   MEMBER_DETAIL_FIRST_PAGE_ROWS,
-} from './reports/reportConstants';
-import { buildSessionReportData, getDefaultSessionReportRange, getSectionDateRange } from '../services/reporting/sessionReport';
-import type { Boy, Section } from '../types';
+} from "./reports/reportConstants";
+import {
+  buildSessionReportData,
+  getDefaultSessionReportRange,
+  getSectionDateRange,
+} from "../services/reporting/sessionReport";
+import type { Boy, Section } from "../types";
 
 interface SessionReportModalProps {
   boys: Boy[];
@@ -21,9 +27,9 @@ interface SessionReportModalProps {
 
 const formatDate = (value: string) =>
   new Date(`${value}T00:00:00`).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 
 const SessionReportModal: React.FC<SessionReportModalProps> = ({
@@ -34,21 +40,15 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
   sessionLabel,
 }) => {
   const sectionRange = useMemo(() => getSectionDateRange(boys), [boys]);
-  const defaultRange = useMemo(() => getDefaultSessionReportRange(boys), [boys]);
-  const [startDate, setStartDate] = useState(defaultRange?.startDate ?? '');
-  const [endDate, setEndDate] = useState(defaultRange?.endDate ?? '');
-  const inputBrandClasses =
-    activeSection === 'company'
-      ? 'focus:border-company-blue focus:ring-company-blue'
-      : 'focus:border-junior-blue focus:ring-junior-blue';
-  const buttonBrandClasses =
-    activeSection === 'company'
-      ? 'bg-company-blue focus:ring-company-blue'
-      : 'bg-junior-blue focus:ring-junior-blue';
-
+  const defaultRange = useMemo(
+    () => getDefaultSessionReportRange(boys),
+    [boys],
+  );
+  const [startDate, setStartDate] = useState(defaultRange?.startDate ?? "");
+  const [endDate, setEndDate] = useState(defaultRange?.endDate ?? "");
   React.useEffect(() => {
-    setStartDate(defaultRange?.startDate ?? '');
-    setEndDate(defaultRange?.endDate ?? '');
+    setStartDate(defaultRange?.startDate ?? "");
+    setEndDate(defaultRange?.endDate ?? "");
   }, [defaultRange, isOpen]);
 
   const hasValidRange = Boolean(startDate && endDate && startDate <= endDate);
@@ -64,133 +64,144 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
     });
   }, [activeSection, boys, endDate, hasValidRange, startDate]);
 
-  const hasDataForRange = Boolean(report && report.headlineStats.meetingCount > 0);
-  const sectionLabel = activeSection === 'company' ? 'Company Section' : 'Junior Section';
+  const hasDataForRange = Boolean(
+    report && report.headlineStats.meetingCount > 0,
+  );
+  const sectionLabel =
+    activeSection === "company" ? "Company Section" : "Junior Section";
   const filenamePrefix = sessionLabel
-    ? `${sessionLabel.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'archived-session'}-`
-    : '';
-  const filename = `${filenamePrefix}${activeSection}-session-report-${startDate || 'start'}-to-${endDate || 'end'}.pdf`;
+    ? `${
+        sessionLabel
+          .replace(/[^A-Za-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+          .toLowerCase() || "archived-session"
+      }-`
+    : "";
+  const filename = `${filenamePrefix}${activeSection}-session-report-${startDate || "start"}-to-${endDate || "end"}.pdf`;
   const estimatedPageCount = report
-    ? 1
-      + 1
-      + 1
-      + Math.max(1, Math.ceil(report.meetings.length / 18))
-      + 1
-      + (report.members.length === 0
-          ? 0
-          : Math.max(1, Math.ceil(report.members.length / (activeSection === 'junior' ? 14 : 16))))
-      + report.members.reduce(
-          (sum, member) =>
-            sum + 1 + Math.ceil(Math.max(member.meetings.length - MEMBER_DETAIL_FIRST_PAGE_ROWS, 0) / MEMBER_DETAIL_CONTINUED_ROWS),
-          0,
-        )
+    ? 1 +
+      1 +
+      1 +
+      Math.max(1, Math.ceil(report.meetings.length / 18)) +
+      1 +
+      (report.members.length === 0
+        ? 0
+        : Math.max(
+            1,
+            Math.ceil(
+              report.members.length / (activeSection === "junior" ? 14 : 16),
+            ),
+          )) +
+      report.members.reduce(
+        (sum, member) =>
+          sum +
+          1 +
+          Math.ceil(
+            Math.max(
+              member.meetings.length - MEMBER_DETAIL_FIRST_PAGE_ROWS,
+              0,
+            ) / MEMBER_DETAIL_CONTINUED_ROWS,
+          ),
+        0,
+      )
     : 0;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Master Session PDF" size="lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Master Session PDF"
+      size="lg"
+    >
       {!sectionRange ? (
-        <div className="space-y-3">
-          <p className="text-slate-700">
-            There are no recorded marks in this section yet, so there is nothing to export.
-          </p>
-        </div>
+        <EmptyState title="Nothing to export yet">
+          Record marks for this section to generate a report.
+        </EmptyState>
       ) : (
-        <div className="space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <h3 className="text-lg font-semibold text-slate-900">Single Master Report</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              This export produces one branded end-of-session PDF for the active section using the current BB logo
-              and photography already used in the app. The document includes the section summary, attendance and marks
-              trends, squad breakdowns, and a page for every member in the selected date range.
-              {sessionLabel ? ` This download uses archived ${sessionLabel} data rather than the live roster.` : ''}
-            </p>
+        <div className="bb-reports">
+          <p className="bb-report-intro">
+            One branded report with session totals, attendance and marks trends,
+            squads and individual member details.
+            {sessionLabel ? ` Using archived ${sessionLabel} data.` : ""}
+          </p>
+          <div className="bb-form-surface bb-report-grid-fields">
+            <NativeInput
+              label="Session start"
+              type="date"
+              value={startDate}
+              min={sectionRange.startDate}
+              max={sectionRange.endDate}
+              onChange={(event) => setStartDate(event.target.value)}
+            />
+            <NativeInput
+              label="Session end"
+              type="date"
+              value={endDate}
+              min={sectionRange.startDate}
+              max={sectionRange.endDate}
+              onChange={(event) => setEndDate(event.target.value)}
+            />
           </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700">Session Start</span>
-              <input
-                type="date"
-                value={startDate}
-                min={sectionRange.startDate}
-                max={sectionRange.endDate}
-                onChange={(event) => setStartDate(event.target.value)}
-                className={`w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 ${inputBrandClasses}`}
-              />
-            </label>
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-slate-700">Session End</span>
-              <input
-                type="date"
-                value={endDate}
-                min={sectionRange.startDate}
-                max={sectionRange.endDate}
-                onChange={(event) => setEndDate(event.target.value)}
-                className={`w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 ${inputBrandClasses}`}
-              />
-            </label>
-          </div>
-
           {hasValidRange ? (
             hasDataForRange && report ? (
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="grid gap-4 sm:grid-cols-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Section</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-900">{sectionLabel}</p>
+              <>
+                <dl className="bb-report-metrics">
+                  <div className="bb-report-metric">
+                    <dt>Meetings</dt>
+                    <dd>{report.headlineStats.meetingCount}</dd>
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Meetings</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-900">{report.headlineStats.meetingCount}</p>
+                  <div className="bb-report-metric">
+                    <dt>Attendance</dt>
+                    <dd>{report.headlineStats.attendanceRate}%</dd>
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Attendance</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-900">{report.headlineStats.attendanceRate}%</p>
+                  <div className="bb-report-metric">
+                    <dt>Est. pages</dt>
+                    <dd>{estimatedPageCount}</dd>
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Pages</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-900">{estimatedPageCount}</p>
-                  </div>
-                </div>
-                <p className="mt-4 text-sm text-slate-600">
-                  {`Report range: ${formatDate(startDate)} to ${formatDate(endDate)}. This will export ${report.members.length} member detail pages in addition to the summary pages.`}
+                </dl>
+                <p className="bb-report-intro">
+                  {sectionLabel} · {formatDate(startDate)}–{formatDate(endDate)}
+                  . Includes {report.members.length} member detail pages plus
+                  session summary pages.
                 </p>
                 {estimatedPageCount > 15 && (
-                  <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                    This range is estimated at {estimatedPageCount} pages. Narrow the dates if you only need a shorter session.
-                  </p>
+                  <InlineNotice>
+                    This report is estimated at {estimatedPageCount} pages.
+                    Narrow the range for a shorter report.
+                  </InlineNotice>
                 )}
-              </div>
+              </>
             ) : (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                There are no recorded marks inside that range. Pick dates that include at least one saved meeting.
-              </div>
+              <InlineNotice>
+                No recorded marks fall inside this range. Include at least one
+                saved meeting.
+              </InlineNotice>
             )
           ) : (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              Choose a valid date range where the start date is on or before the end date.
-            </div>
+            <InlineNotice kind="error">
+              Choose valid dates with the start on or before the end.
+            </InlineNotice>
           )}
-
-          <div className="flex items-center justify-between gap-3 border-t border-slate-200 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
-            >
+          <div className="bb-report-actions">
+            <NativeButton variant="secondary" onClick={onClose}>
               Close
-            </button>
-
+            </NativeButton>
             {hasDataForRange && report ? (
               <PDFDownloadLink
                 document={<SessionReportDocument report={report} />}
                 fileName={filename}
-                className={`inline-flex items-center rounded-md px-4 py-2 text-sm font-medium text-white hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-offset-2 ${buttonBrandClasses}`}
+                className="bb-report-download external"
               >
-                {({ loading }) => (loading ? 'Preparing PDF...' : 'Download Master PDF')}
+                {({ loading, error }) =>
+                  error
+                    ? "PDF failed — try another range"
+                    : loading
+                      ? "Preparing PDF…"
+                      : "Download Master PDF"
+                }
               </PDFDownloadLink>
             ) : (
-              <span className="text-sm text-slate-500">PDF download becomes available once the range is valid.</span>
+              <p className="bb-secondary">Choose a valid range to download.</p>
             )}
           </div>
         </div>
@@ -198,5 +209,4 @@ const SessionReportModal: React.FC<SessionReportModalProps> = ({
     </Modal>
   );
 };
-
 export default SessionReportModal;
