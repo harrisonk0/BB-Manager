@@ -1,0 +1,22 @@
+{
+  "entry": [
+    "assets/index-XbHpgujJ.js"
+  ],
+  "initial": [
+    {
+      "file": "assets/index-CEQChdb5.css",
+      "bytes": 45998,
+      "gzip": 9060
+    },
+    {
+      "file": "assets/index-XbHpgujJ.js",
+      "bytes": 621516,
+      "gzip": 169510
+    }
+  ],
+  "method": "HTML entry + static ECMAScript import/export graph only; excludes dynamic imports, images and optional fonts; gzip level 9",
+  "total": {
+    "bytes": 667514,
+    "gzip": 178570
+  }
+}

@@ -1,5 +1,8 @@
 {
-  "exclude": ["supabase/functions/company-portal"],
+  "exclude": [
+    "supabase/functions/company-portal",
+    "prototypes"
+  ],
   "compilerOptions": {
     "target": "ES2022",
     "experimentalDecorators": true,

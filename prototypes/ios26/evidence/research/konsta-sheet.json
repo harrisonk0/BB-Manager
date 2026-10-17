@@ -1,0 +1,28 @@
+{
+  "version": "5.5.0",
+  "sources": [
+    "konsta/react/components/Sheet.js",
+    "konsta/shared/classes/SheetClasses.js",
+    "konsta/react/components/Actions.js",
+    "konsta/react/components/Popup.js"
+  ],
+  "sheetProps": [
+    "component",
+    "className",
+    "colors",
+    "opened",
+    "backdrop",
+    "onBackdropClick",
+    "ios",
+    "material",
+    "children",
+    "ref"
+  ],
+  "transition": "400ms CSS translate",
+  "notProvidedByInspectedSheet": [
+    "drag detents",
+    "focus trap",
+    "input repositioning"
+  ],
+  "decision": "Vaul supplies interactive/modal mechanics in Native+; maintenance is a production gate."
+}

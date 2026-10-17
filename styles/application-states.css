@@ -1,0 +1,142 @@
+.bb-loading-surface {
+  max-width: var(--bb-content-max);
+  margin: auto;
+  padding: calc(32px + env(safe-area-inset-top)) var(--bb-gutter);
+  color: var(--bb-ink);
+}
+.bb-skeleton-title {
+  height: 38px;
+  width: 50%;
+  max-width: 240px;
+  border-radius: var(--bb-radius-control);
+  background: var(--bb-divider);
+  margin-bottom: 28px;
+}
+.bb-skeleton-group {
+  background: var(--bb-surface);
+  border-radius: var(--bb-radius-group);
+  padding: 0 16px;
+}
+.bb-skeleton-row {
+  min-height: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  border-bottom: 1px solid var(--bb-divider);
+}
+.bb-skeleton-row:last-child {
+  border: 0;
+}
+.bb-skeleton-row span {
+  height: 14px;
+  width: 60%;
+  background: var(--bb-canvas);
+  border-radius: 8px;
+}
+.bb-skeleton-row span + span {
+  width: 35%;
+}
+.bb-toast {
+  pointer-events: auto;
+  background: var(--bb-surface);
+  color: var(--bb-ink);
+  border: 1px solid var(--bb-divider);
+  border-radius: var(--bb-radius-control);
+  box-shadow: var(--bb-shadow-navigation);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  width: min(100%, 420px);
+}
+.bb-toast p {
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  flex: 1;
+}
+.bb-toast-icon {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+.bb-toast--error > .bb-toast-icon {
+  color: var(--bb-danger);
+}
+.bb-toast--success > .bb-toast-icon {
+  color: var(--bb-success);
+}
+.bb-toast .bb-button {
+  padding: 0;
+  min-width: 44px;
+}
+.bb-fatal-error {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: var(--bb-canvas);
+  color: var(--bb-ink);
+  padding: 24px;
+}
+.bb-fatal-error > div {
+  max-width: 420px;
+}
+.bb-fatal-error h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+.bb-fatal-error p {
+  font-size: 17px;
+  line-height: 1.5;
+  margin: 16px 0;
+}
+.bb-fatal-error button {
+  min-height: 44px;
+  padding: 12px 24px;
+  background: var(--bb-brand);
+  color: white;
+  border-radius: var(--bb-radius-pill);
+}
+.bb-toast-region {
+  position: fixed;
+  z-index: 20000;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: 16px;
+  right: 16px;
+  max-width: 420px;
+  margin: 0 auto;
+  display: grid;
+  gap: 8px;
+  pointer-events: none;
+}
+
+/* Standard VisualViewport keyboard avoidance; zero-inset fallback keeps desktop unchanged. */
+html[data-bb-keyboard-open] .bb-staff-tabs,
+html[data-bb-keyboard-open] .bb-portal-tabs {
+  visibility: hidden;
+  pointer-events: none;
+}
+html[data-bb-keyboard-open] .bb-save-accessory {
+  bottom: calc(var(--bb-keyboard-inset, 0px) + 8px);
+}
+html[data-bb-keyboard-open] .bb-task-sheet.sheet-modal {
+  bottom: var(--bb-keyboard-inset, 0px);
+  max-height: calc(var(--bb-visual-height, 100dvh) - 16px);
+}
+html[data-bb-keyboard-open] .bb-task-sheet .sheet-modal-inner {
+  max-height: calc(var(--bb-visual-height, 100dvh) - 16px);
+}
+
+html[data-bb-keyboard-open] .bb-page-body {
+  padding-bottom: calc(
+    var(--bb-keyboard-inset, 0px) + var(--bb-navigation-clearance) +
+      env(safe-area-inset-bottom, 0px)
+  );
+}
+html[data-bb-keyboard-open] .bb-page .page-content {
+  scroll-padding-bottom: calc(
+    var(--bb-keyboard-inset, 0px) + var(--bb-navigation-clearance) +
+      env(safe-area-inset-bottom, 0px)
+  );
+}

@@ -1,0 +1,22 @@
+{
+  "entry": [
+    "assets/index-lhRZf9_j.js"
+  ],
+  "initial": [
+    {
+      "file": "assets/index-D98c1Voi.css",
+      "bytes": 199740,
+      "gzip": 34179
+    },
+    {
+      "file": "assets/index-lhRZf9_j.js",
+      "bytes": 882437,
+      "gzip": 249819
+    }
+  ],
+  "method": "HTML entry + static ECMAScript import/export graph only; excludes dynamic imports, images and optional fonts; gzip level 9",
+  "total": {
+    "bytes": 1082177,
+    "gzip": 283998
+  }
+}

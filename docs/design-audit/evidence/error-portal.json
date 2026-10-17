@@ -1,0 +1,309 @@
+{
+  "case": "error-portal",
+  "componentView": "portal",
+  "section": "company",
+  "state": "error",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 320,
+        "bodyHeight": 900,
+        "headings": [],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Try again",
+            "width": 69,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 62,
+            "height": 24,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nCould not load your portal.\n\nTry againSign out"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "bodyHeight": 900,
+        "headings": [],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Try again",
+            "width": 69,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 62,
+            "height": 24,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nCould not load your portal.\n\nTry againSign out"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "bodyHeight": 900,
+        "headings": [],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Try again",
+            "width": 69,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 62,
+            "height": 24,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nCould not load your portal.\n\nTry againSign out"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 900,
+        "headings": [],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Try again",
+            "width": 69,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 62,
+            "height": 24,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nCould not load your portal.\n\nTry againSign out"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 900,
+        "headings": [],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Try again",
+            "width": 69,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 62,
+            "height": 24,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nCould not load your portal.\n\nTry againSign out"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 900,
+        "headings": [],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Try again",
+            "width": 69,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 62,
+            "height": 24,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nCould not load your portal.\n\nTry againSign out"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 900,
+        "headings": [],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Company Section",
+            "width": 198,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Account",
+            "width": 53,
+            "height": 20,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Try again",
+            "width": 69,
+            "height": 24,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 62,
+            "height": 24,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Company Section\nAccount\n\nCould not load your portal.\n\nTry againSign out"
+      },
+      "violations": [],
+      "errors": []
+    }
+  ]
+}

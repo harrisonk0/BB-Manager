@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-17",
+  "environment": "Shared Linux cloud VM; bundled Playwright browsers; actual production components with intercepted in-memory Supabase HTTP",
+  "records": [
+    {
+      "browser": "26.0",
+      "members": 100,
+      "width": 390,
+      "samplesMs": [
+        715,
+        189,
+        31,
+        209,
+        100,
+        87,
+        383,
+        102,
+        382,
+        596,
+        221,
+        213,
+        608,
+        184,
+        368
+      ],
+      "medianMs": 213,
+      "p95Ms": 715,
+      "method": "Programmatic native click to next requestAnimationFrame; 3 warmup +15 samples. Cloud VM; not INP, physical-touch latency or iPhone benchmark."
+    },
+    {
+      "browser": "26.0",
+      "members": 30,
+      "width": 390,
+      "samplesMs": [
+        223,
+        108,
+        97,
+        191,
+        86,
+        98,
+        128,
+        15,
+        63,
+        119,
+        77,
+        183,
+        213,
+        47,
+        64
+      ],
+      "medianMs": 98,
+      "p95Ms": 223,
+      "method": "Programmatic native click to next requestAnimationFrame; 3 warmup +15 samples. Cloud VM; not INP, physical-touch latency or iPhone benchmark."
+    },
+    {
+      "browser": "145.0.7632.6",
+      "members": 100,
+      "width": 390,
+      "samplesMs": [
+        287,
+        93,
+        72,
+        83,
+        51,
+        156,
+        187,
+        124,
+        446,
+        149,
+        23,
+        73,
+        46,
+        38,
+        41
+      ],
+      "medianMs": 83,
+      "p95Ms": 446,
+      "method": "Programmatic native click to next requestAnimationFrame; 3 warmup +15 samples. Cloud VM; not INP, physical-touch latency or iPhone benchmark."
+    },
+    {
+      "browser": "145.0.7632.6",
+      "members": 30,
+      "width": 390,
+      "samplesMs": [
+        101,
+        25,
+        54,
+        26,
+        24,
+        72,
+        66,
+        13,
+        21,
+        21,
+        12,
+        19,
+        20,
+        17,
+        23
+      ],
+      "medianMs": 23,
+      "p95Ms": 101,
+      "method": "Programmatic native click to next requestAnimationFrame; 3 warmup +15 samples. Cloud VM; not INP, physical-touch latency or iPhone benchmark."
+    }
+  ]
+}

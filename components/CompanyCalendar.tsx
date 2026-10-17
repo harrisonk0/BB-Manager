@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { isCalendarEventVisible } from '../supabase/functions/_shared/calendar';
-import type { CompanyEvent } from '../types/portal';
-import { eventDateLabel, londonDateTime } from '../services/portal';
+import { NativeButton, NativeSegmented, EmptyState } from "./ui";
+import "./portal/portal.css";
+import React, { useEffect, useMemo, useState } from "react";
+import { isCalendarEventVisible } from "../supabase/functions/_shared/calendar";
+import type { CompanyEvent } from "../types/portal";
+import { eventDateLabel, londonDateTime } from "../services/portal";
 import {
   CalendarIcon,
   MapPinIcon,
@@ -9,7 +11,7 @@ import {
   ArrowDownTrayIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-} from './Icons';
+} from "./Icons";
 
 export function EventCard({
   event,
@@ -22,60 +24,58 @@ export function EventCard({
 }) {
   return (
     <article
-      className={`rounded-2xl border p-5 shadow-sm ${event.cancelled ? 'border-red-200 bg-red-50' : 'border-slate-200 bg-white'}`}
+      className={`bb-event ${event.cancelled ? "bb-event--cancelled" : ""}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="font-semibold text-slate-900">{event.title}</h3>
-        {event.cancelled && (
-          <span className="text-xs font-semibold text-red-700">Cancelled</span>
-        )}
+      <div className="bb-event-heading">
+        <span className="bb-event-date" aria-hidden="true">
+          <strong>
+            {new Intl.DateTimeFormat("en-GB", {
+              day: "numeric",
+              timeZone: "Europe/London",
+            }).format(new Date(event.starts_at))}
+          </strong>
+          <span>
+            {new Intl.DateTimeFormat("en-GB", {
+              month: "short",
+              timeZone: "Europe/London",
+            }).format(new Date(event.starts_at))}
+          </span>
+        </span>
+        <div>
+          <h3>{event.title}</h3>
+          {event.cancelled && (
+            <span className="bb-event-cancelled">Cancelled</span>
+          )}
+          <p>
+            <CalendarIcon className="w-4 h-4" aria-hidden="true" />
+            {eventDateLabel(event.starts_at)} –{" "}
+            {londonDateTime(event.starts_at).slice(0, 10) ===
+            londonDateTime(event.ends_at).slice(0, 10)
+              ? londonDateTime(event.ends_at).slice(11)
+              : eventDateLabel(event.ends_at)}
+          </p>
+        </div>
       </div>
-      <p className="text-sm text-company-blue mt-3 flex items-start gap-2">
-        <span aria-hidden="true">
-          <CalendarIcon className="w-4 h-4 mt-0.5 shrink-0" />
-        </span>
-        <span>
-          {eventDateLabel(event.starts_at)} –{' '}
-          {londonDateTime(event.starts_at).slice(0, 10) ===
-          londonDateTime(event.ends_at).slice(0, 10)
-            ? londonDateTime(event.ends_at).slice(11)
-            : eventDateLabel(event.ends_at)}
-        </span>
-      </p>
       {event.location && (
-        <p className="text-sm text-slate-600 mt-2 flex items-start gap-2">
-          <MapPinIcon className="w-4 h-4 mt-0.5 shrink-0" />
-          <span>{event.location}</span>
+        <p className="bb-event-location">
+          <MapPinIcon className="w-4 h-4" aria-hidden="true" />
+          {event.location}
         </p>
       )}
-      {event.details && (
-        <p className="text-sm text-slate-600 mt-3 whitespace-pre-wrap break-words">
-          {event.details}
-        </p>
-      )}
+      {event.details && <p className="bb-event-details">{event.details}</p>}
       {(onEdit || onPoster) && (
-        <div className="flex flex-wrap gap-3 mt-4 text-sm font-medium">
+        <div className="bb-portal-actions">
           {onEdit && (
-            <button
-              onClick={onEdit}
-              className="text-company-blue border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50 inline-flex items-center gap-2"
-            >
-              <span aria-hidden="true">
-                <PencilIcon className="w-4 h-4" />
-              </span>
+            <NativeButton variant="secondary" onClick={onEdit}>
+              <PencilIcon className="w-4 h-4" aria-hidden="true" />
               Edit event
-            </button>
+            </NativeButton>
           )}
           {onPoster && (
-            <button
-              onClick={onPoster}
-              className="text-company-blue bg-blue-50 rounded-lg px-3 py-2 hover:bg-blue-100 inline-flex items-center gap-2"
-            >
-              <span aria-hidden="true">
-                <ArrowDownTrayIcon className="w-4 h-4" />
-              </span>
-              Download poster PDF
-            </button>
+            <NativeButton variant="plain" onClick={onPoster}>
+              <ArrowDownTrayIcon className="w-4 h-4" aria-hidden="true" />
+              Poster PDF
+            </NativeButton>
           )}
         </div>
       )}
@@ -95,20 +95,24 @@ export default function CompanyCalendar({
   useEffect(() => {
     const update = () => setNow(Date.now());
     const timer = window.setInterval(update, 30000);
-    window.addEventListener('focus', update);
+    window.addEventListener("focus", update);
     return () => {
       window.clearInterval(timer);
-      window.removeEventListener('focus', update);
+      window.removeEventListener("focus", update);
     };
   }, []);
   const [month, setMonth] = useState(() =>
     londonDateTime(new Date().toISOString()).slice(0, 7),
   );
   const [day, setDay] = useState<string | null>(null);
+  const [view, setView] = useState("agenda");
   const monthEvents = useMemo(
-    () => events.filter(
-      (e) => isCalendarEventVisible(e, now) && londonDateTime(e.starts_at).startsWith(month),
-    ),
+    () =>
+      events.filter(
+        (e) =>
+          isCalendarEventVisible(e, now) &&
+          londonDateTime(e.starts_at).startsWith(month),
+      ),
     [events, month, now],
   );
   const first = new Date(`${month}-01T12:00:00Z`);
@@ -129,97 +133,106 @@ export default function CompanyCalendar({
       )
     : monthEvents;
   return (
-    <section className="space-y-5">
-      <p className="text-xs text-slate-500">
+    <section className="bb-calendar">
+      <NativeSegmented
+        label="Calendar presentation"
+        value={view}
+        onChange={setView}
+        options={[
+          { value: "agenda", label: "Agenda" },
+          { value: "month", label: "Month" },
+        ]}
+      />
+      <p className="bb-portal-note">
         Events clear automatically 24 hours after they end.
       </p>
       <div className="flex items-center justify-between">
-        <button
+        <NativeButton
           aria-label="Previous month"
           onClick={() => move(-1)}
-          className="rounded-lg bg-white border px-4 py-2"
+          variant="plain"
         >
           <span aria-hidden="true">
             <ChevronLeftIcon className="w-4 h-4" />
           </span>
-        </button>
+        </NativeButton>
         <h2 className="font-semibold">
-          {first.toLocaleDateString('en-GB', {
-            month: 'long',
-            year: 'numeric',
-            timeZone: 'UTC',
+          {first.toLocaleDateString("en-GB", {
+            month: "long",
+            year: "numeric",
+            timeZone: "UTC",
           })}
         </h2>
-        <button
+        <NativeButton
           aria-label="Next month"
           onClick={() => move(1)}
-          className="rounded-lg bg-white border px-4 py-2"
+          variant="plain"
         >
           <span aria-hidden="true">
             <ChevronRightIcon className="w-4 h-4" />
           </span>
-        </button>
+        </NativeButton>
       </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
-        <div className="grid grid-cols-7 text-center text-xs text-slate-500 mb-2">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
-            <span key={d}>{d}</span>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: offset }, (_, i) => (
-            <span key={`blank-${i}`} />
-          ))}
-          {Array.from({ length: count }, (_, i) => {
-            const date = `${month}-${String(i + 1).padStart(2, '0')}`;
-            const nights = monthEvents.filter(
-              (e) => londonDateTime(e.starts_at).slice(0, 10) === date,
-            );
-            const today =
-              date === londonDateTime(new Date().toISOString()).slice(0, 10);
-            return (
-              <button
-                key={date}
-                aria-label={`${date}${nights.length ? `, ${nights.length} events` : ''}`}
-                aria-pressed={day === date}
-                aria-current={today ? 'date' : undefined}
-                onClick={() => setDay(day === date ? null : date)}
-                className={`h-12 sm:h-14 rounded-xl text-sm flex flex-col items-center justify-center ${day === date ? 'bg-company-blue text-white shadow-sm' : today ? 'bg-blue-50 text-company-blue font-bold' : 'hover:bg-slate-100'}`}
-              >
-                {i + 1}
-                <span
-                  className="flex h-2 items-center gap-1 mt-1"
-                  aria-hidden="true"
+      {view === "month" && (
+        <div className="bb-calendar-month">
+          <div className="bb-calendar-weekdays">
+            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+              <span key={d}>{d}</span>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: offset }, (_, i) => (
+              <span key={`blank-${i}`} />
+            ))}
+            {Array.from({ length: count }, (_, i) => {
+              const date = `${month}-${String(i + 1).padStart(2, "0")}`;
+              const nights = monthEvents.filter(
+                (e) => londonDateTime(e.starts_at).slice(0, 10) === date,
+              );
+              const today =
+                date === londonDateTime(new Date().toISOString()).slice(0, 10);
+              return (
+                <NativeButton
+                  key={date}
+                  aria-label={`${date}${nights.length ? `, ${nights.length} events` : ""}`}
+                  aria-pressed={day === date}
+                  aria-current={today ? "date" : undefined}
+                  onClick={() => setDay(day === date ? null : date)}
+                  variant="plain"
+                  className={`bb-calendar-day ${day === date ? "is-selected" : today ? "is-today" : ""}`}
                 >
-                  {nights.slice(0, 3).map((night) => (
-                    <span
-                      key={night.id}
-                      className={`h-1.5 w-1.5 rounded-full ${night.cancelled ? 'bg-red-500' : day === date ? 'bg-white' : 'bg-company-blue'}`}
-                    />
-                  ))}
-                </span>
-              </button>
-            );
-          })}
+                  {i + 1}
+                  <span
+                    className="flex h-2 items-center gap-1 mt-1"
+                    aria-hidden="true"
+                  >
+                    {nights.slice(0, 3).map((night) => (
+                      <span
+                        key={night.id}
+                        className={`bb-calendar-dot ${night.cancelled ? "is-cancelled" : day === date ? "is-selected" : ""}`}
+                      />
+                    ))}
+                  </span>
+                </NativeButton>
+              );
+            })}
+          </div>
+          <div className="bb-calendar-legend">
+            <span className="flex items-center gap-2">
+              <span className="bb-calendar-dot" />
+              Night or event
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="bb-calendar-dot is-cancelled" />
+              Cancelled
+            </span>
+          </div>
         </div>
-        <div className="flex flex-wrap justify-center gap-4 text-xs text-slate-500 border-t border-slate-100 mt-3 pt-3">
-          <span className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-company-blue" />
-            Night or event
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-            Cancelled
-          </span>
-        </div>
-      </div>
+      )}
       {day && (
-        <button
-          onClick={() => setDay(null)}
-          className="text-sm text-company-blue"
-        >
+        <NativeButton onClick={() => setDay(null)} variant="plain">
           Show all this month
-        </button>
+        </NativeButton>
       )}
       <div className="space-y-3">
         {visible.map((event) => (
@@ -231,9 +244,9 @@ export default function CompanyCalendar({
           />
         ))}
         {!visible.length && (
-          <p className="text-sm text-slate-500 py-5 text-center">
-            No events {day ? 'on this day' : 'this month'}.
-          </p>
+          <EmptyState title={`No events ${day ? "on this day" : "this month"}`}>
+            <span>Choose another month to explore upcoming nights.</span>
+          </EmptyState>
         )}
       </div>
     </section>

@@ -25,7 +25,7 @@ export default defineConfig(() => {
         globals: true,
         environment: 'node',
         include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-        exclude: ['node_modules', 'dist', '.supabase'],
+        exclude: ['**/node_modules/**', '**/dist/**', '.supabase/**', 'prototypes/**'],
         coverage: {
           provider: 'v8' as const,
           reporter: ['text', 'html'],

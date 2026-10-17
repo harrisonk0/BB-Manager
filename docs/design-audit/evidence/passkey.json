@@ -1,0 +1,246 @@
+{
+  "case": "passkey",
+  "componentView": "passkey",
+  "section": "company",
+  "state": "populated",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 320,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Create your passkey",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Create passkey",
+            "width": 256,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 256,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Create your passkey\n\nThis is a one-time step. After you create a passkey, this account can no longer sign in with the old password. Use this device's fingerprint, face, PIN, or pas"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Create your passkey",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Create passkey",
+            "width": 311,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 311,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Create your passkey\n\nThis is a one-time step. After you create a passkey, this account can no longer sign in with the old password. Use this device's fingerprint, face, PIN, or pas"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Create your passkey",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Create passkey",
+            "width": 326,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 326,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Create your passkey\n\nThis is a one-time step. After you create a passkey, this account can no longer sign in with the old password. Use this device's fingerprint, face, PIN, or pas"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Create your passkey",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Create passkey",
+            "width": 366,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 366,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Create your passkey\n\nThis is a one-time step. After you create a passkey, this account can no longer sign in with the old password. Use this device's fingerprint, face, PIN, or pas"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Create your passkey",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Create passkey",
+            "width": 384,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 384,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Create your passkey\n\nThis is a one-time step. After you create a passkey, this account can no longer sign in with the old password. Use this device's fingerprint, face, PIN, or pas"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Create your passkey",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Create passkey",
+            "width": 384,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 384,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Create your passkey\n\nThis is a one-time step. After you create a passkey, this account can no longer sign in with the old password. Use this device's fingerprint, face, PIN, or pas"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 900,
+        "headings": [
+          {
+            "text": "Create your passkey",
+            "font": "20px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Create passkey",
+            "width": 384,
+            "height": 38,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Sign out",
+            "width": 384,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Create your passkey\n\nThis is a one-time step. After you create a passkey, this account can no longer sign in with the old password. Use this device's fingerprint, face, PIN, or pas"
+      },
+      "violations": [],
+      "errors": []
+    }
+  ]
+}

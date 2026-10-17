@@ -1,10 +1,12 @@
-import { NameWithRank } from './RankBadge';
-import React, { useEffect, useState } from 'react';
-import type { Boy, ToastType } from '../types';
-import type { PortalAccount, SetupLink } from '../types/portal';
-import { listPortalAccounts, provisionPortalAccount } from '../services/portal';
-import Modal from './Modal';
-import { KeyIcon, UserCircleIcon } from './Icons';
+import { NativeButton, NativeInput, InlineNotice } from "./ui";
+import "./portal/portal.css";
+import { NameWithRank } from "./RankBadge";
+import React, { useEffect, useState } from "react";
+import type { Boy, ToastType } from "../types";
+import type { PortalAccount, SetupLink } from "../types/portal";
+import { listPortalAccounts, provisionPortalAccount } from "../services/portal";
+import Modal from "./Modal";
+import { KeyIcon, UserCircleIcon } from "./Icons";
 
 export default function PortalAccessPage({
   boys,
@@ -17,7 +19,7 @@ export default function PortalAccessPage({
   const [links, setLinks] = useState<Record<string, SetupLink>>({});
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [reset, setReset] = useState<Boy | null>(null);
   const refresh = async () => {
     setLoaded(false);
@@ -30,7 +32,7 @@ export default function PortalAccessPage({
   }, []);
   const generate = async (targets: Boy[]) => {
     setBusy(true);
-    setError('');
+    setError("");
     let count = 0;
     try {
       for (const boy of targets) {
@@ -39,16 +41,16 @@ export default function PortalAccessPage({
         setLinks((prev) => ({ ...prev, [boy.id!]: link }));
         count++;
       }
-      showToast(`${count} setup ${count === 1 ? 'link' : 'links'} generated.`);
+      showToast(`${count} setup ${count === 1 ? "link" : "links"} generated.`);
     } catch (e) {
       setError(
-        `Generated ${count} links. ${e instanceof Error ? e.message : 'Could not finish.'}`,
+        `Generated ${count} links. ${e instanceof Error ? e.message : "Could not finish."}`,
       );
     } finally {
       try {
         await refresh();
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Could not refresh.');
+        setError(e instanceof Error ? e.message : "Could not refresh.");
       }
       setBusy(false);
       setReset(null);
@@ -60,16 +62,16 @@ export default function PortalAccessPage({
   const copy = async (link: string) => {
     try {
       await navigator.clipboard.writeText(link);
-      showToast('Setup link copied.');
+      showToast("Setup link copied.");
     } catch {
       showToast(
-        'Could not copy. Select the link and copy it manually.',
-        'error',
+        "Could not copy. Select the link and copy it manually.",
+        "error",
       );
     }
   };
   return (
-    <div className="space-y-6">
+    <div className="bb-portal-content">
       <div className="flex flex-wrap justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
@@ -79,57 +81,52 @@ export default function PortalAccessPage({
             >
               <KeyIcon className="w-6 h-6" />
             </span>
-            <h1 className="text-3xl font-bold">Boys’ portal access</h1>
+            <h2>Portal accounts</h2>
           </div>
           <p className="text-sm text-slate-600 mt-2">
             Give each Company boy his personal link. He creates a passkey and
             signs in from the normal login page.
           </p>
         </div>
-        <button
+        <NativeButton
           disabled={busy || !loaded || !missing.length}
           onClick={() => void generate(missing)}
-          className="bg-company-blue text-white rounded-lg px-5 py-3 disabled:opacity-50"
         >
           {!loaded
-            ? 'Loading access…'
+            ? "Loading access…"
             : busy
-              ? 'Generating…'
+              ? "Generating…"
               : `Generate for ${missing.length} boys without access`}
-        </button>
+        </NativeButton>
       </div>
-      <p className="text-sm text-slate-500">
+      <p className="bb-portal-note">
         Copy new links before leaving this page. If a link is lost, generate a
         replacement. Resetting access removes existing passkeys and calendar
         subscriptions.
       </p>
       {error && (
-        <p role="alert" className="bg-red-50 text-red-700 p-4 rounded-lg">
+        <InlineNotice kind="error">
           {error}
           {!loaded && (
-            <button
+            <NativeButton
               disabled={busy}
               onClick={() =>
                 void refresh()
-                  .then(() => setError(''))
+                  .then(() => setError(""))
                   .catch((e) => setError(e.message))
               }
-              className="underline ml-3"
             >
               Try again
-            </button>
+            </NativeButton>
           )}
-        </p>
+        </InlineNotice>
       )}
-      <div className="space-y-3">
+      <ul className="bb-portal-access-list">
         {boys.map((boy) => {
           const a = accounts.find((a) => a.member_id === boy.id);
           const link = links[boy.id!];
           return (
-            <article
-              key={boy.id}
-              className="bg-white border rounded-xl p-5 space-y-3"
-            >
+            <li key={boy.id} className="bb-portal-account-row">
               <div className="flex flex-wrap justify-between gap-3">
                 <div>
                   <h2 className="font-semibold flex items-center gap-2">
@@ -138,50 +135,51 @@ export default function PortalAccessPage({
                     </span>
                     <NameWithRank name={boy.name} memberRank={boy.memberRank} />
                   </h2>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="bb-portal-note">
                     {!loaded
-                      ? 'Loading…'
+                      ? "Loading…"
                       : a
-                        ? `${a.username} · ${a.activated_at ? 'Active' : 'Awaiting passkey setup'}`
-                        : 'Not generated'}
+                        ? `${a.username} · ${a.activated_at ? "Active" : "Awaiting passkey setup"}`
+                        : "Not generated"}
                   </p>
                 </div>
-                <div className="flex gap-3 items-center">
+                <div className="bb-portal-actions">
                   {link && (
-                    <button
+                    <NativeButton
+                      variant="plain"
                       disabled={busy}
                       onClick={() => void copy(link.link)}
-                      className="text-sm text-company-blue underline"
                     >
                       Copy setup link
-                    </button>
+                    </NativeButton>
                   )}
-                  <button
+                  <NativeButton
+                    variant="secondary"
                     disabled={busy || !loaded}
                     onClick={() => (a ? setReset(boy) : void generate([boy]))}
-                    className="border rounded-lg px-3 py-2 text-sm disabled:opacity-50"
                   >
-                    {a ? 'Reset access' : 'Generate link'}
-                  </button>
+                    {a ? "Reset access" : "Generate link"}
+                  </NativeButton>
                 </div>
               </div>
               {link && (
-                <input
-                  aria-label={`Setup link for ${boy.name}`}
+                <NativeInput
+                  label={`Setup link for ${boy.name}`}
                   readOnly
                   value={link.link}
-                  className="w-full border rounded-lg p-2 text-xs text-slate-600"
+                  className="bb-input bb-portal-secret"
                 />
               )}
-            </article>
+            </li>
           );
         })}
-      </div>
+      </ul>
       {!boys.length && (
-        <p className="text-slate-500">Add Company boys to the roster first.</p>
+        <p className="bb-portal-note">Add Company boys to the roster first.</p>
       )}
       <Modal
         isOpen={!!reset}
+        dismissible={!busy}
         onClose={() => {
           if (!busy) setReset(null);
         }}
@@ -189,24 +187,27 @@ export default function PortalAccessPage({
       >
         <div className="space-y-4">
           <p>
-            Generate a fresh setup link for {reset && <NameWithRank name={reset.name} memberRank={reset.memberRank} />}? His existing passkeys
-            and calendar subscription will stop working.
+            Generate a fresh setup link for{" "}
+            {reset && (
+              <NameWithRank name={reset.name} memberRank={reset.memberRank} />
+            )}
+            ? His existing passkeys and calendar subscription will stop working.
           </p>
           <div className="flex justify-end gap-3">
-            <button
+            <NativeButton
+              variant="plain"
               disabled={busy}
               onClick={() => setReset(null)}
-              className="px-4 py-2"
             >
               Cancel
-            </button>
-            <button
+            </NativeButton>
+            <NativeButton
+              danger
               disabled={busy}
               onClick={() => reset && void generate([reset])}
-              className="bg-company-blue text-white rounded-lg px-4 py-2"
             >
-              {busy ? 'Resetting…' : 'Reset and generate link'}
-            </button>
+              {busy ? "Resetting…" : "Reset and generate link"}
+            </NativeButton>
           </div>
         </div>
       </Modal>

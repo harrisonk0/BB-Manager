@@ -1,16 +1,27 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import type { ToastType } from '../types';
-import type { CalendarSettings, CompanyEvent } from '../types/portal';
+import {
+  NativeButton,
+  NativeSwitch,
+  NativeInput,
+  NativeField,
+  GroupedList,
+  SettingsRow,
+  InlineNotice,
+  LoadingState,
+} from "./ui";
+import "./portal/portal.css";
+import React, { useCallback, useEffect, useState } from "react";
+import type { ToastType } from "../types";
+import type { CalendarSettings, CompanyEvent } from "../types/portal";
 import {
   generateCompanyNights,
   getCalendarSettings,
   listCompanyEvents,
   londonDateTime,
   saveCompanyEvent,
-} from '../services/portal';
-import CompanyCalendar from './CompanyCalendar';
-import Modal from './Modal';
-import { CalendarIcon, PlusIcon } from './Icons';
+} from "../services/portal";
+import CompanyCalendar from "./CompanyCalendar";
+import Modal from "./Modal";
+import { CalendarIcon, PlusIcon } from "./Icons";
 
 type EventDraft = {
   id?: string;
@@ -23,36 +34,35 @@ type EventDraft = {
   cancelled: boolean;
 };
 const emptyDraft: EventDraft = {
-  title: '',
-  startsLocal: '',
-  endsLocal: '',
-  location: '',
-  details: '',
+  title: "",
+  startsLocal: "",
+  endsLocal: "",
+  location: "",
+  details: "",
   cancelled: false,
 };
 const emptySettings: CalendarSettings = {
   id: true,
-  starts_on: '',
-  ends_on: '',
-  starts_at: '',
-  ends_at: '',
-  location: '',
-  timezone: 'Europe/London',
+  starts_on: "",
+  ends_on: "",
+  starts_at: "",
+  ends_at: "",
+  location: "",
+  timezone: "Europe/London",
 };
-const input =
-  'block w-full rounded-lg border border-slate-300 bg-white p-2.5 mt-1 text-sm';
 export default function CompanyCalendarPage({
   showToast,
 }: {
   showToast: (message: string, type?: ToastType) => void;
 }) {
+  const [loaded, setLoaded] = useState(false);
   const [events, setEvents] = useState<CompanyEvent[]>([]);
   const [settings, setSettings] = useState<CalendarSettings>(emptySettings);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<EventDraft>(emptyDraft);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [formError, setFormError] = useState('');
+  const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
   // Keep the modal focus trap stable while staff type into the event fields.
   const closeEditor = useCallback(() => {
     if (!busy) setEditing(false);
@@ -63,6 +73,7 @@ export default function CompanyCalendarPage({
       getCalendarSettings(),
     ]);
     setEvents(e);
+    setLoaded(true);
     if (s)
       setSettings({
         ...s,
@@ -76,13 +87,13 @@ export default function CompanyCalendarPage({
   const generate = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    setError('');
+    setError("");
     try {
       const count = await generateCompanyNights(settings);
       await refresh();
       showToast(`${count} weekly nights added. Existing nights were kept.`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not generate nights.');
+      setError(e instanceof Error ? e.message : "Could not generate nights.");
     } finally {
       setBusy(false);
     }
@@ -90,16 +101,16 @@ export default function CompanyCalendarPage({
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    setFormError('');
+    setFormError("");
     try {
       await saveCompanyEvent(draft);
       await refresh();
       setEditing(false);
       showToast(
-        'Event saved. Calendar subscriptions and notifications will update.',
+        "Event saved. Calendar subscriptions and notifications will update.",
       );
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : 'Could not save event.');
+      setFormError(e instanceof Error ? e.message : "Could not save event.");
     } finally {
       setBusy(false);
     }
@@ -108,60 +119,73 @@ export default function CompanyCalendarPage({
     setBusy(true);
     try {
       const [{ pdf }, { default: EventPoster }] = await Promise.all([
-        import('@react-pdf/renderer'),
-        import('./reports/EventPosterDocument'),
+        import("@react-pdf/renderer"),
+        import("./reports/EventPosterDocument"),
       ]);
       const blob = await pdf(<EventPoster event={event} />).toBlob();
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = `${event.title.replace(/[^a-z0-9]/gi, '-') || 'event'}-poster.pdf`;
+      link.className = "external"; // Downloads belong to the browser, never the page router.
+      link.download = `${event.title.replace(/[^a-z0-9]/gi, "-") || "event"}-poster.pdf`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (e) {
       showToast(
-        'Could not create the event poster. Please try again.',
-        'error',
+        "Could not create the event poster. Please try again.",
+        "error",
       );
     } finally {
       setBusy(false);
     }
   };
+  if (!loaded && !error)
+    return <LoadingState label="Loading Company calendar…" />;
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex flex-wrap justify-between items-center gap-4 rounded-2xl bg-gradient-to-br from-company-blue via-[#2a3e61] to-[#3b5f91] p-6 sm:p-8 text-white shadow-sm">
+    <div className="bb-portal-content bb-calendar-page">
+      <div className="bb-portal-intro">
         <div>
           <div className="flex items-center gap-3">
             <span aria-hidden="true" className="rounded-xl bg-white/10 p-3">
               <CalendarIcon className="w-7 h-7" />
             </span>
-            <h1 className="text-3xl font-bold">Company calendar</h1>
+            <h2>Plan Company nights</h2>
           </div>
-          <p className="text-sm text-blue-100 mt-2">
+          <p className="bb-portal-note">
             Plan nights, share updates and create event posters.
           </p>
         </div>
-        <button
+        <NativeButton
           disabled={busy}
           onClick={() => {
             setDraft(emptyDraft);
-            setFormError('');
+            setFormError("");
             setEditing(true);
           }}
-          className="bg-white text-company-blue font-semibold px-5 py-3 rounded-xl shadow-sm hover:bg-blue-50 disabled:opacity-50 inline-flex items-center gap-2"
         >
           <span aria-hidden="true">
-            <PlusIcon className="w-5 h-5" />
+            <PlusIcon />
           </span>
           Add event
-        </button>
+        </NativeButton>
       </div>
       {error && (
-        <p role="alert" className="bg-red-50 text-red-700 rounded-lg p-4">
-          {error}
-        </p>
+        <InlineNotice kind="error">
+          <p>{error}</p>
+          <NativeButton
+            variant="secondary"
+            disabled={busy}
+            onClick={() =>
+              void refresh()
+                .then(() => setError(""))
+                .catch((e) => setError(e.message))
+            }
+          >
+            Try again
+          </NativeButton>
+        </InlineNotice>
       )}
-      <details className="bg-white border rounded-xl p-5">
+      <details className="bb-portal-disclosure">
         <summary className="font-semibold cursor-pointer">
           Weekly nights for the BB year
         </summary>
@@ -171,74 +195,66 @@ export default function CompanyCalendarPage({
             events, edits and cancellations are preserved. Times are in
             Europe/London.
           </p>
-          <div className="grid grid-cols-2 gap-4">
-            <label className="text-sm">
-              First date
-              <input
-                required
-                type="date"
-                value={settings.starts_on}
-                onChange={(e) =>
-                  setSettings({ ...settings, starts_on: e.target.value })
-                }
-                className={input}
-              />
-            </label>
-            <label className="text-sm">
-              Last date
-              <input
-                required
-                type="date"
-                min={settings.starts_on}
-                value={settings.ends_on}
-                onChange={(e) =>
-                  setSettings({ ...settings, ends_on: e.target.value })
-                }
-                className={input}
-              />
-            </label>
-            <label className="text-sm">
-              Normal start time
-              <input
-                required
-                type="time"
-                value={settings.starts_at}
-                onChange={(e) =>
-                  setSettings({ ...settings, starts_at: e.target.value })
-                }
-                className={input}
-              />
-            </label>
-            <label className="text-sm">
-              Normal end time
-              <input
-                required
-                type="time"
-                value={settings.ends_at}
-                onChange={(e) =>
-                  setSettings({ ...settings, ends_at: e.target.value })
-                }
-                className={input}
-              />
-            </label>
-          </div>
-          <label className="block text-sm">
-            Normal location
-            <input
-              maxLength={500}
-              value={settings.location}
+          <div className="bb-portal-form-grid">
+            <NativeInput
+              disabled={busy}
+              label="First date"
+              required
+              type="date"
+              value={settings.starts_on}
               onChange={(e) =>
-                setSettings({ ...settings, location: e.target.value })
+                setSettings({ ...settings, starts_on: e.target.value })
               }
-              className={input}
+              className="bb-input"
             />
-          </label>
-          <button
+            <NativeInput
+              disabled={busy}
+              label="Last date"
+              required
+              type="date"
+              min={settings.starts_on}
+              value={settings.ends_on}
+              onChange={(e) =>
+                setSettings({ ...settings, ends_on: e.target.value })
+              }
+              className="bb-input"
+            />
+            <NativeInput
+              disabled={busy}
+              label="Normal start time"
+              required
+              type="time"
+              value={settings.starts_at}
+              onChange={(e) =>
+                setSettings({ ...settings, starts_at: e.target.value })
+              }
+              className="bb-input"
+            />
+            <NativeInput
+              disabled={busy}
+              label="Normal end time"
+              required
+              type="time"
+              value={settings.ends_at}
+              onChange={(e) =>
+                setSettings({ ...settings, ends_at: e.target.value })
+              }
+              className="bb-input"
+            />
+          </div>
+          <NativeInput
             disabled={busy}
-            className="bg-company-blue text-white rounded-lg px-4 py-2 disabled:opacity-50"
-          >
-            {busy ? 'Working…' : 'Save and generate weekly nights'}
-          </button>
+            label="Normal location"
+            maxLength={500}
+            value={settings.location}
+            onChange={(e) =>
+              setSettings({ ...settings, location: e.target.value })
+            }
+            className="bb-input"
+          />
+          <NativeButton type="submit" disabled={busy}>
+            {busy ? "Working…" : "Save and generate weekly nights"}
+          </NativeButton>
         </form>
       </details>
       <CompanyCalendar
@@ -254,7 +270,7 @@ export default function CompanyCalendarPage({
             details: event.details,
             cancelled: event.cancelled,
           });
-          setFormError('');
+          setFormError("");
           setEditing(true);
         }}
         onPoster={(event) => {
@@ -263,101 +279,95 @@ export default function CompanyCalendarPage({
       />
       <Modal
         isOpen={editing}
+        dismissible={!busy}
         onClose={closeEditor}
-        title={draft.id ? 'Edit event' : 'Add event'}
+        title={draft.id ? "Edit event" : "Add event"}
       >
         <form onSubmit={(e) => void save(e)} className="space-y-4">
-          {formError && (
-            <p role="alert" className="bg-red-50 text-red-700 rounded-lg p-3">
-              {formError}
-            </p>
-          )}
-          <label className="block text-sm">
-            Title
-            <input
-              autoFocus
-              required
-              maxLength={160}
-              value={draft.title}
-              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-              className={input}
-            />
-          </label>
+          {formError && <InlineNotice kind="error">{formError}</InlineNotice>}
+          <NativeInput
+            disabled={busy}
+            label="Title"
+            autoFocus
+            required
+            maxLength={160}
+            value={draft.title}
+            onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+            className="bb-input"
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="text-sm">
-              Starts (London time)
-              <input
-                required
-                type="datetime-local"
-                value={draft.startsLocal}
-                onChange={(e) =>
-                  setDraft({ ...draft, startsLocal: e.target.value })
-                }
-                className={input}
-              />
-            </label>
-            <label className="text-sm">
-              Ends (London time)
-              <input
-                required
-                type="datetime-local"
-                min={draft.startsLocal}
-                value={draft.endsLocal}
-                onChange={(e) =>
-                  setDraft({ ...draft, endsLocal: e.target.value })
-                }
-                className={input}
-              />
-            </label>
-          </div>
-          <label className="block text-sm">
-            Location
-            <input
-              maxLength={500}
-              value={draft.location}
-              onChange={(e) => setDraft({ ...draft, location: e.target.value })}
-              className={input}
+            <NativeInput
+              disabled={busy}
+              label="Starts (London time)"
+              required
+              type="datetime-local"
+              value={draft.startsLocal}
+              onChange={(e) =>
+                setDraft({ ...draft, startsLocal: e.target.value })
+              }
+              className="bb-input"
             />
-          </label>
-          <label className="block text-sm">
-            Details
+            <NativeInput
+              disabled={busy}
+              label="Ends (London time)"
+              required
+              type="datetime-local"
+              min={draft.startsLocal}
+              value={draft.endsLocal}
+              onChange={(e) =>
+                setDraft({ ...draft, endsLocal: e.target.value })
+              }
+              className="bb-input"
+            />
+          </div>
+          <NativeInput
+            disabled={busy}
+            label="Location"
+            maxLength={500}
+            value={draft.location}
+            onChange={(e) => setDraft({ ...draft, location: e.target.value })}
+            className="bb-input"
+          />
+          <NativeField label="Details" htmlFor="event-details">
             <textarea
+              disabled={busy}
+              id="event-details"
               rows={5}
               maxLength={10000}
               value={draft.details}
               onChange={(e) => setDraft({ ...draft, details: e.target.value })}
-              className={input}
+              className="bb-input"
             />
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={draft.cancelled}
-              onChange={(e) =>
-                setDraft({ ...draft, cancelled: e.target.checked })
+          </NativeField>
+          <GroupedList title="Event status">
+            <SettingsRow
+              title="Cancelled"
+              detail="Keep the event visible with a cancellation notice"
+              trailing={
+                <NativeSwitch
+                  disabled={busy}
+                  label="This event is cancelled"
+                  checked={draft.cancelled}
+                  onChange={(cancelled) => setDraft({ ...draft, cancelled })}
+                />
               }
             />
-            This event is cancelled
-          </label>
-          <p className="text-xs text-slate-500">
+          </GroupedList>
+          <p className="text-sm text-slate-500">
             New events, cancellations, and changes to date, times or location
             send browser notifications.
           </p>
           <div className="flex justify-end gap-3">
-            <button
+            <NativeButton
               type="button"
               disabled={busy}
               onClick={() => setEditing(false)}
-              className="px-4 py-2"
             >
               Cancel
-            </button>
-            <button
-              disabled={busy}
-              className="bg-company-blue text-white rounded-lg px-4 py-2 disabled:opacity-50"
-            >
-              {busy ? 'Saving…' : 'Save event'}
-            </button>
+            </NativeButton>
+            <NativeButton type="submit" disabled={busy}>
+              {busy ? "Saving…" : "Save event"}
+            </NativeButton>
           </div>
         </form>
       </Modal>

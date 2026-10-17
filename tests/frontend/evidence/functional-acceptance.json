@@ -1,0 +1,120 @@
+{
+  "source": "test-results/frontend-acceptance-final/results.json",
+  "startTime": "2026-10-17T09:48:01.191Z",
+  "durationMs": 647462.011,
+  "stats": {
+    "startTime": "2026-10-17T09:48:01.191Z",
+    "duration": 647462.011,
+    "expected": 118,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "bySuite": {
+    "adapters.e2e.ts:chromium": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "adapters.e2e.ts:webkit": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "app.e2e.ts:chromium": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "app.e2e.ts:webkit": {
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "auth.e2e.ts:chromium": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "auth.e2e.ts:webkit": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "mobile.e2e.ts:chromium": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "mobile.e2e.ts:webkit": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "scope.e2e.ts:chromium": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "scope.e2e.ts:webkit": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "security.e2e.ts:chromium": {
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "security.e2e.ts:webkit": {
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "workflows.e2e.ts:chromium": {
+      "total": 20,
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "workflows.e2e.ts:webkit": {
+      "total": 20,
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    }
+  },
+  "retriedCases": 0,
+  "limitations": [
+    "Synthetic HTTP and actual production components; no real backend mutations.",
+    "Client behaviour does not verify server RLS/Edge Functions or passkey security.",
+    "Playwright WebKit and iPhone emulation are not physical iPhone Safari.",
+    "Visual regression acceptance is recorded separately by the independent accessibility/design reviewer."
+  ]
+}

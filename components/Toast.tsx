@@ -1,71 +1,41 @@
-/**
- * @file Toast.tsx
- * @description A component to display a single toast notification.
- * It includes an icon, a message, and automatically dismisses itself.
- */
-
-import React, { useEffect } from 'react';
-import { ToastMessage } from '../types';
-import { CheckCircleIcon, XCircleIcon, InfoCircleIcon, XIcon } from './Icons';
-
-interface ToastProps {
-  toast: ToastMessage;
-  removeToast: (id: string) => void;
-}
+import React, { useEffect } from "react";
+import { ToastMessage } from "../types";
+import { NativeButton } from "./ui";
+import { CheckCircleIcon, XCircleIcon, InfoCircleIcon, XIcon } from "./Icons";
 
 const ICONS = {
-  success: <CheckCircleIcon className="h-6 w-6 text-green-500" />,
-  error: <XCircleIcon className="h-6 w-6 text-red-500" />,
-  info: <InfoCircleIcon className="h-6 w-6 text-blue-500" />,
+  success: CheckCircleIcon,
+  error: XCircleIcon,
+  info: InfoCircleIcon,
 };
-
-const Toast: React.FC<ToastProps> = ({ toast, removeToast }) => {
+export default function Toast({
+  toast,
+  removeToast,
+}: {
+  toast: ToastMessage;
+  removeToast: (id: string) => void;
+}) {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      removeToast(toast.id);
-    }, 5000); // Auto-dismiss after 5 seconds
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [toast.id, removeToast]);
-
-  // Determine progress bar color based on toast type
-  const progressBarColor = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    info: 'bg-blue-500',
-  }[toast.type];
-
+    // Errors remain until dismissed so failures are not lost while entering data.
+    if (toast.type === "error") return;
+    const timer = window.setTimeout(() => removeToast(toast.id), 5000);
+    return () => window.clearTimeout(timer);
+  }, [toast.id, toast.type, removeToast]);
+  const Icon = ICONS[toast.type];
   return (
     <div
-      className="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden relative"
-      role="alert"
-      aria-live="assertive"
+      className={`bb-toast bb-toast--${toast.type}`}
+      role={toast.type === "error" ? "alert" : "status"}
     >
-      <div className="p-4">
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            {ICONS[toast.type]}
-          </div>
-          <div className="ml-3 flex-1 pt-0.5"> {/* Removed w-0 */}
-            <p className="text-sm font-medium text-slate-900">{toast.message}</p>
-          </div>
-          <div className="ml-4 flex-shrink-0 flex">
-            <button
-              onClick={() => removeToast(toast.id)}
-              className="bg-white rounded-md inline-flex text-slate-400 hover:text-slate-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
-              aria-label="Close notification"
-            >
-              <XIcon className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-      {/* Progress Bar */}
-      <div className={`absolute bottom-0 left-0 h-1 ${progressBarColor}`} style={{ animation: 'progressBar 5s linear forwards' }}></div>
+      <Icon className="bb-toast-icon" aria-hidden="true" />
+      <p>{toast.message}</p>
+      <NativeButton
+        variant="plain"
+        onClick={() => removeToast(toast.id)}
+        aria-label="Dismiss notification"
+      >
+        <XIcon className="bb-toast-icon" aria-hidden="true" />
+      </NativeButton>
     </div>
   );
-};
-
-export default Toast;
+}

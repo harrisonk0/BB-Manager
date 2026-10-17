@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { branding } from './branding';
-import { supabase } from '../services/supabaseClient';
-import { listPasskeys, registerPasskey } from '../services/supabaseAuth';
-import { browserSupportsPasskeys } from '../services/passkeyErrors';
-import { portalRequest } from '../services/portal';
+import React, { useState } from "react";
+import { NativeButton, InlineNotice } from "./ui";
+import "./shell/staff-shell.css";
+import { branding } from "./branding";
+import { supabase } from "../services/supabaseClient";
+import { listPasskeys, registerPasskey } from "../services/supabaseAuth";
+import { browserSupportsPasskeys } from "../services/passkeyErrors";
+import { portalRequest } from "../services/portal";
 
 export default function PortalSetupPage({
   setup,
@@ -14,21 +16,21 @@ export default function PortalSetupPage({
 }) {
   const [signedIn, setSignedIn] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const create = async () => {
     setBusy(true);
-    setError('');
+    setError("");
     try {
       if (!signedIn) {
         const signedOut = await supabase.auth.signOut();
         if (signedOut.error) throw signedOut.error;
         const { tokenHash } = await portalRequest<{ tokenHash: string }>(
-          'exchange',
+          "exchange",
           setup,
         );
         const verified = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
-          type: 'magiclink',
+          type: "magiclink",
         });
         if (verified.error) throw verified.error;
         setSignedIn(true);
@@ -37,60 +39,51 @@ export default function PortalSetupPage({
         const r = await registerPasskey();
         if (r.error) throw r.error;
       }
-      await portalRequest('complete');
+      await portalRequest("complete");
       onComplete();
     } catch (e) {
       setError(
         e instanceof Error
           ? e.message
-          : 'Could not create your passkey. Try again.',
+          : "Could not create your passkey. Try again.",
       );
     } finally {
       setBusy(false);
     }
   };
   return (
-    <div className="min-h-screen flex items-center justify-center p-5 bg-slate-100">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm p-8 space-y-5 text-center">
+    <main className="bb-auth-page">
+      <div className="bb-auth-content">
         <img
           src={branding.bbLogo}
           alt="The Boys’ Brigade"
-          className="w-32 mx-auto"
+          className="bb-auth-brand"
         />
-        <p className="text-xs uppercase tracking-widest text-slate-500">
-          Company Section
-        </p>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Welcome, {setup.username}
-        </h1>
-        <p className="text-sm text-slate-600">
+        <p className="bb-group-label">Company Section</p>
+        <h1 className="bb-auth-heading">Welcome, {setup.username}</h1>
+        <p className="bb-auth-caption">
           Create a passkey to open your calendar and see your progress.
         </p>
-        {error && (
-          <p
-            role="alert"
-            className="text-sm text-red-700 bg-red-50 rounded-lg p-3"
-          >
-            {error}
-          </p>
-        )}
+        {error && <InlineNotice kind="error">{error}</InlineNotice>}
         {!browserSupportsPasskeys() && (
-          <p className="text-sm text-amber-800">
+          <InlineNotice>
             Open this link in a browser that supports passkeys, such as current
             Safari, Chrome or Edge.
-          </p>
+          </InlineNotice>
         )}
-        <button
-          disabled={busy || !browserSupportsPasskeys()}
-          onClick={() => void create()}
-          className="w-full rounded-lg bg-company-blue text-white py-3 font-medium disabled:opacity-50"
-        >
-          {busy ? 'Setting up…' : 'Create my passkey'}
-        </button>
-        <p className="text-xs text-slate-500">
+        <div className="bb-auth-actions">
+          <NativeButton
+            disabled={!browserSupportsPasskeys()}
+            busy={busy}
+            onClick={() => void create()}
+          >
+            {busy ? "Setting up…" : "Create my passkey"}
+          </NativeButton>
+        </div>
+        <p className="bb-secondary">
           This link stops working once your passkey is set up.
         </p>
       </div>
-    </div>
+    </main>
   );
 }

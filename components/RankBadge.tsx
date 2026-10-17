@@ -1,6 +1,7 @@
-import React from 'react';
-import type { MemberRank } from '../types';
-import { rankChevronPaths, rankDefinition } from '../services/memberRanks';
+import React from "react";
+import "./staff/staff.css";
+import type { MemberRank } from "../types";
+import { rankChevronPaths, rankDefinition } from "../services/memberRanks";
 
 export default function RankBadge({ rank }: { rank?: MemberRank | null }) {
   if (!rank) return null;
@@ -11,8 +12,7 @@ export default function RankBadge({ rank }: { rank?: MemberRank | null }) {
       role="img"
       aria-label={definition.label}
       title={definition.label}
-      className="inline-flex shrink-0 items-center justify-center rounded-md border border-amber-200 bg-amber-50 text-amber-800 align-middle"
-      style={{ width: 23, height: 27 }}
+      className="staff-rank-badge"
     >
       <svg
         viewBox="0 0 24 26"
@@ -37,7 +37,7 @@ export function NameWithRank({
   memberRank?: MemberRank | null;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 align-middle">
+    <span className="staff-ranked-name">
       <span>{name}</span>
       <RankBadge rank={memberRank} />
     </span>

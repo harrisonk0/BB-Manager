@@ -1,0 +1,36 @@
+{
+  "source": "tests/frontend/test-results/frontend-performance-memoized/results.json",
+  "startTime": "2026-10-17T09:25:56.051Z",
+  "durationMs": 10561.581,
+  "stats": {
+    "startTime": "2026-10-17T09:25:56.051Z",
+    "duration": 10561.581,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "bySuite": {
+    "performance.e2e.ts:chromium": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    },
+    "performance.e2e.ts:webkit": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "other": 0
+    }
+  },
+  "retriedCases": 0,
+  "limitations": [
+    "Synthetic HTTP and actual production components; no real backend mutations.",
+    "Client behaviour does not verify server RLS/Edge Functions or passkey security.",
+    "Playwright WebKit and iPhone emulation are not physical iPhone Safari.",
+    "Visual regression acceptance is recorded separately by the independent accessibility/design reviewer."
+  ]
+}

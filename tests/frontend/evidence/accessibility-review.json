@@ -1,0 +1,236 @@
+{
+  "reviewer": "Agent F (independent; no production UI implementation)",
+  "date": "2026-10-17",
+  "scope": {
+    "application": "actual integrated production React/Framework7 App",
+    "data": "HTTP-only invented fixture; off-origin network denied; no runtime role bypass",
+    "widths": [
+      320,
+      375,
+      390,
+      430,
+      768,
+      1024,
+      1440
+    ],
+    "height": 844,
+    "families": [
+      "members",
+      "junior-members",
+      "marks",
+      "junior-marks",
+      "history",
+      "junior-history",
+      "dashboard",
+      "archives",
+      "settings",
+      "calendar",
+      "portal-access",
+      "account",
+      "portal",
+      "portal-calendar",
+      "portal-account",
+      "login",
+      "leader"
+    ],
+    "overlays": [
+      "filter",
+      "editor",
+      "workspace",
+      "destructive"
+    ],
+    "overlayWidths": [
+      390,
+      768
+    ],
+    "matrixCasesPerEngine": 127,
+    "chromiumBaselines": 127,
+    "axeTags": [
+      "wcag2a",
+      "wcag2aa",
+      "wcag21aa",
+      "wcag22aa"
+    ],
+    "axeRulesSuppressed": []
+  },
+  "browsers": {
+    "baseline": "Playwright 1.58.2 pinned Chromium 145.0.7632.6, Linux",
+    "compatibility": "Playwright 1.58.2 WebKit 26.0 rev2248, Linux",
+    "independentMCP": "Official Playwright MCP0.0.83; Chromium154 actual-App interactions; Chromium154/WebKit26.6 shared adapter interactions"
+  },
+  "runs": [
+    {
+      "label": "coherent full matrix",
+      "report": "test-results/frontend-visual-verified/results.json",
+      "stats": {
+        "startTime": "2026-10-17T09:29:22.106Z",
+        "duration": 729192.2379999999,
+        "expected": 250,
+        "skipped": 0,
+        "unexpected": 4,
+        "flaky": 0
+      }
+    },
+    {
+      "label": "data readiness only (insufficient)",
+      "report": "test-results/frontend-visual-ready/results.json",
+      "stats": {
+        "startTime": "2026-10-17T09:49:08.095Z",
+        "duration": 71718.79299999999,
+        "expected": 11,
+        "skipped": 0,
+        "unexpected": 3,
+        "flaky": 0
+      }
+    },
+    {
+      "label": "native lifecycle + enabled computed style corrective repeat",
+      "report": "test-results/frontend-visual-ready-phase/results.json",
+      "stats": {
+        "startTime": "2026-10-17T09:51:24.104Z",
+        "duration": 132596.953,
+        "expected": 14,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "label": "reviewed roster baseline update",
+      "report": "test-results/frontend-visual-hairlines/results.json",
+      "stats": {
+        "startTime": "2026-10-17T09:45:16.575Z",
+        "duration": 40655.202,
+        "expected": 14,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "label": "reviewed leader container correction baseline update",
+      "report": "test-results/frontend-visual-leader-final/results.json",
+      "stats": {
+        "startTime": "2026-10-17T09:52:07.383Z",
+        "duration": 71723.671,
+        "expected": 7,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "label": "final no-update Company/Junior roster and leader in both engines",
+      "report": "test-results/frontend-visual-final-targets/results.json",
+      "stats": {
+        "startTime": "2026-10-17T09:53:50.374Z",
+        "duration": 215547.36,
+        "expected": 42,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ],
+  "accounting": "The coherent 254-case run was 250 pass / 4 fail, never relabelled green. Corrective runs are separately reported. Four failures came from Portal Access scans before native entry/computed opacity settled; fourteen repeats pass after explicit lifecycle/style readiness, without changing UI or suppressing axe.",
+  "visualReview": {
+    "topFamilies": [
+      "members",
+      "junior-members",
+      "marks",
+      "junior-marks",
+      "history",
+      "junior-history",
+      "dashboard",
+      "archives",
+      "settings",
+      "calendar",
+      "portal-access",
+      "account",
+      "portal",
+      "portal-calendar",
+      "portal-account",
+      "login",
+      "leader"
+    ],
+    "widths": [
+      320,
+      375,
+      390,
+      430,
+      768,
+      1024,
+      1440
+    ],
+    "lowerCoreWidths": [
+      320,
+      375,
+      390,
+      430,
+      768,
+      1024,
+      1440
+    ],
+    "comparedApprovedReference": "prototypes/ios26/evidence/chromium/screenshots/framework7-roster-390.png",
+    "examples": [
+      "tests/frontend/visual.e2e.ts-snapshots/members-390-chromium-linux.png",
+      "tests/frontend/visual.e2e.ts-snapshots/junior-history-768-chromium-linux.png",
+      "tests/frontend/visual.e2e.ts-snapshots/leader-768-chromium-linux.png",
+      "tests/frontend/visual.e2e.ts-snapshots/settings-1440-chromium-linux.png",
+      "tests/frontend/visual.e2e.ts-snapshots/sheet-editor-390-chromium-linux.png"
+    ],
+    "assessment": "Shared Framework7 native hierarchy is coherent across page families. Production real workflows add statistics and secondary actions compared with approved synthetic A; not claimed pixel-identical to prototype. Lower-scroll review found a serious tablet leader-name defect that overflow and axe alone missed; returned to D and independently reviewed correction.",
+    "webkitCoreWidths": [
+      320,
+      375,
+      390,
+      430,
+      768,
+      1024,
+      1440
+    ],
+    "finalFindingDisposition": {
+      "F14": "D container-based cards independently visually reviewed; F42/42 no-update checks and H14/14 geometry/name checks passed",
+      "F15": "native entry document title + enabled computed opacity readiness14/14 repeatedWebKit pass; historical failedruns retained"
+    }
+  },
+  "independentActualAppMCP": {
+    "stableFilterFocus": true,
+    "SVGTriggerRestoration": true,
+    "staffMainLandmarkCount": 1,
+    "currentStateAttendanceNames": 30,
+    "completeNumericLabel": true,
+    "staffEntryTitleAndH1Focus": true,
+    "portalCalendarAndAccountEntryTitleAndH1Focus": true,
+    "localCalendarUpdateRetainsFocus": true,
+    "ordinaryPortalNoSquadNavigation": "client presentation only; not RLS proof"
+  },
+  "pending": [
+    "Physical iPhone Safari and installed Home Screen; software keyboard/safe areas/resume",
+    "VoiceOver/TalkBack and actual assistive chart/table reading",
+    "200% text enlargement / 400% equivalent zoom / forced-colour and orientation manual acceptance",
+    "Real passkey ceremony and push delivery",
+    "No staging credentials: backend RLS/permission contract and live persistence not verified here",
+    "Exported PDF tagging/reading order manual assessment"
+  ],
+  "releaseClaim": "Frontend synthetic rendering/interaction evidence only. Not production deployment readiness or complete WCAG conformance certification.",
+  "independentProductionSourceReview": {
+    "KeyboardViewport": "standardAPI progressive enhancement; ignores pinch; cleanup/RAF; shared inset consumed by content, Save and sheets. H syntheticVV event tests are separate from physical keyboard acceptance.",
+    "MarksMemoization": "stable handlers use latest committed draft through layout effect; no attendance/score semantics change; final rendered captures unchanged"
+  },
+  "independentWorkflowEvidence": {
+    "owner": "Agent H",
+    "result": "118/118 Chromium/WebKit passed; 59 per engine, zero failed/skipped/retries/flaky; report test-results/frontend-acceptance-final/results.json",
+    "additionalReportingGeometry": "14/14 passed all seven widths both engines",
+    "scope": [
+      "Company/Junior attendance/blank-zero/invalid correction/service payload",
+      "persistent archive failure/retry/empty",
+      "actual PDF and poster downloads",
+      "busy modal, destructive/import/new-session typed safeguard",
+      "history retry/delete and browser Back/Forward dirty cursor",
+      "actual-App synthetic auth/cache ownership/security lifecycle"
+    ],
+    "limits": "Not live backend RLS, real passkey ceremony, physical Safari/AT or production data verification.",
+    "source": "tests/frontend/evidence/functional-acceptance.json"
+  }
+}

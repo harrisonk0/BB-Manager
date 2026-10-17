@@ -1,10 +1,19 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Section, ToastType } from '../types';
-import * as supabaseAuth from '../services/supabaseAuth';
-import type { AppPasskey } from '../services/supabaseAuth';
-import { browserSupportsPasskeys } from '../services/passkeyErrors';
-import { canRemovePasskey, isPasskeyEnrollmentRequired } from '../services/passkeyMigration';
-import Modal from './Modal';
+import React, { useCallback, useEffect, useState } from "react";
+import { Section, ToastType } from "../types";
+import * as supabaseAuth from "../services/supabaseAuth";
+import type { AppPasskey } from "../services/supabaseAuth";
+import { browserSupportsPasskeys } from "../services/passkeyErrors";
+import {
+  canRemovePasskey,
+  isPasskeyEnrollmentRequired,
+} from "../services/passkeyMigration";
+import {
+  NativeButton,
+  NativeInput,
+  InlineNotice,
+  LoadingState,
+  TaskSheet,
+} from "./ui";
 
 interface PasskeysCardProps {
   activeSection: Section;
@@ -12,37 +21,42 @@ interface PasskeysCardProps {
 }
 
 const formatPasskeyDate = (value?: string) => {
-  if (!value) return 'Never';
+  if (!value) return "Never";
   return new Date(value).toLocaleString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 };
 
-const PasskeysCard: React.FC<PasskeysCardProps> = ({ activeSection, showToast }) => {
+const PasskeysCard: React.FC<PasskeysCardProps> = ({
+  activeSection,
+  showToast,
+}) => {
   const [passkeys, setPasskeys] = useState<AppPasskey[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState('');
-  const [passkeyToDelete, setPasskeyToDelete] = useState<AppPasskey | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [passkeyToDelete, setPasskeyToDelete] = useState<AppPasskey | null>(
+    null,
+  );
   const [isDeleting, setIsDeleting] = useState(false);
   const supported = browserSupportsPasskeys();
   const enrollmentRequired = isPasskeyEnrollmentRequired();
-  const lastPasskeyLocked = !canRemovePasskey(passkeys.length, enrollmentRequired);
-  const isCompany = activeSection === 'company';
-  const accentText = isCompany ? 'text-company-blue' : 'text-junior-blue';
-  const accentBg = isCompany ? 'bg-company-blue' : 'bg-junior-blue';
-  const accentRing = isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue';
+  const lastPasskeyLocked = !canRemovePasskey(
+    passkeys.length,
+    enrollmentRequired,
+  );
 
   const refreshPasskeys = useCallback(async () => {
     setIsLoading(true);
     try {
       setPasskeys(await supabaseAuth.listPasskeys());
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Could not load passkeys.';
-      showToast(message, 'error');
+      const message =
+        error instanceof Error ? error.message : "Could not load passkeys.";
+      showToast(message, "error");
     } finally {
       setIsLoading(false);
     }
@@ -57,11 +71,21 @@ const PasskeysCard: React.FC<PasskeysCardProps> = ({ activeSection, showToast })
     try {
       const { error } = await supabaseAuth.registerPasskey();
       if (error) {
-        showToast(error.message, 'error');
+        showToast(error.message, "error");
         return;
       }
-      showToast('Passkey added. You can sign in with it on bb-manager.vercel.app.', 'success');
+      showToast(
+        "Passkey added. You can sign in with it on bb-manager.vercel.app.",
+        "success",
+      );
       await refreshPasskeys();
+    } catch (error: unknown) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Could not add a passkey. Try again.",
+        "error",
+      );
     } finally {
       setIsRegistering(false);
     }
@@ -70,162 +94,180 @@ const PasskeysCard: React.FC<PasskeysCardProps> = ({ activeSection, showToast })
   const handleRename = async (passkey: AppPasskey) => {
     const nextName = renameValue.trim();
     if (!nextName) {
-      showToast('Enter a name for this passkey.', 'error');
+      showToast("Enter a name for this passkey.", "error");
       return;
     }
     try {
       await supabaseAuth.renamePasskey(passkey.id, nextName);
       setRenamingId(null);
-      setRenameValue('');
-      showToast('Passkey renamed.', 'success');
+      setRenameValue("");
+      showToast("Passkey renamed.", "success");
       await refreshPasskeys();
     } catch (error: unknown) {
-      showToast(error instanceof Error ? error.message : 'Could not rename that passkey.', 'error');
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Could not rename that passkey.",
+        "error",
+      );
     }
   };
 
   const handleDelete = async () => {
     if (!passkeyToDelete) return;
     if (!canRemovePasskey(passkeys.length, enrollmentRequired)) {
-      showToast('Add another passkey before removing this one.', 'error');
+      showToast("Add another passkey before removing this one.", "error");
       return;
     }
     setIsDeleting(true);
     try {
       await supabaseAuth.deletePasskey(passkeyToDelete.id);
       setPasskeyToDelete(null);
-      showToast('Passkey removed.', 'success');
+      showToast("Passkey removed.", "success");
       await refreshPasskeys();
     } catch (error: unknown) {
-      showToast(error instanceof Error ? error.message : 'Could not remove that passkey.', 'error');
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Could not remove that passkey.",
+        "error",
+      );
     } finally {
       setIsDeleting(false);
     }
   };
 
   return (
-    <div className="bg-white p-6 sm:p-8 rounded-lg shadow-md space-y-4">
-      <h2 className={`text-xl font-semibold border-b pb-2 ${accentText}`}>Passkeys</h2>
-      <p className="text-sm text-slate-600">
-        Passkeys sign you in with this device&apos;s fingerprint, face, PIN, or a password manager. They are bound to
-        {' '}<code className="text-xs">bb-manager.vercel.app</code>, so add them while you are on the live site.
-        {enrollmentRequired && ' Keep at least one passkey; password sign-in is turned off after the first one is created.'}
+    <section className="bb-surface">
+      <h2 className="bb-section-title">Passkeys</h2>
+      <p className="bb-secondary">
+        Passkeys sign you in with this device’s fingerprint, face, PIN or
+        password manager. They are bound to bb-manager.vercel.app, so add them
+        while you are on the live site.
+        {enrollmentRequired &&
+          " Keep at least one passkey; password sign-in is turned off after the first one is created."}
       </p>
       {!supported && (
-        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-          This browser cannot create passkeys. Use a current Chrome, Safari, or Edge on the live site.
-        </p>
+        <InlineNotice>
+          This browser cannot create passkeys. Use a current Chrome, Safari or
+          Edge on the live site.
+        </InlineNotice>
       )}
       {isLoading ? (
-        <p className="text-sm text-slate-500">Loading passkeys...</p>
+        <LoadingState label="Loading passkeys…" />
       ) : passkeys.length === 0 ? (
-        <p className="text-sm text-slate-500">No passkeys on this account yet.</p>
+        <p className="bb-secondary">No passkeys on this account yet.</p>
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="bb-passkey-list">
           {passkeys.map((passkey) => (
-            <li key={passkey.id} className="py-3">
+            <li key={passkey.id}>
+              <strong>{passkey.friendly_name || "Unnamed passkey"}</strong>
+              <p className="bb-secondary">
+                Added {formatPasskeyDate(passkey.created_at)} · Last used{" "}
+                {formatPasskeyDate(passkey.last_used_at)}
+              </p>
               {renamingId === passkey.id ? (
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <input
-                    aria-label="Passkey name"
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void handleRename(passkey);
+                  }}
+                >
+                  <NativeInput
+                    label="Passkey name"
                     value={renameValue}
                     onChange={(event) => setRenameValue(event.target.value)}
                     maxLength={120}
-                    className={`flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm ${accentRing}`}
+                    autoFocus
                   />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => { void handleRename(passkey); }}
-                      className={`rounded-md px-3 py-2 text-sm font-medium text-white ${accentBg}`}
-                    >
-                      Save name
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setRenamingId(null); setRenameValue(''); }}
-                      className="rounded-md bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700"
+                  <div className="bb-inline-actions">
+                    <NativeButton type="submit">Save name</NativeButton>
+                    <NativeButton
+                      variant="secondary"
+                      onClick={() => {
+                        setRenamingId(null);
+                        setRenameValue("");
+                      }}
                     >
                       Cancel
-                    </button>
+                    </NativeButton>
                   </div>
-                </div>
+                </form>
               ) : (
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="font-medium text-slate-800">{passkey.friendly_name || 'Unnamed passkey'}</p>
-                    <p className="text-xs text-slate-500">
-                      Added {formatPasskeyDate(passkey.created_at)} · Last used {formatPasskeyDate(passkey.last_used_at)}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRenamingId(passkey.id);
-                        setRenameValue(passkey.friendly_name || '');
-                      }}
-                      className="rounded-md bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700"
-                    >
-                      Rename
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPasskeyToDelete(passkey)}
-                      disabled={lastPasskeyLocked}
-                      title={lastPasskeyLocked ? 'Add another passkey before removing this one.' : undefined}
-                      className="rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Remove
-                    </button>
-                  </div>
+                <div className="bb-inline-actions">
+                  <NativeButton
+                    variant="secondary"
+                    onClick={() => {
+                      setRenamingId(passkey.id);
+                      setRenameValue(passkey.friendly_name || "");
+                    }}
+                  >
+                    Rename
+                  </NativeButton>
+                  <NativeButton
+                    variant="plain"
+                    danger
+                    onClick={() => setPasskeyToDelete(passkey)}
+                    disabled={lastPasskeyLocked}
+                    title={
+                      lastPasskeyLocked
+                        ? "Add another passkey before removing this one."
+                        : undefined
+                    }
+                  >
+                    Remove
+                  </NativeButton>
                 </div>
               )}
             </li>
           ))}
         </ul>
       )}
-      <div className="flex justify-end pt-2 border-t border-slate-200">
-        <button
-          type="button"
-          onClick={() => { void handleRegister(); }}
-          disabled={!supported || isRegistering}
-          className={`inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${accentBg} hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${isCompany ? 'focus:ring-company-blue' : 'focus:ring-junior-blue'}`}
-        >
-          {isRegistering ? 'Waiting for passkey…' : 'Add a passkey'}
-        </button>
-      </div>
-      <Modal
-        isOpen={Boolean(passkeyToDelete)}
-        onClose={() => { if (!isDeleting) setPasskeyToDelete(null); }}
-        title="Remove this passkey?"
-      >
-        <p className="text-slate-700">
-          {lastPasskeyLocked
-            ? 'This is the last passkey on the account. Add another one before removing it, or you will be locked out.'
-            : `You will not be able to sign in with ${passkeyToDelete?.friendly_name || 'this passkey'} until you add it again.`}
+      {lastPasskeyLocked && passkeys.length > 0 && (
+        <p className="bb-secondary">
+          Add another passkey before removing your last one.
         </p>
-        <div className="flex justify-end gap-3 pt-6">
-          <button
-            type="button"
+      )}
+      <NativeButton
+        onClick={() => void handleRegister()}
+        busy={isRegistering}
+        disabled={!supported}
+      >
+        {isRegistering ? "Waiting for passkey…" : "Add a passkey"}
+      </NativeButton>
+      <TaskSheet
+        open={Boolean(passkeyToDelete)}
+        onClose={() => {
+          if (!isDeleting) setPasskeyToDelete(null);
+        }}
+        dismissible={!isDeleting}
+        title="Remove this passkey?"
+        size="sm"
+      >
+        <p>
+          {lastPasskeyLocked
+            ? "This is the last passkey on the account. Add another one before removing it, or you will be locked out."
+            : `You will not be able to sign in with ${passkeyToDelete?.friendly_name || "this passkey"} until you add it again.`}
+        </p>
+        <div className="bb-auth-actions">
+          <NativeButton
+            danger
+            busy={isDeleting}
+            disabled={lastPasskeyLocked}
+            onClick={() => void handleDelete()}
+          >
+            {isDeleting ? "Removing…" : "Remove passkey"}
+          </NativeButton>
+          <NativeButton
+            variant="secondary"
             disabled={isDeleting}
             onClick={() => setPasskeyToDelete(null)}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md"
           >
             Cancel
-          </button>
-          <button
-            type="button"
-            disabled={isDeleting || lastPasskeyLocked}
-            onClick={() => { void handleDelete(); }}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isDeleting ? 'Removing...' : 'Remove passkey'}
-          </button>
+          </NativeButton>
         </div>
-      </Modal>
-    </div>
+      </TaskSheet>
+    </section>
   );
 };
-
 export default PasskeysCard;

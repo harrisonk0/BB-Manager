@@ -1,21 +1,30 @@
+import { NativeButton, NativeInput, NativeField, NativeSwitch } from "./ui";
+import "./staff/staff.css";
 /**
  * @file BoyForm.tsx
  * @description A form component used for both creating a new boy and editing an existing one.
  * It is displayed within a modal.
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Boy, SchoolYear, Section, JuniorYear, SectionSquad, MemberRank } from '../types';
-import { MEMBER_RANKS, isRankEligible } from '../services/memberRanks';
-import { NameWithRank } from './RankBadge';
-import { createBoy, updateBoy } from '../services/db';
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  Boy,
+  SchoolYear,
+  Section,
+  JuniorYear,
+  SectionSquad,
+  MemberRank,
+} from "../types";
+import { MEMBER_RANKS, isRankEligible } from "../services/memberRanks";
+import { NameWithRank } from "./RankBadge";
+import { createBoy, updateBoy } from "../services/db";
 import {
   formatSchoolYear,
   resolveSquadNumber,
   schoolYearsForSection,
   squadDisplayName,
   defaultSquadsForSection,
-} from '../services/sectionSquads';
+} from "../services/sectionSquads";
 
 interface BoyFormProps {
   /** If provided, the form will be in 'edit' mode, pre-filled with this boy's data. If null/undefined, it's in 'add' mode. */
@@ -24,22 +33,38 @@ interface BoyFormProps {
   onSave: (isNew: boolean, name: string) => void;
   /** Callback function to close the form/modal. */
   onClose: () => void;
+  onBusyChange?: (busy: boolean) => void;
+  onDirtyChange?: (dirty: boolean) => void;
   /** The currently active section, which determines the available options (e.g., squads, years). */
   activeSection: Section;
   /** Squads configured for this section in settings. */
   squads?: SectionSquad[];
 }
 
-const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSection, squads }) => {
-  const isCompany = activeSection === 'company';
+const BoyForm: React.FC<BoyFormProps> = ({
+  boyToEdit,
+  onSave,
+  onClose,
+  activeSection,
+  squads,
+  onBusyChange,
+  onDirtyChange,
+}) => {
+  const isCompany = activeSection === "company";
   const configuredSquads = useMemo(
-    () => (squads && squads.length > 0 ? squads : defaultSquadsForSection(activeSection)),
+    () =>
+      squads && squads.length > 0
+        ? squads
+        : defaultSquadsForSection(activeSection),
     [squads, activeSection],
   );
 
   const squadOptions = useMemo(() => {
     const options = [...configuredSquads];
-    if (boyToEdit && !options.some((squad) => squad.number === boyToEdit.squad)) {
+    if (
+      boyToEdit &&
+      !options.some((squad) => squad.number === boyToEdit.squad)
+    ) {
       options.push({ number: boyToEdit.squad, label: null });
       options.sort((left, right) => left.number - right.number);
     }
@@ -48,15 +73,32 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
 
   const schoolYears = schoolYearsForSection(activeSection);
   const initialSquad = resolveSquadNumber(squadOptions, boyToEdit?.squad);
-  const initialYear = (isCompany ? 8 : 'P4') as SchoolYear | JuniorYear;
+  const initialYear = (isCompany ? 8 : "P4") as SchoolYear | JuniorYear;
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [squad, setSquad] = useState(initialSquad);
   const [year, setYear] = useState<SchoolYear | JuniorYear>(initialYear);
   const [isSquadLeader, setIsSquadLeader] = useState(false);
   const [memberRank, setMemberRank] = useState<MemberRank | null>(null);
   const [rankCleared, setRankCleared] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showDiscard, setShowDiscard] = useState(false);
+  const initialState = JSON.stringify({
+    name: boyToEdit?.name ?? "",
+    squad: initialSquad,
+    year: boyToEdit?.year || initialYear,
+    isSquadLeader: boyToEdit?.isSquadLeader || false,
+    memberRank: boyToEdit?.memberRank ?? null,
+  });
+  const dirty =
+    JSON.stringify({ name, squad, year, isSquadLeader, memberRank }) !==
+    initialState;
+  useEffect(() => {
+    onBusyChange?.(isSaving);
+  }, [isSaving, onBusyChange]);
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
 
   const [nameError, setNameError] = useState<string | null>(null);
   const [squadError, setSquadError] = useState<string | null>(null);
@@ -70,7 +112,7 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
       setIsSquadLeader(boyToEdit.isSquadLeader || false);
       setMemberRank(boyToEdit.memberRank ?? null);
     } else {
-      setName('');
+      setName("");
       setSquad(resolveSquadNumber(squadOptions, undefined));
       setYear(initialYear);
       setIsSquadLeader(false);
@@ -80,10 +122,12 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     setSquadError(null);
     setYearError(null);
     setRankCleared(false);
+    setShowDiscard(false);
   }, [boyToEdit, activeSection, squadOptions, initialYear]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
 
     setNameError(null);
     setSquadError(null);
@@ -91,11 +135,11 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
 
     let isValid = true;
     if (!name.trim()) {
-      setNameError('Name cannot be empty.');
+      setNameError("Name cannot be empty.");
       isValid = false;
     }
     if (!squadOptions.some((option) => option.number === squad)) {
-      setSquadError('Choose a squad.');
+      setSquadError("Choose a squad.");
       isValid = false;
     }
 
@@ -106,138 +150,173 @@ const BoyForm: React.FC<BoyFormProps> = ({ boyToEdit, onSave, onClose, activeSec
     setIsSaving(true);
     try {
       if (boyToEdit) {
-        await updateBoy({ ...boyToEdit, name, squad, year, isSquadLeader, memberRank }, activeSection);
+        await updateBoy(
+          { ...boyToEdit, name, squad, year, isSquadLeader, memberRank },
+          activeSection,
+        );
         onSave(false, name);
       } else {
-        await createBoy({ name, squad, year, marks: [], isSquadLeader, memberRank }, activeSection);
+        await createBoy(
+          { name, squad, year, marks: [], isSquadLeader, memberRank },
+          activeSection,
+        );
         onSave(true, name);
       }
     } catch (err) {
-      console.error('Failed to save boy:', err);
-      setNameError('Failed to save boy. Please try again.');
+      console.error("Failed to save boy:", err);
+      setNameError("Failed to save boy. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const accentRing = isCompany ? 'focus:ring-company-blue focus:border-company-blue' : 'focus:ring-junior-blue focus:border-junior-blue';
-  const accentText = isCompany ? 'text-company-blue focus:ring-company-blue' : 'text-junior-blue focus:ring-junior-blue';
-  const accentBg = isCompany ? 'bg-company-blue focus:ring-company-blue' : 'bg-junior-blue focus:ring-junior-blue';
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-slate-700">
-          Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none sm:text-sm ${nameError ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
-          required
-          aria-invalid={nameError ? "true" : "false"}
-          aria-describedby={nameError ? "name-error" : undefined}
-        />
-        {nameError && <p id="name-error" className="text-red-500 text-xs mt-1">{nameError}</p>}
-      </div>
-      <div>
-        <label htmlFor="year" className="block text-sm font-medium text-slate-700">
-          School Year
-        </label>
+    <form onSubmit={handleSubmit} className="staff-form" aria-busy={isSaving}>
+      <NativeInput
+        label="Name"
+        id="name"
+        autoComplete="name"
+        value={name}
+        required
+        onChange={(e) => setName(e.target.value)}
+        error={nameError || undefined}
+        disabled={isSaving}
+      />
+      <NativeField
+        label="School year"
+        htmlFor="year"
+        error={yearError || undefined}
+      >
         <select
+          className="bb-input"
           id="year"
           value={year}
+          disabled={isSaving}
           onChange={(e) => {
-            const value = isCompany ? parseInt(e.target.value, 10) : e.target.value;
-            setYear(value as SchoolYear | JuniorYear);
-            if (!isRankEligible(activeSection, value as SchoolYear | JuniorYear) && memberRank) {
+            const value = (
+              isCompany ? parseInt(e.target.value, 10) : e.target.value
+            ) as SchoolYear | JuniorYear;
+            setYear(value);
+            if (!isRankEligible(activeSection, value) && memberRank) {
               setMemberRank(null);
               setRankCleared(true);
             }
           }}
-          className={`mt-1 block w-full px-3 py-2 bg-white border rounded-md shadow-sm focus:outline-none sm:text-sm ${yearError ? 'border-red-500' : 'border-slate-300'} ${accentRing}`}
-          aria-invalid={yearError ? "true" : "false"}
-          aria-describedby={yearError ? "year-error" : undefined}
         >
-          {schoolYears.map((yearNum) => (
-            <option key={yearNum} value={yearNum}>
-              {formatSchoolYear(activeSection, yearNum)}
+          {schoolYears.map((y) => (
+            <option key={y} value={y}>
+              {formatSchoolYear(activeSection, y)}
             </option>
           ))}
         </select>
-        {yearError && <p id="year-error" className="text-red-500 text-xs mt-1">{yearError}</p>}
-      </div>
+      </NativeField>
       {isCompany && (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
-          <div>
-            <label htmlFor="member-rank" className="block text-sm font-medium text-slate-700">
-              Rank <span className="font-normal text-slate-400">(optional)</span>
-            </label>
-            <select id="member-rank" value={memberRank ?? ''}
-              disabled={!isRankEligible(activeSection, year)}
-              aria-describedby="member-rank-help"
-              onChange={(event) => { setMemberRank((event.target.value || null) as MemberRank | null); setRankCleared(false); }}
-              className={`mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none sm:text-sm disabled:bg-slate-100 disabled:text-slate-400 ${accentRing}`}>
-              <option value="">No rank</option>
-              {MEMBER_RANKS.map((rank) => <option key={rank.value} value={rank.value}>{rank.label}</option>)}
-            </select>
-            <p id="member-rank-help" className="mt-2 text-xs text-slate-500">Available from Year 11. Rank does not change squad-leader access.</p>
+        <NativeField
+          label="Rank (optional)"
+          htmlFor="member-rank"
+          hint="Available from Year 11. Rank does not change squad-leader access."
+        >
+          <select
+            className="bb-input"
+            id="member-rank"
+            value={memberRank ?? ""}
+            disabled={isSaving || !isRankEligible(activeSection, year)}
+            onChange={(e) => {
+              setMemberRank((e.target.value || null) as MemberRank | null);
+              setRankCleared(false);
+            }}
+          >
+            <option value="">No rank</option>
+            {MEMBER_RANKS.map((rank) => (
+              <option key={rank.value} value={rank.value}>
+                {rank.label}
+              </option>
+            ))}
+          </select>
+          {rankCleared && (
+            <p role="status">
+              Rank will be removed on save because this member is below Year 11.
+            </p>
+          )}
+          {memberRank && (
+            <p>
+              <NameWithRank
+                name={name.trim() || "Member name"}
+                memberRank={memberRank}
+              />
+            </p>
+          )}
+        </NativeField>
+      )}
+      <NativeField
+        label="Squad"
+        htmlFor="member-squad"
+        error={squadError || undefined}
+      >
+        <select
+          className="bb-input"
+          id="member-squad"
+          value={squad}
+          disabled={isSaving}
+          onChange={(e) => setSquad(Number(e.target.value))}
+        >
+          {squadOptions.map((option) => (
+            <option key={option.number} value={option.number}>
+              {squadDisplayName(squadOptions, option.number)}
+            </option>
+          ))}
+        </select>
+      </NativeField>
+      <div className="staff-switch-row">
+        <span>Squad leader</span>
+        <NativeSwitch
+          label="Set as Squad Leader"
+          checked={isSquadLeader}
+          onChange={setIsSquadLeader}
+          disabled={isSaving}
+        />
+      </div>
+      {dirty && (
+        <p className="staff-context">
+          Unsaved member changes. Use Cancel to review discarding them.
+        </p>
+      )}
+      {showDiscard && (
+        <div
+          className="bb-notice"
+          role="group"
+          aria-label="Discard unsaved member changes?"
+        >
+          <p>Discard unsaved member changes?</p>
+          <div className="staff-form-actions">
+            <NativeButton
+              variant="secondary"
+              onClick={() => setShowDiscard(false)}
+            >
+              Keep editing
+            </NativeButton>
+            <NativeButton danger onClick={onClose}>
+              Discard changes
+            </NativeButton>
           </div>
-          {rankCleared && <p role="status" className="text-xs text-amber-800">The rank will be removed when you save because this boy is below Year 11.</p>}
-          {memberRank && <div className="rounded-lg border border-amber-100 bg-white px-3 py-2 text-sm font-semibold text-slate-800"><NameWithRank name={name.trim() || 'Boy’s name'} memberRank={memberRank} /></div>}
         </div>
       )}
-      <div>
-        <label className="block text-sm font-medium text-slate-700">Squad</label>
-        <div className={`mt-2 flex flex-wrap gap-4 ${squadError ? 'border border-red-500 p-2 rounded-md' : ''}`}>
-          {squadOptions.map((option) => (
-            <label key={option.number} className="inline-flex items-center">
-              <input
-                type="radio"
-                name="squad"
-                value={option.number}
-                checked={squad === option.number}
-                onChange={() => setSquad(option.number)}
-                aria-label={`Squad ${option.number}`}
-                className={`form-radio h-4 w-4 border-slate-300 ${accentText}`}
-              />
-              <span className="ml-2 text-slate-700">{squadDisplayName(squadOptions, option.number)}</span>
-            </label>
-          ))}
-        </div>
-        {squadError && <p id="squad-error" className="text-red-500 text-xs mt-1">{squadError}</p>}
-      </div>
-       <div>
-        <label className="inline-flex items-center">
-          <input
-            type="checkbox"
-            checked={isSquadLeader}
-            onChange={(e) => setIsSquadLeader(e.target.checked)}
-            className={`form-checkbox h-4 w-4 border-slate-300 rounded ${accentText}`}
-          />
-          <span className="ml-2 text-sm text-slate-700">Set as Squad Leader</span>
-        </label>
-      </div>
-      <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+      <div className="staff-form-actions">
+        <NativeButton
+          variant="secondary"
+          onClick={() => {
+            if (dirty) setShowDiscard(true);
+            else onClose();
+          }}
+          disabled={isSaving}
         >
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isSaving}
-          className={`px-4 py-2 text-sm font-medium text-white rounded-md shadow-sm hover:brightness-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${accentBg}`}
-        >
-          {isSaving ? 'Saving...' : boyToEdit ? 'Update Boy' : 'Add Boy'}
-        </button>
+        </NativeButton>
+        <NativeButton type="submit" busy={isSaving}>
+          {boyToEdit ? "Update Boy" : "Add Boy"}
+        </NativeButton>
       </div>
     </form>
   );
 };
-
 export default BoyForm;

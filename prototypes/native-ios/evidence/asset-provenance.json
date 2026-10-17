@@ -1,0 +1,51 @@
+{
+  "source": "https://boys-brigade.org.uk/our-brand/",
+  "authorisation": "User explicitly authorised official BB brand-pack download/use in this chat.",
+  "assets": [
+    {
+      "path": "assets/Inter-LICENSE.txt",
+      "bytes": 4380,
+      "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+    },
+    {
+      "path": "assets/InterVariable.woff2",
+      "bytes": 352240,
+      "sha256": "693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402f9978429a8e3"
+    },
+    {
+      "path": "assets/bb-blue.png",
+      "bytes": 60713,
+      "sha256": "f1378459b51510d7389ff30a36fffd7c4a46312acd45605e4b68e2d04b7f15f1"
+    },
+    {
+      "path": "assets/bb-white.png",
+      "bytes": 30998,
+      "sha256": "6590ce426c9427fc4f0f9a8ac94635ddeb7fe149787f89a286a8cd9d59348e2d"
+    },
+    {
+      "path": "assets/company.png",
+      "bytes": 32062,
+      "sha256": "6655dad6cdbfac175837fc8aa722ef58e3e249e577a7babc3bedb26d691ced9b"
+    },
+    {
+      "path": "assets/juniors.png",
+      "bytes": 49865,
+      "sha256": "690eae05f078c39c896117b5d2ee13b014cfc0a76ef950bca6c0d87cbbe2dcb5"
+    },
+    {
+      "path": "public/bb-icon-512.png",
+      "bytes": 45851,
+      "sha256": "1400c3489876e35a25a47e94e6a3954b337d2fa2cab4a0afe397fdae0ab18ab4"
+    },
+    {
+      "path": "public/bb-icon.png",
+      "bytes": 10543,
+      "sha256": "b9738759be2a5532a2d4d931e8428d1e4249f4ce70e12eb24e96e4c1c806fb76"
+    },
+    {
+      "path": "public/Inter-LICENSE.txt",
+      "bytes": 4380,
+      "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+    }
+  ]
+}

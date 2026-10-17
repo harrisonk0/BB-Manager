@@ -1,0 +1,11 @@
+# Contribution and integration contracts
+
+The lead owns App.tsx, index.tsx/index.css/index.html, package files, routing integration, root AGENTS and CI. Foundation owns components/ui and styles/design-system.css. Staff owns roster/forms/marks/history. Reporting owns dashboard/archive/import/session/settings. Portal owns calendar/portal/provisioning/squad views. Authentication owns login/account/passkeys/section selection and coordinated navigation/PWA modules. Independent auditors own their evidence/register pages and test infrastructure.
+
+Feature pages render **content** inside a shell-owned Framework7 Page/Navbar. Do not create nested Views or Page scroll containers. PageSurface is for standalone router pages only. Consume named exports from components/ui. NativeButton accepts native button attrs plus variant primary/secondary/plain and danger. NativeSwitch takes label/checked/onChange/disabled. GroupedList takes title/footer/children; SettingsRow takes title/detail/icon/onClick/trailing/destructive; NativeField wraps label/error/hint/children; NativeInput adds native input props. Existing Modal’s public interface remains stable and delegates to TaskSheet. Do not rewrite domain services to fit UI controls.
+
+Before adding a component, inspect the catalogue and consumers. Justified exceptions need a scoped rationale, owner, reviewer, alternatives considered and removal/review condition in an ADR; architecture checks must reference that exception explicitly. Do not silently disable checks or bulk-update screenshot baselines. A new baseline needs visual review against approved references and a recorded reviewer.
+
+Every substantial slice requires implementer checks, a different reviewer, independent browser/domain testing, reproducible remediation and lead acceptance in the review register. Record implementation/review/automated/staging/device states separately. Missing staging credentials never justify mutation against production. No merging or production deployment is authorised by this migration task.
+
+Use the platform’s supported follow-up/activation tool when assigning remediation to a completed agent; a queued message alone may not start another turn. Inspect actual agent status and evidence before reporting work as delegated or complete.

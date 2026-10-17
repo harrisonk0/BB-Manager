@@ -8,7 +8,7 @@ The app is deployed as a static SPA on Vercel. The browser talks directly to Sup
 
 - React 19 + TypeScript
 - Vite for development and production builds
-- Tailwind CSS via PostCSS
+- Framework7 v9 React iOS theme and semantic CSS, with existing Tailwind v3 utilities via PostCSS
 - Supabase Auth + Postgres
 - Vercel for deployment
 
@@ -51,7 +51,9 @@ flowchart LR
 - `App.tsx` orchestrates auth state, active section, view switching, and modal/toast state.
 - `components/*` implements pages and shared UI.
 - `components/reports/*` contains the branded session PDF document used by the dashboard export flow.
-- Navigation is app-state driven rather than router-driven.
+- Framework7 owns native page transitions and browser hash history through mutually exclusive StaffShell/PortalShell workspaces. App retains domain view/dirty-state coordination; shared UI adapters own DOM/lifecycle integration.
+- Protected workspaces are keyed by identity/role/section; role, data and portal request generations reject stale responses.
+- The canonical visual/component/navigation contracts and independent acceptance evidence are in [docs/design-system](docs/design-system/README.md).
 - `@react-pdf/renderer` documents are the styling exception: those files use `StyleSheet.create()` and PDF-specific inline layout values because the PDF renderer does not support the app's Tailwind/PostCSS runtime classes.
 
 ### 2. Hook Layer

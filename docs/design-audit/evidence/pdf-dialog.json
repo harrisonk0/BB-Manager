@@ -1,0 +1,743 @@
+{
+  "case": "pdf-dialog",
+  "componentView": "dashboard",
+  "section": "company",
+  "state": "populated",
+  "results": [
+    {
+      "width": 320,
+      "metrics": {
+        "viewport": 320,
+        "scrollWidth": 320,
+        "bodyHeight": 1930,
+        "headings": [
+          {
+            "text": "Dashboard",
+            "font": "30px"
+          },
+          {
+            "text": " Top 5 Members",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Performance (Total Marks)",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Attendance Trend",
+            "font": "20px"
+          },
+          {
+            "text": "Marks Breakdown by Month",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Generate Master PDF",
+            "width": 288,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [
+          {
+            "tag": "TABLE",
+            "class": "min-w-full bg-white",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "THEAD",
+            "class": "bg-slate-100",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TH",
+            "class": "sticky left-0 bg-slate-100 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6 z-10 w-48 min-w-[12rem]",
+            "left": 16,
+            "right": 349
+          },
+          {
+            "tag": "TH",
+            "class": "px-3 py-3.5 text-center text-sm font-semibold text-slate-900 w-24",
+            "left": 349,
+            "right": 405
+          },
+          {
+            "tag": "TBODY",
+            "class": "divide-y divide-slate-200",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TD",
+            "class": "sticky left-0 bg-white whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 z-10 w-48 min-w-[12rem]",
+            "left": 16,
+            "right": 349
+          },
+          {
+            "tag": "DIV",
+            "class": "text-red-600",
+            "left": 32,
+            "right": 337
+          },
+          {
+            "tag": "TD",
+            "class": "whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500",
+            "left": 349,
+            "right": 405
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TD",
+            "class": "sticky left-0 bg-white whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-6 z-10 w-48 min-w-[12rem]",
+            "left": 16,
+            "right": 349
+          }
+        ],
+        "text": "Open main menu\nDashboard\n\nReview session performance across marks and attendance, then export a single master BB report for the active section.\n\nGenerate Master PDF\nTop 5 Members\n1"
+      },
+      "violations": [
+        {
+          "id": "scrollable-region-focusable",
+          "impact": "serious",
+          "description": "Ensure elements that have scrollable content are accessible by keyboard in Safari",
+          "nodes": [
+            {
+              "target": [
+                ".overflow-hidden > .overflow-x-auto"
+              ],
+              "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 375,
+      "metrics": {
+        "viewport": 375,
+        "scrollWidth": 375,
+        "bodyHeight": 1850,
+        "headings": [
+          {
+            "text": "Dashboard",
+            "font": "30px"
+          },
+          {
+            "text": " Top 5 Members",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Performance (Total Marks)",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Attendance Trend",
+            "font": "20px"
+          },
+          {
+            "text": "Marks Breakdown by Month",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Generate Master PDF",
+            "width": 343,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [
+          {
+            "tag": "TABLE",
+            "class": "min-w-full bg-white",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "THEAD",
+            "class": "bg-slate-100",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TH",
+            "class": "px-3 py-3.5 text-center text-sm font-semibold text-slate-900 w-24",
+            "left": 349,
+            "right": 405
+          },
+          {
+            "tag": "TBODY",
+            "class": "divide-y divide-slate-200",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TD",
+            "class": "whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500",
+            "left": 349,
+            "right": 405
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TD",
+            "class": "whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500",
+            "left": 349,
+            "right": 405
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TD",
+            "class": "whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500",
+            "left": 349,
+            "right": 405
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          }
+        ],
+        "text": "Open main menu\nDashboard\n\nReview session performance across marks and attendance, then export a single master BB report for the active section.\n\nGenerate Master PDF\nTop 5 Members\n1"
+      },
+      "violations": [
+        {
+          "id": "scrollable-region-focusable",
+          "impact": "serious",
+          "description": "Ensure elements that have scrollable content are accessible by keyboard in Safari",
+          "nodes": [
+            {
+              "target": [
+                ".overflow-hidden > .overflow-x-auto"
+              ],
+              "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "metrics": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "bodyHeight": 1850,
+        "headings": [
+          {
+            "text": "Dashboard",
+            "font": "30px"
+          },
+          {
+            "text": " Top 5 Members",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Performance (Total Marks)",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Attendance Trend",
+            "font": "20px"
+          },
+          {
+            "text": "Marks Breakdown by Month",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Generate Master PDF",
+            "width": 358,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [
+          {
+            "tag": "TABLE",
+            "class": "min-w-full bg-white",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "THEAD",
+            "class": "bg-slate-100",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TH",
+            "class": "px-3 py-3.5 text-center text-sm font-semibold text-slate-900 w-24",
+            "left": 349,
+            "right": 405
+          },
+          {
+            "tag": "TBODY",
+            "class": "divide-y divide-slate-200",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TD",
+            "class": "whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500",
+            "left": 349,
+            "right": 405
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TD",
+            "class": "whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500",
+            "left": 349,
+            "right": 405
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TD",
+            "class": "whitespace-nowrap px-3 py-4 text-sm text-center text-slate-500",
+            "left": 349,
+            "right": 405
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          }
+        ],
+        "text": "Open main menu\nDashboard\n\nReview session performance across marks and attendance, then export a single master BB report for the active section.\n\nGenerate Master PDF\nTop 5 Members\n1"
+      },
+      "violations": [
+        {
+          "id": "scrollable-region-focusable",
+          "impact": "serious",
+          "description": "Ensure elements that have scrollable content are accessible by keyboard in Safari",
+          "nodes": [
+            {
+              "target": [
+                ".overflow-hidden > .overflow-x-auto"
+              ],
+              "summary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+            }
+          ]
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 430,
+      "metrics": {
+        "viewport": 430,
+        "scrollWidth": 430,
+        "bodyHeight": 1726,
+        "headings": [
+          {
+            "text": "Dashboard",
+            "font": "30px"
+          },
+          {
+            "text": " Top 5 Members",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Performance (Total Marks)",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Attendance Trend",
+            "font": "20px"
+          },
+          {
+            "text": "Marks Breakdown by Month",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Generate Master PDF",
+            "width": 398,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [
+          {
+            "tag": "TABLE",
+            "class": "min-w-full bg-white",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "THEAD",
+            "class": "bg-slate-100",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TBODY",
+            "class": "divide-y divide-slate-200",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          },
+          {
+            "tag": "TR",
+            "class": "",
+            "left": 16,
+            "right": 517
+          }
+        ],
+        "text": "Open main menu\nDashboard\n\nReview session performance across marks and attendance, then export a single master BB report for the active section.\n\nGenerate Master PDF\nTop 5 Members\n1"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "metrics": {
+        "viewport": 768,
+        "scrollWidth": 768,
+        "bodyHeight": 1634,
+        "headings": [
+          {
+            "text": "Dashboard",
+            "font": "30px"
+          },
+          {
+            "text": " Top 5 Members",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Performance (Total Marks)",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Attendance Trend",
+            "font": "20px"
+          },
+          {
+            "text": "Marks Breakdown by Month",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Open main menu",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          }
+        ],
+        "overflow": [],
+        "text": "Open main menu\nDashboard\n\nReview session performance across marks and attendance, then export a single master BB report for the active section.\n\nGenerate Master PDF\nTop 5 Members\n1"
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "metrics": {
+        "viewport": 1024,
+        "scrollWidth": 1024,
+        "bodyHeight": 1330,
+        "headings": [
+          {
+            "text": "Dashboard",
+            "font": "30px"
+          },
+          {
+            "text": " Top 5 Members",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Performance (Total Marks)",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Attendance Trend",
+            "font": "20px"
+          },
+          {
+            "text": "Marks Breakdown by Month",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Generate Master PDF",
+            "width": 200,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\nDashboard\n\nReview session performance across marks and attendance, then export a single master BB report for the active "
+      },
+      "violations": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "metrics": {
+        "viewport": 1440,
+        "scrollWidth": 1440,
+        "bodyHeight": 1330,
+        "headings": [
+          {
+            "text": "Dashboard",
+            "font": "30px"
+          },
+          {
+            "text": " Top 5 Members",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Performance (Total Marks)",
+            "font": "20px"
+          },
+          {
+            "text": "Squad Attendance Trend",
+            "font": "20px"
+          },
+          {
+            "text": "Marks Breakdown by Month",
+            "font": "24px"
+          }
+        ],
+        "smallControls": [
+          {
+            "tag": "BUTTON",
+            "label": "Home",
+            "width": 64,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Dashboard",
+            "width": 96,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Weekly Marks",
+            "width": 115,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Archives",
+            "width": 79,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Calendar",
+            "width": 83,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Portal Access",
+            "width": 111,
+            "height": 36,
+            "font": "14px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Section Settings",
+            "width": 40,
+            "height": 40,
+            "font": "16px"
+          },
+          {
+            "tag": "BUTTON",
+            "label": "Generate Master PDF",
+            "width": 200,
+            "height": 36,
+            "font": "14px"
+          }
+        ],
+        "overflow": [],
+        "text": "Home\nDashboard\nWeekly Marks\nArchives\nCalendar\nPortal Access\nDashboard\n\nReview session performance across marks and attendance, then export a single master BB report for the active "
+      },
+      "violations": [],
+      "errors": []
+    }
+  ]
+}
