@@ -51,7 +51,7 @@ Independent testing returned defects rather than accepting changed code as proof
 
 ## Verification evidence
 
-Local typecheck, architecture check, 20 unit suites /152 tests and build passed. H’s final coherent functional run passed118/118 across Chromium/WebKit, with14/14 additional long-name/report/name checks and four separately measured performance cases. F’s final corrective checks passed42/42 roster/leader cases and14/14 WebKit native-entry readiness repeats; the historical full matrix was250/254 and is not relabelled green. CI must pass at the final PR head.
+Local typecheck, architecture check, 20 unit suites / 152 tests and build passed. H’s final coherent functional run passed 118/118 across Chromium/WebKit, with 14/14 additional long-name/report/name checks and four separately measured performance cases. F’s final corrective checks passed 42/42 roster/leader cases and 14/14 WebKit native-entry readiness repeats; the historical full matrix was 250/254 and is not relabelled green. CI must pass at the final PR head.
 
 Final local/CI counts and evidence are recorded in the [review register](review-register.md), [testing standard](testing-and-regressions.md), [audit register](audit-acceptance.md) and `tests/frontend/evidence/`. Browser tests render production components/hooks/services against fully intercepted synthetic HTTP, rejecting unknown external requests. They do not prove server authorization or actual persistence.
 

@@ -62,6 +62,10 @@ Status legend: **P** pending implementation assessment; **R** implemented and in
 | SEC01 | Staff core table RLS; admin/captain-only settings/archive; portal summaries/Edge enforce role and active account | migrations; `tests/sql/company-portal-contract.sql`; `tests/sql/squad-leader-dashboard-contract.sql` | G | R | Source diff and safe SQL contract execution; hidden tabs alone not proof |
 | SEC02 | No protected cached page after logout/role change/account switch; late response cannot rehydrate old identity | `App.tsx`; auth/data hooks; new F7 lifecycle | E/Lead/G | R | Deferred promises, Back/Forward, cached tabs/sheets, revoked portal focus |
 
+## Final integrated checkpoint
+
+The independent final coherent run passed **118/118** actual-App cases across Chromium and WebKit, including all **22 security cases** in one fresh run, without retries, skips or failures. An additional **14/14** report/layout/accessibility-name cases and the independently reviewed visual corrections are recorded in [the current review register](review-register.md) and `tests/frontend/evidence/functional-acceptance.json`. Broad rows remain source-assessed R because their live/backend/device acceptance requirements exceed those synthetic scenarios. The source-review checkpoints below are chronological history; their earlier requests for future browser runs are superseded by this checkpoint, not current open implementation work.
+
 ## Current verification map
 
 All 53 rows link to their owner slice in the [independent review register](review-register.md). The final browser evidence summary and CI links there supersede chronological checkpoints below; those checkpoints retain remediation history. This map identifies concrete frontend evidence without upgrading an entire broad row merely because one path passed.
